@@ -4,28 +4,27 @@ import Button from './Button';
 import api from '../api';
 
 // 1. On accepte la nouvelle prop "refreshTrigger"
-const Gallery = ({ refreshTrigger }) => {
+const Gallery = ({ refreshTrigger, token }) => { 
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    
+    // 1. NOUVEAU : Un compteur dédié aux suppressions
+    const [deleteTrigger, setDeleteTrigger] = useState(0); 
 
     useEffect(() => {
         setIsLoading(true);
         api.get('/photos')
             .then(response => {
-                // Petite astuce : Si ton API renvoie les plus vieilles photos en premier,
-                // tu peux utiliser response.data.reverse() pour avoir les plus récentes en haut !
-                setPhotos(response.data); 
+                setPhotos(response.data.reverse()); 
             })
             .catch(err => console.error("Erreur chargement photos", err))
-            .finally(() => {
-                setIsLoading(false);
-            });
+            .finally(() => setIsLoading(false));
             
-    // 2. LA MAGIE EST ICI : On ajoute refreshTrigger dans le tableau des dépendances
-    }, [refreshTrigger]);
+    // 2. MODIFICATION : On ajoute deleteTrigger pour que la galerie se recharge aussi à la suppression
+    }, [refreshTrigger, deleteTrigger]);
 
     const getFileName = (url) => {
         if (!url) return '';
@@ -59,7 +58,7 @@ const Gallery = ({ refreshTrigger }) => {
                         <div key={photo.id} className="relative group flex flex-col">
                             <div 
                                 className="relative overflow-hidden rounded-xl shadow-md cursor-pointer aspect-square bg-gray-100"
-                                onClick={() => setPicture(photo.url)}
+                                onClick={() => setPicture(photo)}
                             >
                                 <img 
                                     src={photo.url} 
@@ -113,9 +112,11 @@ const Gallery = ({ refreshTrigger }) => {
                 </div>
             )}
 
-            <ImageModal 
+           <ImageModal 
                 picture={picture} 
                 onClose={() => setPicture(null)} 
+                token={token}                
+                onDeleteSuccess={() => setDeleteTrigger(prev => prev + 1)} 
             />
         </div>
     );

@@ -59,7 +59,7 @@ function App() {
                     mais de toute façon le backend rejettera la requête sans token valide */}
                 {token && <Upload onUploadSuccess={handleUploadSuccess} />}
                 
-                <Gallery refreshTrigger={refreshGallery} />
+                <Gallery refreshTrigger={refreshGallery} token={token} />
             </main>
         </div>
     );

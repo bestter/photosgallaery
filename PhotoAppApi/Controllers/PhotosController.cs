@@ -78,7 +78,55 @@ namespace PhotoAppApi.Controllers
             catch (Exception e)
             {
                 _logger.Error($"An error occured in {nameof(UploadPhoto)}", e);
-                throw;
+                return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléversement." });
+            }
+        }
+
+        // DELETE: api/photos/{id} (Privé: connectés seulement)
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePhoto(int id)
+        {
+            try
+            {
+                _logger.Debug($"In {nameof(DeletePhoto)} with id: {id}");
+
+                // 1. Chercher la photo dans la base de données MariaDB
+                var photo = await _context.Photos.FindAsync(id);
+                if (photo == null)
+                {
+                    return NotFound(new { message = $"La photo avec l'ID {id} n'existe pas." });
+                }
+
+                // 2. Construire le chemin physique vers le fichier sur le serveur
+                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var filePath = Path.Combine(rootPath, "images", photo.FileName);
+
+                // 3. Supprimer le fichier physique s'il existe sur le disque dur
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                    _logger.Debug($"Fichier physique supprimé: {filePath}");
+                }
+                else
+                {
+                    _logger.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
+                }
+
+                // 4. Supprimer l'enregistrement de la base de données
+                _context.Photos.Remove(photo);
+                await _context.SaveChangesAsync();
+
+                _logger.Debug($"Enregistrement DB supprimé avec succès pour l'ID: {id}");
+
+                // On retourne un code 200 (Ok) pour confirmer au frontend (React) que tout s'est bien passé
+                return Ok(new { message = "Photo supprimée avec succès." });
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"An error occured in {nameof(DeletePhoto)}", e);
+                // Il est préférable de renvoyer un code 500 (Erreur Serveur) plutôt que de juste faire un "throw" brut
+                return StatusCode(500, new { message = "Une erreur interne est survenue lors de la suppression." });
             }
         }
     }
