@@ -32,3 +32,7 @@ obj/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+# Ignorer les images uploadées par les utilisateurs
+PhotoAppApi/wwwroot/images/
