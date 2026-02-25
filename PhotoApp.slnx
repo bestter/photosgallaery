@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="client-photo/client-photo/client-photo.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="PhotoAppApi/PhotoAppApi.csproj" />
+</Solution>
