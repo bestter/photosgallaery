@@ -37,8 +37,18 @@ const Upload = ({ onUploadSuccess }) => {
             if (fileInputRef.current) fileInputRef.current.value = ''; // On vide aussi l'input
                         
             if (onUploadSuccess) onUploadSuccess();
+            // Dans Upload.jsx, à la fin de handleUpload :
         } catch (error) {
-            alert("Erreur lors de l'envoi de l'image.");
+            // Si l'erreur vient de notre serveur et qu'il y a un message (ex: doublon)
+            if (error.response && error.response.status === 409) {
+                alert("Erreur : " + error.response.data.message);
+            }
+            // Pour toutes les autres erreurs (401 Non autorisé, etc.)
+            else if (error.response && error.response.status === 401) {
+                alert("Erreur : Vous devez être connecté pour uploader.");
+            } else {
+                alert("Erreur lors de l'envoi de l'image.");
+            }
             console.error(error);
         }
     };

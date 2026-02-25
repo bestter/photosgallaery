@@ -1,11 +1,9 @@
-﻿using log4net;
-using log4net.Repository.Hierarchy;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
-using System.Reflection;
+using System.Security.Cryptography;
 
 namespace PhotoAppApi.Controllers
 {
@@ -47,6 +45,26 @@ namespace PhotoAppApi.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest("Aucun fichier détecté.");
 
+
+                string fileHash;
+                using (var stream = file.OpenReadStream())
+                {
+                    using (var sha256 = SHA256.Create())
+                    {
+                        var hashBytes = await sha256.ComputeHashAsync(stream);
+                        fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                    }
+                }
+
+                // 2. Vérifier si cette empreinte existe déjà dans MariaDB
+                bool isDuplicate = await _context.Photos.AnyAsync(p => p.FileHash == fileHash);
+                if (isDuplicate)
+                {
+                    // On retourne une erreur 409 (Conflict) avec un message clair
+                    return Conflict(new { message = "Cette image existe déjà dans la galerie !" });
+                }
+
+
                 // 1. Sauvegarder le fichier sur le serveur (dossier wwwroot/images)
                 var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var uploadsFolder = Path.Combine(rootPath, "images");
@@ -67,7 +85,8 @@ namespace PhotoAppApi.Controllers
                 {
                     FileName = uniqueFileName,
                     Url = $"{Request.Scheme}://{Request.Host}/images/{uniqueFileName}",
-                    UploaderUsername = User.Identity?.Name ?? "Anonyme"
+                    UploaderUsername = User.Identity?.Name ?? "Anonyme",
+                    FileHash = fileHash // <-- NOUVEAU
                 };
 
                 _context.Photos.Add(photo);
@@ -127,6 +146,73 @@ namespace PhotoAppApi.Controllers
                 _logger.Error($"An error occured in {nameof(DeletePhoto)}", e);
                 // Il est préférable de renvoyer un code 500 (Erreur Serveur) plutôt que de juste faire un "throw" brut
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de la suppression." });
+            }
+        }
+
+        // POST: api/photos/maintenance/backfill-hashes (Privé: Admin seulement)
+        // Route temporaire pour mettre à jour les anciennes images
+        [Authorize]
+        [HttpPost("maintenance/backfill-hashes")]
+        public async Task<IActionResult> BackfillHashes()
+        {
+            try
+            {
+                _logger.Debug($"In {nameof(BackfillHashes)}");
+
+                // 1. Récupérer toutes les photos qui n'ont pas encore de Hash
+                var photosSansHash = await _context.Photos
+                    .Where(p => string.IsNullOrEmpty(p.FileHash))
+                    .ToListAsync();
+
+                if (!photosSansHash.Any())
+                {
+                    return Ok(new { message = "Toutes les photos ont déjà un FileHash. Rien à faire !" });
+                }
+
+                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                int updatedCount = 0;
+                int missingFilesCount = 0;
+
+                using (var sha256 = SHA256.Create())
+                {
+                    // 2. Boucler sur chaque photo
+                    foreach (var photo in photosSansHash)
+                    {
+                        var filePath = Path.Combine(rootPath, "images", photo.FileName);
+
+                        // 3. Vérifier si le fichier physique existe toujours
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            // Calculer le hash
+                            using (var stream = System.IO.File.OpenRead(filePath))
+                            {
+                                var hashBytes = await sha256.ComputeHashAsync(stream);
+                                photo.FileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                            }
+                            updatedCount++;
+                        }
+                        else
+                        {
+                            missingFilesCount++;
+                            _logger.Warn($"Fichier introuvable pour la photo ID {photo.Id} : {filePath}");
+                        }
+                    }
+                }
+
+                // 4. Sauvegarder toutes les modifications d'un coup dans MariaDB
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Mise à jour terminée.",
+                    photosMisesAJour = updatedCount,
+                    fichiersIntrouvables = missingFilesCount
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(BackfillHashes)}", e);
+                return StatusCode(500, "Erreur interne lors de la mise à jour des empreintes.");
             }
         }
     }

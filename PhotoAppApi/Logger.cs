@@ -25,6 +25,11 @@ namespace PhotoAppApi
         {
             this._logger?.Info(message);
         }
+        public void Warn(string message)
+        {
+            this._logger?.Warn(message);
+        }
+
         public void Error(string message, Exception? ex = null)
         {
             this._logger?.Error(message, ex?.InnerException);
