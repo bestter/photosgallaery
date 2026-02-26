@@ -3,6 +3,7 @@ import Gallery from './components/Gallery';
 import Upload from './components/Upload';
 import api from './api';
 import Button from './components/Button';
+import logo from './photoGalleryLogo2.png';
 
 function App() {
     // Simulation simple de Login pour l'exemple
@@ -43,16 +44,47 @@ function App() {
 
     return (
         <div>
-            <header className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg flex items-center gap-x-4">
-                <h1>Mon Gestionnaire Photo</h1>
-                <div className="text-xl font-medium text-black">
-                    {token ? (
-                        <Button size="sm" variant="outline" onClick={logout}>Se déconnecter</Button>
-                    ) : (
-                            <Button size="sm" variant="outline" onClick={() => { handleLogin('admin', 'password'); } }>Se connecter (Test)</Button>
-                    )}
-                </div>
-            </header>
+            <header className="w-full bg-white border-b border-gray-200 shadow-sm">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        {/* Section Logo et Titre */}
+        <div className="flex items-center gap-x-4">
+            <div className="relative h-12 w-12 flex-shrink-0">
+                <img 
+                    src={logo} 
+                    alt="Logo" 
+                    className="h-full w-full object-contain" // Garde les proportions
+                />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                Mon Gestionnaire <span className="text-cyan-600">Photo</span>
+            </h1>
+        </div>
+
+        {/* Section Authentification */}
+        <div className="flex items-center">
+            {token ? (
+                <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-gray-300 hover:bg-gray-50"
+                    onClick={logout}
+                >
+                    Se déconnecter
+                </Button>
+            ) : (
+                <Button 
+                    size="sm" 
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                    onClick={() => handleLogin('admin', 'password')}
+                >
+                    Connexion
+                </Button>
+            )}
+        </div>
+
+    </div>
+</header>
             
             <main className="block">
                 {/* Le composant Upload n'est affiché que si on a un token, 
