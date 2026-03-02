@@ -11,28 +11,22 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
-  // On vérifie que picture existe bien
   if (!picture) return null;
 
-  // Fonction pour l'Admin
-// La vraie fonction connectée à ton API C#
+  // Fonction de suppression (Admin / Propriétaire)
   const handleDelete = async () => {
     if (window.confirm("Es-tu sûr de vouloir supprimer cette image définitivement ?")) {
       try {
-        // ON A DÉCOMMENTÉ L'APPEL API ICI :
-        await api.delete(`/photos/${picture.id}`, { 
-            headers: { Authorization: `Bearer ${token}` } 
-        });
+        // L'intercepteur d'api.js ajoute automatiquement le token, plus besoin de le préciser !
+        await api.delete(`/photos/${picture.id}`);
         
-        // Si le C# répond OK (Code 200), on exécute la suite :
         alert("L'image a été supprimée avec succès !");
         
-        if (onDeleteSuccess) onDeleteSuccess(); // Dit à la Galerie de se rafraîchir
+        if (onDeleteSuccess) onDeleteSuccess(); // Avertit la Galerie de recharger les images
         onClose(); // Ferme la fenêtre modale
         
       } catch (error) {
         console.error("Erreur lors de la suppression", error);
-        // Si le C# répond 401 (Non autorisé) ou 500 (Erreur serveur)
         alert("Erreur: Impossible de supprimer l'image. Vérifie que tu es bien connecté.");
       }
     }
@@ -40,11 +34,10 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
 
   // Fonction pour le Visiteur
   const handleReport = async () => {
-    // Demande la raison du signalement
     const reason = window.prompt("Pourquoi signalez-vous cette image ?");
     if (reason) {
       try {
-        // Remplacer par la vraie route de ton API C#
+        // À décommenter quand la route C# sera prête
         // await api.post(`/photos/${picture.id}/report`, { reason });
         alert("Merci. L'administrateur a été notifié de ce problème.");
         onClose();
@@ -74,13 +67,13 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
 
         <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100">
           <img
-            src={picture.url} // On rajoute le .url ici puisqu'on reçoit l'objet complet !
+            src={picture.url} 
             alt="Plein écran"
             className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg shadow-inner"
           />
         </div>
 
-        {/* LA BARRE D'ACTIONS SOUS L'IMAGE */}
+        {/* Barre d'actions */}
         <div className="w-full mt-4 flex items-center justify-between px-2">
           <div className="text-sm text-gray-500">
             {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}

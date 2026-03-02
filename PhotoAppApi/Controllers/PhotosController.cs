@@ -36,67 +36,95 @@ namespace PhotoAppApi.Controllers
         // POST: api/photos/upload (Privé: connectés seulement)
         [Authorize]
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadPhoto(IFormFile file)
+        [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
+        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files) // <-- CHANGEMENT : List<IFormFile>
         {
             try
             {
-                _logger.Debug($"In {nameof(UploadPhoto)}");
+                _logger.Debug($"In {nameof(UploadPhotos)}");
 
-                if (file == null || file.Length == 0)
-                    return BadRequest("Aucun fichier détecté.");
+                if (files == null || files.Count == 0)
+                    return BadRequest(new { message = "Aucun fichier détecté." });
 
-
-                string fileHash;
-                using (var stream = file.OpenReadStream())
+                // 1. Vérification de la taille totale avant de traiter quoi que ce soit
+                long totalSize = files.Sum(f => f.Length);
+                if (totalSize > 52428800)
                 {
-                    using (var sha256 = SHA256.Create())
-                    {
-                        var hashBytes = await sha256.ComputeHashAsync(stream);
-                        fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-                    }
+                    return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });
                 }
 
-                // 2. Vérifier si cette empreinte existe déjà dans MariaDB
-                bool isDuplicate = await _context.Photos.AnyAsync(p => p.FileHash == fileHash);
-                if (isDuplicate)
-                {
-                    // On retourne une erreur 409 (Conflict) avec un message clair
-                    return Conflict(new { message = "Cette image existe déjà dans la galerie !" });
-                }
-
-
-                // 1. Sauvegarder le fichier sur le serveur (dossier wwwroot/images)
                 var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var uploadsFolder = Path.Combine(rootPath, "images");
 
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                var uploadedPhotos = new List<Photo>();
+                var errors = new List<string>();
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                // 2. Boucler sur chaque fichier envoyé
+                foreach (var file in files)
                 {
-                    await file.CopyToAsync(stream);
+                    if (file.Length == 0) continue;
+
+                    string fileHash;
+                    using (var stream = file.OpenReadStream())
+                    {
+                        using (var sha256 = SHA256.Create())
+                        {
+                            var hashBytes = await sha256.ComputeHashAsync(stream);
+                            fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                        }
+                    }
+
+                    // 3. Vérifier les doublons
+                    bool isDuplicate = await _context.Photos.AnyAsync(p => p.FileHash == fileHash);
+                    if (isDuplicate)
+                    {
+                        // Au lieu de bloquer toute la requête, on note l'erreur et on passe à l'image suivante
+                        errors.Add($"L'image '{file.FileName}' existe déjà dans la galerie.");
+                        continue;
+                    }
+
+                    // 4. Sauvegarde physique
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // 5. Préparation des métadonnées
+                    var photo = new Photo
+                    {
+                        FileName = uniqueFileName,
+                        Url = $"{Request.Scheme}://{Request.Host}/images/{uniqueFileName}",
+                        UploaderUsername = User.Identity?.Name ?? "Anonyme",
+                        FileHash = fileHash
+                    };
+
+                    _context.Photos.Add(photo);
+                    uploadedPhotos.Add(photo);
                 }
 
-                // 2. Sauvegarder les métadonnées dans MySQL
-                var photo = new Photo
+                // 6. Sauvegarder dans MariaDB s'il y a eu de nouvelles images
+                if (uploadedPhotos.Any())
                 {
-                    FileName = uniqueFileName,
-                    Url = $"{Request.Scheme}://{Request.Host}/images/{uniqueFileName}",
-                    UploaderUsername = User.Identity?.Name ?? "Anonyme",
-                    FileHash = fileHash // <-- NOUVEAU
-                };
+                    await _context.SaveChangesAsync();
+                }
 
-                _context.Photos.Add(photo);
-                await _context.SaveChangesAsync();
-
-                return Ok(photo);
+                // 7. Retourner un résumé clair au client React
+                return Ok(new
+                {
+                    message = $"{uploadedPhotos.Count} image(s) téléversée(s) avec succès.",
+                    photos = uploadedPhotos,
+                    erreurs = errors // React pourra afficher la liste des fichiers refusés
+                });
             }
             catch (Exception e)
             {
-                _logger.Error($"An error occured in {nameof(UploadPhoto)}", e);
+                _logger.Error($"An error occured in {nameof(UploadPhotos)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléversement." });
             }
         }

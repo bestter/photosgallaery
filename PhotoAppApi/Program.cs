@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -8,16 +9,28 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- NOUVEAU : Configuration de la limite à 50 Mo (52 428 800 octets) ---
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 52428800; // Limite globale du serveur
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 52428800; // Limite spécifique pour les formulaires multipart (fichiers)
+});
+// ------------------------------------------------------------------------
+
 // 1. Connexion MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// 2. Configuration CORS (Pour laisser React communiquer avec l'API)
+// 2. Configuration CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        b => b.WithOrigins("http://localhost:3000") // Port par défaut de React
+        b => b.WithOrigins("http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -29,7 +42,6 @@ if (secretKey == null)
     throw new NotSupportedException("La clé secrète pour JWT n'est pas définie dans appsettings.json !");
 }
 
-// 2. Configurer le service d'authentification
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -41,27 +53,17 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            // Cela affichera l'erreur réelle dans ta console de debug (Ex: Token expiré, Signature invalide...)
             Console.WriteLine("Auth échouée : " + context.Exception.Message);
             return Task.CompletedTask;
         }
     };
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        // On demande à l'API de valider la signature avec notre clé secrète
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-
-        // Pour un projet de développement, on désactive souvent ces deux validations.
-        // En production, tu mettrais l'URL de ton API (Issuer) et de ton app React (Audience).
         ValidateIssuer = false,
         ValidateAudience = false,
-
-        // On vérifie que le jeton n'est pas expiré (les 24h qu'on a définies)
         ValidateLifetime = true,
-
-        // Optionnel mais recommandé : supprime le délai de grâce par défaut de 5 minutes 
-        // que Microsoft ajoute à l'expiration.
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -78,30 +80,19 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         Description = "JWT Authorization header using the Bearer scheme."
     });
-
 });
-
 
 builder.Services.AddLog4net();
 
-
-//builder.ConfigureLogging(logBuilder =>
-// {
-//     logBuilder.SetMinimumLevel(LogLevel.Trace);
-//     logBuilder.AddLog4Net("log4net.config");
-
-// }).UseConsoleLifetime();
-
 var app = builder.Build();
 
-// Pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles(); // Important pour servir les images
+app.UseStaticFiles();
 app.UseCors("AllowReactApp");
 
 app.UseAuthentication();

@@ -762,10 +762,6 @@ video {
   max-width: 80rem;
 }
 
-.max-w-\[200px\] {
-  max-width: 200px;
-}
-
 .max-w-\[95vw\] {
   max-width: 95vw;
 }
