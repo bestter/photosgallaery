@@ -23,16 +23,21 @@ builder.Services.AddCors(options =>
 });
 
 // 3. Authentification (JWT Simplifié)
-// NOTE: Dans un vrai projet, utilisez une clé secrète stockée dans les variables d'environnement
-var key = Encoding.ASCII.GetBytes("UneCleSecreteTresLonguePourLaSecurite12345");
-builder.Services.AddAuthentication(x =>
+var secretKey = builder.Configuration["Jwt:Key"];
+if (secretKey == null)
 {
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    throw new NotSupportedException("La clé secrète pour JWT n'est pas définie dans appsettings.json !");
+}
+
+// 2. Configurer le service d'authentification
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(x =>
+.AddJwtBearer(options =>
 {
-    x.Events = new JwtBearerEvents
+    options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
         {
@@ -41,14 +46,23 @@ builder.Services.AddAuthentication(x =>
             return Task.CompletedTask;
         }
     };
-    x.RequireHttpsMetadata = false;
-    x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
+        // On demande à l'API de valider la signature avec notre clé secrète
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+
+        // Pour un projet de développement, on désactive souvent ces deux validations.
+        // En production, tu mettrais l'URL de ton API (Issuer) et de ton app React (Audience).
         ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateAudience = false,
+
+        // On vérifie que le jeton n'est pas expiré (les 24h qu'on a définies)
+        ValidateLifetime = true,
+
+        // Optionnel mais recommandé : supprime le délai de grâce par défaut de 5 minutes 
+        // que Microsoft ajoute à l'expiration.
+        ClockSkew = TimeSpan.Zero
     };
 });
 
