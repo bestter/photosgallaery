@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import api from '../api';
 import Button from './Button';
 import toast from 'react-hot-toast'; // Importation de toast
+import { isTokenExpired } from './authHelper'; // On va créer cette petite fonction
 
-const Upload = ({ onUploadSuccess }) => {
+const Upload = ({ onUploadSuccess, token, setToken }) => {
     const [files, setFiles] = useState([]); 
     const [isUploading, setIsUploading] = useState(false); 
     const fileInputRef = useRef(null);
@@ -28,7 +29,22 @@ const Upload = ({ onUploadSuccess }) => {
         }
     };
 
+    const isSessionValid = () => {
+        if (!token || isTokenExpired(token)) {
+            return false;
+        }
+        return true;
+    };
+
     const handleUpload = async () => {
+        // 1. Vérification AVANT de lancer l'appel API
+        if (!isSessionValid()) {
+            toast.error("Votre session a expiré. Veuillez vous reconnecter.", { icon: 'lock' });
+            if (setToken) setToken(null); // Nettoie l'état global
+            localStorage.removeItem('token'); // Nettoie le stockage
+            return;
+        }
+
         if (files.length === 0) return toast.error("Veuillez choisir au moins un fichier");
 
         const formData = new FormData();
@@ -80,7 +96,8 @@ const Upload = ({ onUploadSuccess }) => {
     const totalSizeDisplay = (files.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2);
 
     return (
-        <div className="border border-dashed border-blue-500 my-4 mx-0 p-4 rounded-lg"> 
+        isSessionValid() ? (
+            <div className="border border-dashed border-blue-500 my-4 mx-0 p-4 rounded-lg animate-in fade-in duration-500">
             <h3 className="text-lg font-bold mb-2">Upload de Photos (Membres seulement)</h3>
             <label className="block mb-4 text-sm font-medium text-gray-700" htmlFor="file_input">Téléverser jusqu'à 50 Mo</label>
             
@@ -129,8 +146,9 @@ const Upload = ({ onUploadSuccess }) => {
                  </Button>
               )}
 
-            </div>
+            </div>        
         </div>
+        ) : null
     ); 
 };
 

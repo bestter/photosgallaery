@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const API_URL = 'http://localhost:5020/api'; // Ajustez selon le port de votre backend
 
@@ -14,5 +15,19 @@ axiosInstance.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// Dans api.js
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // On affiche un toast une seule fois pour toutes les erreurs 401
+            toast.error("Session expirée. Déconnexion automatique...");
+            localStorage.removeItem('token');
+            window.location.href = '/login'; // Redirection forcée
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default axiosInstance;

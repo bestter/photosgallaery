@@ -21,3 +21,16 @@ export const getUsernameFromToken = (token) => {
         return null;
     }
 };
+
+export const isTokenExpired = (token) => {
+    if (!token || token === "null" || token === "undefined") return true;
+    try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        
+        // On ajoute une petite marge de 10 secondes pour être sûr
+        return decoded.exp < (currentTime - 10); 
+    } catch (error) {
+        return true; 
+    }
+};

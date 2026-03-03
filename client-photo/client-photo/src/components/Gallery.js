@@ -43,7 +43,9 @@ const Gallery = ({ refreshTrigger, token }) => {
             
             {/* 4. NOUVEAU : On insère le composant Upload juste au-dessus de la grille. 
                 Lors d'un succès, on incrémente uploadTrigger, ce qui relance le useEffect ! */}
-            <Upload onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} />
+            
+            <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} 
+/>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
                 
