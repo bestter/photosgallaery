@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import Button from './Button';
 import toast from 'react-hot-toast';
+import { getUserRole} from './authHelper';
 
 const Login = ({ setToken }) => { 
     const navigate = useNavigate();
@@ -23,6 +24,25 @@ const Login = ({ setToken }) => {
                     localStorage.setItem('token', response.data.token);
                     if (setToken) setToken(response.data.token);
                     
+
+                    const role = getUserRole(response.data.token);
+    if (role === 'Admin') {
+        toast((t) => (
+            <span className="flex items-center gap-2">
+                Il y a des signalements en attente !
+                <button 
+                    onClick={() => {
+                        toast.dismiss(t.id);
+                        navigate('/admin');
+                    }}
+                    className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold"
+                >
+                    Voir
+                </button>
+            </span>
+        ), { duration: 6000, icon: '🚨', position: 'top-center' });
+    }
+
                     // Redirection rapide après le succès
                     setTimeout(() => navigate('/'), 1000);
                     return `Ravi de vous revoir, ${username} !`;
