@@ -66,10 +66,17 @@ const Navbar = ({ token, setToken }) => {
             </style>
             
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                    <span className="text-2xl font-extrabold text-teal-600">MaGalerie</span>
-                    <img src="/photoGalleryLogo2.png" alt="Logo" className="h-10 w-auto object-contain" />
-                </Link>
+                {/* Section Gauche : Texte solide Teal pour une visibilité garantie */}
+<Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+    <span className="text-2xl font-extrabold text-teal-600">
+        MaGalerie
+    </span>
+    <img 
+        src="/photoGalleryLogo2.png" 
+        alt="Logo" 
+        className="h-10 w-auto object-contain" 
+    />
+</Link>
 
                 <div className="flex items-center gap-4">
                     {!token ? (

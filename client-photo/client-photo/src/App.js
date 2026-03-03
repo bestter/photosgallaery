@@ -9,6 +9,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import AdminDashboard from './components/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
+import Footer from './components/Footer';
 
 function App() {
     // L'état centralisé pour savoir si l'utilisateur est connecté
@@ -41,7 +42,7 @@ function App() {
                         />
                     </Routes>
                 </main>
-                
+                <Footer />
             </div>
         </Router>
     );
