@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react'; // Ajout de useCallback
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getUserRole } from './authHelper';
 import Button from './Button';
@@ -7,39 +7,37 @@ import api from '../api';
 const Navbar = ({ token, setToken }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    
-    // État pour stocker le nombre de signalements
     const [reportCount, setReportCount] = useState(0);
     const role = getUserRole(token);
 
-    // Fonction de vérification du nombre de signalements
-    const checkReports = async () => {
+    // 1. On enveloppe checkReports dans useCallback
+    // Cela stabilise la fonction pour ESLint
+    const checkReports = useCallback(async () => {
         if (role === 'Admin') {
             try {
                 const res = await api.get('/admin/reports');
-                // On met à jour le compteur avec la longueur du tableau reçu
                 setReportCount(res.data.length);
             } catch (err) {
                 console.error("Erreur lors de la vérification des signalements", err);
             }
         }
-    };
+    }, [role]); // Dépendance : se recalcule si le rôle change
 
-    // Surveillance automatique toutes les 60 secondes
+    // 2. Surveillance automatique (Polling)
     useEffect(() => {
         if (role === 'Admin') {
             checkReports();
             const interval = setInterval(checkReports, 60000); 
             return () => clearInterval(interval);
         }
-    }, [role, token]);
+    }, [role, checkReports]); // checkReports est maintenant une dépendance stable
 
-    // Vérification immédiate à chaque changement de page
+    // 3. Vérification immédiate au changement de page
     useEffect(() => {
         if (role === 'Admin') {
             checkReports();
         }
-    }, [location.pathname]);
+    }, [location.pathname, checkReports, role]); // Ajout des dépendances manquantes
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -47,7 +45,6 @@ const Navbar = ({ token, setToken }) => {
         navigate('/');
     };
 
-    // Le bouton clignote si le compteur est supérieur à 0
     const hasReports = reportCount > 0;
 
     return (
@@ -66,17 +63,10 @@ const Navbar = ({ token, setToken }) => {
             </style>
             
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                {/* Section Gauche : Texte solide Teal pour une visibilité garantie */}
-<Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-    <span className="text-2xl font-extrabold text-teal-600">
-        MaGalerie
-    </span>
-    <img 
-        src="/photoGalleryLogo2.png" 
-        alt="Logo" 
-        className="h-10 w-auto object-contain" 
-    />
-</Link>
+                <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <span className="text-2xl font-extrabold text-teal-600">MaGalerie</span>
+                    <img src="/photoGalleryLogo2.png" alt="Logo" className="h-10 w-auto object-contain" />
+                </Link>
 
                 <div className="flex items-center gap-4">
                     {!token ? (
