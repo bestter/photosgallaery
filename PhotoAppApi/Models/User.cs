@@ -8,5 +8,8 @@
         // C'est ici que le mot de passe "brouillé" sera stocké
         public string PasswordHash { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // LA NOUVELLE SOLUTION :
+        public string Role { get; set; } = "User"; // Par défaut, tout le monde est un simple utilisateur
     }
 }

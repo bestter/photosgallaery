@@ -142,7 +142,15 @@ namespace PhotoAppApi.Controllers
                 var photo = await _context.Photos.FindAsync(id);
                 if (photo == null)
                 {
-                    return NotFound(new { message = $"La photo avec l'ID {id} n'existe pas." });
+                    return NotFound();
+                }
+
+                var currentUsername = User.Identity?.Name;
+                var isAdmin = User.IsInRole("Admin");
+
+                if (photo.UploaderUsername != currentUsername && !isAdmin)
+                {
+                    return Forbid(); // Retourne une erreur 403 : "Tu n'as pas le droit !"
                 }
 
                 // 2. Construire le chemin physique vers le fichier sur le serveur
@@ -243,5 +251,50 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, "Erreur interne lors de la mise à jour des empreintes.");
             }
         }
+
+        // POST: api/photos/{id}/report (Public: Visiteurs)
+        [HttpPost("{id}/report")]
+        public async Task<IActionResult> ReportPhoto(int id, [FromBody] ReportDto request)
+        {
+            try
+            {
+                _logger.Debug($"In {nameof(ReportPhoto)} for photo ID: {id}");
+
+                // 1. Vérifier si l'image existe toujours
+                var photo = await _context.Photos.FindAsync(id);
+                if (photo == null)
+                {
+                    return NotFound(new { message = "L'image que vous essayez de signaler n'existe plus." });
+                }
+
+                // 2. Vérifier que la raison n'est pas vide
+                if (string.IsNullOrWhiteSpace(request.Reason))
+                {
+                    return BadRequest(new { message = "La raison du signalement est obligatoire." });
+                }
+
+                // 3. Créer et sauvegarder le signalement
+                var report = new ImageReport
+                {
+                    PhotoId = id,
+                    Reason = request.Reason
+                };
+
+                _context.ImageReports.Add(report);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Signalement enregistré avec succès. Un administrateur a été notifié." });
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(ReportPhoto)}", e);
+                return StatusCode(500, new { message = "Une erreur interne est survenue lors du signalement." });
+            }
+        }
+    }
+
+    public class ReportDto
+    {
+        public string Reason { get; set; } = string.Empty;
     }
 }

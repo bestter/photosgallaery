@@ -68,7 +68,8 @@ namespace PhotoAppApi.Controllers
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Username)
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Role, user.Role)
     };
 
             // Note: En production, mets cette clé dans appsettings.json !

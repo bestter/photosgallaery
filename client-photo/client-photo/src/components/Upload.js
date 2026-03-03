@@ -1,75 +1,69 @@
 import React, { useState, useRef } from 'react';
 import api from '../api';
 import Button from './Button';
+import toast from 'react-hot-toast'; // Importation de toast
 
 const Upload = ({ onUploadSuccess }) => {
-    // 1. On passe d'un fichier unique à un tableau de fichiers
     const [files, setFiles] = useState([]); 
-    const [isUploading, setIsUploading] = useState(false); // Pour bloquer les doubles clics
+    const [isUploading, setIsUploading] = useState(false); 
     const fileInputRef = useRef(null);
 
-    // Limite stricte de 50 Mo (en octets)
     const MAX_SIZE_BYTES = 50 * 1024 * 1024; 
 
     const handleFileChange = (event) => {
-        // Convertir la FileList en vrai tableau JavaScript
         const selectedFiles = Array.from(event.target.files);
         
         if (selectedFiles.length > 0) {
-            // 2. Calculer le poids total de la sélection
             const totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
 
             if (totalSize > MAX_SIZE_BYTES) {
-                alert("La taille totale dépasse la limite de 50 Mo. Veuillez sélectionner moins d'images.");
-                if (fileInputRef.current) fileInputRef.current.value = ''; // On vide l'input
+                // Remplacement de alert par toast.error
+                toast.error("La taille totale dépasse la limite de 50 Mo.");
+                if (fileInputRef.current) fileInputRef.current.value = ''; 
                 return;
             }
 
-            console.log(`${selectedFiles.length} fichier(s) sélectionné(s).`);
             setFiles(selectedFiles);
+            toast.success(`${selectedFiles.length} fichier(s) prêt(s) !`, { icon: '📸' });
         }
     };
 
     const handleUpload = async () => {
-        if (files.length === 0) return alert("Veuillez choisir au moins un fichier");
+        if (files.length === 0) return toast.error("Veuillez choisir au moins un fichier");
 
         const formData = new FormData();
-        
-        // 3. On attache CHAQUE fichier à la même clé "files" pour que C# reçoive une List<IFormFile>
         files.forEach(file => {
             formData.append('files', file);
         });
 
         setIsUploading(true);
 
-        try {
-            // L'intercepteur d'api.js s'occupe déjà d'injecter le token !
-            const response = await api.post('/photos/upload', formData);
-            
-            // On affiche le message de succès renvoyé par le backend
-            alert(response.data.message);
-            
-            // Si le backend nous signale des doublons, on en informe l'utilisateur
-            if (response.data.erreurs && response.data.erreurs.length > 0) {
-                alert("Attention, certaines images n'ont pas été ajoutées :\n\n" + response.data.erreurs.join('\n'));
+        // Utilisation de toast.promise pour une gestion élégante du chargement
+        toast.promise(
+            api.post('/photos/upload', formData),
+            {
+                loading: 'Téléversement de vos images...',
+                success: (response) => {
+                    // Si le backend signale des doublons malgré le succès partiel
+                    if (response.data.erreurs && response.data.erreurs.length > 0) {
+                        toast(
+                            `Certains doublons ont été ignorés.`,
+                            { icon: '⚠️', duration: 4000 }
+                        );
+                    }
+                    
+                    handleClearSelection();
+                    if (onUploadSuccess) onUploadSuccess();
+                    return response.data.message || "Images ajoutées !";
+                },
+                error: (error) => {
+                    if (error.response?.status === 401) return "Session expirée. Reconnectez-vous.";
+                    return error.response?.data?.message || "Erreur lors de l'envoi.";
+                }
             }
-
-            // On réinitialise tout après un succès
-            handleClearSelection();
-            if (onUploadSuccess) onUploadSuccess();
-            
-        } catch (error) {
-            if (error.response?.data?.message) {
-                alert("Erreur : " + error.response.data.message);
-            } else if (error.response && error.response.status === 401) {
-                alert("Erreur : Vous devez être connecté pour téléverser des images.");
-            } else {
-                alert("Erreur inattendue lors de l'envoi des images.");
-            }
-            console.error(error);
-        } finally {
-            setIsUploading(false); // On libère le bouton
-        }
+        ).finally(() => {
+            setIsUploading(false);
+        });
     };
 
     const handleCustomButtonClick = () => {
@@ -83,7 +77,6 @@ const Upload = ({ onUploadSuccess }) => {
         }
     };
 
-    // Calcul de la taille totale pour l'affichage visuel (en Mo)
     const totalSizeDisplay = (files.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2);
 
     return (
@@ -102,7 +95,6 @@ const Upload = ({ onUploadSuccess }) => {
                 {files.length > 0 ? "Changer la sélection" : "Sélectionner des images"}
               </Button>
 
-              {/* Affichage du résumé de la sélection */}
               {files.length > 0 && (
                 <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-sm text-gray-700 font-medium">
@@ -128,10 +120,9 @@ const Upload = ({ onUploadSuccess }) => {
                 ref={fileInputRef}
                 className="hidden" 
                 accept="image/*"  
-                multiple // <-- TRÈS IMPORTANT : Permet la sélection multiple
+                multiple 
               />            
               
-              {/* Le bouton Envoyer */}
               {files.length > 0 && (
                  <Button onClick={handleUpload} id="file_input" size="md" disabled={isUploading}>
                     {isUploading ? "Envoi en cours..." : "Envoyer"}

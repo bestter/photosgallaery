@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import Button from './Button';
+import toast from 'react-hot-toast';
 
 const Register = () => {
-    const navigate = useNavigate(); // Initialisation de la fonction de navigation
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         username: '',
@@ -13,9 +14,7 @@ const Register = () => {
         confirmPassword: ''
     });
     
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(''); // Nouvel état pour le succès
-    const [isLoading, setIsLoading] = useState(false); // Pour bloquer le bouton pendant la requête
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,119 +22,92 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
 
-        // Validation simple
+        // Validation locale avant l'envoi
         if (formData.password !== formData.confirmPassword) {
-            setError("Les mots de passe ne correspondent pas.");
+            toast.error("Les mots de passe ne correspondent pas.");
             return;
         }
 
         setIsLoading(true);
 
-        try {
-            const response = await api.post('auth/register', {
+        // Utilisation de toast.promise pour une expérience fluide
+        toast.promise(
+            api.post('auth/register', {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password
-            });
-
-            console.log("Compte créé avec succès !", response.data);
-            
-            // On affiche le message de succès
-            setSuccess("Compte créé avec succès ! Redirection vers la connexion...");
-            
-            // On attend 3 secondes (3000 ms) puis on redirige vers /login
-            setTimeout(() => {
-                navigate('/login');
-            }, 3000);
-
-        } catch (err) {
-            setError(err.response?.data?.message || "Une erreur est survenue lors de l'inscription.");
-            setIsLoading(false); // On réactive le bouton seulement s'il y a une erreur
-        }
-    };
-
-    const styles = {
-        button: {
-            backgroundColor: (isLoading || success) ? '#a9dfdf' : '#008b8b', // Couleur plus claire si désactivé
-            color: 'white',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: (isLoading || success) ? 'not-allowed' : 'pointer',
-            width: '100%',
-            marginTop: '10px'
-        },
-        errorBox: {
-            color: '#d32f2f',
-            backgroundColor: '#ffebee',
-            padding: '10px',
-            borderRadius: '4px',
-            marginBottom: '15px'
-        },
-        successBox: {
-            color: '#2e7d32',
-            backgroundColor: '#e8f5e9',
-            padding: '10px',
-            borderRadius: '4px',
-            marginBottom: '15px'
-        }
+            }),
+            {
+                loading: 'Création de votre compte...',
+                success: (response) => {
+                    // On attend un peu pour que l'utilisateur lise le message avant de rediriger
+                    setTimeout(() => navigate('/login'), 2000);
+                    return "Compte créé ! Redirection vers la connexion...";
+                },
+                error: (err) => {
+                    setIsLoading(false);
+                    return err.response?.data?.message 
+                        || (typeof err.response?.data === 'string' ? err.response.data : null)
+                        || "Une erreur est survenue lors de l'inscription.";
+                }
+            }
+        );
     };
 
     return (
-        <div className="register-container" style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
-            <h2>Créer un compte</h2>
+        <div className="register-container" style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
+            <h2 className="text-2xl font-bold mb-6">Créer un compte</h2>
             
-            {/* Affichage dynamique des messages */}
-            {error && <div style={styles.errorBox}>{error}</div>}
-            {success && <div style={styles.successBox}>{success}</div>}
-            
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <input 
                     name="username" 
+                    value={formData.username}
                     placeholder="Nom d'utilisateur" 
                     onChange={handleChange} 
                     required 
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    disabled={success !== ''} // Désactive l'input pendant la redirection
+                    disabled={isLoading}
+                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                 />
                 <input 
                     type="email" 
                     name="email" 
+                    value={formData.email}
                     placeholder="Courriel" 
                     onChange={handleChange} 
                     required 
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    disabled={success !== ''}
+                    disabled={isLoading}
+                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                 />
                 <input 
                     type="password" 
                     name="password" 
+                    value={formData.password}
                     placeholder="Mot de passe" 
                     onChange={handleChange} 
                     required 
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    disabled={success !== ''}
+                    disabled={isLoading}
+                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                 />
                 <input 
                     type="password" 
                     name="confirmPassword" 
+                    value={formData.confirmPassword}
                     placeholder="Confirmer le mot de passe" 
                     onChange={handleChange} 
                     required 
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    disabled={success !== ''}
+                    disabled={isLoading}
+                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                 />
+                
                 <Button 
-                    type="submit"                     
-                    disabled={isLoading || success !== ''}
+                    type="submit"                    
+                    disabled={isLoading}
                     size="md" 
-                    variant={isLoading || success !== '' ?  "primary": "outline"} 
-              >
-                   {isLoading ? 'Création en cours...' : success ? 'Redirection...' : "S'inscrire"}
-              </Button>
+                    variant={isLoading ? "outline" : "primary"}
+                >
+                   {isLoading ? 'Patientez...' : "S'inscrire"}
+                </Button>
             </form>
         </div>
     );

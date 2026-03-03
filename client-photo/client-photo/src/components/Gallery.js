@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import ImageModal from './ImageModal';
 import Button from './Button';
+import Upload from './Upload'; // 1. NOUVEAU : On importe ton composant d'upload
 import api from '../api';
 
-// 1. On accepte la nouvelle prop "refreshTrigger"
 const Gallery = ({ refreshTrigger, token }) => { 
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
@@ -11,8 +11,8 @@ const Gallery = ({ refreshTrigger, token }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     
-    // 1. NOUVEAU : Un compteur dédié aux suppressions
     const [deleteTrigger, setDeleteTrigger] = useState(0); 
+    const [uploadTrigger, setUploadTrigger] = useState(0); // 2. NOUVEAU : Un compteur dédié aux ajouts
 
     useEffect(() => {
         setIsLoading(true);
@@ -23,8 +23,8 @@ const Gallery = ({ refreshTrigger, token }) => {
             .catch(err => console.error("Erreur chargement photos", err))
             .finally(() => setIsLoading(false));
             
-    // 2. MODIFICATION : On ajoute deleteTrigger pour que la galerie se recharge aussi à la suppression
-    }, [refreshTrigger, deleteTrigger]);
+    // 3. MODIFICATION : On ajoute uploadTrigger aux dépendances
+    }, [refreshTrigger, deleteTrigger, uploadTrigger]);
 
     const getFileName = (url) => {
         if (!url) return '';
@@ -41,7 +41,11 @@ const Gallery = ({ refreshTrigger, token }) => {
         <div className="container mx-auto p-6">
             <h2 className="text-2xl font-bold mb-8 text-gray-800">Galerie Publique</h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {/* 4. NOUVEAU : On insère le composant Upload juste au-dessus de la grille. 
+                Lors d'un succès, on incrémente uploadTrigger, ce qui relance le useEffect ! */}
+            <Upload onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
                 
                 {/* 1. ÉTAT DE CHARGEMENT : Affiche 10 carrés gris animés */}
                 {isLoading ? (

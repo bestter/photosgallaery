@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import Button from './Button';
 import api from '../api';
+import toast from 'react-hot-toast';
+import { getUserRole, getUsernameFromToken } from './authHelper'; // Ajoute getUsernameFromToken
 
 const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
   useEffect(() => {
@@ -13,37 +15,74 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
 
   if (!picture) return null;
 
-  // Fonction de suppression (Admin / Propriétaire)
-  const handleDelete = async () => {
-    if (window.confirm("Es-tu sûr de vouloir supprimer cette image définitivement ?")) {
-      try {
-        // L'intercepteur d'api.js ajoute automatiquement le token, plus besoin de le préciser !
-        await api.delete(`/photos/${picture.id}`);
-        
-        alert("L'image a été supprimée avec succès !");
-        
-        if (onDeleteSuccess) onDeleteSuccess(); // Avertit la Galerie de recharger les images
-        onClose(); // Ferme la fenêtre modale
-        
-      } catch (error) {
-        console.error("Erreur lors de la suppression", error);
-        alert("Erreur: Impossible de supprimer l'image. Vérifie que tu es bien connecté.");
-      }
-    }
+  // 1. Extraire les infos de l'utilisateur actuel
+  const currentUser = getUsernameFromToken(token);
+  const isAdmin = getUserRole(token) === 'Admin';
+  const canDelete = isAdmin || (currentUser === picture.uploaderUsername);
+
+  // Nouvelle logique de suppression avec Toast de confirmation
+  const handleDelete = () => {
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <span className="font-medium text-gray-800">
+          Supprimer cette image définitivement ?
+        </span>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              executeDelete();
+            }}
+            className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Confirmer
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: 6000,
+      position: 'top-center',
+      style: { border: '1px solid #fee2e2', padding: '16px' }
+    });
   };
 
-  // Fonction pour le Visiteur
+  // La fonction qui fait le travail réel
+  const executeDelete = async () => {
+    toast.promise(
+      api.delete(`/photos/${picture.id}`),
+      {
+        loading: 'Suppression en cours...',
+        success: () => {
+          if (onDeleteSuccess) onDeleteSuccess();
+          onClose();
+          return "L'image a été retirée.";
+        },
+        error: "Erreur lors de la suppression."
+      }
+    );
+  };
+
   const handleReport = async () => {
     const reason = window.prompt("Pourquoi signalez-vous cette image ?");
-    if (reason) {
-      try {
-        // À décommenter quand la route C# sera prête
-        // await api.post(`/photos/${picture.id}/report`, { reason });
-        alert("Merci. L'administrateur a été notifié de ce problème.");
-        onClose();
-      } catch (error) {
-        console.error("Erreur lors du signalement", error);
-      }
+    
+    if (reason && reason.trim() !== "") {
+      toast.promise(
+        api.post(`/photos/${picture.id}/report`, { reason }),
+        {
+          loading: 'Envoi du signalement...',
+          success: () => {
+            onClose();
+            return "Merci. L'administrateur a été notifié.";
+          },
+          error: "Échec de l'envoi du signalement."
+        }
+      );
     }
   };
 
@@ -72,26 +111,25 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
             className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg shadow-inner"
           />
         </div>
-
-        {/* Barre d'actions */}
-        <div className="w-full mt-4 flex items-center justify-between px-2">
-          <div className="text-sm text-gray-500">
-            {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}
-          </div>
-          
-          <div>
-            {token ? (
-              <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600 border-red-600 hover:bg-red-50">
-                🗑️ Supprimer
-              </Button>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={handleReport} className="text-orange-500 hover:bg-orange-50">
-                🚩 Signaler
-              </Button>
-            )}
-          </div>
-        </div>
-
+<div className="w-full mt-4 flex items-center justify-between px-2">
+      <div className="text-sm text-gray-500 font-medium">
+        {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}
+      </div>
+      
+      <div>
+        {/* MODIFICATION ICI : On vérifie canDelete au lieu de juste token */}
+        {token && canDelete ? (
+          <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600 border-red-600 hover:bg-red-50">
+            🗑️ Supprimer
+          </Button>
+        ) : (
+          /* Si pas le droit de supprimer, on montre le bouton signaler */
+          <Button variant="ghost" size="sm" onClick={handleReport} className="text-orange-500 hover:bg-orange-50">
+            🚩 Signaler
+          </Button>
+        )}
+      </div>
+    </div>
       </div>
     </div>
   );
