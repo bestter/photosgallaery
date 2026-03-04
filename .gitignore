@@ -13,6 +13,8 @@
 bin/
 obj/
 
+client-photoBCK/
+
 # Fichiers d'environnement (Mots de passe, clés API)
 .env
 
@@ -36,3 +38,8 @@ yarn-error.log*
 
 # Ignorer les images uploadées par les utilisateurs
 PhotoAppApi/wwwroot/images/
+
+# --- SÉCURITÉ : Fichiers de configuration sensibles ---
+# On ignore le fichier de production pour ne pas envoyer 
+# le mot de passe MariaDB sur GitHub !
+appsettings.Production.json
