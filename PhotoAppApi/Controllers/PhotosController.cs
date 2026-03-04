@@ -99,7 +99,7 @@ namespace PhotoAppApi.Controllers
                     var photo = new Photo
                     {
                         FileName = uniqueFileName,
-                        Url = $"{Request.Scheme}://{Request.Host}/images/{uniqueFileName}",
+                        Url = $"/images/{uniqueFileName}",
                         UploaderUsername = User.Identity?.Name ?? "Anonyme",
                         FileHash = fileHash
                     };
