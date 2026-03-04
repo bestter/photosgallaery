@@ -9,6 +9,7 @@ obj/
 dist/
 dist-ssr/
 build/
+publish/
 client-photoBCK/
 
 # --- IDE (Visual Studio, VS Code, JetBrains) ---
