@@ -1,16 +1,17 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using PhotoAppApi;
 using PhotoAppApi.Data;
+using PhotoAppApi.Models;
 using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- NOUVEAU : Configuration de la limite � 50 Mo (52 428 800 octets) ---
+// --- NOUVEAU : Configuration de la limite à 50 Mo (52 428 800 octets) ---
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 52428800; // Limite globale du serveur
@@ -18,7 +19,7 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 52428800; // Limite sp�cifique pour les formulaires multipart (fichiers)
+    options.MultipartBodyLengthLimit = 52428800; // Limite spécifique pour les formulaires multipart (fichiers)
 });
 // ------------------------------------------------------------------------
 
@@ -37,11 +38,11 @@ builder.Services.AddCors(options =>
 });
 
 
-// 3. Authentification (JWT Simplifi�)
+// 3. Authentification (JWT Simplifié)
 var secretKey = builder.Configuration["Jwt:Key"];
 if (secretKey == null)
 {
-    throw new NotSupportedException("La cl� secr�te pour JWT n'est pas d�finie dans appsettings.json !");
+    throw new NotSupportedException("La clé secrète pour JWT n'est pas définie dans appsettings.json !");
 }
 
 builder.Services.AddAuthentication(options =>
@@ -55,9 +56,33 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("Auth �chou�e : " + context.Exception.Message);
+            Console.WriteLine("Auth échouée : " + context.Exception.Message);
             return Task.CompletedTask;
-        }
+        },
+        OnTokenValidated = async context =>
+        {
+            // On récupère la base de données depuis le contexte de la requête
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+
+            // On cherche l'ID de l'utilisateur dans son jeton
+            var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // 👇 AJOUTE CETTE LIGNE POUR L'ESPIONNAGE
+            Console.WriteLine($"[VIDEUR] Vérification du jeton. ID trouvé : {userIdClaim ?? "AUCUN !!"}");
+
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                // On vérifie en direct s'il a été banni depuis sa dernière connexion
+                var user = await dbContext.Users.FindAsync(userId);
+
+                if (user == null || user.Role == UserRole.Forbidden)
+                {
+                    // Boum ! On invalide son bracelet JWT immédiatement.
+                    // Cela va retourner une erreur 401 Unauthorized à React.
+                    context.Fail("Ce compte a été suspendu par l'administration.");
+                }
+            }
+        },
     };
     options.TokenValidationParameters = new TokenValidationParameters
     {

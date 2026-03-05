@@ -254,6 +254,7 @@ namespace PhotoAppApi.Controllers
 
         // POST: api/photos/{id}/report (Public: Visiteurs)
         [HttpPost("{id}/report")]
+        [Authorize] // 🔒 LE CADENAS EST ICI !
         public async Task<IActionResult> ReportPhoto(int id, [FromBody] ReportDto request)
         {
             try

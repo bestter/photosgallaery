@@ -22,11 +22,33 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // On affiche un toast une seule fois pour toutes les erreurs 401
-            toast.error("Session expirée. Déconnexion automatique...");
-            localStorage.removeItem('token');
-            window.location.href = '/login'; // Redirection forcée
+        if (!error.response) {
+            toast.error(
+                "Serveur injoignable. Le service est temporairement indisponible.", 
+                { 
+                    icon: '🔌', // Une petite prise débranchée
+                    duration: 6000,
+                    style: {
+                        borderRadius: '10px',
+                        background: '#1f2937', // Un gris très foncé chic (Tailwind gray-800)
+                        color: '#fff',
+                        border: '1px solid #374151'
+                    },
+                }
+            );
+        } 
+        else // 2. LE SIÈGE ÉJECTABLE (Erreur 401 ou 403)
+        if (error.response.status === 401 || error.response.status === 403) {
+            if (window.location.pathname !== '/login') {
+                localStorage.removeItem('token'); 
+                
+                // On supprime le toast.error ici car il sera tué par le rechargement.
+                // À la place, on ajoute un paramètre caché dans l'URL :
+                window.location.href = '/login?ejected=true'; 
+            }
+        }
+        else if (error.response.status === 500) {
+            toast.error("Erreur interne du serveur. Nos techniciens sont sur le coup !", { icon: '🔥' });
         }
         return Promise.reject(error);
     }

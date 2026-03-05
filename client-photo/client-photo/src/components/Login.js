@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
 import Button from './Button';
 import toast from 'react-hot-toast';
-import { getUserRole} from './authHelper';
+import { getUserRole } from './authHelper';
 
 const Login = ({ setToken }) => { 
     const navigate = useNavigate();
+    const location = useLocation(); // Pour lire l'URL
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isPending, setIsPending] = useState(false); // État pour bloquer le formulaire
+    const [isPending, setIsPending] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(null); // NOUVEAU : État pour le message d'erreur persistant
+
+    // LE NOUVEAU DÉTECTEUR D'ÉJECTION 🚨
+    useEffect(() => {
+        // On analyse l'URL (ex: /login?ejected=true)
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('ejected') === 'true') {
+            // On affiche directement l'erreur dans ton beau bloc rouge !
+            setErrorMessage("⛔ Votre session a expiré ou votre accès a été révoqué par l'administration.");
+        }
+    }, [location]);
 
     const handleSubmit = async (e) => {
         e.preventDefault(); 
+        
+        setErrorMessage(null); // On efface l'ancienne erreur à chaque nouvelle tentative
         setIsPending(true);
 
-        // Utilisation de toast.promise pour tout gérer d'un coup
         toast.promise(
             api.post('auth/login', { username, password }),
             {
@@ -24,33 +37,47 @@ const Login = ({ setToken }) => {
                     localStorage.setItem('token', response.data.token);
                     if (setToken) setToken(response.data.token);
                     
-
                     const role = getUserRole(response.data.token);                    
-    if (role === 'Admin') {
-        toast((t) => (
-            <span className="flex items-center gap-2">
-                Il y a des signalements en attente !
-                <button 
-                    onClick={() => {
-                        toast.dismiss(t.id);
-                        navigate('/admin');
-                    }}
-                    className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold"
-                >
-                    Voir
-                </button>
-            </span>
-        ), { duration: 6000, icon: '🚨', position: 'top-center' });
-    }
+                    if (role === 'Admin') {
+                        toast((t) => (
+                            <span className="flex items-center gap-2">
+                                Il y a des signalements en attente !
+                                <button 
+                                    onClick={() => {
+                                        toast.dismiss(t.id);
+                                        navigate('/admin');
+                                    }}
+                                    className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold hover:bg-purple-700"
+                                >
+                                    Voir
+                                </button>
+                            </span>
+                        ), { duration: 6000, icon: '🚨', position: 'top-center' });
+                    }
 
-                    // Redirection rapide après le succès
                     setTimeout(() => navigate('/'), 1000);
                     return `Ravi de vous revoir, ${username} !`;
                 },
                 error: (error) => {
                     setIsPending(false);
-                    return error.response?.data?.message 
-                        || "Identifiants invalides ou erreur serveur.";
+                    setPassword(''); // UX : On vide le mot de passe
+
+                    // Détermination du message d'erreur
+                    let msg = "Identifiants invalides ou erreur serveur.";
+                    
+                    if (error.response?.status === 403) {
+                        msg = `⛔ ${error.response.data.message || "Ce compte a été suspendu par l'administration."}`;
+                    } else if (error.response?.status === 401) {
+                        msg = "🔒 Nom d'utilisateur ou mot de passe incorrect.";
+                    } else if (error.response?.data?.message) {
+                        msg = error.response.data.message;
+                    }
+
+                    // On sauvegarde le message pour l'afficher DANS le formulaire
+                    setErrorMessage(msg); 
+                    
+                    // On le retourne aussi pour le toast (double affichage)
+                    return msg; 
                 },
             }
         );
@@ -91,6 +118,26 @@ const Login = ({ setToken }) => {
                 >
                     {isPending ? 'Chargement...' : 'Se connecter'}
                 </Button>
+
+                {/* LA NOUVELLE ZONE D'ERREUR BIEN VISIBLE */}
+                {errorMessage && (
+                    <div 
+                        className="animate-pulse" 
+                        style={{ 
+                            marginTop: '10px', 
+                            padding: '12px', 
+                            backgroundColor: '#fee2e2', // Un fond rouge clair
+                            color: '#b91c1c', // Un texte rouge foncé
+                            border: '1px solid #f87171', 
+                            borderRadius: '6px', 
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            textAlign: 'left'
+                        }}
+                    >
+                        {errorMessage}
+                    </div>
+                )}
             </form>
         </div>
     );

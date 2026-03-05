@@ -42,10 +42,10 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         return true;
     };
 
-    const canUpload = () => {
-         const role = getUserRole();
-        return role === "Admin" || role === "Creator";
-    };
+const canUpload = () => {
+     const role = getUserRole(token); // 🚨 LE PROBLÈME EST ICI
+    return role === "Admin" || role === "Creator";
+};
 
     const handleUpload = async () => {
         // 1. Vérification AVANT de lancer l'appel API (Plus besoin de vérifier canUpload ici)

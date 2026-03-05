@@ -69,6 +69,25 @@ const toggleCreatorRole = async (userId, currentRole) => {
     }
 };
 
+const toggleBanUser = async (userId, currentRole) => {
+    // S'il est banni, on le remet 'User' de base. Sinon, on le bannit.
+    const newRole = currentRole === 'Forbidden' ? 'User' : 'Forbidden';
+    const confirmMessage = newRole === 'Forbidden' 
+        ? "Bannir cet utilisateur ? Il ne pourra plus se connecter au site." 
+        : "Lever la suspension de cet utilisateur ?";
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+        await api.put(`/admin/users/${userId}/role`, { role: newRole });
+        setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        toast.success(newRole === 'Forbidden' ? "Utilisateur banni 🔨" : "Compte réactivé 🔓");
+    } catch (error) {
+        console.error("Erreur lors du bannissement", error);
+        toast.error("Impossible de modifier le statut.");
+    }
+};
+
 const fetchReports = async () => {
     try {
         const response = await api.get('/admin/reports');
@@ -109,6 +128,7 @@ const handleDeleteReportedPhoto = async (photoId) => {
                                 <th className="p-3 border-b">Rôle Actuel</th>
                                 <th className="p-3 border-b">Creator</th>
                                 <th className="p-3 border-b">Admin</th>
+                                <th className="p-3 border-b">Bannir</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -124,25 +144,46 @@ const handleDeleteReportedPhoto = async (photoId) => {
                                         </span>
                                     </td>
                                     <td className="p-3 border-b">
-                                        <Button 
-                                            size="sm" 
-                                            variant={user.role === 'Creator' ? 'outline' : 'primary'}
-                                            disabled={user.role !== 'Admin'} // On ne peut pas changer le rôle Creator d'un Admin
-                                            onClick={() => toggleCreatorRole(user.id, user.role)}
-                                        >
-                                            {user.role === 'Creator' ? 'Rétrograder' : 'Promouvoir créateur'}
-                                        </Button>
-                                    </td>
+    {user.username?.toLowerCase() === currentUser?.toLowerCase() ? (
+        <span className="text-gray-400 italic text-sm">Action impossible</span>
+    ) : (
+        <Button 
+            size="sm" 
+            variant={user.role === 'Creator' ? 'outline' : 'primary'}
+            disabled={user.role === 'Admin'} 
+            onClick={() => toggleCreatorRole(user.id, user.role)}
+        >
+            {user.role === 'Creator' ? 'Rétrograder' : 'Promouvoir créateur'}
+        </Button>
+    )}
+</td>
+                                   <td className="p-3 border-b">
+    {user.username?.toLowerCase() === currentUser?.toLowerCase() ? (
+        <span className="text-teal-600 font-bold text-sm">👑 C'est vous</span>
+    ) : (
+        <Button 
+            size="sm" 
+            variant={user.role === 'Admin' ? 'outline' : 'primary'}
+            onClick={() => toggleAdminRole(user.id, user.role)}
+        >
+            {user.role === 'Admin' ? 'Rétrograder' : 'Promouvoir Admin'}
+        </Button>
+    )}
+</td>
                                     <td className="p-3 border-b">
-                                        <Button 
-                                            size="sm" 
-                                            variant={user.role === 'Admin' ? 'outline' : 'primary'}
-                                            onClick={() => toggleAdminRole(user.id, user.role)}
-                                            disabled={user.username === currentUser} // On ne peut pas changer son propre rôle
-                                        >
-                                            {user.role === 'Admin' ? 'Rétrograder' : 'Promouvoir Admin'}
-                                        </Button>
-                                    </td>
+    {user.username?.toLowerCase() === currentUser?.toLowerCase() ? (
+        <span className="text-gray-400 italic text-sm">-</span>
+    ) : (
+        <Button 
+            size="sm" 
+            variant={user.role === 'Forbidden' ? 'primary' : 'outline'}
+            onClick={() => toggleBanUser(user.id, user.role)}
+            className={user.role === 'Forbidden' ? "bg-red-600 hover:bg-red-700 text-white border-none" : "text-red-600 border-red-200 hover:bg-red-50"}
+        >
+            {user.role === 'Forbidden' ? 'Débannir' : 'Bannir 🚫'}
+        </Button>
+    )}
+</td>
                                 </tr>
                             ))}
                         </tbody>

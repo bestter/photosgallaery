@@ -39,10 +39,7 @@ namespace PhotoAppApi.Controllers
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
 
-                if (user == null)
-                {
-                    return BadRequest(new { message = "Utilisateur non trouvé." });
-                }
+                if (user == null) return Unauthorized("Identifiants incorrects.");
 
                 // 2. Si ton application plante ici, c'est que user.PasswordHash n'est pas un hash valide en base de données !
                 if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -51,9 +48,16 @@ namespace PhotoAppApi.Controllers
                     return BadRequest(new { message = "Mot de passe incorrect." });
                 }
 
+
+                if (user.Role == UserRole.Forbidden)
+                {
+                    // On renvoie un 403 explicite pour dire "Je te reconnais, mais tu es dehors"
+                    return StatusCode(403, new { message = "Accès refusé. Ce compte a été suspendu par l'administration." });
+                }
+
                 string token = CreateToken(user);
 
-                return Ok(new { token = token });
+                return Ok(new { token });
             }
             catch (Exception e)
             {
