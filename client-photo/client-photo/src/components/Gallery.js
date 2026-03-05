@@ -26,6 +26,8 @@ const Gallery = ({ refreshTrigger, token }) => {
     // 3. MODIFICATION : On ajoute uploadTrigger aux dépendances
     }, [refreshTrigger, deleteTrigger, uploadTrigger]);
 
+    const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
+
     const getFileName = (url) => {
         if (!url) return '';
         return url.split('/').pop();
@@ -36,7 +38,7 @@ const Gallery = ({ refreshTrigger, token }) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentPhotos = photos.slice(indexOfFirstItem, indexOfLastItem); // Les 10 photos de la page
     const totalPages = Math.ceil(photos.length / itemsPerPage);
-
+    
     return (
         <div className="container mx-auto p-6">
             <h2 className="text-2xl font-bold mb-8 text-gray-800">Galerie Publique</h2>
@@ -67,7 +69,7 @@ const Gallery = ({ refreshTrigger, token }) => {
                                 onClick={() => setPicture(photo)}
                             >
                                 <img 
-                                    src={photo.url} 
+                                    src={`${imageBaseUrl}${photo.url}`} 
                                     alt={getFileName(photo.url)} 
                                     className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110" 
                                 />

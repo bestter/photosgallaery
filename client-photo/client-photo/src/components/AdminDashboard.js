@@ -110,6 +110,8 @@ const handleDeleteReportedPhoto = async (photoId) => {
     }
 };
 
+const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
+
     if (isLoading) return <div className="p-6 text-center">Chargement du panneau d'administration...</div>;
 
     return (
@@ -201,7 +203,7 @@ const handleDeleteReportedPhoto = async (photoId) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map(report => (
                 <div key={report.reportId} className="border rounded-lg overflow-hidden flex flex-col shadow-sm">
-                    <img src={report.photoUrl} alt="Signalée" className="w-full h-40 object-cover" />
+                    <img src=  {`${imageBaseUrl}${report.photoUrl}`} alt="Signalée" className="w-full h-40 object-cover" />
                     <div className="p-4 bg-red-50 flex-grow">
                         <p className="text-sm text-red-800 font-bold mb-1">Motif :</p>
                         <p className="text-sm text-gray-700 italic mb-3">"{report.reason}"</p>

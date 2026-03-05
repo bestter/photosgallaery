@@ -86,6 +86,8 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
     }
   };
 
+  const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200"
@@ -106,7 +108,7 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
 
         <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100">
           <img
-            src={picture.url} 
+            src={`${imageBaseUrl}${picture.url}`} 
             alt="Plein écran"
             className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg shadow-inner"
           />
