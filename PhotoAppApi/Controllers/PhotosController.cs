@@ -34,7 +34,7 @@ namespace PhotoAppApi.Controllers
         }
 
         // POST: api/photos/upload (Privé: connectés seulement)
-        [Authorize]
+        [Authorize(Policy = "CanUpload")]
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
         public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files) // <-- CHANGEMENT : List<IFormFile>

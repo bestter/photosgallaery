@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import Button from './Button';
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast';import { getUsernameFromToken } from './authHelper';
+
 
 const AdminDashboard = () => {
+    // C'est ici que ça doit vivre ! 👇
+    const currentUser = getUsernameFromToken(localStorage.getItem('token'));
     const [users, setUsers] = useState([]);
     const [reports, setReports] = useState([]); // Pour tes futurs signalements
     const [isLoading, setIsLoading] = useState(true);    
@@ -47,6 +50,25 @@ const AdminDashboard = () => {
     };
 
 
+const toggleCreatorRole = async (userId, currentRole) => {
+    // On bascule entre 'Creator' et 'User' (et non Admin)
+    const newRole = currentRole === 'Creator' ? 'User' : 'Creator';
+    const confirmMessage = newRole === 'Creator' 
+        ? "Donner le droit de téléverser à cet utilisateur ?" 
+        : "Retirer les droits de créateur à cet utilisateur ?";
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+        await api.put(`/admin/users/${userId}/role`, { role: newRole });
+        setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        toast.success("Rôle mis à jour avec succès.");
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du rôle", error);
+        toast.error("Impossible de modifier le rôle.");
+    }
+};
+
 const fetchReports = async () => {
     try {
         const response = await api.get('/admin/reports');
@@ -85,7 +107,8 @@ const handleDeleteReportedPhoto = async (photoId) => {
                                 <th className="p-3 border-b">Utilisateur</th>
                                 <th className="p-3 border-b">Courriel</th>
                                 <th className="p-3 border-b">Rôle Actuel</th>
-                                <th className="p-3 border-b">Action</th>
+                                <th className="p-3 border-b">Creator</th>
+                                <th className="p-3 border-b">Admin</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,8 +126,19 @@ const handleDeleteReportedPhoto = async (photoId) => {
                                     <td className="p-3 border-b">
                                         <Button 
                                             size="sm" 
+                                            variant={user.role === 'Creator' ? 'outline' : 'primary'}
+                                            disabled={user.role !== 'Admin'} // On ne peut pas changer le rôle Creator d'un Admin
+                                            onClick={() => toggleCreatorRole(user.id, user.role)}
+                                        >
+                                            {user.role === 'Creator' ? 'Rétrograder' : 'Promouvoir créateur'}
+                                        </Button>
+                                    </td>
+                                    <td className="p-3 border-b">
+                                        <Button 
+                                            size="sm" 
                                             variant={user.role === 'Admin' ? 'outline' : 'primary'}
                                             onClick={() => toggleAdminRole(user.id, user.role)}
+                                            disabled={user.username === currentUser} // On ne peut pas changer son propre rôle
                                         >
                                             {user.role === 'Admin' ? 'Rétrograder' : 'Promouvoir Admin'}
                                         </Button>

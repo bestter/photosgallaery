@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using PhotoAppApi;
 using PhotoAppApi.Data;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
+
 // 3. Authentification (JWT Simplifié)
 var secretKey = builder.Configuration["Jwt:Key"];
 if (secretKey == null)
@@ -64,8 +66,15 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role,
     };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanUpload", policy =>
+        policy.RequireRole("Admin", "Creator"));
 });
 
 builder.Services.AddControllers();

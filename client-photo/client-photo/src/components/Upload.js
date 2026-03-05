@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import api from '../api';
 import Button from './Button';
-import toast from 'react-hot-toast'; // Importation de toast
-import { isTokenExpired } from './authHelper'; // On va créer cette petite fonction
+import toast from 'react-hot-toast';
+import { isTokenExpired, getUserRole } from './authHelper';
 
 const Upload = ({ onUploadSuccess, token, setToken }) => {
     const [files, setFiles] = useState([]); 
@@ -11,6 +11,13 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
 
     const MAX_SIZE_BYTES = 50 * 1024 * 1024; 
 
+    const handleClearSelection = () => {
+        setFiles([]); 
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ''; 
+        }
+    };
+
     const handleFileChange = (event) => {
         const selectedFiles = Array.from(event.target.files);
         
@@ -18,7 +25,6 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
             const totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
 
             if (totalSize > MAX_SIZE_BYTES) {
-                // Remplacement de alert par toast.error
                 toast.error("La taille totale dépasse la limite de 50 Mo.");
                 if (fileInputRef.current) fileInputRef.current.value = ''; 
                 return;
@@ -36,12 +42,17 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         return true;
     };
 
+    const canUpload = () => {
+         const role = getUserRole();
+        return role === "Admin" || role === "Creator";
+    };
+
     const handleUpload = async () => {
-        // 1. Vérification AVANT de lancer l'appel API
+        // 1. Vérification AVANT de lancer l'appel API (Plus besoin de vérifier canUpload ici)
         if (!isSessionValid()) {
-            toast.error("Votre session a expiré. Veuillez vous reconnecter.", { icon: 'lock' });
-            if (setToken) setToken(null); // Nettoie l'état global
-            localStorage.removeItem('token'); // Nettoie le stockage
+            toast.error("Votre session a expiré. Veuillez vous reconnecter.", { icon: '🔒' });
+            if (setToken) setToken(null); 
+            localStorage.removeItem('token'); 
             return;
         }
 
@@ -54,13 +65,11 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
 
         setIsUploading(true);
 
-        // Utilisation de toast.promise pour une gestion élégante du chargement
         toast.promise(
             api.post('/photos/upload', formData),
             {
                 loading: 'Téléversement de vos images...',
                 success: (response) => {
-                    // Si le backend signale des doublons malgré le succès partiel
                     if (response.data.erreurs && response.data.erreurs.length > 0) {
                         toast(
                             `Certains doublons ont été ignorés.`,
@@ -74,6 +83,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
                 },
                 error: (error) => {
                     if (error.response?.status === 401) return "Session expirée. Reconnectez-vous.";
+                    if (error.response?.status === 403) return "Vous n'avez pas l'autorisation de faire cela.";
                     return error.response?.data?.message || "Erreur lors de l'envoi.";
                 }
             }
@@ -86,20 +96,17 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         fileInputRef.current.click(); 
     };
 
-    const handleClearSelection = () => {
-        setFiles([]); 
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ''; 
-        }
-    };
-
     const totalSizeDisplay = (files.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2);
-
+   
     return (
-        isSessionValid() ? (
+        isSessionValid() && canUpload() ? (
             <div className="border border-dashed border-blue-500 my-4 mx-0 p-4 rounded-lg animate-in fade-in duration-500">
             <h3 className="text-lg font-bold mb-2">Upload de Photos (Membres seulement)</h3>
-            <label className="block mb-4 text-sm font-medium text-gray-700" htmlFor="file_input">Téléverser jusqu'à 50 Mo</label>
+            
+            {/* Le htmlFor correspond maintenant au vrai input file */}
+            <label className="block mb-4 text-sm font-medium text-gray-700" htmlFor="real_file_input">
+                Téléverser jusqu'à 50 Mo
+            </label>
             
             <div className="flex flex-row items-center gap-4 flex-wrap"> 
               
@@ -132,6 +139,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
               )}
 
               <input 
+                id="real_file_input"
                 type="file" 
                 onChange={handleFileChange} 
                 ref={fileInputRef}
@@ -141,7 +149,8 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
               />            
               
               {files.length > 0 && (
-                 <Button onClick={handleUpload} id="file_input" size="md" disabled={isUploading}>
+                 // J'ai enlevé l'id="file_input" ici car c'est un bouton d'action, pas un champ de formulaire
+                 <Button onClick={handleUpload} size="md" disabled={isUploading}>
                     {isUploading ? "Envoi en cours..." : "Envoyer"}
                  </Button>
               )}

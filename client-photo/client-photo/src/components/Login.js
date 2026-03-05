@@ -25,7 +25,7 @@ const Login = ({ setToken }) => {
                     if (setToken) setToken(response.data.token);
                     
 
-                    const role = getUserRole(response.data.token);
+                    const role = getUserRole(response.data.token);                    
     if (role === 'Admin') {
         toast((t) => (
             <span className="flex items-center gap-2">

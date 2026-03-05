@@ -4,8 +4,14 @@ export const getUserRole = (token) => {
     if (!token) return null;
     try {
         const decoded = jwtDecode(token);
-        // Attention : .NET Core utilise souvent une URL longue par défaut pour le nom du claim "Role"
-        return decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
+        // On récupère la valeur brute du jeton
+        let rawRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
+        
+        // On fait la traduction automatique (bilingue texte/chiffre) !
+        if (rawRole === "9999" || rawRole === "Admin") return "Admin";
+        if (rawRole === "1" || rawRole === "Creator") return "Creator";
+        
+        return rawRole; // Par défaut, on retourne ce qu'on a trouvé (ex: "User" ou "0")
     } catch (error) {
         return null;
     }
@@ -28,8 +34,8 @@ export const isTokenExpired = (token) => {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
         
-        // On ajoute une petite marge de 10 secondes pour être sûr
-        return decoded.exp < (currentTime - 10); 
+        // Marge de sécurité de 10 secondes : on le considère expiré juste avant sa vraie fin
+        return decoded.exp < (currentTime + 10); 
     } catch (error) {
         return true; 
     }

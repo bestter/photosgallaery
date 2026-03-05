@@ -65,11 +65,17 @@ namespace PhotoAppApi.Controllers
 
         private string CreateToken(User user)
         {
+            // 1. TRADUCTION BLINDÉE : On force C# à utiliser des lettres, peu importe ce qu'il y a dans la BD
+            string roleName = user.Role.ToString();
+            if (roleName == "9999") roleName = UserRole.Admin.ToString();
+            else if (roleName == "1") roleName = UserRole.Creator.ToString();
+            else if (roleName == "0") roleName = UserRole.User.ToString();
+
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
         new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Role, user.Role)
+        new(ClaimTypes.Role, roleName)
     };
 
             // Note: En production, mets cette clé dans appsettings.json !

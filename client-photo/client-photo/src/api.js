@@ -1,11 +1,13 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = '/api'; // Ajustez selon le port de votre backend
-
 // Ajoute automatiquement le token JWT s'il existe
+const baseURL = process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:5020/api'  // 💻 Sur ton PC de développement (Port C#)
+    : '/api';                      // 🌍 Sur ton serveur Linux Mint (Via Apache)
+
 const axiosInstance = axios.create({
-    baseURL: API_URL
+    baseURL: baseURL
 });
 
 axiosInstance.interceptors.request.use((config) => {
