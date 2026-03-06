@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Button from './Button';
 import api from '../api';
 import toast from 'react-hot-toast';
-import { getUserRole, getUsernameFromToken } from './authHelper'; // Ajoute getUsernameFromToken
+import { getUserRole, getUsernameFromToken } from './authHelper';
 
 const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
   useEffect(() => {
@@ -106,33 +106,51 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
           </svg>
         </button>
 
-        <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100">
+        {/* Conteneur de l'image - Ajout de w-full pour forcer le centrage par rapport à la modale */}
+        <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100 w-full">
           <img
             src={`${imageBaseUrl}${picture.url}`} 
             alt="Plein écran"
-            className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg shadow-inner"
+            className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-inner"
           />
-        </div>
-<div className="w-full mt-4 flex items-center justify-between px-2">
-      <div className="text-sm text-gray-500 font-medium">
-        {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}
-      </div>
-      
-      <div>
-        {/* MODIFICATION ICI : On vérifie canDelete au lieu de juste token */}
-        {token && canDelete ? (
-          <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600 border-red-600 hover:bg-red-50">
-            🗑️ Supprimer
-          </Button>
-        ) : (
-          /* Si pas le droit de supprimer, on montre le bouton signaler */
-          <Button variant="ghost" size="sm" onClick={handleReport} className="text-orange-500 hover:bg-orange-50">
-            🚩 Signaler
-          </Button>
+        </div> 
+
+        {/* Section des tags justes en dessous de l'image */}
+        {picture.tags && picture.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2 justify-center w-full">
+            {picture.tags?.map((tag, index) => {
+              const tagName = typeof tag === 'object' 
+                ? (tag.translations?.[0]?.name || "Inconnu") 
+                : tag;
+
+              return (
+                <span key={index} className="bg-[#008B8B] text-white px-3 py-1 rounded-full text-sm font-medium shadow-sm">
+                  {tagName}
+                </span>
+              );
+            })}
+          </div>
         )}
-      </div>
-    </div>
-      </div>
+        
+        {/* Pied de page (Maintenant bien à l'intérieur de la boîte blanche !) */}
+        <div className="w-full mt-4 flex items-center justify-between px-2">
+          <div className="text-sm text-gray-500 font-medium">
+            {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}
+          </div>
+          
+          <div>
+            {token && canDelete ? (
+              <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600 border-red-600 hover:bg-red-50">
+                🗑️ Supprimer
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={handleReport} className="text-orange-500 hover:bg-orange-50">
+                🚩 Signaler
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>    
     </div>
   );
 };

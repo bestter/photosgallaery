@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import api from '../api';
 import Button from './Button';
 import toast from 'react-hot-toast';
@@ -8,14 +8,59 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     const [files, setFiles] = useState([]); 
     const [isUploading, setIsUploading] = useState(false); 
     const fileInputRef = useRef(null);
+    const [tags, setTags] = useState([]);
+    const [tagInput, setTagInput] = useState("");
+    
+    // NOUVEAU: État pour stocker les suggestions de l'API
+    const [suggestions, setSuggestions] = useState([]);
 
     const MAX_SIZE_BYTES = 50 * 1024 * 1024; 
+
+    // NOUVEAU: Le moteur de recherche (Autocomplete)
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (tagInput.length > 1) {
+                try {
+                    // Utilisation de ton instance "api" existante !
+                    const response = await api.get(`/tags/search?q=${tagInput}`);
+                    setSuggestions(response.data);
+                } catch (err) {
+                    console.error("Erreur lors de la recherche de tags", err);
+                }
+            } else {
+                setSuggestions([]); // On vide si le champ est vide
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [tagInput]);
 
     const handleClearSelection = () => {
         setFiles([]); 
         if (fileInputRef.current) {
             fileInputRef.current.value = ''; 
         }
+    };
+
+    // NOUVEAU: Fonction centralisée pour ajouter un tag
+    const addTagToList = (tagName) => {
+        if (!tags.includes(tagName) && tags.length < 12) {
+            setTags([...tags, tagName]);
+        }
+        setTagInput("");
+        setSuggestions([]); // Cache les suggestions après un choix
+    };
+
+    // MODIFIÉ: Utilise maintenant addTagToList
+    const addTag = (e) => {
+        if (e.key === 'Enter' && tagInput.trim() !== "") {
+            e.preventDefault();
+            addTagToList(tagInput.trim());
+        }
+    };
+
+    const removeTag = (tagToRemove) => {
+        setTags(tags.filter(t => t !== tagToRemove));
     };
 
     const handleFileChange = (event) => {
@@ -42,13 +87,12 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         return true;
     };
 
-const canUpload = () => {
-     const role = getUserRole(token); // 🚨 LE PROBLÈME EST ICI
-    return role === "Admin" || role === "Creator";
-};
+    const canUpload = () => {
+        const role = getUserRole(token);
+        return role === "Admin" || role === "Creator";
+    };
 
     const handleUpload = async () => {
-        // 1. Vérification AVANT de lancer l'appel API (Plus besoin de vérifier canUpload ici)
         if (!isSessionValid()) {
             toast.error("Votre session a expiré. Veuillez vous reconnecter.", { icon: '🔒' });
             if (setToken) setToken(null); 
@@ -58,10 +102,17 @@ const canUpload = () => {
 
         if (files.length === 0) return toast.error("Veuillez choisir au moins un fichier");
 
+        if (tags.length < 1 || tags.length > 12) {
+            alert("Veuillez sélectionner entre 1 et 12 tags.");
+            return;
+        }
+
         const formData = new FormData();
         files.forEach(file => {
             formData.append('files', file);
         });
+
+        formData.append("tags", JSON.stringify(tags));
 
         setIsUploading(true);
 
@@ -78,6 +129,7 @@ const canUpload = () => {
                     }
                     
                     handleClearSelection();
+                    setTags([]); // On vide les tags après un succès
                     if (onUploadSuccess) onUploadSuccess();
                     return response.data.message || "Images ajoutées !";
                 },
@@ -103,7 +155,6 @@ const canUpload = () => {
             <div className="border border-dashed border-blue-500 my-4 mx-0 p-4 rounded-lg animate-in fade-in duration-500">
             <h3 className="text-lg font-bold mb-2">Upload de Photos (Membres seulement)</h3>
             
-            {/* Le htmlFor correspond maintenant au vrai input file */}
             <label className="block mb-4 text-sm font-medium text-gray-700" htmlFor="real_file_input">
                 Téléverser jusqu'à 50 Mo
             </label>
@@ -148,11 +199,51 @@ const canUpload = () => {
                 multiple 
               />            
               
+              {/* SECTION DES TAGS MODIFIÉE */}
+              <div className="mt-4 relative w-full">
+                <label>Tags (Appuyez sur Entrée) :</label>
+                <input 
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={addTag}
+                  placeholder="ex: Nature, Voyage..."
+                  className="border p-2 ml-2 rounded"
+                  autoComplete="off" // Empêche le navigateur de mettre ses propres suggestions par-dessus
+                />
+
+                {/* La boîte de suggestions flottante */}
+                {suggestions.length > 0 && (
+                    <ul className="absolute z-10 bg-white border border-gray-300 shadow-lg mt-1 ml-2 rounded w-64 max-h-48 overflow-y-auto">
+                        {suggestions.map((s, index) => (
+                            <li 
+                                key={index}
+                                onClick={() => addTagToList(s)}
+                                className="p-2 hover:bg-gray-100 cursor-pointer text-gray-800"
+                            >
+                                {s}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+              </div>
+
+              {/* Affichage des badges */}
+              <div className="flex flex-wrap gap-2 mt-2 w-full">
+                {tags.map(tag => (
+                  <span key={tag} className="bg-[#008B8B] text-white px-3 py-1 rounded-full text-sm font-medium flex items-center shadow-sm">
+                    {tag} 
+                    <button onClick={() => removeTag(tag)} className="ml-2 text-white hover:text-gray-200 font-bold">×</button>
+                  </span>
+                ))}
+              </div>
+
               {files.length > 0 && (
-                 // J'ai enlevé l'id="file_input" ici car c'est un bouton d'action, pas un champ de formulaire
-                 <Button onClick={handleUpload} size="md" disabled={isUploading}>
-                    {isUploading ? "Envoi en cours..." : "Envoyer"}
-                 </Button>
+                 <div className="w-full mt-4">
+                     <Button onClick={handleUpload} size="md" disabled={isUploading || tags.length < 1}>
+                        {isUploading ? "Envoi en cours..." : "Envoyer"}
+                     </Button>
+                 </div>
               )}
 
             </div>        

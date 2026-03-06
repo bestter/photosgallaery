@@ -8,7 +8,8 @@
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
         public string? UploaderUsername { get; set; }
 
-        // NOUVEAU : Pour stocker l'empreinte unique de l'image
         public string? FileHash { get; set; }
+
+        public ICollection<Tag> Tags { get; set; } = [];
     }
-}
+}   

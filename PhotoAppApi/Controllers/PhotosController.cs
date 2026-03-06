@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace PhotoAppApi.Controllers
 {
@@ -29,15 +30,27 @@ namespace PhotoAppApi.Controllers
         public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos()
         {
             _logger.Debug($"In {nameof(GetPhotos)}");
-
-            return await _context.Photos.OrderByDescending(p => p.UploadedAt).ToListAsync();
+            try
+            {
+                // Ajout de .Include(p => p.Tags) pour que le frontend reçoive les tags avec les photos
+                return await _context.Photos
+        .Include(p => p.Tags)
+            .ThenInclude(t => t.Translations) // 👈 LA LIGNE MAGIQUE EST ICI !
+        .OrderByDescending(p => p.UploadedAt)
+        .ToListAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"An error occured in {nameof(GetPhotos)}", e);
+                return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléchargement." });
+            }
         }
 
         // POST: api/photos/upload (Privé: connectés seulement)
         [Authorize(Policy = "CanUpload")]
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files) // <-- CHANGEMENT : List<IFormFile>
+        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags)
         {
             try
             {
@@ -45,6 +58,59 @@ namespace PhotoAppApi.Controllers
 
                 if (files == null || files.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
+
+
+                var tagNames = string.IsNullOrWhiteSpace(tags)
+                    ? new List<string>()
+                    : JsonSerializer.Deserialize<List<string>>(tags) ?? new List<string>();
+
+                // Validation : entre 1 et 12 tags
+                if (tagNames.Count < 1 || tagNames.Count > 12)
+                {
+                    return BadRequest(new { message = "Vous devez sélectionner entre 1 et 12 tags." });
+                }
+
+                var tagsToAttach = new List<Tag>();
+
+                foreach (var name in tagNames.Select(n => n.Trim()))
+                {
+                    // 1. On cherche la traduction existante
+                    // Note : On utilise .Tag pour le récupérer en même temps
+                    var existingTranslation = await _context.TagTranslations
+                        .Include(tt => tt.Tag)
+                        .FirstOrDefaultAsync(tt => tt.Name.ToLower() == name.ToLower()
+                                                && tt.Language == Language.FR);
+
+                    if (existingTranslation != null)
+                    {
+                        // Si le tag existe déjà, on utilise l'objet Tag associé à la traduction
+                        tagsToAttach.Add(existingTranslation.Tag);
+                    }
+                    else
+                    {
+                        // 2. Création d'un nouveau Tag
+                        var newTag = new Tag
+                        {
+                            IsActive = true,
+                            IsMetaTag = false
+                        };
+
+                        // 3. Création de sa traduction française
+                        var newTranslation = new TagTranslation
+                        {
+                            Tag = newTag, // Grâce à la modif du modèle, ceci fonctionne maintenant !
+                            Name = name,
+                            Language = Language.FR
+                        };
+
+                        // On ajoute les deux au contexte
+                        _context.Tags.Add(newTag);
+                        _context.TagTranslations.Add(newTranslation);
+
+                        // On l'ajoute à notre liste pour la photo
+                        tagsToAttach.Add(newTag);
+                    }
+                }
 
                 // 1. Vérification de la taille totale avant de traiter quoi que ce soit
                 long totalSize = files.Sum(f => f.Length);
@@ -101,7 +167,9 @@ namespace PhotoAppApi.Controllers
                         FileName = uniqueFileName,
                         Url = $"/images/{uniqueFileName}",
                         UploaderUsername = User.Identity?.Name ?? "Anonyme",
-                        FileHash = fileHash
+                        FileHash = fileHash,
+                        // On clone la liste pour que chaque photo ait sa propre instance !
+                        Tags = tagsToAttach.ToList()
                     };
 
                     _context.Photos.Add(photo);

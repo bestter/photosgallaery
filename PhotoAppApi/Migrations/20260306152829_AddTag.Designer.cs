@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhotoAppApi.Data;
 
@@ -11,9 +12,11 @@ using PhotoAppApi.Data;
 namespace PhotoAppApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306152829_AddTag")]
+    partial class AddTag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -141,52 +144,6 @@ namespace PhotoAppApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("PhotoTag", b =>
-                {
-                    b.Property<int>("PhotosId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TagsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PhotosId", "TagsId");
-
-                    b.HasIndex("TagsId");
-
-                    b.ToTable("PhotoTag");
-                });
-
-            modelBuilder.Entity("PhotoAppApi.Models.TagTranslation", b =>
-                {
-                    b.HasOne("PhotoAppApi.Models.Tag", "Tag")
-                        .WithMany("Translations")
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("PhotoTag", b =>
-                {
-                    b.HasOne("PhotoAppApi.Models.Photo", null)
-                        .WithMany()
-                        .HasForeignKey("PhotosId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PhotoAppApi.Models.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("PhotoAppApi.Models.Tag", b =>
-                {
-                    b.Navigation("Translations");
                 });
 #pragma warning restore 612, 618
         }

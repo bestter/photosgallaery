@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ImageModal from './ImageModal';
 import Button from './Button';
-import Upload from './Upload'; // 1. NOUVEAU : On importe ton composant d'upload
+import Upload from './Upload'; 
 import api from '../api';
 
 const Gallery = ({ refreshTrigger, token }) => { 
@@ -12,7 +12,7 @@ const Gallery = ({ refreshTrigger, token }) => {
     const itemsPerPage = 10;
     
     const [deleteTrigger, setDeleteTrigger] = useState(0); 
-    const [uploadTrigger, setUploadTrigger] = useState(0); // 2. NOUVEAU : Un compteur dédié aux ajouts
+    const [uploadTrigger, setUploadTrigger] = useState(0); 
 
     useEffect(() => {
         setIsLoading(true);
@@ -23,7 +23,6 @@ const Gallery = ({ refreshTrigger, token }) => {
             .catch(err => console.error("Erreur chargement photos", err))
             .finally(() => setIsLoading(false));
             
-    // 3. MODIFICATION : On ajoute uploadTrigger aux dépendances
     }, [refreshTrigger, deleteTrigger, uploadTrigger]);
 
     const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
@@ -33,25 +32,19 @@ const Gallery = ({ refreshTrigger, token }) => {
         return url.split('/').pop();
     };
 
-    // LOGIQUE DE PAGINATION (Côté Frontend)
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentPhotos = photos.slice(indexOfFirstItem, indexOfLastItem); // Les 10 photos de la page
+    const currentPhotos = photos.slice(indexOfFirstItem, indexOfLastItem); 
     const totalPages = Math.ceil(photos.length / itemsPerPage);
     
     return (
         <div className="container mx-auto p-6">
             <h2 className="text-2xl font-bold mb-8 text-gray-800">Galerie Publique</h2>
             
-            {/* 4. NOUVEAU : On insère le composant Upload juste au-dessus de la grille. 
-                Lors d'un succès, on incrémente uploadTrigger, ce qui relance le useEffect ! */}
-            
-            <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} 
-/>
+            <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} />
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
                 
-                {/* 1. ÉTAT DE CHARGEMENT : Affiche 10 carrés gris animés */}
                 {isLoading ? (
                     Array.from({ length: 10 }).map((_, index) => (
                         <div key={`skeleton-${index}`} className="flex flex-col gap-2">
@@ -61,39 +54,63 @@ const Gallery = ({ refreshTrigger, token }) => {
                     ))
                 ) : currentPhotos.length > 0 ? (
                     
-                    /* 2. AFFICHAGE DES PHOTOS (si chargement terminé et photos présentes) */
                     currentPhotos.map(photo => (
-                        <div key={photo.id} className="relative group flex flex-col">
+                        <div key={photo.id} className="flex flex-col">
+                            {/* C'est ICI qu'on met la classe group pour détecter le survol */}
                             <div 
-                                className="relative overflow-hidden rounded-xl shadow-md cursor-pointer aspect-square bg-gray-100"
+                                className="relative overflow-hidden rounded-xl shadow-md cursor-pointer aspect-square bg-gray-100 group"
                                 onClick={() => setPicture(photo)}
                             >
+                                {/* h-48 remplacé par h-full */}
                                 <img 
                                     src={`${imageBaseUrl}${photo.url}`} 
                                     alt={getFileName(photo.url)} 
-                                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110" 
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                                 />
-                                <div className="absolute bottom-0 left-0 right-0 bg-black/75 text-white text-xs p-3 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0 flex items-center justify-center">
-                                    <span className="truncate max-w-full" title={getFileName(photo.url)}>
+                                
+                                {/* Le voile global qui apparaît au survol */}
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 pointer-events-none">
+                                    
+                                   {/* En haut : Les tags */}
+<div className="flex flex-wrap gap-1">
+    {photo.tags?.slice(0, 3).map((tag, i) => {
+        // On va chercher le nom dans la première traduction disponible
+        const tagName = typeof tag === 'object' 
+            ? (tag.translations?.[0]?.name || "Inconnu") 
+            : tag;
+
+        return (
+            <span key={i} className="text-xs bg-[#008B8B] text-white px-2 py-0.5 rounded-full shadow-sm">
+                {tagName}
+            </span>
+        );
+    })}
+    {photo.tags?.length > 3 && (
+        <span className="text-xs text-white px-1 font-bold mt-0.5">
+            +{photo.tags.length - 3}
+        </span>
+    )}
+</div>
+
+                                    {/* En bas : Le nom du fichier */}
+                                    <div className="text-white text-xs truncate w-full text-center">
                                         {getFileName(photo.url)}
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
+                            
                             <p className="text-sm text-gray-500 mt-2 font-medium">
                                 Par: <span className="text-brand">{photo.uploaderUsername}</span>
                             </p>
                         </div>
                     ))
                 ) : (
-                    /* 3. ÉTAT VIDE : Si aucune photo dans la base de données */
                     <p className="col-span-full text-center text-gray-500 py-10">
                         Aucune photo n'a été publiée pour le moment.
                     </p>
                 )}
-
             </div>
 
-            {/* 4. CONTRÔLES DE PAGINATION */}
             {!isLoading && photos.length > itemsPerPage && (
                 <div className="flex items-center justify-center gap-4 mt-12">
                     <Button 
@@ -120,12 +137,17 @@ const Gallery = ({ refreshTrigger, token }) => {
                 </div>
             )}
 
-           <ImageModal 
-                picture={picture} 
-                onClose={() => setPicture(null)} 
-                token={token}                
-                onDeleteSuccess={() => setDeleteTrigger(prev => prev + 1)} 
-            />
+           {picture && (
+               <ImageModal 
+                   picture={picture} 
+                   onClose={() => setPicture(null)} 
+                   token={token}                
+                   onDeleteSuccess={() => {
+                       setDeleteTrigger(prev => prev + 1);
+                       setPicture(null); // On ferme la modale après suppression
+                   }} 
+               />
+           )}
         </div>
     );
 };
