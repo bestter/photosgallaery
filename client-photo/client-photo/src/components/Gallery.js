@@ -63,10 +63,18 @@ const Gallery = ({ refreshTrigger, token }) => {
                             >
                                 {/* h-48 remplacé par h-full */}
                                 <img 
-                                    src={`${imageBaseUrl}${photo.url}`} 
-                                    alt={getFileName(photo.url)} 
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                />
+    // On pointe vers le sous-dossier thumbnails par défaut
+    src={`${imageBaseUrl}/images/thumbnails/${getFileName(photo.url)}`} 
+    
+    // Si l'image n'existe pas (ex: tes vieilles photos), on charge l'originale
+    onError={(e) => {
+        e.target.onerror = null; // Prévient une boucle infinie
+        e.target.src = `${imageBaseUrl}${photo.url}`; 
+    }}
+    
+    alt={getFileName(photo.url)} 
+    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+/>
                                 
                                 {/* Le voile global qui apparaît au survol */}
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 pointer-events-none">

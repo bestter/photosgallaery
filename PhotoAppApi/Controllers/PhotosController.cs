@@ -5,6 +5,8 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.Security.Cryptography;
 using System.Text.Json;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace PhotoAppApi.Controllers
 {
@@ -156,9 +158,31 @@ namespace PhotoAppApi.Controllers
                     var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
+                    // Création du sous-dossier pour les miniatures si nécessaire
+                    var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
+                    if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
+                    var thumbPath = Path.Combine(thumbFolder, uniqueFileName);
+
+                    // A. Sauvegarde de l'image originale (Haute résolution)
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
+                    }
+
+                    // B. Création et sauvegarde de la miniature (Basse résolution)
+                    // On recharge l'image à partir du flux pour ImageSharp
+                    using (var stream = file.OpenReadStream())
+                    using (var image = await Image.LoadAsync(stream))
+                    {
+                        // On redimensionne l'image pour qu'elle tienne dans un carré de 400x400 max
+                        // ResizeMode.Max garde les proportions (ratio) sans déformer l'image
+                        image.Mutate(x => x.Resize(new ResizeOptions
+                        {
+                            Size = new Size(400, 400),
+                            Mode = ResizeMode.Max
+                        }));
+
+                        await image.SaveAsync(thumbPath);
                     }
 
                     // 5. Préparation des métadonnées
@@ -358,6 +382,70 @@ namespace PhotoAppApi.Controllers
             {
                 _logger.Error($"Erreur dans {nameof(ReportPhoto)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du signalement." });
+            }
+        }
+
+
+        // POST: api/photos/maintenance/generate-thumbnails
+        [Authorize(Roles = "Admin")] 
+        [HttpPost("maintenance/generate-thumbnails")]
+        public async Task<IActionResult> GenerateMissingThumbnails()
+        {
+            try
+            {
+                _logger.Debug($"In {nameof(GenerateMissingThumbnails)}");
+
+                // On récupère toutes les photos de MariaDB
+                var photos = await _context.Photos.ToListAsync();
+
+                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var uploadsFolder = Path.Combine(rootPath, "images");
+                var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
+
+                if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
+
+                int generatedCount = 0;
+                int missingOriginalsCount = 0;
+
+                foreach (var photo in photos)
+                {
+                    var originalPath = Path.Combine(uploadsFolder, photo.FileName);
+                    var thumbPath = Path.Combine(thumbFolder, photo.FileName);
+
+                    // 1. Si la miniature existe déjà, on ne gaspille pas de temps CPU, on passe !
+                    if (System.IO.File.Exists(thumbPath)) continue;
+
+                    // 2. Si par hasard le gros fichier original a disparu du disque, on note l'erreur
+                    if (!System.IO.File.Exists(originalPath))
+                    {
+                        missingOriginalsCount++;
+                        continue;
+                    }
+
+                    // 3. La magie d'ImageSharp : on charge, on compresse, on sauvegarde
+                    using (var image = await Image.LoadAsync(originalPath))
+                    {
+                        image.Mutate(x => x.Resize(new ResizeOptions
+                        {
+                            Size = new Size(400, 400),
+                            Mode = ResizeMode.Max // Conserve les proportions
+                        }));
+                        await image.SaveAsync(thumbPath);
+                    }
+                    generatedCount++;
+                }
+
+                return Ok(new
+                {
+                    message = "Opération de maintenance terminée avec succès.",
+                    miniaturesCreees = generatedCount,
+                    imagesOriginalesIntrouvables = missingOriginalsCount
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Erreur lors de la génération massive des miniatures", e);
+                return StatusCode(500, "Erreur interne lors de la compression des images.");
             }
         }
     }

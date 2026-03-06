@@ -1,10 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react'; // 👈 useState est ajouté ici
 import Button from './Button';
 import api from '../api';
 import toast from 'react-hot-toast';
 import { getUserRole, getUsernameFromToken } from './authHelper';
 
 const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
+  // --- NOUVELLES LIGNES POUR LE CHARGEMENT ---
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
+  useEffect(() => {
+    if (picture) {
+      setIsImageLoading(true); // On remet à zéro quand on change de photo
+    }
+  }, [picture]);
+  // -------------------------------------------
+
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
@@ -15,12 +25,10 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
 
   if (!picture) return null;
 
-  // 1. Extraire les infos de l'utilisateur actuel
   const currentUser = getUsernameFromToken(token);
   const isAdmin = getUserRole(token) === 'Admin';
   const canDelete = isAdmin || (currentUser === picture.uploaderUsername);
 
-  // Nouvelle logique de suppression avec Toast de confirmation
   const handleDelete = () => {
     toast((t) => (
       <div className="flex flex-col gap-2">
@@ -52,7 +60,6 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
     });
   };
 
-  // La fonction qui fait le travail réel
   const executeDelete = async () => {
     toast.promise(
       api.delete(`/photos/${picture.id}`),
@@ -106,16 +113,25 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
           </svg>
         </button>
 
-        {/* Conteneur de l'image - Ajout de w-full pour forcer le centrage par rapport à la modale */}
-        <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100 w-full">
+        {/* --- NOUVELLES LIGNES POUR LE CONTENEUR D'IMAGE ET LE SPINNER --- */}
+        <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100 w-full relative min-h-[30vh]">
+          
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="w-12 h-12 border-4 border-gray-300 border-t-[#008B8B] rounded-full animate-spin"></div>
+            </div>
+          )}
+
           <img
             src={`${imageBaseUrl}${picture.url}`} 
             alt="Plein écran"
-            className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-inner"
+            onLoad={() => setIsImageLoading(false)} // L'image est arrivée !
+            onError={() => setIsImageLoading(false)} // L'image a planté !
+            className={`max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-inner transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
           />
         </div> 
+        {/* --------------------------------------------------------------- */}
 
-        {/* Section des tags justes en dessous de l'image */}
         {picture.tags && picture.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2 justify-center w-full">
             {picture.tags?.map((tag, index) => {
@@ -132,7 +148,6 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
           </div>
         )}
         
-        {/* Pied de page (Maintenant bien à l'intérieur de la boîte blanche !) */}
         <div className="w-full mt-4 flex items-center justify-between px-2">
           <div className="text-sm text-gray-500 font-medium">
             {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}
