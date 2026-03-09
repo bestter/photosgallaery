@@ -40,6 +40,8 @@ appsettings.Production.json
 
 publish_temp/
 
+deploy-settings.json
+
 # --- SPECIFIQUE A L'APP ---
 # On ignore les images uploadées pour ne pas alourdir Git
 PhotoAppApi/wwwroot/images/
