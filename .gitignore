@@ -38,6 +38,8 @@ Thumbs.db
 .env.production.local
 appsettings.Production.json
 
+publish_temp/
+
 # --- SPECIFIQUE A L'APP ---
 # On ignore les images uploadées pour ne pas alourdir Git
 PhotoAppApi/wwwroot/images/
