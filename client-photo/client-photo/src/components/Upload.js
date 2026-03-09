@@ -89,7 +89,25 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
 
     const canUpload = () => {
         const role = getUserRole(token);
-        return role === "Admin" || role === "Creator";
+        console.debug("Rôle brut extrait du token:", role); // Pour t'aider à débugger dans F12
+
+        // Sécurité : si aucun rôle n'est trouvé
+        if (!role) return false;
+
+        // Cas 1 : Le backend renvoie un tableau de rôles (ex: ["User", "Creator"])
+        if (Array.isArray(role)) {
+            return role.some(r => 
+                r.toLowerCase() === "admin" || 
+                r.toLowerCase() === "creator"
+            );
+        }
+
+        // Cas 2 : Le backend renvoie une simple chaîne de caractères (ex: "Creator")
+        if (typeof role === 'string') {
+            return role.toLowerCase() === "admin" || role.toLowerCase() === "creator";
+        }
+
+        return false;
     };
 
     const handleUpload = async () => {
@@ -151,6 +169,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     const totalSizeDisplay = (files.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2);
    
     return (
+        console.log("Rendu du composant Upload - isSessionValid:", isSessionValid(), "canUpload:", canUpload()), // Pour t'aider à débugger dans F12
         isSessionValid() && canUpload() ? (
             <div className="border border-dashed border-blue-500 my-4 mx-0 p-4 rounded-lg animate-in fade-in duration-500">
             <h3 className="text-lg font-bold mb-2">Upload de Photos (Membres seulement)</h3>
