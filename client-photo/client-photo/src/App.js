@@ -27,7 +27,12 @@ function App() {
                 <main className="pb-12">
                     <Routes>
                         {/* Pages publiques */}
-                        <Route path="/" element={<Gallery token={token} />} />
+                        {/* La galerie normale, sans filtre */}
+      <Route path="/" element={<Gallery />} />
+      
+      {/* La même galerie, mais avec un paramètre dynamique dans l'URL */}
+      <Route path="/tags/:tagName" element={<Gallery />} />
+      
                         <Route path="/login" element={<Login setToken={setToken} />} />
                         <Route path="/register" element={<Register />} />
 

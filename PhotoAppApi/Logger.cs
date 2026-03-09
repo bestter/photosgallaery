@@ -32,7 +32,7 @@ namespace PhotoAppApi
 
         public void Error(string message, Exception? ex = null)
         {
-            this._logger?.Error(message, ex?.InnerException);
+            this._logger?.Error(message, ex);
         }
     }
 }

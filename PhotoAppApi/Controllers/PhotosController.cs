@@ -29,17 +29,34 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/photos (Public: tout le monde peut voir)
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos()
+        public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos(
+     [FromQuery] string? tag = null,
+     [FromQuery] Language lang = Language.FR) // On accepte la langue (Fr par défaut)
         {
             _logger.Debug($"In {nameof(GetPhotos)}");
             try
             {
-                // Ajout de .Include(p => p.Tags) pour que le frontend reçoive les tags avec les photos
-                return await _context.Photos
-        .Include(p => p.Tags)
-            .ThenInclude(t => t.Translations) // 👈 LA LIGNE MAGIQUE EST ICI !
-        .OrderByDescending(p => p.UploadedAt)
-        .ToListAsync();
+                var cleanTag = tag?.Trim().ToLowerInvariant();
+
+                // La préparation de la requête avec les inclusions reste parfaite
+                var query = _context.Photos
+                    .Include(p => p.Tags)
+                        .ThenInclude(t => t.Translations)
+                    .OrderByDescending(p => p.UploadedAt)
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(cleanTag))
+                {
+                    // On navigue dans les Tags, puis dans leurs Traductions
+                    query = query.Where(p => p.Tags.Any(t =>
+                        t.Translations.Any(tr =>
+                            tr.Language == lang &&
+                            tr.Name.Trim().ToLower() == cleanTag
+                        )
+                    ));
+                }
+
+                return await query.ToListAsync();
             }
             catch (Exception e)
             {

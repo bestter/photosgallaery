@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'; // 👈 useState est ajouté ici
 import Button from './Button';
+import PhotoTag from './PhotoTag'; 
 import api from '../api';
 import toast from 'react-hot-toast';
 import { getUserRole, getUsernameFromToken } from './authHelper';
@@ -135,14 +136,9 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
         {picture.tags && picture.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2 justify-center w-full">
             {picture.tags?.map((tag, index) => {
-              const tagName = typeof tag === 'object' 
-                ? (tag.translations?.[0]?.name || "Inconnu") 
-                : tag;
-
+              
               return (
-                <span key={index} className="bg-[#008B8B] text-white px-3 py-1 rounded-full text-sm font-medium shadow-sm">
-                  {tagName}
-                </span>
+                <PhotoTag tag={tag} />
               );
             })}
           </div>
