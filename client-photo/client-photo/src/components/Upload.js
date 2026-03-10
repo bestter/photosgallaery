@@ -81,7 +81,6 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     };
 
     const isSessionValid = () => {
-        console.log("Vérification de la validité du token - Token présent:", !!token, "Token expiré:", isTokenExpired(token)); // Pour t'aider à débugger dans F12
         if (!token || isTokenExpired(token)) {
             return false;
         }

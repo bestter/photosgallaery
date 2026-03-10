@@ -14,7 +14,6 @@ import Footer from './components/Footer';
 function App() {
     // L'état centralisé pour savoir si l'utilisateur est connecté
     const [token, setToken] = useState(localStorage.getItem('token'));
-    console.log("App component - Current token:", token); // Pour t'aider à débugger dans F12
     return (
         
         <Router>
