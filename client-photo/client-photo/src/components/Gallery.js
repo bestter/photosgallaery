@@ -5,7 +5,8 @@ import Upload from './Upload';
 import EmptyGalleryState from './EmptyGalleryState'; 
 import PhotoTag from './PhotoTag'; 
 import api from '../api';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+
 
 const Gallery = ({ refreshTrigger, token, setToken }) => { 
     const [photos, setPhotos] = useState([]);
@@ -17,6 +18,8 @@ const Gallery = ({ refreshTrigger, token, setToken }) => {
     
     const [deleteTrigger, setDeleteTrigger] = useState(0); 
     const [uploadTrigger, setUploadTrigger] = useState(0); 
+
+    const navigate = useNavigate();
 
     // NOUVEAU : On réinitialise la pagination quand le tag change
     useEffect(() => {
@@ -52,6 +55,10 @@ if (safeTagName) {
         if (!url) return '';
         return url.split('/').pop();
     };
+    
+    const handleUserClick = (photo) => {    
+    navigate(`/user/${photo.uploaderUsername}`); // 2. On change de page
+};
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -134,10 +141,18 @@ if (safeTagName) {
         </div>
     </div>
 </div>
-                            
-                            <p className="text-sm text-gray-500 mt-2 font-medium">
-                                Par: <span className="text-brand">{photo.uploaderUsername}</span>
-                            </p>
+                           
+                            {photo.uploaderUsername ? (
+    <p className="text-sm text-gray-500 mt-2 font-medium">
+        Par{' '}
+        <button 
+            onClick={() => handleUserClick(photo)}
+            className="text-teal-600 hover:text-teal-800 hover:underline transition-colors cursor-pointer"
+        >
+            {photo.uploaderUsername}
+        </button>
+    </p>
+) : null}
                         </div>
                     ))
                 )}

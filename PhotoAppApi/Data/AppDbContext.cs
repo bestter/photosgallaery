@@ -15,6 +15,8 @@ namespace PhotoAppApi.Data
         public DbSet<Tag> Tags { get; set; }
         public DbSet<TagTranslation> TagTranslations { get; set; }
 
+        public DbSet<PhotoLike> PhotoLikes { get; set; }
+
         // 2. On utilise l'API Fluent pour configurer la base de données
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,4 +1,6 @@
-﻿namespace PhotoAppApi.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PhotoAppApi.Models
 {
     public class Photo
     {
@@ -9,6 +11,12 @@
         public string? UploaderUsername { get; set; }
 
         public string? FileHash { get; set; }
+
+        [NotMapped]
+        public int LikesCount { get; set; }
+
+        [NotMapped]
+        public bool IsLikedByCurrentUser { get; set; }
 
         public ICollection<Tag> Tags { get; set; } = [];
     }

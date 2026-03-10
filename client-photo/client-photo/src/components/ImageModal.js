@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react'; // 👈 useState est ajouté ici
 import Button from './Button';
 import PhotoTag from './PhotoTag'; 
+import LikeButton from './LikeButton'; 
 import api from '../api';
 import toast from 'react-hot-toast';
 import { getUserRole, getUsernameFromToken } from './authHelper';
+import { useNavigate } from 'react-router-dom';
 
 const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
   // --- NOUVELLES LIGNES POUR LE CHARGEMENT ---
   const [isImageLoading, setIsImageLoading] = useState(true);
-
+  const navigate = useNavigate();
+  
   useEffect(() => {
     if (picture) {
       setIsImageLoading(true); // On remet à zéro quand on change de photo
@@ -93,6 +96,12 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
       );
     }
   };
+  
+
+const handleUserClick = () => {
+    onClose(); // 1. On ferme la modale
+    navigate(`/user/${picture.uploaderUsername}`); // 2. On change de page
+};
 
   const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
@@ -146,8 +155,24 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
         
         <div className="w-full mt-4 flex items-center justify-between px-2">
           <div className="text-sm text-gray-500 font-medium">
-            {picture.uploaderUsername ? `Ajouté par ${picture.uploaderUsername}` : ''}
-          </div>
+    {picture.uploaderUsername ? (
+        <>
+            Ajouté par{' '}
+            <button 
+                onClick={handleUserClick}
+                className="text-teal-600 hover:text-teal-800 hover:underline font-bold transition-colors cursor-pointer"
+            >
+                {picture.uploaderUsername}
+            </button>
+        </>
+    ) : ''}
+</div>
+
+          <LikeButton 
+    photoId={picture.id} 
+    initialIsLiked={picture.isLikedByCurrentUser || false} 
+    initialLikesCount={picture.likesCount || 0} 
+/>
           
           <div>
             {token && canDelete ? (

@@ -1,5 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace PhotoAppApi.Data
 {
@@ -8,15 +12,22 @@ namespace PhotoAppApi.Data
     {
         public AppDbContext CreateDbContext(string[] args)
         {
+            // 1. On configure la lecture des fichiers appsettings
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
+                .Build();
+
+            // 2. On va chercher la vraie chaîne de connexion (assure-toi que le nom correspond à ton appsettings)
+            // S'il ne la trouve pas (ex: pendant ton script PowerShell), il garde le "dummy"
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                                   ?? "Server=localhost;Database=dummy;Uid=root;Pwd=dummy;";
+
             var builder = new DbContextOptionsBuilder<AppDbContext>();
 
-            // Chaîne de connexion fictive. 
-            // Lors du déploiement, le script PowerShell écrase ceci avec l'argument --connection
-            var dummyConnectionString = "Server=localhost;Database=dummy;Uid=root;Pwd=dummy;";
-
-            // On utilise une version statique de MariaDB pour éviter qu'EF Core n'essaie 
-            // de se connecter à la base de données "dummy" pendant la compilation.
-            builder.UseMySql(dummyConnectionString, ServerVersion.Parse("10.5.0-mariadb"));
+            // 3. On utilise la chaîne trouvée
+            builder.UseMySql(connectionString, ServerVersion.Parse("10.5.0-mariadb"));
 
             return new AppDbContext(builder.Options);
         }

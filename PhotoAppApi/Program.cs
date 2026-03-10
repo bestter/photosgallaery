@@ -25,8 +25,22 @@ builder.Services.Configure<FormOptions>(options =>
 
 // 1. Connexion MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Dans ton Program.cs
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")),
+        mySqlOptions =>
+        {
+            // C'est ici qu'on ajoute la résilience suggérée par l'erreur !
+            mySqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null
+            );
+        }
+    ));
 
 // 2. Configuration CORS
 builder.Services.AddCors(options =>

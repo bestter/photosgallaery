@@ -30,15 +30,15 @@ namespace PhotoAppApi.Controllers
         // GET: api/photos (Public: tout le monde peut voir)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos(
-     [FromQuery] string? tag = null,
-     [FromQuery] Language lang = Language.FR) // On accepte la langue (Fr par défaut)
+            [FromQuery] string? tag = null,
+            [FromQuery] Language lang = Language.FR)
         {
             _logger.Debug($"In {nameof(GetPhotos)}");
             try
             {
+                // --- 1. TA LOGIQUE EXISTANTE (Intacte) ---
                 var cleanTag = tag?.Trim().ToLowerInvariant();
 
-                // La préparation de la requête avec les inclusions reste parfaite
                 var query = _context.Photos
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
@@ -47,7 +47,6 @@ namespace PhotoAppApi.Controllers
 
                 if (!string.IsNullOrWhiteSpace(cleanTag))
                 {
-                    // On navigue dans les Tags, puis dans leurs Traductions
                     query = query.Where(p => p.Tags.Any(t =>
                         t.Translations.Any(tr =>
                             tr.Language == lang &&
@@ -56,7 +55,51 @@ namespace PhotoAppApi.Controllers
                     ));
                 }
 
-                return await query.ToListAsync();
+                // On exécute la requête pour obtenir la liste des photos
+                var photos = await query.ToListAsync();
+
+                if (!photos.Any()) return Ok(photos);
+
+                // --- 2. NOUVELLE LOGIQUE POUR LES LIKES ---
+
+                // A. On récupère les IDs des photos qu'on vient de trouver
+                var photoIds = photos.Select(p => p.Id).ToList();
+
+                // B. On compte les likes pour ces photos (GroupBy est super rapide en SQL)
+                var likesCounts = await _context.PhotoLikes
+                    .Where(l => photoIds.Contains(l.PhotoId))
+                    .GroupBy(l => l.PhotoId)
+                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
+
+                // C. On vérifie qui est connecté
+                var currentUsername = User.Identity?.Name;
+                var userLikedPhotoIds = new HashSet<int>();
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
+                    if (user != null)
+                    {
+                        // On récupère uniquement les IDs des photos que CET utilisateur a aimées
+                        var likedIds = await _context.PhotoLikes
+                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == user.Id)
+                            .Select(l => l.PhotoId)
+                            .ToListAsync();
+
+                        userLikedPhotoIds = new HashSet<int>(likedIds);
+                    }
+                }
+
+                // D. On attache les infos calculées à nos photos avant de les envoyer à React
+                foreach (var photo in photos)
+                {
+                    photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
+                    photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
+                }
+
+                // On retourne tes photos enrichies !
+                return Ok(photos);
             }
             catch (Exception e)
             {
@@ -483,6 +526,128 @@ namespace PhotoAppApi.Controllers
             }
         }
 
+
+
+        // POST: api/photos/{id}/like
+        [Authorize]
+        [HttpPost("{id}/like")]
+        public async Task<IActionResult> ToggleLike(int id)
+        {
+            try
+            {
+                // 1. Trouver qui est connecté
+                var currentUsername = User.Identity?.Name;
+
+                // Trouver l'utilisateur dans la base de données pour avoir son ID
+                // (Assure-toi que _context.Users correspond à ta table d'utilisateurs)
+                var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
+                if (user == null) return Unauthorized(new { message = "Utilisateur non trouvé." });
+
+                // 2. Vérifier si la photo existe
+                var photo = await _context.Photos.FindAsync(id);
+                if (photo == null) return NotFound(new { message = "Photo introuvable." });
+
+                // 3. Chercher si le "Like" existe déjà pour cet utilisateur et cette photo
+                var existingLike = await _context.PhotoLikes
+                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == user.Id);
+
+                if (existingLike != null)
+                {
+                    // Le Like existe déjà : on l'efface (Unlike)
+                    _context.PhotoLikes.Remove(existingLike);
+                    await _context.SaveChangesAsync();
+                    return Ok(new { liked = false, message = "Like retiré." });
+                }
+                else
+                {
+                    // Le Like n'existe pas : on le crée (Like)
+                    var newLike = new PhotoLike
+                    {
+                        PhotoId = id,
+                        Photo = photo, // Assure-toi que ta classe PhotoLike a bien une propriété de navigation "Photo"
+                        UserId = user.Id, // ou user.Id.ToString() selon le type de ta clé
+                        User = user, // Assure-toi que ta classe PhotoLike a bien une propriété de navigation "User"
+                        LikedAt = DateTime.UtcNow
+                    };
+
+                    _context.PhotoLikes.Add(newLike);
+                    await _context.SaveChangesAsync();
+                    return Ok(new { liked = true, message = "Photo aimée." });
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(ToggleLike)}", e);
+                return StatusCode(500, new { message = "Une erreur est survenue avec le like." });
+            }
+        }
+
+        // GET: api/photos/user/{username}/likes
+        [HttpGet("user/{username}/likes")]
+        public async Task<IActionResult> GetUserLikes(string username)
+        {
+            try
+            {
+                // 1. Trouver l'utilisateur cible (celui dont on veut voir les coups de cœur)
+                var targetUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
+                if (targetUser == null) return NotFound(new { message = "Utilisateur introuvable." });
+
+                // 2. Aller chercher toutes les photos que cet utilisateur a aimées
+                // J'ai ajouté l'inclusion des Tags pour que ton ImageModal puisse les afficher correctement !
+                var likedPhotos = await _context.PhotoLikes
+                                                .Where(l => l.UserId == targetUser.Id)
+                                                .Include(l => l.Photo)
+                                                    .ThenInclude(p => p.Tags) // Pour afficher les badges
+                                                        .ThenInclude(t => t.Translations)
+                                                .Select(l => l.Photo)
+                                                .ToListAsync();
+
+                if (!likedPhotos.Any()) return Ok(likedPhotos);
+
+                // --- 3. NOUVELLE LOGIQUE POUR LES COMPTEURS (Comme dans GetPhotos) ---
+
+                var photoIds = likedPhotos.Select(p => p.Id).ToList();
+
+                // A. On compte les likes totaux pour ces photos
+                var likesCounts = await _context.PhotoLikes
+                    .Where(l => photoIds.Contains(l.PhotoId))
+                    .GroupBy(l => l.PhotoId)
+                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
+
+                // B. On vérifie ce que l'utilisateur ACTUEL (celui derrière l'écran) a aimé
+                var currentUsername = User.Identity?.Name;
+                var currentUserLikedPhotoIds = new HashSet<int>();
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    var currentUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
+                    if (currentUser != null)
+                    {
+                        var likedIds = await _context.PhotoLikes
+                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUser.Id)
+                            .Select(l => l.PhotoId)
+                            .ToListAsync();
+
+                        currentUserLikedPhotoIds = new HashSet<int>(likedIds);
+                    }
+                }
+
+                // C. On attache les infos calculées à nos photos avant de les envoyer à React
+                foreach (var photo in likedPhotos)
+                {
+                    photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
+                    photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
+                }
+
+                return Ok(likedPhotos);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(GetUserLikes)}", e);
+                return StatusCode(500, new { message = "Une erreur est survenue lors de la récupération des likes." });
+            }
+        }
     }
 
     public class ReportDto
