@@ -167,12 +167,12 @@ const handleUserClick = () => {
         </>
     ) : ''}
 </div>
-
+  {token ? (
           <LikeButton 
     photoId={picture.id} 
     initialIsLiked={picture.isLikedByCurrentUser || false} 
     initialLikesCount={picture.likesCount || 0} 
-/>
+/>) : null}
           
           <div>
             {token && canDelete ? (
