@@ -7,7 +7,7 @@ import PhotoTag from './PhotoTag';
 import api from '../api';
 import { useParams } from 'react-router-dom';
 
-const Gallery = ({ refreshTrigger, token }) => { 
+const Gallery = ({ refreshTrigger, token, setToken }) => { 
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +62,7 @@ if (safeTagName) {
         <div className="container mx-auto p-6">
             <h2 className="text-2xl font-bold mb-8 text-gray-800">Galerie Publique</h2>
             
-            <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} />
+            <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} setToken={setToken}/>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
                 

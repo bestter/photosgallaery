@@ -6,7 +6,7 @@ export const getUserRole = (token) => {
         const decoded = jwtDecode(token);
         // On récupère la valeur brute du jeton
         let rawRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
-        
+        console.log("Raw role from token:", rawRole);
         // On fait la traduction automatique (bilingue texte/chiffre) !
         if (rawRole === "9999" || rawRole === "Admin") return "Admin";
         if (rawRole === "1" || rawRole === "Creator") return "Creator";
@@ -33,6 +33,7 @@ export const isTokenExpired = (token) => {
     try {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
+        console.log("Token expiration time:", decoded.exp, "Current time:", currentTime);
         
         // Marge de sécurité de 10 secondes : on le considère expiré juste avant sa vraie fin
         return decoded.exp < (currentTime + 10); 

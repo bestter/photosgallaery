@@ -14,8 +14,9 @@ import Footer from './components/Footer';
 function App() {
     // L'état centralisé pour savoir si l'utilisateur est connecté
     const [token, setToken] = useState(localStorage.getItem('token'));
-
+    console.log("App component - Current token:", token); // Pour t'aider à débugger dans F12
     return (
+        
         <Router>
             <div className="min-h-screen bg-gray-50 font-sans">
                 
@@ -28,7 +29,7 @@ function App() {
                     <Routes>
                         {/* Pages publiques */}
                         {/* La galerie normale, sans filtre */}
-      <Route path="/" element={<Gallery />} />
+      <Route path="/" element={<Gallery token={token} setToken={setToken} />} />
       
       {/* La même galerie, mais avec un paramètre dynamique dans l'URL */}
       <Route path="/tags/:tagName" element={<Gallery />} />
