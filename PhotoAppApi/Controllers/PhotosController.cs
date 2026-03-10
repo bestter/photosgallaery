@@ -238,6 +238,9 @@ namespace PhotoAppApi.Controllers
             }
         }
 
+        // N'oublie pas de t'assurer que tu as bien ce "using" en haut de ton fichier pour utiliser .Where() et .ToListAsync()
+        // using Microsoft.EntityFrameworkCore;
+
         // DELETE: api/photos/{id} (Privé: connectés seulement)
         [Authorize]
         [HttpDelete("{id}")]
@@ -277,6 +280,20 @@ namespace PhotoAppApi.Controllers
                     _logger.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
                 }
 
+                // --- NOUVEAU CODE ICI 👇 ---
+                // 3.5 Chercher et supprimer tous les signalements associés à cette photo
+                // (Assure-toi que "_context.ImageReports" correspond bien au nom de ton DbSet dans ton DbContext)
+                var associatedReports = await _context.ImageReports
+                                                      .Where(r => r.PhotoId == id)
+                                                      .ToListAsync();
+
+                if (associatedReports.Any())
+                {
+                    _context.ImageReports.RemoveRange(associatedReports);
+                    _logger.Debug($"{associatedReports.Count} signalement(s) supprimé(s) pour la photo ID: {id}");
+                }
+                // --- FIN DU NOUVEAU CODE 👆 ---
+
                 // 4. Supprimer l'enregistrement de la base de données
                 _context.Photos.Remove(photo);
                 await _context.SaveChangesAsync();
@@ -284,7 +301,7 @@ namespace PhotoAppApi.Controllers
                 _logger.Debug($"Enregistrement DB supprimé avec succès pour l'ID: {id}");
 
                 // On retourne un code 200 (Ok) pour confirmer au frontend (React) que tout s'est bien passé
-                return Ok(new { message = "Photo supprimée avec succès." });
+                return Ok(new { message = "Photo et ses signalements supprimés avec succès." });
             }
             catch (Exception e)
             {
@@ -404,7 +421,7 @@ namespace PhotoAppApi.Controllers
 
 
         // POST: api/photos/maintenance/generate-thumbnails
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/generate-thumbnails")]
         public async Task<IActionResult> GenerateMissingThumbnails()
         {
@@ -465,6 +482,7 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, "Erreur interne lors de la compression des images.");
             }
         }
+
     }
 
     public class ReportDto

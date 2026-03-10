@@ -110,6 +110,20 @@ const handleDeleteReportedPhoto = async (photoId) => {
     }
 };
 
+// Fonction pour retirer le signalement sans toucher à la photo
+const handleDismissReport = async (reportId) => {
+    if (!window.confirm("Ignorer ce signalement ? La photo sera conservée.")) return;
+    try {
+        // Il faudra créer cette route côté C# : [HttpDelete("reports/{id}")]
+        await api.delete(`/admin/reports/${reportId}`);
+        toast.success("Signalement retiré avec succès.");
+        fetchReports(); // On rafraîchit la liste pour faire disparaître la carte
+    } catch (error) {
+        console.error("Erreur lors du retrait du signalement", error);
+        toast.error("Erreur lors du retrait du signalement.");
+    }
+};
+
 const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
     if (isLoading) return <div className="p-6 text-center">Chargement du panneau d'administration...</div>;
@@ -212,16 +226,26 @@ const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:
                             Date : {new Date(report.reportedAt).toLocaleDateString()}
                         </p>
                     </div>
-                    <div className="p-3 bg-white border-t flex justify-end">
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-red-600 border-red-600 hover:bg-red-50"
-                            onClick={() => handleDeleteReportedPhoto(report.photoId)}
-                        >
-                            🗑️ Supprimer l'image
-                        </Button>
-                    </div>
+                    <div className="p-3 bg-white border-t flex justify-between gap-2">
+    {/* Nouveau bouton pour ignorer le signalement */}
+    <Button 
+        variant="outline" 
+        size="sm" 
+        className="text-gray-600 border-gray-300 hover:bg-gray-100"
+        onClick={() => handleDismissReport(report.reportId)}
+    >
+        ✅ Ignorer
+    </Button>
+
+    <Button 
+        variant="outline" 
+        size="sm" 
+        className="text-red-600 border-red-600 hover:bg-red-50"
+        onClick={() => handleDeleteReportedPhoto(report.photoId)}
+    >
+        🗑️ Supprimer l'image
+    </Button>
+</div>
                 </div>
             ))}
         </div>

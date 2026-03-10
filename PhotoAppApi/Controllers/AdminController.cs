@@ -13,10 +13,12 @@ namespace PhotoAppApi.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private Logger _logger;
 
         public AdminController(AppDbContext context)
         {
             _context = context;
+            _logger = new();
         }
 
         // GET: api/admin/users
@@ -40,6 +42,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
+                _logger.Error($"An error occured in {nameof(GetAllUsers)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des utilisateurs." });
             }
         }
@@ -92,10 +95,39 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
+                _logger.Error($"An error occured in {nameof(GetReports)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des signalements." });
             }
         }
+
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("reports/{id}")]
+        public async Task<IActionResult> DeleteReport(int id)
+        {
+            try
+            {
+                var report = await _context.ImageReports.FindAsync(id);
+                if (report == null)
+                {
+                    return NotFound();
+                }
+
+                _context.ImageReports.Remove(report);
+                await _context.SaveChangesAsync();
+
+                // Message mis à jour pour refléter l'action d'effacer/ignorer le signalement
+                return Ok(new { message = "Le signalement a été ignoré et retiré de la liste." });
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(DeleteReport)}", e);
+                return StatusCode(500, new { message = "Une erreur interne est survenue lors de l'effacement du signalement." });
+            }
+        }
     }
+
+
 
     // Le DTO est parfait ici !
     public class RoleUpdateDto
