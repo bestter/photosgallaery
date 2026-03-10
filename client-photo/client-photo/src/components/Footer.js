@@ -1,8 +1,17 @@
 import React from 'react';
+import buildData from '../build-number.json';
+
+const baseVersion = "1.0"; // Tes premiers chiffres gérés manuellement
 
 const Footer = () => {
     return (
-        <footer className="w-full py-8 mt-12 border-t border-gray-100 bg-white/50 backdrop-blur-sm">
+        <footer className="w-full pt-6 pb-8 mt-12 border-t border-gray-100 bg-white/50 backdrop-blur-sm">
+            
+            {/* Le numéro de version façon message subtil, au-dessus des éléments */}
+            <div className="text-center text-[11px] md:text-xs text-gray-400 mb-6 tracking-wide">
+                Version {baseVersion}.{buildData.build}
+            </div>
+
             <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
                 
                 {/* 1. Copyright */}
@@ -20,14 +29,14 @@ const Footer = () => {
                         className="transition-transform hover:scale-110 active:scale-95"
                     >
                         <img 
-                            src="https://www.gnu.org/graphics/gplv3-or-later.png" 
+                            src="/gplv3-or-later.png" 
                             alt="GPL v3" 
                             className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity"
                         />
                     </a>
                 </div>
 
-                {/* 3. La Signature Gemini (Maintenant cliquable et visible !) */}
+                {/* 3. La Signature Gemini */}
                 <a 
                     href="https://gemini.google.com" 
                     target="_blank" 

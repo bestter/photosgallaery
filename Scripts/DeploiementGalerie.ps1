@@ -57,6 +57,8 @@ try {
     Push-Location $FrontendLocalPath
     npm install
     if ($LASTEXITCODE -ne 0) { throw "Échec du 'npm install' pour le frontend." }
+
+    node increment-build.js
     
     npm run build
     if ($LASTEXITCODE -ne 0) { throw "Échec de la compilation 'npm run build' pour le frontend." }
