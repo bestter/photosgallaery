@@ -46,7 +46,7 @@ function App() {
                                 </AdminRoute>
                             } 
                         />
-                        <Route path="/user/:username" element={<User />} />
+                        <Route path="/user/:username" element={<User token={token} />} />
                     </Routes>
                 </main>
                 <Footer />

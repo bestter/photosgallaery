@@ -648,6 +648,67 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, new { message = "Une erreur est survenue lors de la récupération des likes." });
             }
         }
+
+
+        // GET: api/photos/user/{username}
+        [HttpGet("user/{username}")]
+        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] Language lang = Language.FR)
+        {
+            try
+            {
+                // 1. Trouver l'utilisateur cible
+                var targetUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
+                if (targetUser == null) return NotFound(new { message = "Utilisateur introuvable." });
+
+                // 2. Chercher toutes ses photos publiées
+                var userPhotos = await _context.Photos
+                    .Where(p => p.UploaderUsername == targetUser.Username) // On filtre par UploaderUsername !
+                    .Include(p => p.Tags)
+                        .ThenInclude(t => t.Translations)
+                    .OrderByDescending(p => p.UploadedAt)
+                    .ToListAsync();
+
+                if (!userPhotos.Any()) return Ok(userPhotos);
+
+                // 3. LOGIQUE DES COMPTEURS (Comme d'habitude)
+                var photoIds = userPhotos.Select(p => p.Id).ToList();
+
+                var likesCounts = await _context.PhotoLikes
+                    .Where(l => photoIds.Contains(l.PhotoId))
+                    .GroupBy(l => l.PhotoId)
+                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
+
+                var currentUsername = User.Identity?.Name;
+                var currentUserLikedPhotoIds = new HashSet<int>();
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    var currentUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
+                    if (currentUser != null)
+                    {
+                        var likedIds = await _context.PhotoLikes
+                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUser.Id)
+                            .Select(l => l.PhotoId)
+                            .ToListAsync();
+                        currentUserLikedPhotoIds = new HashSet<int>(likedIds);
+                    }
+                }
+
+                foreach (var photo in userPhotos)
+                {
+                    photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
+                    photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
+                }
+
+                return Ok(userPhotos);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(GetUserPhotos)}", e);
+                return StatusCode(500, new { message = "Erreur de récupération." });
+            }
+        }
     }
 
     public class ReportDto

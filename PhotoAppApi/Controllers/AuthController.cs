@@ -29,9 +29,6 @@ namespace PhotoAppApi.Controllers
             _configuration = configuration;
         }
 
-        // ATTENTION : Doit être exactement la même clé que dans Program.cs
-        private readonly string _jwtKey = "UneCleSecreteTresLonguePourLaSecurite12345";
-
         [HttpPost("login")]        
         public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {

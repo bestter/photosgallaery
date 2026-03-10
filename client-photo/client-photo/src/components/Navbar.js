@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'; // Ajout de useCallback
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { getUserRole } from './authHelper';
+import { getUserRole, getUsernameFromToken } from './authHelper';
 import Button from './Button';
 import api from '../api';
 
@@ -96,6 +96,11 @@ const Navbar = ({ token, setToken }) => {
                                     </Button>
                                 </Link>
                             )}
+                            <Link to={`/user/${getUsernameFromToken(token)}`}>
+                                <Button size="sm" variant="outline" className="text-teal-600 border-teal-200 hover:bg-teal-50">
+                                    Voir le profil
+                                </Button>
+                            </Link>
                             <Button size="sm" variant="outline" onClick={handleLogout} className="text-red-600 border-red-200 hover:bg-red-50">
                                 Déconnexion
                             </Button>

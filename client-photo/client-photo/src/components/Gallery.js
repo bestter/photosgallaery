@@ -8,7 +8,7 @@ import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 
-const Gallery = ({ refreshTrigger, token, setToken }) => { 
+const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Galerie Publique", hideUpload = false }) => {
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -31,15 +31,18 @@ const Gallery = ({ refreshTrigger, token, setToken }) => {
 
 
     useEffect(() => {
-        setIsLoading(true);
-            let apiUrl = `/photos?lang=${currentLanguage}`;
+    setIsLoading(true);
     
-    // NOUVEAU : On s'assure de décoder l'URL (ex: %C3%A8 redevient è)
-    const safeTagName = tagName ? decodeURIComponent(tagName) : null;
+    // On utilise le endpoint personnalisé ou la route par défaut
+    const baseEndpoint = customEndpoint || '/photos';
+    
+    // On construit l'URL avec la langue
+    let apiUrl = `${baseEndpoint}?lang=${currentLanguage}`;
 
-if (safeTagName) {
-    apiUrl += `&tag=${encodeURIComponent(safeTagName)}`;
-        }
+    const safeTagName = tagName ? decodeURIComponent(tagName) : null;
+    if (safeTagName) {
+        apiUrl += `&tag=${encodeURIComponent(safeTagName)}`;
+    }        
         api.get(apiUrl)
             .then(response => {
                 setPhotos(response.data.reverse()); 
@@ -47,7 +50,7 @@ if (safeTagName) {
             .catch(err => console.error("Erreur chargement photos", err))
             .finally(() => setIsLoading(false));
             
-    }, [refreshTrigger, deleteTrigger, uploadTrigger, tagName]);
+    }, [refreshTrigger, deleteTrigger, uploadTrigger, tagName, customEndpoint]);
 
     const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
