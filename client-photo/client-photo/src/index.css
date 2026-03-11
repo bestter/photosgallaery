@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Thème Océan (Par défaut) */
+    --color-primary: #012030;
+    --color-secondary: #13678A;
+    --color-accent: #45C4B0;
+    --color-text: #ffffff;
+    --color-bg: #012030;
+  }
+
+  [data-theme='mint'] {
+    /* Thème Menthe */
+    --color-primary: #DAFDBA;
+    --color-secondary: #9AEBA3;
+    --color-accent: #13678A;
+    --color-text: #012030;
+    --color-bg: #DAFDBA;
+  }
+}
 /*body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

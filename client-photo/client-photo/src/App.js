@@ -18,7 +18,7 @@ function App() {
     return (
         
         <Router>
-            <div className="min-h-screen bg-gray-50 font-sans">
+            <div className="min-h-screen bg-bg-color text-text-color font-sans transition-colors duration-300">
                 
                 <Toaster position="bottom-right" reverseOrder={false} />
                 {/* 1. LA BARRE DE NAVIGATION EN HAUT DE TOUT */}

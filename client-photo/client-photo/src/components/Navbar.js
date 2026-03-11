@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'; // Ajout de use
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getUserRole, getUsernameFromToken } from './authHelper';
 import Button from './Button';
+import ThemeSwitcher from './ThemeSwitcher';
 import api from '../api';
 
 const Navbar = ({ token, setToken }) => {
@@ -48,7 +49,7 @@ const Navbar = ({ token, setToken }) => {
     const hasReports = reportCount > 0;
 
     return (
-        <nav className="bg-white shadow-md border-b border-gray-100">
+        <nav className="bg-bg-color shadow-md border-b border-secondary border-opacity-20 text-text-color transition-colors">
             <style>
                 {`
                 @keyframes soft-pulse {
@@ -64,11 +65,13 @@ const Navbar = ({ token, setToken }) => {
             
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">
                 <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                    <span className="text-2xl font-extrabold text-teal-600">MaGalerie</span>
+                    <span className="text-2xl font-extrabold text-accent">MaGalerie</span>
                     <img src="/photoGalleryLogo2.png" alt="Logo" className="h-10 w-auto object-contain" />
                 </Link>
 
                 <div className="flex items-center gap-4">
+                    <ThemeSwitcher />
+                    
                     {!token ? (
                         <>
                             <Link to="/login" className="text-gray-600 hover:text-teal-600 font-medium transition-colors">
