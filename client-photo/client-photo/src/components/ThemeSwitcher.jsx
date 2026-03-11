@@ -20,6 +20,8 @@ const ThemeSwitcher = () => {
             <option value="ocean">🌊 Océan</option>
             <option value="mint">🌿 Menthe</option>
             <option value="future-dusk">🌌 Crépuscule Futuriste</option>
+            <option value="sea-stones">🪨 Pierres Marines</option>
+            <option value="neutral">🤍 Neutre</option>
         </select>
     );
 };

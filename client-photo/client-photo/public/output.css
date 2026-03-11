@@ -572,6 +572,25 @@ video {
   --color-bg: #190740;
 }
 
+[data-theme='sea-stones'] {
+  /* Thème Pierres Marines (Sea Stones) */
+  --color-primary: #2E4159;
+  --color-secondary: #5A758C;
+  --color-accent: #F2C094;
+  --color-text: #D9C7B8;
+  --color-bg: #2E4159;
+}
+
+[data-theme='neutral'] {
+  /* Thème Neutre */
+  --color-primary: #FAF4E3;
+  --color-secondary: #D9B2A9;
+  --color-accent: #A5A68F;
+  --color-text: #2C2C2C;
+  /* Texte sombre pour la lisibilité sur fond clair */
+  --color-bg: #F4EEED;
+}
+
 .container {
   width: 100%;
 }
