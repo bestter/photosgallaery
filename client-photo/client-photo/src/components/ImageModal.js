@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'; // 👈 useState est ajouté ici
+import React, { useEffect, useState } from 'react';
 import Button from './Button';
 import PhotoTag from './PhotoTag'; 
 import LikeButton from './LikeButton'; 
@@ -7,17 +7,31 @@ import toast from 'react-hot-toast';
 import { getUserRole, getUsernameFromToken } from './authHelper';
 import { useNavigate } from 'react-router-dom';
 
+// --- NOUVEAUX IMPORTS POUR LEAFLET ---
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Correction du bug classique de React avec les icônes par défaut de Leaflet
+const customMarkerIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+// -------------------------------------
+
 const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
-  // --- NOUVELLES LIGNES POUR LE CHARGEMENT ---
   const [isImageLoading, setIsImageLoading] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
     if (picture) {
-      setIsImageLoading(true); // On remet à zéro quand on change de photo
+      setIsImageLoading(true);
     }
   }, [picture]);
-  // -------------------------------------------
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -97,11 +111,10 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
     }
   };
   
-
-const handleUserClick = () => {
-    onClose(); // 1. On ferme la modale
-    navigate(`/user/${picture.uploaderUsername}`); // 2. On change de page
-};
+  const handleUserClick = () => {
+    onClose();
+    navigate(`/user/${picture.uploaderUsername}`);
+  };
 
   const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
@@ -128,7 +141,6 @@ const handleUserClick = () => {
         {/* === Left/Main View: Massive Image === */}
         <div className="flex-1 flex items-center justify-center relative p-0 md:p-4 overflow-hidden h-[60vh] md:h-screen" onClick={onClose}>
           
-          {/* Close button pinned to top-left */}
           <button
             onClick={onClose}
             className="absolute top-4 left-4 z-50 flex items-center justify-center bg-primary/80 hover:bg-primary text-text-color w-10 h-10 md:w-11 md:h-11 rounded-full backdrop-blur-md transition-all border border-accent/30"
@@ -228,6 +240,31 @@ const handleUserClick = () => {
                   )}
               </div>
             </div>
+
+            {/* === NOUVELLE SECTION : CARTE LEAFLET === */}
+            {picture.latitude && picture.longitude && (
+              <div className="border-t border-accent/20 pt-5">
+                <h3 className="text-xs font-bold opacity-60 mb-3 tracking-wider uppercase">Localisation</h3>
+                {/* Conteneur de la carte : hauteur fixe (h-48), bords arrondis, caché si débordement */}
+                <div className="h-48 w-full rounded-lg overflow-hidden border border-accent/20 relative z-0">
+                  <MapContainer 
+                    center={[picture.latitude, picture.longitude]} 
+                    zoom={13} 
+                    scrollWheelZoom={false} // Évite de zoomer par erreur en scrollant la barre latérale
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <Marker 
+                      position={[picture.latitude, picture.longitude]} 
+                      icon={customMarkerIcon} 
+                    />
+                  </MapContainer>
+                </div>
+              </div>
+            )}
 
             {/* Tags */}
             {picture.tags && picture.tags.length > 0 && (

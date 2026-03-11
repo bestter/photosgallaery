@@ -18,6 +18,9 @@ namespace PhotoAppApi.Models
         public DateTime? DateTaken { get; set; }
         public string? CameraModel { get; set; }
 
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
         [NotMapped]
         public int LikesCount { get; set; }
 

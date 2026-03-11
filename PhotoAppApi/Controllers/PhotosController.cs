@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using SixLabors.ImageSharp.Processing;
 using System.Security.Cryptography;
 using System.Text.Json;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 
 namespace PhotoAppApi.Controllers
 {
@@ -106,6 +107,83 @@ namespace PhotoAppApi.Controllers
                 _logger.Error($"An error occured in {nameof(GetPhotos)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléchargement." });
             }
+        }
+
+        [NonAction]
+        public void ExtractGpsDataSafely(ExifProfile exifProfile, Photo photo)
+        {
+            // Si l'image n'a pas du tout d'EXIF, on arrête ici
+            if (exifProfile == null || exifProfile.Values == null) return;
+
+            try
+            {
+                // 1. Extraction et validation de la Latitude
+                var latExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitude);
+                var latRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitudeRef);
+
+                if (latExif?.GetValue() is Rational[] latRationals && latRefExif?.GetValue() is string latRefStr)
+                {
+                    double? lat = ConvertToDecimalDegreesSafely(latRationals, latRefStr);
+
+                    // Validation géographique de base (entre Pôle Nord et Pôle Sud)
+                    if (lat.HasValue && lat >= -90.0 && lat <= 90.0)
+                    {
+                        photo.Latitude = lat;
+                    }
+                }
+
+                // 2. Extraction et validation de la Longitude
+                var lonExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitude);
+                var lonRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitudeRef);
+
+                if (lonExif?.GetValue() is Rational[] lonRationals && lonRefExif?.GetValue() is string lonRefStr)
+                {
+                    double? lon = ConvertToDecimalDegreesSafely(lonRationals, lonRefStr);
+
+                    // Validation géographique de base (entre Ligne de changement de date Est et Ouest)
+                    if (lon.HasValue && lon >= -180.0 && lon <= 180.0)
+                    {
+                        photo.Longitude = lon;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);               
+            }
+        }
+
+        private double? ConvertToDecimalDegreesSafely(Rational[] rationals, string reference)
+        {
+            // Sécurité 1 : Vérifier qu'on a bien les données minimales
+            if (rationals == null || rationals.Length < 3 || string.IsNullOrWhiteSpace(reference))
+                return null;
+
+            // Sécurité 2 : Prévention absolue de la division par zéro
+            if (rationals[0].Denominator == 0 || rationals[1].Denominator == 0 || rationals[2].Denominator == 0)
+                return null;
+
+            double degrees = (double)rationals[0].Numerator / rationals[0].Denominator;
+            double minutes = (double)rationals[1].Numerator / rationals[1].Denominator;
+            double seconds = (double)rationals[2].Numerator / rationals[2].Denominator;
+
+            double result = degrees + (minutes / 60.0) + (seconds / 3600.0);
+
+            // Sécurité 3 : Nettoyage de la chaîne de caractère
+            reference = reference.Trim().ToUpper();
+
+            if (reference == "S" || reference == "W")
+            {
+                result *= -1;
+            }
+            else if (reference != "N" && reference != "E")
+            {
+                // Si la référence est une lettre absurde (ex: "X" ou "?"), la coordonnée n'est pas fiable
+                return null;
+            }
+
+            // On arrondit à 6 décimales (précision d'environ 11 centimètres, largement suffisant)
+            return Math.Round(result, 6);
         }
 
         // POST: api/photos/upload (Privé: connectés seulement)
@@ -233,8 +311,6 @@ namespace PhotoAppApi.Controllers
                     // On recharge l'image à partir du flux pour ImageSharp
                     int originalWidth = 0;
                     int originalHeight = 0;
-                    DateTime? dateTaken = null;
-                    string? cameraModel = null;
 
                     using (var stream = file.OpenReadStream())
                     using (var image = await Image.LoadAsync(stream))
@@ -242,28 +318,46 @@ namespace PhotoAppApi.Controllers
                         originalWidth = image.Width;
                         originalHeight = image.Height;
 
+                        // 5. Préparation de l'objet Photo (On le crée plus tôt pour le passer à ExtractGpsDataSafely)
+                        var photo = new Photo
+                        {
+                            FileName = uniqueFileName,
+                            Url = $"/images/{uniqueFileName}",
+                            UploaderUsername = User.Identity?.Name ?? "Anonyme",
+                            FileHash = fileHash,
+                            Tags = tagsToAttach.ToList(),
+                            FileSize = file.Length,
+                            ResolutionWidth = originalWidth,
+                            ResolutionHeight = originalHeight
+                            // Les autres propriétés (GPS, date) seront remplies ci-dessous si elles existent
+                        };
+
                         var exifProfile = image.Metadata.ExifProfile;
                         if (exifProfile != null)
                         {
-                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == SixLabors.ImageSharp.Metadata.Profiles.Exif.ExifTag.DateTimeOriginal);
+                            // A. Extraction de la Date
+                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
                             if (dateTimeValue != null)
                             {
                                 string? dtStr = dateTimeValue.GetValue()?.ToString();
                                 if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
                                 {
-                                    dateTaken = dt;
+                                    photo.DateTaken = dt;
                                 }
                             }
 
-                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == SixLabors.ImageSharp.Metadata.Profiles.Exif.ExifTag.Model);
+                            // B. Extraction du Modèle d'appareil
+                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
                             if (modelValue != null)
                             {
-                                cameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
+                                photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
                             }
+
+                            // C. Appel à notre super fonction sécurisée pour le GPS !
+                            ExtractGpsDataSafely(exifProfile, photo);
                         }
 
-                        // On redimensionne l'image pour qu'elle tienne dans un carré de 400x400 max
-                        // ResizeMode.Max garde les proportions (ratio) sans déformer l'image
+                        // On redimensionne l'image pour la miniature
                         image.Mutate(x => x.Resize(new ResizeOptions
                         {
                             Size = new Size(400, 400),
@@ -271,26 +365,11 @@ namespace PhotoAppApi.Controllers
                         }));
 
                         await image.SaveAsync(thumbPath);
+
+                        // On ajoute la photo finalisée au contexte
+                        _context.Photos.Add(photo);
+                        uploadedPhotos.Add(photo);
                     }
-
-                    // 5. Préparation des métadonnées
-                    var photo = new Photo
-                    {
-                        FileName = uniqueFileName,
-                        Url = $"/images/{uniqueFileName}",
-                        UploaderUsername = User.Identity?.Name ?? "Anonyme",
-                        FileHash = fileHash,
-                        // On clone la liste pour que chaque photo ait sa propre instance !
-                        Tags = tagsToAttach.ToList(),
-                        FileSize = file.Length,
-                        ResolutionWidth = originalWidth,
-                        ResolutionHeight = originalHeight,
-                        DateTaken = dateTaken,
-                        CameraModel = cameraModel
-                    };
-
-                    _context.Photos.Add(photo);
-                    uploadedPhotos.Add(photo);
                 }
 
                 // 6. Sauvegarder dans MariaDB s'il y a eu de nouvelles images
