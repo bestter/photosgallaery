@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PhotoAppApi.Models
 {
@@ -11,6 +11,12 @@ namespace PhotoAppApi.Models
         public string? UploaderUsername { get; set; }
 
         public string? FileHash { get; set; }
+
+        public long FileSize { get; set; }
+        public int ResolutionWidth { get; set; }
+        public int ResolutionHeight { get; set; }
+        public DateTime? DateTaken { get; set; }
+        public string? CameraModel { get; set; }
 
         [NotMapped]
         public int LikesCount { get; set; }

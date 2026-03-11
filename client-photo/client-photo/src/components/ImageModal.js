@@ -105,88 +105,160 @@ const handleUserClick = () => {
 
   const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
+  const formatBytes = (bytes, decimals = 2) => {
+    if (!+bytes) return '0 Octets';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Octets', 'Ko', 'Mo', 'Go', 'To', 'Po', 'Eo', 'Zo', 'Yo'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+    return new Date(dateString).toLocaleDateString('fr-FR', options);
+  };
+
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex flex-col md:flex-row bg-bg-color animate-in fade-in duration-200"
       onClick={onClose}
     >
-      <div 
-        className="relative bg-white rounded-2xl shadow-2xl p-2 md:p-4 max-w-[95vw] max-h-[95vh] flex flex-col items-center justify-center animate-in zoom-in-95 duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute -top-4 -right-4 md:top-4 md:right-4 z-20 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white w-10 h-10 md:w-12 md:h-12 rounded-full shadow-xl transition-all hover:scale-110 active:scale-90 border-2 border-white"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        {/* --- NOUVELLES LIGNES POUR LE CONTENEUR D'IMAGE ET LE SPINNER --- */}
-        <div className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100 w-full relative min-h-[30vh]">
+        {/* === Left/Main View: Massive Image === */}
+        <div className="flex-1 flex items-center justify-center relative p-0 md:p-4 overflow-hidden h-[60vh] md:h-screen" onClick={onClose}>
           
+          {/* Close button pinned to top-left */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 left-4 z-50 flex items-center justify-center bg-primary/80 hover:bg-primary text-text-color w-10 h-10 md:w-11 md:h-11 rounded-full backdrop-blur-md transition-all border border-accent/30"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           {isImageLoading && (
-            <div className="absolute inset-0 flex items-center justify-center z-10">
-              <div className="w-12 h-12 border-4 border-gray-300 border-t-[#008B8B] rounded-full animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin"></div>
             </div>
           )}
 
           <img
             src={`${imageBaseUrl}${picture.url}`} 
             alt="Plein écran"
-            onLoad={() => setIsImageLoading(false)} // L'image est arrivée !
-            onError={() => setIsImageLoading(false)} // L'image a planté !
-            className={`max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-inner transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setIsImageLoading(false)} 
+            onError={() => setIsImageLoading(false)} 
+            className={`w-full h-full object-contain transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onClick={(e) => e.stopPropagation()} 
           />
-        </div> 
-        {/* --------------------------------------------------------------- */}
+        </div>
 
-        {picture.tags && picture.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2 justify-center w-full">
-            {picture.tags?.map((tag, index) => {
+        {/* === Right Sidebar: Metadata & Actions === */}
+        <div 
+          className="w-full md:w-80 lg:w-96 bg-primary text-text-color shrink-0 flex flex-col h-[40vh] md:h-screen overflow-y-auto animate-in slide-in-from-bottom md:slide-in-from-right duration-300 rounded-t-2xl md:rounded-none z-20 shadow-[-10px_0_20px_rgba(0,0,0,0.5)] border-l border-accent/20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-6 flex flex-col gap-6 min-h-full">
+            
+            {/* Infos utilisateur et actions rapides */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-full bg-accent text-primary flex items-center justify-center font-bold text-lg shadow-sm">
+                    {picture.uploaderUsername ? picture.uploaderUsername[0].toUpperCase() : '?'}
+                 </div>
+                 <div className="flex flex-col">
+                    <span className="text-xs opacity-70 font-medium">Ajouté par</span>
+                    <span className="text-sm font-bold leading-tight">
+                        {picture.uploaderUsername ? (
+                            <button onClick={handleUserClick} className="hover:underline hover:text-accent transition-colors cursor-pointer text-left">
+                                {picture.uploaderUsername}
+                            </button>
+                        ) : 'Anonyme'}
+                    </span>
+                 </div>
+              </div>
+
+               {token && <LikeButton photoId={picture.id} initialIsLiked={picture.isLikedByCurrentUser || false} initialLikesCount={picture.likesCount || 0} />}
+            </div>
+
+            {/* Détails de l'image (Exif) */}
+            <div className="border-t border-accent/20 pt-5">
+              <h3 className="text-xs font-bold opacity-60 mb-4 tracking-wider uppercase">Détails</h3>
               
-              return (
-                <PhotoTag tag={tag} />
-              );
-            })}
-          </div>
-        )}
-        
-        <div className="w-full mt-4 flex items-center justify-between px-2">
-          <div className="text-sm text-gray-500 font-medium">
-    {picture.uploaderUsername ? (
-        <>
-            Ajouté par{' '}
-            <button 
-                onClick={handleUserClick}
-                className="text-teal-600 hover:text-teal-800 hover:underline font-bold transition-colors cursor-pointer"
-            >
-                {picture.uploaderUsername}
-            </button>
-        </>
-    ) : ''}
-</div>
-  {token ? (
-          <LikeButton 
-    photoId={picture.id} 
-    initialIsLiked={picture.isLikedByCurrentUser || false} 
-    initialLikesCount={picture.likesCount || 0} 
-/>) : null}
-          
-          <div>
-            {token && canDelete ? (
-              <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600 border-red-600 hover:bg-red-50">
-                🗑️ Supprimer
-              </Button>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={handleReport} className="text-orange-500 hover:bg-orange-50">
-                🚩 Signaler
-              </Button>
+              <div className="flex flex-col gap-5 text-sm">
+                  {picture.dateTaken && (
+                      <div className="flex gap-4">
+                          <div className="mt-0.5 opacity-60">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold">{formatDate(picture.dateTaken)}</p>
+                            <p className="text-xs opacity-70 mt-0.5">Capture</p>
+                          </div>
+                      </div>
+                  )}
+
+                  {(picture.resolutionWidth || picture.fileSize > 0) && (
+                      <div className="flex gap-4">
+                          <div className="mt-0.5 opacity-60">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </div>
+                          <div>
+                              <p className="font-semibold">
+                                {picture.resolutionWidth ? `${picture.resolutionWidth} × ${picture.resolutionHeight}` : ''}
+                                {picture.resolutionWidth && picture.fileSize ? ' • ' : ''}
+                                {picture.fileSize ? formatBytes(picture.fileSize) : ''}
+                              </p>
+                              <p className="text-xs opacity-70 mt-0.5">Résolution et taille</p>
+                          </div>
+                      </div>
+                  )}
+
+                  {picture.cameraModel && (
+                      <div className="flex gap-4">
+                          <div className="mt-0.5 opacity-60">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          </div>
+                          <div>
+                              <p className="font-semibold">{picture.cameraModel}</p>
+                              <p className="text-xs opacity-70 mt-0.5">Appareil</p>
+                          </div>
+                      </div>
+                  )}
+              </div>
+            </div>
+
+            {/* Tags */}
+            {picture.tags && picture.tags.length > 0 && (
+              <div className="border-t border-accent/20 pt-5">
+                <h3 className="text-xs font-bold opacity-60 mb-3 tracking-wider uppercase">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {picture.tags?.map((tag, index) => (
+                    <PhotoTag key={index} tag={tag} />
+                  ))}
+                </div>
+              </div>
             )}
+            
+            {/* Actions (Supprimer, Signaler) */}
+            <div className="border-t border-accent/20 pt-5 mt-auto pb-4">
+                <h3 className="text-xs font-bold opacity-60 mb-3 tracking-wider uppercase">Options</h3>
+                {token && canDelete ? (
+                  <Button variant="outline" className="w-full justify-center text-red-500 border-red-500/50 hover:bg-red-500/10 transition-colors" onClick={handleDelete}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    Supprimer l'image
+                  </Button>
+                ) : (
+                  <Button variant="ghost" className="w-full justify-center text-orange-500 hover:bg-orange-500/10 transition-colors" onClick={handleReport}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>
+                    Signaler l'image
+                  </Button>
+                )}
+            </div>
+
           </div>
         </div>
-      </div>    
     </div>
   );
 };

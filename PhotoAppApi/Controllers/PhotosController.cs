@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
@@ -231,9 +231,37 @@ namespace PhotoAppApi.Controllers
 
                     // B. Création et sauvegarde de la miniature (Basse résolution)
                     // On recharge l'image à partir du flux pour ImageSharp
+                    int originalWidth = 0;
+                    int originalHeight = 0;
+                    DateTime? dateTaken = null;
+                    string? cameraModel = null;
+
                     using (var stream = file.OpenReadStream())
                     using (var image = await Image.LoadAsync(stream))
                     {
+                        originalWidth = image.Width;
+                        originalHeight = image.Height;
+
+                        var exifProfile = image.Metadata.ExifProfile;
+                        if (exifProfile != null)
+                        {
+                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == SixLabors.ImageSharp.Metadata.Profiles.Exif.ExifTag.DateTimeOriginal);
+                            if (dateTimeValue != null)
+                            {
+                                string? dtStr = dateTimeValue.GetValue()?.ToString();
+                                if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
+                                {
+                                    dateTaken = dt;
+                                }
+                            }
+
+                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == SixLabors.ImageSharp.Metadata.Profiles.Exif.ExifTag.Model);
+                            if (modelValue != null)
+                            {
+                                cameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
+                            }
+                        }
+
                         // On redimensionne l'image pour qu'elle tienne dans un carré de 400x400 max
                         // ResizeMode.Max garde les proportions (ratio) sans déformer l'image
                         image.Mutate(x => x.Resize(new ResizeOptions
@@ -253,7 +281,12 @@ namespace PhotoAppApi.Controllers
                         UploaderUsername = User.Identity?.Name ?? "Anonyme",
                         FileHash = fileHash,
                         // On clone la liste pour que chaque photo ait sa propre instance !
-                        Tags = tagsToAttach.ToList()
+                        Tags = tagsToAttach.ToList(),
+                        FileSize = file.Length,
+                        ResolutionWidth = originalWidth,
+                        ResolutionHeight = originalHeight,
+                        DateTaken = dateTaken,
+                        CameraModel = cameraModel
                     };
 
                     _context.Photos.Add(photo);
