@@ -235,7 +235,7 @@ const handleUserClick = () => {
                 <h3 className="text-xs font-bold opacity-60 mb-3 tracking-wider uppercase">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {picture.tags?.map((tag, index) => (
-                    <PhotoTag key={index} tag={tag} />
+                    <PhotoTag key={index} tag={tag} onClick={onClose} />
                   ))}
                 </div>
               </div>
