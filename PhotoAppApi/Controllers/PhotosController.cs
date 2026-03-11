@@ -190,7 +190,7 @@ namespace PhotoAppApi.Controllers
         [Authorize(Policy = "CanUpload")]
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags)
+        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags, [FromForm] bool includeGps = true)
         {
             try
             {
@@ -354,7 +354,10 @@ namespace PhotoAppApi.Controllers
                             }
 
                             // C. Appel à notre super fonction sécurisée pour le GPS !
-                            ExtractGpsDataSafely(exifProfile, photo);
+                            if (includeGps)
+                            {
+                                ExtractGpsDataSafely(exifProfile, photo);
+                            }
                         }
 
                         // On redimensionne l'image pour la miniature

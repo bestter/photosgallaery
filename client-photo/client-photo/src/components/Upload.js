@@ -10,25 +10,24 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     const fileInputRef = useRef(null);
     const [tags, setTags] = useState([]);
     const [tagInput, setTagInput] = useState("");
-    
-    // NOUVEAU: État pour stocker les suggestions de l'API
     const [suggestions, setSuggestions] = useState([]);
+    
+    // NOUVEAU: État pour la case à cocher (cochée par défaut)
+    const [includeGps, setIncludeGps] = useState(true);
 
     const MAX_SIZE_BYTES = 50 * 1024 * 1024; 
 
-    // NOUVEAU: Le moteur de recherche (Autocomplete)
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (tagInput.length > 1) {
                 try {
-                    // Utilisation de ton instance "api" existante !
                     const response = await api.get(`/tags/search?q=${tagInput}`);
                     setSuggestions(response.data);
                 } catch (err) {
                     console.error("Erreur lors de la recherche de tags", err);
                 }
             } else {
-                setSuggestions([]); // On vide si le champ est vide
+                setSuggestions([]); 
             }
         }, 300);
 
@@ -42,16 +41,14 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         }
     };
 
-    // NOUVEAU: Fonction centralisée pour ajouter un tag
     const addTagToList = (tagName) => {
         if (!tags.includes(tagName) && tags.length < 12) {
             setTags([...tags, tagName]);
         }
         setTagInput("");
-        setSuggestions([]); // Cache les suggestions après un choix
+        setSuggestions([]); 
     };
 
-    // MODIFIÉ: Utilise maintenant addTagToList
     const addTag = (e) => {
         if (e.key === 'Enter' && tagInput.trim() !== "") {
             e.preventDefault();
@@ -89,12 +86,8 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
 
     const canUpload = () => {
         const role = getUserRole(token);
-        console.debug("Rôle brut extrait du token:", role); // Pour t'aider à débugger dans F12
-
-        // Sécurité : si aucun rôle n'est trouvé
         if (!role) return false;
 
-        // Cas 1 : Le backend renvoie un tableau de rôles (ex: ["User", "Creator"])
         if (Array.isArray(role)) {
             return role.some(r => 
                 r.toLowerCase() === "admin" || 
@@ -102,7 +95,6 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
             );
         }
 
-        // Cas 2 : Le backend renvoie une simple chaîne de caractères (ex: "Creator")
         if (typeof role === 'string') {
             return role.toLowerCase() === "admin" || role.toLowerCase() === "creator";
         }
@@ -131,6 +123,9 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         });
 
         formData.append("tags", JSON.stringify(tags));
+        
+        // NOUVEAU: On ajoute la valeur de la case à cocher au formulaire envoyé au backend
+        formData.append("includeGps", includeGps);
 
         setIsUploading(true);
 
@@ -147,7 +142,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
                     }
                     
                     handleClearSelection();
-                    setTags([]); // On vide les tags après un succès
+                    setTags([]); 
                     if (onUploadSuccess) onUploadSuccess();
                     return response.data.message || "Images ajoutées !";
                 },
@@ -190,7 +185,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
               </Button>
 
               {files.length > 0 && (
-                <div className="flex items-center gap-2 bg-secondary/20px-3 py-1.5 rounded-lg border border-accent/20 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div className="flex items-center gap-2 bg-secondary/20 px-3 py-1.5 rounded-lg border border-accent/20 animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-sm text-gray-700 font-medium">
                     {files.length} fichier(s) - {totalSizeDisplay} Mo
                   </span>
@@ -218,33 +213,50 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
                 multiple 
               />            
               
-              {/* SECTION DES TAGS MODIFIÉE */}
-              <div className="mt-4 relative w-full">
-                <label>Tags (Appuyez sur Entrée) :</label>
-                <input 
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={addTag}
-                  placeholder="ex: Nature, Voyage..."
-                  className="border p-2 ml-2 rounded bg-bg-color text-text-color border-accent/50"
-                  autoComplete="off" // Empêche le navigateur de mettre ses propres suggestions par-dessus
-                />
+              {/* SECTION DES TAGS ET GPS MODIFIÉE */}
+              <div className="mt-4 relative w-full flex flex-wrap items-center gap-4">
+                <div className="flex flex-col flex-grow md:flex-grow-0">
+                    <label className="text-sm mb-1">Tags (Appuyez sur Entrée) :</label>
+                    <input 
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={addTag}
+                    placeholder="ex: Nature, Voyage..."
+                    className="border p-2 rounded bg-bg-color text-text-color border-accent/50 min-w-[250px]"
+                    autoComplete="off" 
+                    />
 
-                {/* La boîte de suggestions flottante */}
-                {suggestions.length > 0 && (
-                    <ul className="absolute z-10 bg-primary border border-accent/20 shadow-lg mt-1 ml-2 rounded w-64 max-h-48 overflow-y-auto">
-                        {suggestions.map((s, index) => (
-                            <li 
-                                key={index}
-                                onClick={() => addTagToList(s)}
-                                className="p-2 hover:bg-secondary/20 cursor-pointer text-text-color"
-                            >
-                                {s}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                    {/* La boîte de suggestions flottante */}
+                    {suggestions.length > 0 && (
+                        <ul className="absolute z-10 bg-primary border border-accent/20 shadow-lg mt-16 rounded w-64 max-h-48 overflow-y-auto">
+                            {suggestions.map((s, index) => (
+                                <li 
+                                    key={index}
+                                    onClick={() => addTagToList(s)}
+                                    className="p-2 hover:bg-secondary/20 cursor-pointer text-text-color"
+                                >
+                                    {s}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                {/* NOUVEAU: La case à cocher GPS */}
+                <div className="flex items-center gap-2 mt-4 md:mt-6 bg-accent/10 px-3 py-2 rounded-lg border border-accent/20">
+                    <input 
+                        type="checkbox" 
+                        id="includeGps" 
+                        checked={includeGps} 
+                        onChange={(e) => setIncludeGps(e.target.checked)}
+                        className="w-4 h-4 text-accent border-gray-300 rounded focus:ring-accent"
+                    />
+                    <label htmlFor="includeGps" className="text-sm text-text-color cursor-pointer select-none">
+                        Ajouter les coordonnées GPS
+                    </label>
+                </div>
+
               </div>
 
               {/* Affichage des badges */}
