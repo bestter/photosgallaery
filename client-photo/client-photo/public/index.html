@@ -43,6 +43,17 @@
     -->
     <link rel="stylesheet" href="%PUBLIC_URL%/output.css" />
     <title>Imaging</title>
+    <!-- Script pour appliquer le thème instantanément avant le rendu de la page (évite le clignotement) -->
+    <script>
+      (function() {
+        try {
+          var savedTheme = localStorage.getItem('theme') || 'ocean';
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        } catch (e) {
+          console.error("Impossible de charger le thème:", e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
