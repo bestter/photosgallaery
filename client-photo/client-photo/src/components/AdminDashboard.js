@@ -126,42 +126,42 @@ const handleDismissReport = async (reportId) => {
 
 const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
-    if (isLoading) return <div className="p-6 text-center">Chargement du panneau d'administration...</div>;
+    if (isLoading) return <div className="p-6 text-center text-text-color">Chargement du panneau d'administration...</div>;
 
     return (
-        <div className="container mx-auto p-6 max-w-5xl">
-            <h2 className="text-3xl font-bold mb-8 text-gray-800">Panneau d'Administration</h2>
+        <div className="container mx-auto p-6 max-w-5xl text-text-color bg-bg-color min-h-screen">
+            <h2 className="text-3xl font-bold mb-8 text-text-color">Panneau d'Administration</h2>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 mb-8">
-                <h3 className="text-xl font-semibold mb-4 border-b pb-2">Gestion des Utilisateurs</h3>
+            <div className="bg-primary/50 backdrop-blur-sm rounded-xl shadow-md p-6 border border-accent/20 mb-8">
+                <h3 className="text-xl font-semibold mb-4 border-b border-accent/20 pb-2">Gestion des Utilisateurs</h3>
                 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50 text-gray-600 text-sm">
-                                <th className="p-3 border-b">Utilisateur</th>
-                                <th className="p-3 border-b">Courriel</th>
-                                <th className="p-3 border-b">Rôle Actuel</th>
-                                <th className="p-3 border-b">Creator</th>
-                                <th className="p-3 border-b">Admin</th>
-                                <th className="p-3 border-b">Bannir</th>
+                            <tr className="bg-secondary/30 text-text-color text-sm">
+                                <th className="p-3 border-b border-accent/20">Utilisateur</th>
+                                <th className="p-3 border-b border-accent/20">Courriel</th>
+                                <th className="p-3 border-b border-accent/20">Rôle Actuel</th>
+                                <th className="p-3 border-b border-accent/20">Creator</th>
+                                <th className="p-3 border-b border-accent/20">Admin</th>
+                                <th className="p-3 border-b border-accent/20">Bannir</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.map(user => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="p-3 border-b font-medium">{user.username}</td>
-                                    <td className="p-3 border-b text-gray-500">{user.email}</td>
-                                    <td className="p-3 border-b">
+                                <tr key={user.id} className="hover:bg-secondary/20 transition-colors">
+                                    <td className="p-3 border-b border-accent/20 font-medium">{user.username}</td>
+                                    <td className="p-3 border-b border-accent/20 opacity-80">{user.email}</td>
+                                    <td className="p-3 border-b border-accent/20">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                            user.role === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                                            user.role === 'Admin' ? 'bg-accent/20 text-accent' : 'bg-secondary/30 text-text-color opacity-80'
                                         }`}>
                                             {user.role}
                                         </span>
                                     </td>
-                                    <td className="p-3 border-b">
+                                    <td className="p-3 border-b border-accent/20">
     {user.username?.toLowerCase() === currentUser?.toLowerCase() ? (
-        <span className="text-gray-400 italic text-sm">Action impossible</span>
+        <span className="opacity-50 italic text-sm">Action impossible</span>
     ) : (
         <Button 
             size="sm" 
@@ -173,9 +173,9 @@ const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:
         </Button>
     )}
 </td>
-                                   <td className="p-3 border-b">
+                                   <td className="p-3 border-b border-accent/20">
     {user.username?.toLowerCase() === currentUser?.toLowerCase() ? (
-        <span className="text-teal-600 font-bold text-sm">👑 C'est vous</span>
+        <span className="text-accent font-bold text-sm">👑 C'est vous</span>
     ) : (
         <Button 
             size="sm" 
@@ -186,15 +186,15 @@ const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:
         </Button>
     )}
 </td>
-                                    <td className="p-3 border-b">
+                                    <td className="p-3 border-b border-accent/20">
     {user.username?.toLowerCase() === currentUser?.toLowerCase() ? (
-        <span className="text-gray-400 italic text-sm">-</span>
+        <span className="opacity-50 italic text-sm">-</span>
     ) : (
         <Button 
             size="sm" 
             variant={user.role === 'Forbidden' ? 'primary' : 'outline'}
             onClick={() => toggleBanUser(user.id, user.role)}
-            className={user.role === 'Forbidden' ? "bg-red-600 hover:bg-red-700 text-white border-none" : "text-red-600 border-red-200 hover:bg-red-50"}
+            className={user.role === 'Forbidden' ? "bg-red-500 hover:bg-red-600 text-white border-none" : "text-red-500 border-red-500/50 hover:bg-red-500/10"}
         >
             {user.role === 'Forbidden' ? 'Débannir' : 'Bannir 🚫'}
         </Button>
@@ -208,30 +208,30 @@ const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:
             </div>
 
            {/* Section Signalements */}
-<div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-    <h3 className="text-xl font-semibold mb-4 border-b pb-2">Images Signalées ({reports.length})</h3>
+<div className="bg-primary/50 backdrop-blur-sm rounded-xl shadow-md p-6 border border-accent/20">
+    <h3 className="text-xl font-semibold mb-4 border-b border-accent/20 pb-2">Images Signalées ({reports.length})</h3>
     
     {reports.length === 0 ? (
-        <p className="text-gray-500 italic">Aucun signalement pour le moment. Tout est calme !</p>
+        <p className="opacity-70 italic">Aucun signalement pour le moment. Tout est calme !</p>
     ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map(report => (
-                <div key={report.reportId} className="border rounded-lg overflow-hidden flex flex-col shadow-sm">
+                <div key={report.reportId} className="border border-accent/20 rounded-lg overflow-hidden flex flex-col shadow-sm">
                     <img src=  {`${imageBaseUrl}${report.photoUrl}`} alt="Signalée" className="w-full h-40 object-cover" />
-                    <div className="p-4 bg-red-50 flex-grow">
-                        <p className="text-sm text-red-800 font-bold mb-1">Motif :</p>
-                        <p className="text-sm text-gray-700 italic mb-3">"{report.reason}"</p>
-                        <p className="text-xs text-gray-500">Posté par : {report.uploader}</p>
-                        <p className="text-xs text-gray-500">
+                    <div className="p-4 bg-red-900/10 flex-grow">
+                        <p className="text-sm text-red-500 font-bold mb-1">Motif :</p>
+                        <p className="text-sm text-text-color italic mb-3">"{report.reason}"</p>
+                        <p className="text-xs opacity-70">Posté par : {report.uploader}</p>
+                        <p className="text-xs opacity-70">
                             Date : {new Date(report.reportedAt).toLocaleDateString()}
                         </p>
                     </div>
-                    <div className="p-3 bg-white border-t flex justify-between gap-2">
+                    <div className="p-3 bg-primary/30 border-t border-accent/20 flex justify-between gap-2">
     {/* Nouveau bouton pour ignorer le signalement */}
     <Button 
         variant="outline" 
         size="sm" 
-        className="text-gray-600 border-gray-300 hover:bg-gray-100"
+        className="opacity-80 border-accent/50 hover:bg-secondary/30"
         onClick={() => handleDismissReport(report.reportId)}
     >
         ✅ Ignorer
@@ -240,7 +240,7 @@ const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:
     <Button 
         variant="outline" 
         size="sm" 
-        className="text-red-600 border-red-600 hover:bg-red-50"
+        className="text-red-500 border-red-500/50 hover:bg-red-500/10"
         onClick={() => handleDeleteReportedPhoto(report.photoId)}
     >
         🗑️ Supprimer l'image
