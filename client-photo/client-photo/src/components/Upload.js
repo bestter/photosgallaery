@@ -171,7 +171,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     return (
         
         isSessionValid() && canUpload() ? (
-            <div className="border border-dashed border-blue-500 my-4 mx-0 p-4 rounded-lg animate-in fade-in duration-500">
+            <div className="border border-dashed text-text-color border-accent/50 my-4 mx-0 p-4 rounded-lg animate-in fade-in duration-500">
             <h3 className="text-lg font-bold mb-2">Upload de Photos (Membres seulement)</h3>
             
             <label className="block mb-4 text-sm font-medium text-gray-700" htmlFor="real_file_input">
@@ -190,7 +190,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
               </Button>
 
               {files.length > 0 && (
-                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div className="flex items-center gap-2 bg-secondary/20px-3 py-1.5 rounded-lg border border-accent/20 animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-sm text-gray-700 font-medium">
                     {files.length} fichier(s) - {totalSizeDisplay} Mo
                   </span>
@@ -227,18 +227,18 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={addTag}
                   placeholder="ex: Nature, Voyage..."
-                  className="border p-2 ml-2 rounded"
+                  className="border p-2 ml-2 rounded bg-bg-color text-text-color border-accent/50"
                   autoComplete="off" // Empêche le navigateur de mettre ses propres suggestions par-dessus
                 />
 
                 {/* La boîte de suggestions flottante */}
                 {suggestions.length > 0 && (
-                    <ul className="absolute z-10 bg-white border border-gray-300 shadow-lg mt-1 ml-2 rounded w-64 max-h-48 overflow-y-auto">
+                    <ul className="absolute z-10 bg-primary border border-accent/20 shadow-lg mt-1 ml-2 rounded w-64 max-h-48 overflow-y-auto">
                         {suggestions.map((s, index) => (
                             <li 
                                 key={index}
                                 onClick={() => addTagToList(s)}
-                                className="p-2 hover:bg-gray-100 cursor-pointer text-gray-800"
+                                className="p-2 hover:bg-secondary/20 cursor-pointer text-text-color"
                             >
                                 {s}
                             </li>
@@ -250,9 +250,9 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
               {/* Affichage des badges */}
               <div className="flex flex-wrap gap-2 mt-2 w-full">
                 {tags.map(tag => (
-                  <span key={tag} className="bg-[#008B8B] text-white px-3 py-1 rounded-full text-sm font-medium flex items-center shadow-sm">
+                  <span key={tag} className="bg-accent/20 text-accent px-3 py-1 rounded-full text-sm font-medium flex items-center shadow-sm">
                     {tag} 
-                    <button onClick={() => removeTag(tag)} className="ml-2 text-white hover:text-gray-200 font-bold">×</button>
+                    <button onClick={() => removeTag(tag)} className="ml-2 text-accent hover:text-accent/50 font-bold">×</button>
                   </span>
                 ))}
               </div>

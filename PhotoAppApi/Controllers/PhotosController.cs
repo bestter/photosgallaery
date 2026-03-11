@@ -822,118 +822,118 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        // POST: api/photos/maintenance/backfill-metadata (Public, temporaire)
-        [HttpPost("maintenance/backfill-metadata")]
-        public async Task<IActionResult> BackfillMissingMetadata()
-        {
-            try
-            {
-                _logger.Debug($"In {nameof(BackfillMissingMetadata)}");
+        //// POST: api/photos/maintenance/backfill-metadata (Public, temporaire)
+        //[HttpPost("maintenance/backfill-metadata")]
+        //public async Task<IActionResult> BackfillMissingMetadata()
+        //{
+        //    try
+        //    {
+        //        _logger.Debug($"In {nameof(BackfillMissingMetadata)}");
 
-                // 1. On cible les photos qui ont probablement des données manquantes.
-                // Par exemple, si FileSize est à 0 ou qu'il n'y a pas de largeur enregistrée.
-                var photosToUpdate = await _context.Photos
-                    .Where(p => p.FileSize == 0 || p.ResolutionWidth == 0 || p.CameraModel == null || p.Latitude == null)
-                    .ToListAsync();
+        //        // 1. On cible les photos qui ont probablement des données manquantes.
+        //        // Par exemple, si FileSize est à 0 ou qu'il n'y a pas de largeur enregistrée.
+        //        var photosToUpdate = await _context.Photos
+        //            .Where(p => p.FileSize == 0 || p.ResolutionWidth == 0 || p.CameraModel == null || p.Latitude == null)
+        //            .ToListAsync();
 
-                if (!photosToUpdate.Any())
-                {
-                    return Ok(new { message = "Toutes les photos semblent déjà à jour. Rien à faire !" });
-                }
+        //        if (!photosToUpdate.Any())
+        //        {
+        //            return Ok(new { message = "Toutes les photos semblent déjà à jour. Rien à faire !" });
+        //        }
 
-                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                int updatedCount = 0;
-                int missingFilesCount = 0;
+        //        var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        //        int updatedCount = 0;
+        //        int missingFilesCount = 0;
 
-                foreach (var photo in photosToUpdate)
-                {
-                    var filePath = Path.Combine(rootPath, "images", photo.FileName);
+        //        foreach (var photo in photosToUpdate)
+        //        {
+        //            var filePath = Path.Combine(rootPath, "images", photo.FileName);
 
-                    // 2. Vérifier si l'image physique est toujours là
-                    if (!System.IO.File.Exists(filePath))
-                    {
-                        missingFilesCount++;
-                        continue;
-                    }
+        //            // 2. Vérifier si l'image physique est toujours là
+        //            if (!System.IO.File.Exists(filePath))
+        //            {
+        //                missingFilesCount++;
+        //                continue;
+        //            }
 
-                    // 3. Mise à jour de la taille du fichier (en octets)
-                    if (photo.FileSize == 0)
-                    {
-                        var fileInfo = new FileInfo(filePath);
-                        photo.FileSize = fileInfo.Length;
-                    }
+        //            // 3. Mise à jour de la taille du fichier (en octets)
+        //            if (photo.FileSize == 0)
+        //            {
+        //                var fileInfo = new FileInfo(filePath);
+        //                photo.FileSize = fileInfo.Length;
+        //            }
 
-                    // 4. Lecture rapide des métadonnées avec IdentifyAsync (très performant)
-                    using (var stream = System.IO.File.OpenRead(filePath))
-                    {
-                        var imageInfo = await Image.IdentifyAsync(stream);
-                        if (imageInfo != null)
-                        {
-                            // A. Résolution
-                            if (photo.ResolutionWidth == 0)
-                            {
-                                photo.ResolutionWidth = imageInfo.Width;
-                                photo.ResolutionHeight = imageInfo.Height;
-                            }
+        //            // 4. Lecture rapide des métadonnées avec IdentifyAsync (très performant)
+        //            using (var stream = System.IO.File.OpenRead(filePath))
+        //            {
+        //                var imageInfo = await Image.IdentifyAsync(stream);
+        //                if (imageInfo != null)
+        //                {
+        //                    // A. Résolution
+        //                    if (photo.ResolutionWidth == 0)
+        //                    {
+        //                        photo.ResolutionWidth = imageInfo.Width;
+        //                        photo.ResolutionHeight = imageInfo.Height;
+        //                    }
 
-                            var exifProfile = imageInfo.Metadata.ExifProfile;
-                            if (exifProfile != null)
-                            {
-                                // B. Date de capture
-                                if (photo.DateTaken == null)
-                                {
-                                    var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
-                                    if (dateTimeValue != null)
-                                    {
-                                        string? dtStr = dateTimeValue.GetValue()?.ToString();
-                                        if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
-                                        {
-                                            photo.DateTaken = dt;
-                                        }
-                                    }
-                                }
+        //                    var exifProfile = imageInfo.Metadata.ExifProfile;
+        //                    if (exifProfile != null)
+        //                    {
+        //                        // B. Date de capture
+        //                        if (photo.DateTaken == null)
+        //                        {
+        //                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
+        //                            if (dateTimeValue != null)
+        //                            {
+        //                                string? dtStr = dateTimeValue.GetValue()?.ToString();
+        //                                if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
+        //                                {
+        //                                    photo.DateTaken = dt;
+        //                                }
+        //                            }
+        //                        }
 
-                                // C. Modèle de l'appareil
-                                if (string.IsNullOrEmpty(photo.CameraModel))
-                                {
-                                    var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
-                                    if (modelValue != null)
-                                    {
-                                        photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
-                                    }
-                                }
+        //                        // C. Modèle de l'appareil
+        //                        if (string.IsNullOrEmpty(photo.CameraModel))
+        //                        {
+        //                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
+        //                            if (modelValue != null)
+        //                            {
+        //                                photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
+        //                            }
+        //                        }
 
-                                // D. Coordonnées GPS (on réutilise ta super fonction !)
-                                if (photo.Latitude == null)
-                                {
-                                    ExtractGpsDataSafely(exifProfile, photo);
-                                }
-                            }
-                        }
-                    }
-                    updatedCount++;
-                }
+        //                        // D. Coordonnées GPS (on réutilise ta super fonction !)
+        //                        if (photo.Latitude == null)
+        //                        {
+        //                            ExtractGpsDataSafely(exifProfile, photo);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            updatedCount++;
+        //        }
 
-                // 5. On sauvegarde le tout d'un seul coup
-                if (updatedCount > 0)
-                {
-                    await _context.SaveChangesAsync();
-                }
+        //        // 5. On sauvegarde le tout d'un seul coup
+        //        if (updatedCount > 0)
+        //        {
+        //            await _context.SaveChangesAsync();
+        //        }
 
-                return Ok(new
-                {
-                    message = "Extraction des métadonnées terminée.",
-                    photosCiblees = photosToUpdate.Count,
-                    misesAJourReussies = updatedCount,
-                    fichiersPhysiquesIntrouvables = missingFilesCount
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Erreur dans {nameof(BackfillMissingMetadata)}", e);
-                return StatusCode(500, new { message = "Erreur interne lors de la mise à jour des métadonnées." });
-            }
-        }
+        //        return Ok(new
+        //        {
+        //            message = "Extraction des métadonnées terminée.",
+        //            photosCiblees = photosToUpdate.Count,
+        //            misesAJourReussies = updatedCount,
+        //            fichiersPhysiquesIntrouvables = missingFilesCount
+        //        });
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.Error($"Erreur dans {nameof(BackfillMissingMetadata)}", e);
+        //        return StatusCode(500, new { message = "Erreur interne lors de la mise à jour des métadonnées." });
+        //    }
+        //}
     }
 
     public class ReportDto
