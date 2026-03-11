@@ -43,11 +43,16 @@
     -->
     <link rel="stylesheet" href="%PUBLIC_URL%/output.css" />
     <title>Imaging</title>
-    <!-- Script pour appliquer le thème instantanément avant le rendu de la page (évite le clignotement) -->
+    <!-- Script pour appliquer le thème instantanément avant le rendu de la page -->
     <script>
       (function() {
         try {
-          var savedTheme = localStorage.getItem('theme') || 'ocean';
+          var savedTheme = localStorage.getItem('theme');
+          if (!savedTheme) {
+            // Pas de thème forcé, on lit le système d'exploitation
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            savedTheme = prefersDark ? 'ocean' : 'mint';
+          }
           document.documentElement.setAttribute('data-theme', savedTheme);
         } catch (e) {
           console.error("Impossible de charger le thème:", e);
