@@ -563,6 +563,15 @@ video {
   --color-bg: #DAFDBA;
 }
 
+[data-theme='future-dusk'] {
+  /* Thème Crépuscule Futuriste */
+  --color-primary: #190740;
+  --color-secondary: #24078C;
+  --color-accent: #8553A6;
+  --color-text: #8EA3BF;
+  --color-bg: #190740;
+}
+
 .container {
   width: 100%;
 }
@@ -1587,8 +1596,7 @@ code {
 }
 */
 
-.galleryThumbnails
-{
+.galleryThumbnails {
   height: 400px;
   width: auto;
 }

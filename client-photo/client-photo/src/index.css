@@ -20,7 +20,17 @@
     --color-text: #012030;
     --color-bg: #DAFDBA;
   }
+
+  [data-theme='future-dusk'] {
+    /* Thème Crépuscule Futuriste */
+    --color-primary: #190740;
+    --color-secondary: #24078C;
+    --color-accent: #8553A6;
+    --color-text: #8EA3BF;
+    --color-bg: #190740;
+  }
 }
+
 /*body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -36,8 +46,7 @@ code {
 }
 */
 
-.galleryThumbnails
-{
-    height: 400px;
-    width: auto;
+.galleryThumbnails {
+  height: 400px;
+  width: auto;
 }
