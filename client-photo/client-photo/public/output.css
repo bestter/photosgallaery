@@ -591,6 +591,20 @@ video {
   --color-bg: #F4EEED;
 }
 
+[data-theme='orange'] {
+  /* Thème Orange Vibrant & Sophistiqué */
+  --color-primary: #F28E13;
+  /* Orange Lumineux */
+  --color-secondary: #FB923C;
+  /* Orange Doux */
+  --color-accent: #D94423;
+  /* Vermillon (Accent) */
+  --color-text: #431407;
+  /* Brun Chocolat Profond (très lisible) */
+  --color-bg: #FFF7ED;
+  /* Crème Orangée (évite le côté rose) */
+}
+
 .container {
   width: 100%;
 }

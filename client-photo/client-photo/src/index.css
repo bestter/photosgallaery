@@ -44,8 +44,18 @@
     --color-primary: #FAF4E3;
     --color-secondary: #D9B2A9;
     --color-accent: #A5A68F;
-    --color-text: #2C2C2C; /* Texte sombre pour la lisibilité sur fond clair */
+    --color-text: #2C2C2C;
+    /* Texte sombre pour la lisibilité sur fond clair */
     --color-bg: #F4EEED;
+  }
+
+  [data-theme='orange'] {
+    /* Thème Orange Vibrant & Sophistiqué */
+    --color-primary: #F28E13;    /* Orange Lumineux */
+    --color-secondary: #FB923C;  /* Orange Doux */
+    --color-accent: #D94423;     /* Vermillon (Accent) */
+    --color-text: #431407;       /* Brun Chocolat Profond (très lisible) */
+    --color-bg: #FFF7ED;         /* Crème Orangée (évite le côté rose) */
   }
 }
 

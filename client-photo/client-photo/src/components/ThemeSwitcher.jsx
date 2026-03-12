@@ -16,7 +16,7 @@ const ThemeSwitcher = () => {
     // 3. Écouter les changements de couleur du système d'exploitation
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
+
         const handleChange = (e) => {
             // Ne basculer que si l'utilisateur n'a rien forcé dans le localStorage
             if (!localStorage.getItem('theme')) {
@@ -52,6 +52,7 @@ const ThemeSwitcher = () => {
             <option value="future-dusk">🌌 Crépuscule Futuriste</option>
             <option value="sea-stones">🪨 Pierres Marines</option>
             <option value="neutral">🤍 Neutre</option>
+            <option value="orange">🟠 Orange</option>
         </select>
     );
 };
