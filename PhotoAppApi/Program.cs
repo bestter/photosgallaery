@@ -11,6 +11,15 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// On récupère l'URL depuis appsettings.json
+var frontendUrl = builder.Configuration.GetValue<string>("FrontendUrl");
+
+// Petite sécurité au démarrage pour éviter de chercher le bug pendant des heures
+if (string.IsNullOrEmpty(frontendUrl))
+{
+    throw new InvalidOperationException("La configuration 'FrontendUrl' est introuvable dans appsettings.json.");
+}
+
 // --- NOUVEAU : Configuration de la limite à 50 Mo (52 428 800 octets) ---
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -46,7 +55,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        b => b.WithOrigins("http://localhost:3000")
+        b => b.WithOrigins(frontendUrl)
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -140,7 +149,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Autorise ton front-end React à lire les pixels des images
+        // Remplace "*" par "http://localhost:3000" pour plus de sécurité si tu préfères
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", frontendUrl);
+
+        // Optionnel mais recommandé pour éviter les problèmes de cache CORS
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
+    }
+});
+
 app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
