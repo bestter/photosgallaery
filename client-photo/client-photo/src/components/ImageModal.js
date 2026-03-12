@@ -118,41 +118,6 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
 
   const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
-  // === NOUVELLE FONCTION : Copier l'image dans le presse-papiers ===
-  const handleCopyImage = async () => {
-    try {
-      const img = new Image();
-      img.crossOrigin = "anonymous"; // Important pour éviter les problèmes de CORS avec le canvas
-      img.src = `${imageBaseUrl}${picture.url}`;
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-
-        canvas.toBlob(async (blob) => {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            toast.success("Image copiée ! Vous pouvez la coller dans l'IA de votre choix.", { duration: 4000 });
-          } catch (err) {
-            console.error("Erreur Clipboard:", err);
-            toast.error("Votre navigateur bloque la copie. Faites un clic droit > Copier l'image.");
-          }
-        }, 'image/png');
-      };
-
-      img.onerror = () => {
-        toast.error("Erreur lors de la récupération de l'image pour la copie.");
-      };
-    } catch (error) {
-      toast.error("Fonctionnalité non supportée par votre navigateur.");
-    }
-  };
-
 
   const formatBytes = (bytes, decimals = 2) => {
     if (!+bytes) return '0 Octets';
@@ -314,50 +279,7 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
             </div>
           )}
 
-          {/* === NOUVELLE SECTION : CRÉATIVITÉ IA === */}
-          <div className="border-t border-accent/20 pt-5">
-            <h3 className="text-xs font-bold opacity-60 mb-3 tracking-wider uppercase">Créativité IA</h3>
-            <p className="text-xs opacity-70 mb-4">Copiez l'image, puis collez-la dans la plateforme de votre choix pour la modifier ou l'animer.</p>
 
-            <Button
-              variant="outline"
-              className="w-full justify-center mb-3 bg-accent/5 hover:bg-accent/10 border-accent/30 transition-colors"
-              onClick={handleCopyImage}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-              1. Copier l'image
-            </Button>
-
-            <div className="flex gap-2">
-              {/* === BOUTON GEMINI === */}
-              <a
-                href="https://gemini.google.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-2 px-2 text-xs font-medium bg-[#1a73e8]/10 text-[#a8c7fa] hover:bg-[#1a73e8]/20 rounded-md transition-colors border border-[#1a73e8]/30"
-              >
-                <img
-                  src="/gemini-logo.svg"
-                  alt="Logo Gemini"
-                  className="h-5 w-auto" // Même hauteur que le logo Grok pour l'alignement
-                />
-                Ouvrir Gemini
-              </a>
-              <a
-                href="https://grok.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-2 px-2 text-xs font-medium bg-gray-500/10 text-gray-300 hover:bg-gray-500/20 rounded-md transition-colors border border-gray-500/30"
-              >
-                <img
-                  src="/Grok_Logomark_Dark.svg"
-                  alt="Essayer Grok Imagine – IA de xAI"
-                  className="h-5 w-auto"
-                />
-                Ouvrir Grok
-              </a>
-            </div>
-          </div>
 
           {/* Actions (Supprimer, Signaler) */}
           <div className="border-t border-accent/20 pt-5 mt-auto pb-4">
