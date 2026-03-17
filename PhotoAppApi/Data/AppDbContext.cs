@@ -17,6 +17,8 @@ namespace PhotoAppApi.Data
 
         public DbSet<PhotoLike> PhotoLikes { get; set; }
 
+        public DbSet<PhotoView> PhotoViews { get; set; }
+
         // 2. On utilise l'API Fluent pour configurer la base de données
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

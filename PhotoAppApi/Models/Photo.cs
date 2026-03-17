@@ -28,5 +28,7 @@ namespace PhotoAppApi.Models
         public bool IsLikedByCurrentUser { get; set; }
 
         public ICollection<Tag> Tags { get; set; } = [];
+
+        public int ViewsCount { get; set; } = 0;
     }
 }   

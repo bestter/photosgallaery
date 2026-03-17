@@ -6,8 +6,10 @@ using Microsoft.OpenApi;
 using PhotoAppApi;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Channels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -138,6 +140,20 @@ builder.Services.AddSwaggerGen(c =>
         Description = "JWT Authorization header using the Bearer scheme."
     });
 });
+
+
+var channelOptions = new BoundedChannelOptions(10000)
+{
+    // Wait bloquera temporairement le POST (le ChannelWriter) au lieu de crasher par un OutOfMemory
+    FullMode = BoundedChannelFullMode.Wait
+};
+var viewChannel = Channel.CreateBounded<PhotoViewEvent>(channelOptions);
+// 2. Injecter les Read/Write en Singletons
+builder.Services.AddSingleton(viewChannel.Writer);
+builder.Services.AddSingleton(viewChannel.Reader);
+// 3. Injecter le Service D'arrière plan (Le Worker)
+builder.Services.AddHostedService<PhotoViewProcessingWorker>();
+
 
 builder.Services.AddLog4net();
 

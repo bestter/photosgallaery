@@ -6,8 +6,10 @@ using PhotoAppApi.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace PhotoAppApi.Controllers
 {
@@ -19,13 +21,16 @@ namespace PhotoAppApi.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
-        private Logger _logger;
+        private readonly Logger _logger;
 
-        public PhotosController(AppDbContext context, IWebHostEnvironment env)
+        private readonly ChannelWriter<PhotoViewEvent> _viewChannelWriter;
+
+        public PhotosController(AppDbContext context, IWebHostEnvironment env, ChannelWriter<PhotoViewEvent> viewChannelWriter)
         {
             _logger = new();
             _context = context;
             _env = env;
+            _viewChannelWriter = viewChannelWriter;
         }
 
         // GET: api/photos (Public: tout le monde peut voir)
@@ -59,7 +64,7 @@ namespace PhotoAppApi.Controllers
                 // On exécute la requête pour obtenir la liste des photos
                 var photos = await query.ToListAsync();
 
-                if (!photos.Any()) return Ok(photos);
+                if (photos.Count == 0) return Ok(photos);
 
                 // --- 2. NOUVELLE LOGIQUE POUR LES LIKES ---
 
@@ -95,7 +100,7 @@ namespace PhotoAppApi.Controllers
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
                 foreach (var photo in photos)
                 {
-                    photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
+                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                 }
 
@@ -153,7 +158,7 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        private double? ConvertToDecimalDegreesSafely(Rational[] rationals, string reference)
+        private static double? ConvertToDecimalDegreesSafely(Rational[] rationals, string reference)
         {
             // Sécurité 1 : Vérifier qu'on a bien les données minimales
             if (rationals == null || rationals.Length < 3 || string.IsNullOrWhiteSpace(reference))
@@ -276,11 +281,9 @@ namespace PhotoAppApi.Controllers
                     string fileHash;
                     using (var stream = file.OpenReadStream())
                     {
-                        using (var sha256 = SHA256.Create())
-                        {
-                            var hashBytes = await sha256.ComputeHashAsync(stream);
-                            fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-                        }
+                        using var sha256 = SHA256.Create();
+                        var hashBytes = await sha256.ComputeHashAsync(stream);
+                        fileHash = Convert.ToHexStringLower(hashBytes);
                     }
 
                     // 3. Vérifier les doublons
@@ -376,7 +379,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 6. Sauvegarder dans MariaDB s'il y a eu de nouvelles images
-                if (uploadedPhotos.Any())
+                if (uploadedPhotos.Count != 0)
                 {
                     await _context.SaveChangesAsync();
                 }
@@ -445,7 +448,7 @@ namespace PhotoAppApi.Controllers
                                                       .Where(r => r.PhotoId == id)
                                                       .ToListAsync();
 
-                if (associatedReports.Any())
+                if (associatedReports.Count != 0)
                 {
                     _context.ImageReports.RemoveRange(associatedReports);
                     _logger.Debug($"{associatedReports.Count} signalement(s) supprimé(s) pour la photo ID: {id}");
@@ -484,7 +487,7 @@ namespace PhotoAppApi.Controllers
                     .Where(p => string.IsNullOrEmpty(p.FileHash))
                     .ToListAsync();
 
-                if (!photosSansHash.Any())
+                if (photosSansHash.Count == 0)
                 {
                     return Ok(new { message = "Toutes les photos ont déjà un FileHash. Rien à faire !" });
                 }
@@ -717,7 +720,7 @@ namespace PhotoAppApi.Controllers
                                                 .Select(l => l.Photo)
                                                 .ToListAsync();
 
-                if (!likedPhotos.Any()) return Ok(likedPhotos);
+                if (likedPhotos.Count == 0) return Ok(likedPhotos);
 
                 // --- 3. NOUVELLE LOGIQUE POUR LES COMPTEURS (Comme dans GetPhotos) ---
 
@@ -751,7 +754,7 @@ namespace PhotoAppApi.Controllers
                 // C. On attache les infos calculées à nos photos avant de les envoyer à React
                 foreach (var photo in likedPhotos)
                 {
-                    photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
+                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                 }
 
@@ -783,7 +786,7 @@ namespace PhotoAppApi.Controllers
                     .OrderByDescending(p => p.UploadedAt)
                     .ToListAsync();
 
-                if (!userPhotos.Any()) return Ok(userPhotos);
+                if (userPhotos.Count == 0) return Ok(userPhotos);
 
                 // 3. LOGIQUE DES COMPTEURS (Comme d'habitude)
                 var photoIds = userPhotos.Select(p => p.Id).ToList();
@@ -825,119 +828,156 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        //// POST: api/photos/maintenance/backfill-metadata (Public, temporaire)
-        //[HttpPost("maintenance/backfill-metadata")]
-        //public async Task<IActionResult> BackfillMissingMetadata()
-        //{
-        //    try
-        //    {
-        //        _logger.Debug($"In {nameof(BackfillMissingMetadata)}");
+        // POST: api/photos/{id}/view
+        [HttpPost("{id}/view")]
+        [AllowAnonymous] // On permet aux anonymes d'incrémenter les vues
+        public async Task<IActionResult> RecordView(int id)
+        {
+            // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base 
+            // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT), 
+            // décommente et utilise ce qui suit (sinon UserId reste null) :
 
-        //        // 1. On cible les photos qui ont probablement des données manquantes.
-        //        // Par exemple, si FileSize est à 0 ou qu'il n'y a pas de largeur enregistrée.
-        //        var photosToUpdate = await _context.Photos
-        //            .Where(p => p.FileSize == 0 || p.ResolutionWidth == 0 || p.CameraModel == null || p.Latitude == null)
-        //            .ToListAsync();
+            
+            int? userId = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+                if (idClaim != null && int.TryParse(idClaim.Value, out var parsedId)) {
+                    userId = parsedId;
+                }
+            }            
+             
+            //var userName = User.Identity?.Name;
+            //var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userName);
 
-        //        if (!photosToUpdate.Any())
-        //        {
-        //            return Ok(new { message = "Toutes les photos semblent déjà à jour. Rien à faire !" });
-        //        }
+            var viewEvent = new PhotoViewEvent
+            {
+                PhotoId = id,
+                UserId = userId, // ou `userId` si tu l'as récupéré
+                Timestamp = DateTime.UtcNow,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                UserAgent = Request.Headers.UserAgent.ToString()
+            };
+            // Écriture asynchrone dans le Thread Channel (non bloquant sur l'I/O DB)
+            await _viewChannelWriter.WriteAsync(viewEvent);
+            // Retourner "202 Accepted" : "Requête acceptée, je la traite en arrière-plan !"
+            return Accepted();
+        }
+    
 
-        //        var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        //        int updatedCount = 0;
-        //        int missingFilesCount = 0;
+    //// POST: api/photos/maintenance/backfill-metadata (Public, temporaire)
+    //[HttpPost("maintenance/backfill-metadata")]
+    //public async Task<IActionResult> BackfillMissingMetadata()
+    //{
+    //    try
+    //    {
+    //        _logger.Debug($"In {nameof(BackfillMissingMetadata)}");
 
-        //        foreach (var photo in photosToUpdate)
-        //        {
-        //            var filePath = Path.Combine(rootPath, "images", photo.FileName);
+    //        // 1. On cible les photos qui ont probablement des données manquantes.
+    //        // Par exemple, si FileSize est à 0 ou qu'il n'y a pas de largeur enregistrée.
+    //        var photosToUpdate = await _context.Photos
+    //            .Where(p => p.FileSize == 0 || p.ResolutionWidth == 0 || p.CameraModel == null || p.Latitude == null)
+    //            .ToListAsync();
 
-        //            // 2. Vérifier si l'image physique est toujours là
-        //            if (!System.IO.File.Exists(filePath))
-        //            {
-        //                missingFilesCount++;
-        //                continue;
-        //            }
+    //        if (!photosToUpdate.Any())
+    //        {
+    //            return Ok(new { message = "Toutes les photos semblent déjà à jour. Rien à faire !" });
+    //        }
 
-        //            // 3. Mise à jour de la taille du fichier (en octets)
-        //            if (photo.FileSize == 0)
-        //            {
-        //                var fileInfo = new FileInfo(filePath);
-        //                photo.FileSize = fileInfo.Length;
-        //            }
+    //        var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+    //        int updatedCount = 0;
+    //        int missingFilesCount = 0;
 
-        //            // 4. Lecture rapide des métadonnées avec IdentifyAsync (très performant)
-        //            using (var stream = System.IO.File.OpenRead(filePath))
-        //            {
-        //                var imageInfo = await Image.IdentifyAsync(stream);
-        //                if (imageInfo != null)
-        //                {
-        //                    // A. Résolution
-        //                    if (photo.ResolutionWidth == 0)
-        //                    {
-        //                        photo.ResolutionWidth = imageInfo.Width;
-        //                        photo.ResolutionHeight = imageInfo.Height;
-        //                    }
+    //        foreach (var photo in photosToUpdate)
+    //        {
+    //            var filePath = Path.Combine(rootPath, "images", photo.FileName);
 
-        //                    var exifProfile = imageInfo.Metadata.ExifProfile;
-        //                    if (exifProfile != null)
-        //                    {
-        //                        // B. Date de capture
-        //                        if (photo.DateTaken == null)
-        //                        {
-        //                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
-        //                            if (dateTimeValue != null)
-        //                            {
-        //                                string? dtStr = dateTimeValue.GetValue()?.ToString();
-        //                                if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
-        //                                {
-        //                                    photo.DateTaken = dt;
-        //                                }
-        //                            }
-        //                        }
+    //            // 2. Vérifier si l'image physique est toujours là
+    //            if (!System.IO.File.Exists(filePath))
+    //            {
+    //                missingFilesCount++;
+    //                continue;
+    //            }
 
-        //                        // C. Modèle de l'appareil
-        //                        if (string.IsNullOrEmpty(photo.CameraModel))
-        //                        {
-        //                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
-        //                            if (modelValue != null)
-        //                            {
-        //                                photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
-        //                            }
-        //                        }
+    //            // 3. Mise à jour de la taille du fichier (en octets)
+    //            if (photo.FileSize == 0)
+    //            {
+    //                var fileInfo = new FileInfo(filePath);
+    //                photo.FileSize = fileInfo.Length;
+    //            }
 
-        //                        // D. Coordonnées GPS (on réutilise ta super fonction !)
-        //                        if (photo.Latitude == null)
-        //                        {
-        //                            ExtractGpsDataSafely(exifProfile, photo);
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //            updatedCount++;
-        //        }
+    //            // 4. Lecture rapide des métadonnées avec IdentifyAsync (très performant)
+    //            using (var stream = System.IO.File.OpenRead(filePath))
+    //            {
+    //                var imageInfo = await Image.IdentifyAsync(stream);
+    //                if (imageInfo != null)
+    //                {
+    //                    // A. Résolution
+    //                    if (photo.ResolutionWidth == 0)
+    //                    {
+    //                        photo.ResolutionWidth = imageInfo.Width;
+    //                        photo.ResolutionHeight = imageInfo.Height;
+    //                    }
 
-        //        // 5. On sauvegarde le tout d'un seul coup
-        //        if (updatedCount > 0)
-        //        {
-        //            await _context.SaveChangesAsync();
-        //        }
+    //                    var exifProfile = imageInfo.Metadata.ExifProfile;
+    //                    if (exifProfile != null)
+    //                    {
+    //                        // B. Date de capture
+    //                        if (photo.DateTaken == null)
+    //                        {
+    //                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
+    //                            if (dateTimeValue != null)
+    //                            {
+    //                                string? dtStr = dateTimeValue.GetValue()?.ToString();
+    //                                if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
+    //                                {
+    //                                    photo.DateTaken = dt;
+    //                                }
+    //                            }
+    //                        }
 
-        //        return Ok(new
-        //        {
-        //            message = "Extraction des métadonnées terminée.",
-        //            photosCiblees = photosToUpdate.Count,
-        //            misesAJourReussies = updatedCount,
-        //            fichiersPhysiquesIntrouvables = missingFilesCount
-        //        });
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        _logger.Error($"Erreur dans {nameof(BackfillMissingMetadata)}", e);
-        //        return StatusCode(500, new { message = "Erreur interne lors de la mise à jour des métadonnées." });
-        //    }
-        //}
-    }
+    //                        // C. Modèle de l'appareil
+    //                        if (string.IsNullOrEmpty(photo.CameraModel))
+    //                        {
+    //                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
+    //                            if (modelValue != null)
+    //                            {
+    //                                photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
+    //                            }
+    //                        }
+
+    //                        // D. Coordonnées GPS (on réutilise ta super fonction !)
+    //                        if (photo.Latitude == null)
+    //                        {
+    //                            ExtractGpsDataSafely(exifProfile, photo);
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //            updatedCount++;
+    //        }
+
+    //        // 5. On sauvegarde le tout d'un seul coup
+    //        if (updatedCount > 0)
+    //        {
+    //            await _context.SaveChangesAsync();
+    //        }
+
+    //        return Ok(new
+    //        {
+    //            message = "Extraction des métadonnées terminée.",
+    //            photosCiblees = photosToUpdate.Count,
+    //            misesAJourReussies = updatedCount,
+    //            fichiersPhysiquesIntrouvables = missingFilesCount
+    //        });
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        _logger.Error($"Erreur dans {nameof(BackfillMissingMetadata)}", e);
+    //        return StatusCode(500, new { message = "Erreur interne lors de la mise à jour des métadonnées." });
+    //    }
+    //}
+}
 
     public class ReportDto
     {

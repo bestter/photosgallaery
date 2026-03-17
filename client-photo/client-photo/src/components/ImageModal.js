@@ -41,6 +41,17 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
+  useEffect(() => {
+    if (isImageLoading || !picture) return;
+
+    const timeoutId = setTimeout(() => {
+      api.post(`/photos/${picture.id}/view`)
+        .catch(err => console.error("Erreur lors de l'enregistrement de la vue:", err));
+    }, 2000); // 2 secondes de délai
+
+    return () => clearTimeout(timeoutId);
+  }, [isImageLoading, picture]);
+
   if (!picture) return null;
 
   const currentUser = getUsernameFromToken(token);
