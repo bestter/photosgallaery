@@ -70,6 +70,9 @@ const Navbar = ({ token, setToken }) => {
                 </Link>
 
                 <div className="flex items-center gap-4">
+                    <Link to="/most-viewed" className="font-medium hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1">
+                        🔥 Top Vues
+                    </Link>
                     <ThemeSwitcher />
                     
                     {!token ? (

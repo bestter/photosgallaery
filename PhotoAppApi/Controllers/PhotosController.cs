@@ -828,6 +828,69 @@ namespace PhotoAppApi.Controllers
             }
         }
 
+        // GET: api/photos/most-viewed
+        [HttpGet("most-viewed")]
+        public async Task<ActionResult<IEnumerable<Photo>>> GetMostViewedPhotos(
+            [FromQuery] int count = 10,
+            [FromQuery] Language lang = Language.FR)
+        {
+            try
+            {
+                _logger.Debug($"In {nameof(GetMostViewedPhotos)} with count: {count}");
+
+                // 1. On récupère les N photos les plus vues (> 0 vues)
+                var query = _context.Photos
+                    .Include(p => p.Tags)
+                        .ThenInclude(t => t.Translations)
+                    .Where(p => p.ViewsCount > 0)
+                    .OrderByDescending(p => p.ViewsCount)
+                    .Take(count)
+                    .AsQueryable();
+
+                var photos = await query.ToListAsync();
+
+                if (photos.Count == 0) return Ok(photos);
+
+                // 2. On attache les likes (comme pour GetPhotos)
+                var photoIds = photos.Select(p => p.Id).ToList();
+
+                var likesCounts = await _context.PhotoLikes
+                    .Where(l => photoIds.Contains(l.PhotoId))
+                    .GroupBy(l => l.PhotoId)
+                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
+
+                var currentUsername = User.Identity?.Name;
+                var currentUserLikedPhotoIds = new HashSet<int>();
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    var currentUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
+                    if (currentUser != null)
+                    {
+                        var likedIds = await _context.PhotoLikes
+                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUser.Id)
+                            .Select(l => l.PhotoId)
+                            .ToListAsync();
+                        currentUserLikedPhotoIds = new HashSet<int>(likedIds);
+                    }
+                }
+
+                foreach (var photo in photos)
+                {
+                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
+                    photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
+                }
+
+                return Ok(photos);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Erreur dans {nameof(GetMostViewedPhotos)}", e);
+                return StatusCode(500, new { message = "Erreur de récupération des photos les plus vues." });
+            }
+        }
+
         // POST: api/photos/{id}/view
         [HttpPost("{id}/view")]
         [AllowAnonymous] // On permet aux anonymes d'incrémenter les vues

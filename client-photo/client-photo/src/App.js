@@ -11,6 +11,7 @@ import AdminDashboard from './components/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
 import Footer from './components/Footer';
 import User from './components/User';
+import MostViewed from './components/MostViewed';
 
 function App() {
     // L'état centralisé pour savoir si l'utilisateur est connecté
@@ -30,6 +31,7 @@ function App() {
                         {/* Pages publiques */}
                         {/* La galerie normale, sans filtre */}
       <Route path="/" element={<Gallery token={token} setToken={setToken} />} />
+      <Route path="/most-viewed" element={<MostViewed token={token} setToken={setToken} />} />
       
       {/* La même galerie, mais avec un paramètre dynamique dans l'URL */}
       <Route path="/tags/:tagName" element={<Gallery />} />
