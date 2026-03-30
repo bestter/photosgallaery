@@ -27,6 +27,9 @@ namespace PhotoAppApi.Models
         [NotMapped]
         public bool IsLikedByCurrentUser { get; set; }
 
+        [NotMapped]
+        public bool IsReportedByCurrentUser { get; set; }
+
         public ICollection<Tag> Tags { get; set; } = [];
 
         public int ViewsCount { get; set; } = 0;

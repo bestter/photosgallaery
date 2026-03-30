@@ -8,7 +8,7 @@ import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 
-const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Galerie Publique", hideUpload = false, disableReverse = false }) => {
+const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Galerie Publique", hideUpload = false }) => {
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -37,8 +37,7 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
     const baseEndpoint = customEndpoint || '/photos';
     
     // On construit l'URL avec la langue
-    const hasQueryParams = baseEndpoint.includes('?');
-    let apiUrl = `${baseEndpoint}${hasQueryParams ? '&' : '?'}lang=${currentLanguage}`;
+    let apiUrl = `${baseEndpoint}?lang=${currentLanguage}`;
 
     const safeTagName = tagName ? decodeURIComponent(tagName) : null;
     if (safeTagName) {
@@ -46,7 +45,7 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
     }        
         api.get(apiUrl)
             .then(response => {
-                setPhotos(disableReverse ? response.data : response.data.reverse()); 
+                setPhotos(response.data.reverse()); 
             })
             .catch(err => console.error("Erreur chargement photos", err))
             .finally(() => setIsLoading(false));
@@ -71,11 +70,17 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
     
     return (
         <div className="container mx-auto p-6">
-            {title && <h2 className="text-2xl font-bold mb-8 text-gray-800">{title}</h2>}
-            
-            {!hideUpload && <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} setToken={setToken}/>}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
+        {/* On utilise la propriété title ! S'il est vide (null), on n'affiche pas de titre */}
+        {title && (
+            <h2 className="text-2xl font-bold mb-8 text-gray-800">{title}</h2>
+        )}
+        
+        {/* On n'affiche le composant Upload que si hideUpload est faux */}
+        {!hideUpload && (
+            <Upload token={token} onUploadSuccess={() => setUploadTrigger(prev => prev + 1)} setToken={setToken}/>
+        )}
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
                 
                 {tagName && (
                 <div style={{ marginBottom: '20px', borderBottom: '2px solid #00CED1', paddingBottom: '10px' }}>

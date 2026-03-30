@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PhotoAppApi.Models
 {
@@ -15,5 +15,11 @@ namespace PhotoAppApi.Models
         public string Reason { get; set; } = string.Empty;
 
         public DateTime ReportedAt { get; set; } = DateTime.UtcNow;
+
+        [MaxLength(100)]
+        public string ReporterUsername { get; set; } = string.Empty;
+
+        [MaxLength(50)]
+        public string Status { get; set; } = "Pending"; // "Pending", "Processed"
     }
 }

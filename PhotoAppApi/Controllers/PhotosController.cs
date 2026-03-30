@@ -81,6 +81,7 @@ namespace PhotoAppApi.Controllers
                 // C. On vérifie qui est connecté
                 var currentUsername = User.Identity?.Name;
                 var userLikedPhotoIds = new HashSet<int>();
+                var userReportedPhotoIds = new HashSet<int>();
 
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
@@ -95,6 +96,12 @@ namespace PhotoAppApi.Controllers
 
                         userLikedPhotoIds = new HashSet<int>(likedIds);
                     }
+
+                    var reportedIds = await _context.ImageReports
+                        .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
+                        .Select(r => r.PhotoId)
+                        .ToListAsync();
+                    userReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
@@ -102,6 +109,7 @@ namespace PhotoAppApi.Controllers
                 {
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
+                    photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
                 }
 
                 // On retourne tes photos enrichies !
@@ -555,6 +563,11 @@ namespace PhotoAppApi.Controllers
                     return NotFound(new { message = "L'image que vous essayez de signaler n'existe plus." });
                 }
 
+                if (photo.UploaderUsername == User.Identity?.Name)
+                {
+                    return BadRequest(new { message = "Vous ne pouvez pas signaler votre propre photo." });
+                }
+
                 // 2. Vérifier que la raison n'est pas vide
                 if (string.IsNullOrWhiteSpace(request.Reason))
                 {
@@ -565,7 +578,8 @@ namespace PhotoAppApi.Controllers
                 var report = new ImageReport
                 {
                     PhotoId = id,
-                    Reason = request.Reason
+                    Reason = request.Reason,
+                    ReporterUsername = User.Identity?.Name ?? string.Empty
                 };
 
                 _context.ImageReports.Add(report);
@@ -665,6 +679,11 @@ namespace PhotoAppApi.Controllers
                 var photo = await _context.Photos.FindAsync(id);
                 if (photo == null) return NotFound(new { message = "Photo introuvable." });
 
+                if (photo.UploaderUsername == currentUsername)
+                {
+                    return BadRequest(new { message = "Vous ne pouvez pas aimer votre propre photo." });
+                }
+
                 // 3. Chercher si le "Like" existe déjà pour cet utilisateur et cette photo
                 var existingLike = await _context.PhotoLikes
                                                  .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == user.Id);
@@ -736,6 +755,7 @@ namespace PhotoAppApi.Controllers
                 // B. On vérifie ce que l'utilisateur ACTUEL (celui derrière l'écran) a aimé
                 var currentUsername = User.Identity?.Name;
                 var currentUserLikedPhotoIds = new HashSet<int>();
+                var currentUserReportedPhotoIds = new HashSet<int>();
 
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
@@ -749,6 +769,12 @@ namespace PhotoAppApi.Controllers
 
                         currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                     }
+
+                    var reportedIds = await _context.ImageReports
+                        .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
+                        .Select(r => r.PhotoId)
+                        .ToListAsync();
+                    currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
                 // C. On attache les infos calculées à nos photos avant de les envoyer à React
@@ -756,6 +782,7 @@ namespace PhotoAppApi.Controllers
                 {
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
+                    photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
                 }
 
                 return Ok(likedPhotos);
@@ -799,6 +826,7 @@ namespace PhotoAppApi.Controllers
 
                 var currentUsername = User.Identity?.Name;
                 var currentUserLikedPhotoIds = new HashSet<int>();
+                var currentUserReportedPhotoIds = new HashSet<int>();
 
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
@@ -811,12 +839,19 @@ namespace PhotoAppApi.Controllers
                             .ToListAsync();
                         currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                     }
+
+                    var reportedIds = await _context.ImageReports
+                        .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
+                        .Select(r => r.PhotoId)
+                        .ToListAsync();
+                    currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
                 foreach (var photo in userPhotos)
                 {
                     photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
+                    photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
                 }
 
                 return Ok(userPhotos);

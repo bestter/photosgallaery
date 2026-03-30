@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
@@ -86,6 +86,7 @@ namespace PhotoAppApi.Controllers
                               PhotoUrl = photo.Url,
                               Uploader = photo.UploaderUsername,
                               report.Reason,
+                              report.Status,
                               report.ReportedAt
                           })
                     .OrderByDescending(r => r.ReportedAt)
@@ -113,11 +114,10 @@ namespace PhotoAppApi.Controllers
                     return NotFound();
                 }
 
-                _context.ImageReports.Remove(report);
+                report.Status = "Processed";
                 await _context.SaveChangesAsync();
 
-                // Message mis à jour pour refléter l'action d'effacer/ignorer le signalement
-                return Ok(new { message = "Le signalement a été ignoré et retiré de la liste." });
+                return Ok(new { message = "Le signalement a été marqué comme traité." });
             }
             catch (Exception e)
             {
