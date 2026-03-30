@@ -23,7 +23,7 @@ $ServerUserHost = $Config.ServerUserHost
 $DbConnectionString = $Config.DbConnectionString
 
 $BackendLocalPath = "C:\Users\marti\source\repos\PhotoApp\PhotoAppApi\"
-$FrontendLocalPath = "C:\Users\marti\source\repos\PhotoApp\client-photo\client-photo\"
+$FrontendLocalPath = "C:\Users\marti\source\repos\PhotoApp\PhotoFrontend\"
 
 $BackendRemotePath = "/var/www/magalerie/api"  # Dossier de destination backend
 $FrontendRemotePath = "/var/www/magalerie/frontend" # Dossier de destination frontend
@@ -85,7 +85,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Impossible de créer les dossiers de destination sur le serveur." }
     
     Write-Host "  -> Envoi du Frontend..."
-    scp -r "$FrontendLocalPath\build\*" "${ServerUserHost}:${FrontendRemotePath}"
+    scp -r "$FrontendLocalPath\dist\*" "${ServerUserHost}:${FrontendRemotePath}"
     if ($LASTEXITCODE -ne 0) { throw "Échec du transfert SCP pour le Frontend (Vérifie les permissions sur le serveur)." }
     
     Write-Host "  -> Envoi du Backend..."
@@ -113,10 +113,12 @@ try {
 
     Write-Host "`n✅ Déploiement terminé avec succès !" -ForegroundColor Green
 
-} catch {
+}
+catch {
     Write-Host "`n❌ DÉPLOIEMENT ANNULÉ : Une erreur est survenue." -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
-} finally {
+}
+finally {
     if (Test-Path $PublishDir) { Remove-Item -Recurse -Force $PublishDir }
     Set-Location $PSScriptRoot
 }
