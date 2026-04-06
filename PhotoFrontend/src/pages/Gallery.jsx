@@ -11,6 +11,7 @@ export default function Gallery() {
     const [photos, setPhotos] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [selectedAuthor, setSelectedAuthor] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
     // Vérification de la session via le token
@@ -65,7 +66,20 @@ export default function Gallery() {
             matchAuthor = author === selectedAuthor;
         }
 
-        return matchTag && matchAuthor;
+        let matchSearch = true;
+        if (searchQuery) {
+            const photoTags = photo.tags || photo.Tags || [];
+            const query = searchQuery.toLowerCase();
+            matchSearch = photoTags.some(tagObj => {
+                const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                return tagTranslations.some(t => {
+                    const tagName = t.name || t.Name;
+                    return tagName && tagName.toLowerCase().includes(query);
+                });
+            });
+        }
+
+        return matchTag && matchAuthor && matchSearch;
     });
 
     return (
@@ -86,7 +100,14 @@ export default function Gallery() {
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 dark:text-slate-500">
                                 <span className="material-symbols-outlined">search</span>
                             </span>
-                            <input className="w-full bg-slate-100 dark:bg-slate-800/50 border-none rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-primary text-sm placeholder:text-slate-400" name="search" placeholder="Search for inspiration..." type="text" />
+                            <input 
+                                className="w-full bg-slate-100 dark:bg-slate-800/50 border-none rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-primary text-sm placeholder:text-slate-400" 
+                                name="search" 
+                                placeholder="Search for inspiration..." 
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </label>
                     </div>
 
@@ -108,12 +129,20 @@ export default function Gallery() {
                             </button>
                         )}
                         {!isLoggedIn && (
-                            <button 
-                                onClick={() => window.location.href = '/login'}
-                                className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
-                                <span className="material-symbols-outlined text-lg">login</span>
-                                <span>Login</span>
-                            </button>
+                            <>
+                                <button 
+                                    onClick={() => window.location.href = '/login'}
+                                    className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
+                                    <span className="material-symbols-outlined text-lg">login</span>
+                                    <span>Login</span>
+                                </button>
+                                <button 
+                                    onClick={() => window.location.href = '/register'}
+                                    className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-background-dark transition-all font-semibold text-sm">
+                                    <span className="material-symbols-outlined text-lg">subscriptions</span>
+                                    <span>S'abonner</span>
+                                </button>
+                            </>
                         )}
                         {isLoggedIn && (
                             <button 

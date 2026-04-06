@@ -137,12 +137,36 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
     return (
         <div 
-            className="fixed inset-0 z-[150] bg-background-dark/90 backdrop-blur-sm flex items-center justify-center"
+            className="fixed inset-0 z-[150] bg-background-dark/90 backdrop-blur-sm flex items-center justify-center print:bg-transparent print:backdrop-blur-none"
             onClick={onClose}
         >
+            {/* 🖨️ NOUVEAU : Styles spécifiques pour l'impression (CTRL+P) */}
+            <style>{`
+                @media print {
+                    /* On cache visuellement le reste du site */
+                    body * {
+                        visibility: hidden;
+                    }
+                    /* On affiche uniquement cette image spécifique, en plein écran */
+                    #printable-image {
+                        visibility: visible;
+                        position: fixed;
+                        left: 0;
+                        top: 0;
+                        width: 100vw;
+                        height: 100vh;
+                        object-fit: contain;
+                        margin: 0;
+                        padding: 0;
+                    }
+                }
+            `}</style>
+            
+            <img id="printable-image" src={imgSrc} alt="Image à imprimer" className="hidden print:block" />
+
             {/* Modal Container */}
             <div 
-                className="relative w-full h-full bg-slate-900/40 overflow-hidden flex flex-col md:flex-row"
+                className="relative w-full h-full bg-slate-900/40 overflow-hidden flex flex-col md:flex-row print:hidden"
                 onClick={handleContentClick}
             >
                 {/* Close Button (Top Right) */}

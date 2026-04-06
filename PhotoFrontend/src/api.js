@@ -11,6 +11,9 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
+    // 🛡️ Securité de base pour identifier que la requête vient bien de l'app React
+    config.headers['X-App-Client'] = 'PhotoApp-Web';
+
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

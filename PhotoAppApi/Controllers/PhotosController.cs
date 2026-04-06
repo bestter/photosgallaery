@@ -201,6 +201,7 @@ namespace PhotoAppApi.Controllers
 
         // POST: api/photos/upload (Privé: connectés seulement)
         [Authorize(Policy = "CanUpload")]
+        [RequireWebsiteHeader] // 🔒 NOUVEAU: Empêche Postman / scripts de contourner le site web
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
         public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags, [FromForm] bool includeGps = true)

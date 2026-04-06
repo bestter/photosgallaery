@@ -101,7 +101,7 @@ const Login = () => {
                     <div className="mt-8 text-center">
                         <p className="text-sm text-on-surface-variant">
                             Pas encore de compte ? 
-                            <a className="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1" href="#">S'inscrire</a>
+                            <a className="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1" href="/register">S'inscrire</a>
                         </p>
                     </div>
                 </div>
