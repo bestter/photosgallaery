@@ -1,4 +1,4 @@
-﻿namespace PhotoAppApi.Models
+namespace PhotoAppApi.Models
 {
     // On définit les rôles possibles ici
     public enum UserRole
@@ -26,5 +26,9 @@
 
         // On utilise l'Enum au lieu d'un string brut
         public UserRole Role { get; set; } = UserRole.User;
+
+        // Relation avec Utilisateurs-Groupes
+        [System.Text.Json.Serialization.JsonIgnore]
+        public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
     }
 }

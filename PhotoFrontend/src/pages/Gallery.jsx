@@ -2,17 +2,24 @@ import React, { useState, useEffect } from 'react';
 import PhotoCard from '../components/PhotoCard';
 import UploadPhoto from '../components/UploadPhoto';
 import ImageModal from '../components/ImageModal';
+import InviteModal from '../components/InviteModal';
+import GroupSelector from '../components/GroupSelector';
 import { getUserRole, isTokenExpired } from '../authHelper';
 import api from '../api';
 
 export default function Gallery() {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
     const [photos, setPhotos] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [selectedAuthor, setSelectedAuthor] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    
+    // Nouveaux états pour les groupes
+    const [userGroups, setUserGroups] = useState([]);
+    const [activeGroupId, setActiveGroupId] = useState(null);
 
     // Vérification de la session via le token
     const token = localStorage.getItem('token');
@@ -23,11 +30,32 @@ export default function Gallery() {
     const canUpload = isLoggedIn && (userRole === 'Admin' || userRole === 'Creator');
     const canSeeDashboard = isLoggedIn && userRole === 'Admin';
 
-    // Récupération des photos depuis l'API
-    const fetchPhotos = async () => {
+    // Récupérer les groupes
+    useEffect(() => {
+        if (isLoggedIn) {
+            api.get('/auth/groups')
+                .then(res => {
+                    setUserGroups(res.data);
+                    if (res.data.length > 0) {
+                        setActiveGroupId(res.data[0].id || res.data[0].Id);
+                    } else {
+                        // S'il n'a pas de groupe, on peut quand même appeler fetchPhotos sans filtre
+                        fetchPhotos(null);
+                    }
+                })
+                .catch(err => {
+                    console.error("Erreur lors de la récupération des groupes", err);
+                    fetchPhotos(null);
+                });
+        }
+    }, [isLoggedIn]);
+
+    // Récupération des photos depuis l'API, dépendante du groupe sélectionné
+    const fetchPhotos = async (groupId) => {
         try {
             setIsLoading(true);
-            const response = await api.get('/photos');
+            const url = groupId ? `/photos?groupId=${groupId}` : '/photos';
+            const response = await api.get(url);
             setPhotos(response.data);
         } catch (error) {
             console.error("Erreur lors de la récupération des photos :", error);
@@ -37,15 +65,26 @@ export default function Gallery() {
     };
 
     useEffect(() => {
-        fetchPhotos();
-    }, []);
+        if (activeGroupId) {
+            fetchPhotos(activeGroupId);
+        }
+    }, [activeGroupId]);
 
-    // Helper pour générer l'URL complète de l'image (si hébergée localement par l'API)
+    // Helper pour générer l'URL complète de l'image sécurisée
     const getImageUrl = (url) => {
         if (!url) return '';
-        if (url.startsWith('http')) return url;
-        const backendRoot = api.defaults.baseURL.replace(/\/api$/, '');
-        return backendRoot + url;
+        let fullUrl = url;
+        if (!url.startsWith('http')) {
+            const backendRoot = api.defaults.baseURL.replace(/\/api$/, '');
+            fullUrl = backendRoot + url;
+        }
+        
+        // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
+        if (token) {
+            const separator = fullUrl.includes('?') ? '&' : '?';
+            fullUrl += `${separator}access_token=${token}`;
+        }
+        return fullUrl;
     };
 
     const filteredPhotos = photos.filter(photo => {
@@ -88,11 +127,22 @@ export default function Gallery() {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 lg:px-10 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 lg:gap-8">
-                    <div className="flex items-center gap-2 shrink-0">
-                        <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-background-dark">
-                            <span className="material-symbols-outlined font-bold">camera</span>
+                    <div className="flex items-center gap-8">
+                        {/* Brand Logo */}
+                        <div className="flex items-center gap-2 shrink-0 cursor-pointer active:scale-95 transition-transform">
+                            <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-background-dark">
+                                <span className="material-symbols-outlined font-bold">camera</span>
+                            </div>
+                            <h1 className="hidden md:block text-xl font-black tracking-tight text-primary">Vision</h1>
                         </div>
-                        <h1 className="hidden md:block text-xl font-bold tracking-tight">Vision</h1>
+                        {/* Navigation & Group Switcher */}
+                        <nav className="hidden md:flex items-center gap-6 font-sans text-sm font-medium tracking-tight z-50">
+                            <GroupSelector 
+                                groups={userGroups} 
+                                activeGroupId={activeGroupId} 
+                                onGroupSelect={setActiveGroupId} 
+                            />
+                        </nav>
                     </div>
 
                     <div className="flex-1 max-w-2xl">
@@ -118,6 +168,14 @@ export default function Gallery() {
                                 className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
                                 <span className="material-symbols-outlined text-lg">dashboard</span>
                                 <span>Dashboard</span>
+                            </button>
+                        )}
+                        {isLoggedIn && (
+                            <button 
+                                onClick={() => setIsInviteOpen(true)}
+                                className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
+                                <span className="material-symbols-outlined text-lg">group_add</span>
+                                <span>Inviter</span>
                             </button>
                         )}
                         {canUpload && (
@@ -263,6 +321,11 @@ export default function Gallery() {
                     }}
                 />
             )}
+
+            <InviteModal 
+                isOpen={isInviteOpen} 
+                onClose={() => setIsInviteOpen(false)} 
+            />
         </div>
     );
 }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PhotoAppApi.dtos
 {
@@ -12,5 +12,7 @@ namespace PhotoAppApi.dtos
 
         [Required, MinLength(6)]
         public string Password { get; set; } = string.Empty;
+
+        public string? InviteToken { get; set; }
     }
 }

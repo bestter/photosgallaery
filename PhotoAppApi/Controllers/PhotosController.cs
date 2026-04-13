@@ -33,11 +33,13 @@ namespace PhotoAppApi.Controllers
             _viewChannelWriter = viewChannelWriter;
         }
 
-        // GET: api/photos (Public: tout le monde peut voir)
+        // GET: api/photos (Sécurisé pour récupérer selon les groupes)
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos(
             [FromQuery] string? tag = null,
-            [FromQuery] Language lang = Language.FR)
+            [FromQuery] Language lang = Language.FR,
+            [FromQuery] Guid? groupId = null)
         {
             _logger.Debug($"In {nameof(GetPhotos)}");
             try
@@ -50,15 +52,39 @@ namespace PhotoAppApi.Controllers
                         .ThenInclude(t => t.Translations)
                     .OrderByDescending(p => p.UploadedAt)
                     .AsQueryable();
+                
+                // Filtrer par groupId explicitement si demandé depuis l'interface
+                if (groupId.HasValue)
+                {
+                    query = query.Where(p => p.GroupId == groupId.Value);
+                }
 
                 if (!string.IsNullOrWhiteSpace(cleanTag))
                 {
                     query = query.Where(p => p.Tags.Any(t =>
                         t.Translations.Any(tr =>
                             tr.Language == lang &&
-                            tr.Name.Trim().ToLower() == cleanTag
+                            tr.Name.Trim().Equals(cleanTag, StringComparison.CurrentCultureIgnoreCase)
                         )
                     ));
+                }
+
+                // Filtrer par accès de groupe pour des raisons de sécurité
+                var currentUsername = User.Identity?.Name;
+                bool isAdmin = User.IsInRole("Admin");
+
+                if (!isAdmin && currentUsername != null)
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == currentUsername);
+                    if (user != null)
+                    {
+                        var userGroupIds = await _context.UserGroups
+                            .Where(ug => ug.UserId == user.Id)
+                            .Select(ug => ug.GroupId)
+                            .ToListAsync();
+
+                        query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
+                    }
                 }
 
                 // On exécute la requête pour obtenir la liste des photos
@@ -78,8 +104,7 @@ namespace PhotoAppApi.Controllers
                     .Select(g => new { PhotoId = g.Key, Count = g.Count() })
                     .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
 
-                // C. On vérifie qui est connecté
-                var currentUsername = User.Identity?.Name;
+                // C. On vérifie qui est connecté                
                 var userLikedPhotoIds = new HashSet<int>();
                 var userReportedPhotoIds = new HashSet<int>();
 
@@ -204,7 +229,7 @@ namespace PhotoAppApi.Controllers
         [RequireWebsiteHeader] // 🔒 NOUVEAU: Empêche Postman / scripts de contourner le site web
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags, [FromForm] bool includeGps = true)
+        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true)
         {
             try
             {
@@ -232,7 +257,7 @@ namespace PhotoAppApi.Controllers
                     // Note : On utilise .Tag pour le récupérer en même temps
                     var existingTranslation = await _context.TagTranslations
                         .Include(tt => tt.Tag)
-                        .FirstOrDefaultAsync(tt => tt.Name.ToLower() == name.ToLower()
+                        .FirstOrDefaultAsync(tt => tt.Name == name
                                                 && tt.Language == Language.FR);
 
                     if (existingTranslation != null)
@@ -273,8 +298,21 @@ namespace PhotoAppApi.Controllers
                     return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });
                 }
 
-                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var uploadsFolder = Path.Combine(rootPath, "images");
+                // Validation du groupe
+                var currentUsername = User.Identity?.Name;
+                var uploader = await _context.Users.FirstOrDefaultAsync(u => u.Username == currentUsername);
+                
+                if (groupId.HasValue && uploader != null)
+                {
+                    bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == uploader.Id && ug.GroupId == groupId.Value);
+                    if (!isMember && !User.IsInRole("Admin"))
+                    {
+                        return Forbid();
+                    }
+                }
+
+                var rootPath = _env.ContentRootPath;
+                var uploadsFolder = Path.Combine(rootPath, "PrivateImages");
 
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
@@ -334,10 +372,11 @@ namespace PhotoAppApi.Controllers
                         var photo = new Photo
                         {
                             FileName = uniqueFileName,
-                            Url = $"/images/{uniqueFileName}",
-                            UploaderUsername = User.Identity?.Name ?? "Anonyme",
+                            Url = $"/api/images/{uniqueFileName}",
+                            UploaderUsername = currentUsername ?? "Anonyme",
                             FileHash = fileHash,
                             Tags = tagsToAttach.ToList(),
+                            GroupId = groupId,
                             FileSize = file.Length,
                             ResolutionWidth = originalWidth,
                             ResolutionHeight = originalHeight
@@ -519,7 +558,7 @@ namespace PhotoAppApi.Controllers
                             using (var stream = System.IO.File.OpenRead(filePath))
                             {
                                 var hashBytes = await sha256.ComputeHashAsync(stream);
-                                photo.FileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                                photo.FileHash = Convert.ToHexStringLower(hashBytes);
                             }
                             updatedCount++;
                         }
@@ -661,7 +700,87 @@ namespace PhotoAppApi.Controllers
 
 
 
-        // POST: api/photos/{id}/like
+        // POST: api/photos/maintenance/migrate-closed-loop
+        [Authorize(Roles = "Admin")]
+        [HttpPost("maintenance/migrate-closed-loop")]
+        public async Task<IActionResult> MigrateClosedLoop()
+        {
+            try
+            {
+                _logger.Debug($"In {nameof(MigrateClosedLoop)}");
+
+                // 1. Créer ou récupérer le Groupe par Défaut
+                var defaultGroup = await _context.Groups.FirstOrDefaultAsync(g => g.Name == "Cercle Initial");
+                if (defaultGroup == null)
+                {
+                    defaultGroup = new Group { Name = "Cercle Initial" };
+                    _context.Groups.Add(defaultGroup);
+                    await _context.SaveChangesAsync(); // Sauvegarder pour avoir l'ID généré
+                }
+
+                // 2. Assigner tous les utilisateurs existants à ce groupe
+                var allUsers = await _context.Users.ToListAsync();
+                foreach (var user in allUsers)
+                {
+                    bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == user.Id && ug.GroupId == defaultGroup.Id);
+                    if (!isMember)
+                    {
+                        _context.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = defaultGroup.Id });
+                    }
+                }
+
+                // 3. Déplacer les images de wwwroot vers PrivateImages
+                var oldRootPath = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "images");
+                var newRootPath = Path.Combine(_env.ContentRootPath, "PrivateImages");
+                
+                if (!Directory.Exists(newRootPath)) Directory.CreateDirectory(newRootPath);
+                
+                var oldThumbPath = Path.Combine(oldRootPath, "thumbnails");
+                var newThumbPath = Path.Combine(newRootPath, "thumbnails");
+                if (!Directory.Exists(newThumbPath)) Directory.CreateDirectory(newThumbPath);
+
+                var allPhotos = await _context.Photos.ToListAsync();
+                int migratedImages = 0;
+
+                foreach (var photo in allPhotos)
+                {
+                    // Update DB info
+                    if (!photo.GroupId.HasValue) photo.GroupId = defaultGroup.Id;
+                    if (photo.Url.StartsWith("/images/"))
+                    {
+                        photo.Url = photo.Url.Replace("/images/", "/api/images/");
+                    }
+
+                    // Move original file
+                    var oldFilePath = Path.Combine(oldRootPath, photo.FileName);
+                    var newFilePath = Path.Combine(newRootPath, photo.FileName);
+                    
+                    if (System.IO.File.Exists(oldFilePath) && !System.IO.File.Exists(newFilePath))
+                    {
+                        System.IO.File.Move(oldFilePath, newFilePath);
+                        migratedImages++;
+                    }
+
+                    // Move thumbnail file
+                    var oldThumbFile = Path.Combine(oldThumbPath, photo.FileName);
+                    var newThumbFile = Path.Combine(newThumbPath, photo.FileName);
+                    if (System.IO.File.Exists(oldThumbFile) && !System.IO.File.Exists(newThumbFile))
+                    {
+                        System.IO.File.Move(oldThumbFile, newThumbFile);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Migration Closed Loop complétée.", uploadedFiles = migratedImages, defaultGroupId = defaultGroup.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Erreur lors de la migration Closed Loop", ex);
+                return StatusCode(500, "Erreur interne lors de la migration.");
+            }
+        }
+
         [Authorize]
         [HttpPost("{id}/like")]
         public async Task<IActionResult> ToggleLike(int id)
@@ -850,7 +969,7 @@ namespace PhotoAppApi.Controllers
 
                 foreach (var photo in userPhotos)
                 {
-                    photo.LikesCount = likesCounts.ContainsKey(photo.Id) ? likesCounts[photo.Id] : 0;
+                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
                 }

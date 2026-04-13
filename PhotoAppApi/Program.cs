@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -79,6 +79,16 @@ builder.Services.AddAuthentication(options =>
 {
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/images"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        },
         OnAuthenticationFailed = context =>
         {
             Console.WriteLine("Auth échouée : " + context.Exception.Message);
@@ -121,11 +131,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("CanUpload", policy =>
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CanUpload", policy =>
         policy.RequireRole("Admin", "Creator"));
-});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -156,6 +164,9 @@ builder.Services.AddHostedService<PhotoViewProcessingWorker>();
 
 
 builder.Services.AddLog4net();
+
+// 4. Injection du service d'emails
+builder.Services.AddTransient<IEmailService, MockEmailService>();
 
 var app = builder.Build();
 

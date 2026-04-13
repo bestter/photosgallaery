@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PhotoAppApi.Data;
@@ -20,7 +20,7 @@ namespace PhotoAppApi.Controllers
         // 1. On déclare une variable pour stocker la configuration
         private readonly IConfiguration _configuration;
 
-        private Logger _logger;
+        private readonly Logger _logger;
 
         public AuthController(AppDbContext context, IConfiguration configuration)
         {
@@ -29,7 +29,7 @@ namespace PhotoAppApi.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost("login")]        
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {
             try
@@ -74,19 +74,15 @@ namespace PhotoAppApi.Controllers
 
             var claims = new List<Claim>
     {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Username),
+        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new(ClaimTypes.Name, user.Username),
         new(ClaimTypes.Role, roleName)
     };
 
             // Note: En production, mets cette clé dans appsettings.json !
             //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ma_super_cle_secrete_de_64_caracteres_minimum_123!"));
-            var secretKey = _configuration["Jwt:Key"];
-            if (secretKey == null)
-            {
-                throw new NotSupportedException("Jwt:Key configuration is missing");
-            }
-            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var secretKey = _configuration["Jwt:Key"] ?? throw new NotSupportedException("Jwt:Key configuration is missing");
+            SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
 
@@ -111,7 +107,17 @@ namespace PhotoAppApi.Controllers
                     // C'est ici la clé : on renvoie un objet avec la propriété "message"
                     return BadRequest(new { message = "Cet usager existe déjà. Veuillez vous connecter ou utiliser un autre nom de compte." });
                 }
-                
+
+                Guid? inviteGuid = null;
+                if (!string.IsNullOrWhiteSpace(request.InviteToken))
+                {
+                    if (Guid.TryParse(request.InviteToken, out Guid parsedGuid))
+                        inviteGuid = parsedGuid;
+                    else
+                        return BadRequest(new { message = "Le lien d'invitation n'est pas valide." });
+                }
+
+
 
                 // 2. Hasher le mot de passe avec BCrypt
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -128,6 +134,37 @@ namespace PhotoAppApi.Controllers
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
+                // 5. Associer au groupe si une invitation valide est présente
+                if (inviteGuid.HasValue)
+                {
+                    // 1. Chercher une invitation personnelle d'abord
+                    var personalInvite = await _context.GroupInvitations.FirstOrDefaultAsync(i => i.InviteToken == inviteGuid.Value && i.Status == "Pending");
+                    if (personalInvite != null)
+                    {
+                        var userGroup = new UserGroup { UserId = user.Id, GroupId = personalInvite.GroupId };
+                        _context.UserGroups.Add(userGroup);
+                        personalInvite.Status = "Accepted"; // Marquer comme acceptée
+                        await _context.SaveChangesAsync();
+                        _logger.Info($"Usager {user.Username} ajouté au groupe {personalInvite.GroupId} via INVITATION PERSONNELLE.");
+                    }
+                    else
+                    {
+                        // 2. Sinon, chercher si c'est un lien d'invitation de groupe général
+                        var group = await _context.Groups.FirstOrDefaultAsync(g => g.InviteToken == inviteGuid.Value);
+                        if (group != null)
+                        {
+                            var userGroup = new UserGroup
+                            {
+                                UserId = user.Id,
+                                GroupId = group.Id
+                            };
+                            _context.UserGroups.Add(userGroup);
+                            await _context.SaveChangesAsync();
+                            _logger.Info($"Usager {user.Username} ajouté au groupe {group.Name} via invitation générale.");
+                        }
+                    }
+                }
+
                 return Ok("Compte créé avec succès !");
             }
             catch (Exception e)
@@ -136,7 +173,52 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de l'enregistrement." });
             }
         }
+
+        [HttpGet("groups")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> GetUserGroups()
+        {
+            try
+            {
+                var username = User.Identity?.Name;
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user == null) return Unauthorized();
+
+                var groups = await _context.UserGroups
+                    .Where(ug => ug.UserId == user.Id)
+                    .Include(ug => ug.Group)
+                    .Select(ug => new
+                    {
+                        ug.Group.Id,
+                        ug.Group.Name,
+                        ug.Group.InviteToken
+                    })
+                    .ToListAsync();
+
+                // Si Admin, retourner tous les groupes
+                if (User.IsInRole("Admin"))
+                {
+                    groups = await _context.Groups
+                       .Select(g => new
+                       {
+                           g.Id,
+                           g.Name,
+                           g.InviteToken
+                       })
+                       .ToListAsync();
+                }
+
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Erreur GetUserGroups", ex);
+                return StatusCode(500, "Erreur lors de la récupération des groupes");
+            }
+        }
     }
+
+
 
     public class LoginModel
     {

@@ -18,7 +18,31 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
     // NOUVEAU: État pour la case à cocher (cochée par défaut)
     const [includeGps, setIncludeGps] = useState(true);
 
+    // Groupes pour l'upload Closed Loop
+    const [userGroups, setUserGroups] = useState([]);
+    const [selectedGroupId, setSelectedGroupId] = useState("");
+
     const MAX_SIZE_BYTES = 50 * 1024 * 1024;
+
+    useEffect(() => {
+        // Charger les groupes de l'utilisateur
+        const fetchGroups = async () => {
+            try {
+                const response = await api.get('/auth/groups');
+                setUserGroups(response.data);
+                if (response.data.length > 0) {
+                    setSelectedGroupId(response.data[0].id || response.data[0].Id);
+                }
+            } catch (error) {
+                console.error("Erreur lors du chargement des groupes", error);
+                toast.error("Impossible de charger vos cercles.");
+            }
+        };
+
+        if (isSessionValid()) {
+            fetchGroups();
+        }
+    }, [token]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
@@ -115,7 +139,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
 
         if (files.length === 0) return toast.error("Veuillez choisir au moins un fichier");
 
-        const tagsList = typeof tags === 'string' 
+        const tagsList = typeof tags === 'string'
             ? tags.split(',').map(t => t.trim()).filter(t => t !== '')
             : tags;
 
@@ -136,6 +160,13 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
 
         // NOUVEAU: On ajoute la valeur de la case à cocher au formulaire envoyé au backend
         formData.append("includeGps", includeGps);
+
+        // Ajout du GroupId sélectionné (Closed Loop)
+        if (selectedGroupId) {
+            formData.append("groupId", selectedGroupId);
+        } else {
+            return toast.error("Veuillez sélectionner un cercle pour cette publication.");
+        }
 
         setIsUploading(true);
 
@@ -248,6 +279,23 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
                                 value={tags}
                                 onChange={(e) => setTags(e.target.value)}
                             />
+                        </div>
+
+                        {/* Cercle (Groupe) */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase">Visibilité (Cercle)</label>
+                            <select
+                                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
+                                value={selectedGroupId}
+                                onChange={(e) => setSelectedGroupId(e.target.value)}
+                                required
+                            >
+                                {userGroups.map((group) => (
+                                    <option key={group.id || group.Id} value={group.id || group.Id}>
+                                        {group.name || group.Name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Géolocalisation */}

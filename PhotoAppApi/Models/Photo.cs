@@ -33,5 +33,10 @@ namespace PhotoAppApi.Models
         public ICollection<Tag> Tags { get; set; } = [];
 
         public int ViewsCount { get; set; } = 0;
+
+        // Optionnel/Nullable pour l'instant afin de supporter les anciennes images
+        public Guid? GroupId { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public Group? Group { get; set; }
     }
 }   

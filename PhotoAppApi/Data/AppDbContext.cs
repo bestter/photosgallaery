@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Models;
 
 namespace PhotoAppApi.Data
@@ -19,6 +19,11 @@ namespace PhotoAppApi.Data
 
         public DbSet<PhotoView> PhotoViews { get; set; }
 
+        // Nouvelles tables pour le système de Cercles/Groupes
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<GroupInvitation> GroupInvitations { get; set; }
+
         // 2. On utilise l'API Fluent pour configurer la base de données
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,9 +34,20 @@ namespace PhotoAppApi.Data
             modelBuilder.Entity<TagTranslation>()
                 .HasKey(tt => new { tt.TagId, tt.Language });
 
-            // C'est aussi ici que tu pourrais forcer Entity Framework à sauvegarder 
-            // ton enum UserRole sous forme de string ("Creator", "Admin") plutôt 
-            // qu'en entier (1, 9999) dans MariaDB, si tu le souhaites un jour !
+            // Définition de la clé composite pour UserGroup
+            modelBuilder.Entity<UserGroup>()
+                .HasKey(ug => new { ug.UserId, ug.GroupId });
+
+            // Relation Many-to-Many Groupes/Users
+            modelBuilder.Entity<UserGroup>()
+                .HasOne(ug => ug.User)
+                .WithMany(u => u.UserGroups)
+                .HasForeignKey(ug => ug.UserId);
+
+            modelBuilder.Entity<UserGroup>()
+                .HasOne(ug => ug.Group)
+                .WithMany(g => g.UserGroups)
+                .HasForeignKey(ug => ug.GroupId);
         }
     }
 }

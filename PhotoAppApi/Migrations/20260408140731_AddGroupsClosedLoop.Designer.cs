@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhotoAppApi.Data;
 
@@ -11,9 +12,11 @@ using PhotoAppApi.Data;
 namespace PhotoAppApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260408140731_AddGroupsClosedLoop")]
+    partial class AddGroupsClosedLoop
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,52 +44,6 @@ namespace PhotoAppApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
-                });
-
-            modelBuilder.Entity("PhotoAppApi.Models.GroupInvitation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("InviteToken")
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("InviterId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Message")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("InviterId");
-
-                    b.ToTable("GroupInvitations");
                 });
 
             modelBuilder.Entity("PhotoAppApi.Models.ImageReport", b =>
@@ -336,25 +293,6 @@ namespace PhotoAppApi.Migrations
                     b.HasIndex("TagsId");
 
                     b.ToTable("PhotoTag");
-                });
-
-            modelBuilder.Entity("PhotoAppApi.Models.GroupInvitation", b =>
-                {
-                    b.HasOne("PhotoAppApi.Models.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PhotoAppApi.Models.User", "Inviter")
-                        .WithMany()
-                        .HasForeignKey("InviterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("Inviter");
                 });
 
             modelBuilder.Entity("PhotoAppApi.Models.Photo", b =>

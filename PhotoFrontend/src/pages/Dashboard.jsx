@@ -159,18 +159,20 @@ export default function Dashboard() {
                                     <tr>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nom d'usager</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Adresse courriel</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Groupes</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Rôle actuel</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                                     {loading ? (
-                                        <tr><td colSpan="4" className="text-center py-4 text-slate-500">Chargement...</td></tr>
+                                        <tr><td colSpan="5" className="text-center py-4 text-slate-500">Chargement...</td></tr>
                                     ) : users.map(user => {
                                         const userId = user.id || user.Id;
                                         const username = user.username || user.Username;
                                         const email = user.email || user.Email;
                                         const role = user.role || user.Role;
+                                        const groups = user.groups || user.Groups || [];
                                         const isCurrentUser = username === currentUsername;
 
                                         return (
@@ -184,6 +186,34 @@ export default function Dashboard() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{email}</td>
+                                                <td className="px-6 py-4">
+                                                    {groups && groups.length > 0 ? (
+                                                        groups.length > 2 ? (
+                                                            <div className="group relative inline-block cursor-pointer">
+                                                                <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                                                    Groupes ({groups.length})
+                                                                </span>
+                                                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-max bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-slate-800">
+                                                                    <div className="flex flex-col gap-1 items-center">
+                                                                        {groups.map((g, i) => (
+                                                                            <span key={i} className="whitespace-nowrap font-medium">{g}</span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {groups.map((g, i) => (
+                                                                    <span key={i} className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-700">
+                                                                        {g}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 italic">Aucun</span>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4">
                                                     {role === 'Admin' && <span className="px-2.5 py-1 text-xs font-bold bg-emerald-500/20 text-emerald-500 rounded-full border border-emerald-500/30">Admin</span>}
                                                     {role === 'Creator' && <span className="px-2.5 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full border border-primary/30">Créateur</span>}

@@ -25,7 +25,19 @@ const Register = () => {
 
         setIsLoading(true);
         try {
-            await api.post('/auth/register', { username, email, password });
+            const inviteToken = localStorage.getItem('inviteToken');
+            
+            await api.post('/auth/register', { 
+                username, 
+                email, 
+                password,
+                inviteToken: inviteToken || undefined 
+            });
+            
+            if (inviteToken) {
+                localStorage.removeItem('inviteToken');
+            }
+            
             toast.success("Compte créé avec succès ! Connectez-vous.");
             window.location.href = '/login';
         } catch (err) {

@@ -34,7 +34,8 @@ namespace PhotoAppApi.Controllers
                         u.Username,
                         u.Email,
                         // TRÈS IMPORTANT : On force la conversion en texte pour React
-                        Role = u.Role.ToString()
+                        Role = u.Role.ToString(),
+                        Groups = u.UserGroups.Select(ug => ug.Group.Name).ToList()
                     })
                     .ToListAsync();
 
