@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Moderation from './pages/Moderation';
+import AdminGroups from './pages/AdminGroups';
 import { Toaster } from 'react-hot-toast';
 import Join from './pages/Join';
 import { isTokenExpired } from './authHelper';
@@ -28,6 +29,7 @@ function App() {
   else if (currentPath.startsWith('/join')) Component = Join;
   else if (currentPath === '/dashboard') Component = Dashboard;
   else if (currentPath === '/moderation') Component = Moderation;
+  else if (currentPath === '/admin-groups') Component = AdminGroups;
 
   return (
     <>

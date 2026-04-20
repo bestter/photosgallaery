@@ -79,8 +79,12 @@ export default function Moderation() {
                         <span className="text-sm font-medium">Modération</span>
                     </a>
                     <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/dashboard" onClick={(e) => { e.preventDefault(); window.location.href='/dashboard'; }}>
-                        <span className="material-symbols-outlined">group</span>
+                        <span className="material-symbols-outlined">person</span>
                         <span className="text-sm font-medium">Gestion des usagers</span>
+                    </a>
+                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/admin-groups" onClick={(e) => { e.preventDefault(); window.location.href='/admin-groups'; }}>
+                        <span className="material-symbols-outlined">group</span>
+                        <span className="text-sm font-medium">Gestion des groupes</span>
                     </a>
                     <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="#" onClick={(e) => e.preventDefault()}>
                         <span className="material-symbols-outlined">settings</span>
