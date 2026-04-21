@@ -1,0 +1,77 @@
+# flyctl launch added from .gitignore
+# --- DOSSIERS DE DEPENDANCES ---
+**\node_modules
+**\.pnp
+**\.pnp.js
+
+# --- COMPILATION & BUILDS ---
+**\bin
+**\obj
+**\dist
+**\dist-ssr
+**\build
+**\publish
+**\client-photoBCK
+
+# --- IDE (Visual Studio, VS Code, JetBrains) ---
+**\.vs
+**\.vscode
+**\.idea
+**\*.user
+**\*.userosscache
+**\*.suo
+**\*.ntvs*
+**\*.njsproj
+
+# --- FICHIERS TEMPORAIRES ET LOGS ---
+**\*.log
+**\npm-debug.log*
+**\yarn-debug.log*
+**\pnpm-debug.log*
+**\.DS_Store
+**\Thumbs.db
+
+# --- ENVIRONNEMENT ET SÉCURITÉ (TRÈS IMPORTANT) ---
+**\.env
+**\.env.local
+**\.env.development.local
+**\.env.test.local
+**\.env.production.local
+**\appsettings.Production.json
+
+**\publish_temp
+
+**\deploy-settings.json
+
+# --- SPECIFIQUE A L'APP ---
+# On ignore les images uploadées pour ne pas alourdir Git
+**\PhotoAppApi\wwwroot\images
+# Si ton dossier d'images dans le backend s'appelle autrement, ajuste ici :
+# MaGalerieAPI/wwwroot/uploads/
+
+# flyctl launch added from PhotoFrontend\.gitignore
+# Logs
+PhotoFrontend\**\logs
+PhotoFrontend\**\*.log
+PhotoFrontend\**\npm-debug.log*
+PhotoFrontend\**\yarn-debug.log*
+PhotoFrontend\**\yarn-error.log*
+PhotoFrontend\**\pnpm-debug.log*
+PhotoFrontend\**\lerna-debug.log*
+
+PhotoFrontend\**\node_modules
+PhotoFrontend\**\dist
+PhotoFrontend\**\dist-ssr
+PhotoFrontend\**\*.local
+
+# Editor directories and files
+PhotoFrontend\**\.vscode\*
+!PhotoFrontend\**\.vscode\extensions.json
+PhotoFrontend\**\.idea
+PhotoFrontend\**\.DS_Store
+PhotoFrontend\**\*.suo
+PhotoFrontend\**\*.ntvs*
+PhotoFrontend\**\*.njsproj
+PhotoFrontend\**\*.sln
+PhotoFrontend\**\*.sw?
+fly.toml
