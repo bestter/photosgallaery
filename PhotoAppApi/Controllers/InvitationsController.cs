@@ -26,6 +26,7 @@ namespace PhotoAppApi.Controllers
         [Authorize]
         public async Task<IActionResult> CreateInvitation([FromBody] CreateInvitationDto dto)
         {
+            _logger.Debug($"In {nameof(CreateInvitation)} for email: {dto.Email} in group: {dto.GroupId}");
             try
             {
                 var username = User.Identity?.Name;

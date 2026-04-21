@@ -25,6 +25,7 @@ namespace PhotoAppApi.Controllers
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
+            _logger.Debug($"In {nameof(GetAllUsers)}");
             try
             {
                 var users = await _context.Users
@@ -52,6 +53,7 @@ namespace PhotoAppApi.Controllers
         [HttpPut("users/{id}/role")]
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateDto request)
         {
+            _logger.Debug($"In {nameof(UpdateUserRole)} with id: {id}");
             // 1. Trouver l'utilisateur
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -74,6 +76,7 @@ namespace PhotoAppApi.Controllers
         [HttpGet("reports")]
         public async Task<IActionResult> GetReports()
         {
+            _logger.Debug($"In {nameof(GetReports)}");
             try
             {
                 var reports = await _context.ImageReports
@@ -107,6 +110,7 @@ namespace PhotoAppApi.Controllers
         [HttpDelete("reports/{id}")]
         public async Task<IActionResult> DeleteReport(int id)
         {
+            _logger.Debug($"In {nameof(DeleteReport)} with id: {id}");
             try
             {
                 var report = await _context.ImageReports.FindAsync(id);

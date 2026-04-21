@@ -3,7 +3,7 @@ import api from '../api';
 import toast from 'react-hot-toast';
 import { isTokenExpired, getUserRole } from '../authHelper';
 
-const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
+const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
     const [files, setFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
@@ -20,7 +20,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
 
     // Groupes pour l'upload Closed Loop
     const [userGroups, setUserGroups] = useState([]);
-    const [selectedGroupId, setSelectedGroupId] = useState("");
+    const [selectedGroupId, setSelectedGroupId] = useState(initialGroupId || "");
 
     const MAX_SIZE_BYTES = 50 * 1024 * 1024;
 
@@ -30,7 +30,10 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
             try {
                 const response = await api.get('/auth/groups');
                 setUserGroups(response.data);
-                if (response.data.length > 0) {
+                
+                if (initialGroupId && response.data.some(g => (g.id || g.Id) === initialGroupId)) {
+                    setSelectedGroupId(initialGroupId);
+                } else if (!selectedGroupId && response.data.length > 0) {
                     setSelectedGroupId(response.data[0].id || response.data[0].Id);
                 }
             } catch (error) {
@@ -42,7 +45,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken }) => {
         if (isSessionValid()) {
             fetchGroups();
         }
-    }, [token]);
+    }, [token, initialGroupId]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {

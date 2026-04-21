@@ -278,7 +278,6 @@ export default function Gallery() {
                 )}
             </main>
 
-            {/* Upload Modal */}
             {isUploadOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8">
                     <div className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl">
@@ -291,9 +290,10 @@ export default function Gallery() {
                         <div className="p-2 sm:p-4">
                             <UploadPhoto 
                                 token={token}
+                                initialGroupId={activeGroupId}
                                 onUploadSuccess={() => {
                                     setIsUploadOpen(false);
-                                    fetchPhotos(); // Recharge les photos après Upload
+                                    fetchPhotos(activeGroupId); // Recharge les photos pour le groupe actif après Upload
                                 }} 
                             />
                         </div>

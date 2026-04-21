@@ -32,6 +32,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {
+            _logger.Debug($"In {nameof(Login)} for user: {request.Username}");
             try
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
@@ -99,6 +100,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
         {
+            _logger.Debug($"In {nameof(Register)} for user: {request.Username}");
             try
             {
                 // 1. Vérifier si l'utilisateur existe déjà
@@ -178,6 +180,7 @@ namespace PhotoAppApi.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> GetUserGroups()
         {
+            _logger.Debug($"In {nameof(GetUserGroups)}");
             try
             {
                 var username = User.Identity?.Name;
