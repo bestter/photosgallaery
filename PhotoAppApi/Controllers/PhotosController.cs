@@ -246,6 +246,7 @@ namespace PhotoAppApi.Controllers
                 // Validation : entre 1 et 12 tags
                 if (tagNames.Count < 1 || tagNames.Count > 12)
                 {
+                    _logger.Warn($"Validation des tags échouée : {tagNames.Count} tags reçus. Tags: {string.Join(", ", tagNames)}");
                     return BadRequest(new { message = "Vous devez sélectionner entre 1 et 12 tags." });
                 }
 
@@ -295,6 +296,7 @@ namespace PhotoAppApi.Controllers
                 long totalSize = files.Sum(f => f.Length);
                 if (totalSize > 52428800)
                 {
+                    _logger.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
                     return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });
                 }
 
@@ -307,6 +309,7 @@ namespace PhotoAppApi.Controllers
                     bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == uploader.Id && ug.GroupId == groupId.Value);
                     if (!isMember && !User.IsInRole("Admin"))
                     {
+                        _logger.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans en être membre.");
                         return Forbid();
                     }
                 }
@@ -315,7 +318,10 @@ namespace PhotoAppApi.Controllers
                 var uploadsFolder = Path.Combine(rootPath, "PrivateImages");
 
                 if (!Directory.Exists(uploadsFolder))
+                {
+                    _logger.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
                     Directory.CreateDirectory(uploadsFolder);
+                }
 
                 var uploadedPhotos = new List<Photo>();
                 var errors = new List<string>();
@@ -348,7 +354,11 @@ namespace PhotoAppApi.Controllers
 
                     // Création du sous-dossier pour les miniatures si nécessaire
                     var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
-                    if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
+                    if (!Directory.Exists(thumbFolder))
+                    {
+                        _logger.Info($"Le dossier '{thumbFolder}' n'existe pas. Création du dossier.");
+                        Directory.CreateDirectory(thumbFolder);
+                    }
                     var thumbPath = Path.Combine(thumbFolder, uniqueFileName);
 
                     // A. Sauvegarde de l'image originale (Haute résolution)
