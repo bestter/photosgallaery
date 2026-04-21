@@ -53,7 +53,7 @@ export default function Dashboard() {
                         <span className="material-symbols-outlined font-bold">visibility</span>
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Vision</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">PixelLyra.com</h1>
                         <p className="text-xs text-slate-500 dark:text-primary/70 font-medium">Admin Console</p>
                     </div>
                 </div>
@@ -242,14 +242,14 @@ export default function Dashboard() {
                                                         ) : (
                                                             <button onClick={() => handleRoleUpdate(userId, 'Admin')} className="px-3 py-1.5 text-xs font-bold bg-primary text-background-dark hover:bg-primary/90 rounded-lg transition-colors">Promouvoir admin</button>
                                                         )}
-                                                        <button 
-                                                            disabled={isCurrentUser} 
+                                                        <button
+                                                            disabled={isCurrentUser}
                                                             onClick={() => {
                                                                 if (!isCurrentUser) {
                                                                     handleRoleUpdate(userId, role === 'Forbidden' ? 'User' : 'Forbidden');
                                                                 }
                                                             }}
-                                                            className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? 'text-slate-400 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : (role === 'Forbidden' ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-red-500 hover:bg-red-500/10')}`} 
+                                                            className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? 'text-slate-400 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : (role === 'Forbidden' ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-red-500 hover:bg-red-500/10')}`}
                                                             title={isCurrentUser ? "Action non permise sur votre propre compte" : (role === 'Forbidden' ? "Réactiver ce compte" : "Bannir")}
                                                         >
                                                             <span className="material-symbols-outlined text-lg leading-none">{role === 'Forbidden' ? 'lock_open' : 'block'}</span>

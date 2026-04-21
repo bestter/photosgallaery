@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import PhotoCard from '../components/PhotoCard';
 import UploadPhoto from '../components/UploadPhoto';
 import ImageModal from '../components/ImageModal';
 import InviteModal from '../components/InviteModal';
@@ -16,7 +15,7 @@ export default function Gallery() {
     const [selectedAuthor, setSelectedAuthor] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    
+
     // Nouveaux états pour les groupes
     const [userGroups, setUserGroups] = useState([]);
     const [activeGroupId, setActiveGroupId] = useState(null);
@@ -36,11 +35,11 @@ export default function Gallery() {
             api.get('/auth/groups')
                 .then(res => {
                     setUserGroups(res.data);
-                    
+
                     // Vérifier si un groupId est dans l'URL
                     const params = new URLSearchParams(window.location.search);
                     const urlGroupId = params.get('groupId');
-                    
+
                     if (urlGroupId) {
                         // Si le paramètre est présent, on l'utilise
                         setActiveGroupId(urlGroupId);
@@ -91,7 +90,7 @@ export default function Gallery() {
             const backendRoot = api.defaults.baseURL.replace(/\/api$/, '');
             fullUrl = backendRoot + url;
         }
-        
+
         // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
         if (token) {
             const separator = fullUrl.includes('?') ? '&' : '?';
@@ -111,7 +110,7 @@ export default function Gallery() {
                 return tagName === selectedTag;
             });
         }
-        
+
         let matchAuthor = true;
         if (selectedAuthor) {
             const author = photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
@@ -135,179 +134,258 @@ export default function Gallery() {
     });
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+        <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen">
 
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 lg:px-10 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 lg:gap-8">
-                    <div className="flex items-center gap-8">
-                        {/* Brand Logo */}
-                        <div className="flex items-center gap-2 shrink-0 cursor-pointer active:scale-95 transition-transform">
-                            <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-background-dark">
-                                <span className="material-symbols-outlined font-bold">camera</span>
-                            </div>
-                            <h1 className="hidden md:block text-xl font-black tracking-tight text-primary">Vision</h1>
-                        </div>
-                        {/* Navigation & Group Switcher */}
-                        <nav className="hidden md:flex items-center gap-6 font-sans text-sm font-medium tracking-tight z-50">
-                            <GroupSelector 
-                                groups={userGroups} 
-                                activeGroupId={activeGroupId} 
-                                onGroupSelect={setActiveGroupId} 
-                            />
-                        </nav>
+            <header className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-cyan-400/10 shadow-xl shadow-black/20 flex justify-between items-center px-4 md:px-6 py-3">
+                <div className="flex items-center gap-4 md:gap-8">
+                    {/* Brand Logo */}
+                    <div className="text-xl font-black tracking-tight text-cyan-400 cursor-pointer active:scale-95 transition-transform" onClick={() => window.location.reload()}>
+                        <img alt="PixelLyra Logo" className="h-8 w-auto object-contain" src="/Byla3.jpg" />
                     </div>
+                    {/* Navigation & Group Switcher */}
+                    <nav className="hidden md:flex items-center gap-6 font-sans text-sm font-medium tracking-tight">
+                        <GroupSelector
+                            groups={userGroups}
+                            activeGroupId={activeGroupId}
+                            onGroupSelect={setActiveGroupId}
+                        />
+                    </nav>
+                </div>
 
-                    <div className="flex-1 max-w-2xl">
-                        <label className="relative block">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 dark:text-slate-500">
-                                <span className="material-symbols-outlined">search</span>
-                            </span>
-                            <input 
-                                className="w-full bg-slate-100 dark:bg-slate-800/50 border-none rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-primary text-sm placeholder:text-slate-400" 
-                                name="search" 
-                                placeholder="Search for inspiration..." 
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </label>
+                {/* Search and Actions */}
+                <div className="hidden md:flex items-center gap-6 flex-1 max-w-2xl px-8">
+                    <div className="relative w-full">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">search</span>
+                        <input
+                            className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500"
+                            name="search"
+                            placeholder="Search inspirations, tags, authors..."
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
+                </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2 md:gap-4">
+                    {canUpload && (
+                        <button
+                            onClick={() => setIsUploadOpen(true)}
+                            className="hidden md:block bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110">
+                            Upload
+                        </button>
+                    )}
+                    <div className="flex items-center gap-1 md:gap-3">
                         {canSeeDashboard && (
-                            <button 
-                                onClick={() => window.location.href = '/dashboard'}
-                                className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
-                                <span className="material-symbols-outlined text-lg">dashboard</span>
-                                <span>Dashboard</span>
+                            <button onClick={() => window.location.href = '/dashboard'} className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors" title="Dashboard">
+                                <span className="material-symbols-outlined">dashboard</span>
                             </button>
                         )}
                         {isLoggedIn && (
-                            <button 
-                                onClick={() => setIsInviteOpen(true)}
-                                className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
-                                <span className="material-symbols-outlined text-lg">group_add</span>
-                                <span>Inviter</span>
-                            </button>
-                        )}
-                        {canUpload && (
-                            <button 
-                                onClick={() => setIsUploadOpen(true)}
-                                className="bg-primary hover:bg-primary/90 text-background-dark px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2">
-                                <span className="material-symbols-outlined text-lg">cloud_upload</span>
-                                <span className="hidden sm:inline">Upload</span>
+                            <button onClick={() => setIsInviteOpen(true)} className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors relative" title="Inviter">
+                                <span className="material-symbols-outlined">group_add</span>
                             </button>
                         )}
                         {!isLoggedIn && (
                             <>
-                                <button 
-                                    onClick={() => window.location.href = '/login'}
-                                    className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-all font-semibold text-sm">
-                                    <span className="material-symbols-outlined text-lg">login</span>
-                                    <span>Login</span>
+                                <button onClick={() => window.location.href = '/login'} className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 px-3 py-1.5 rounded font-bold text-sm transition-colors">
+                                    Login
                                 </button>
-                                <button 
-                                    onClick={() => window.location.href = '/register'}
-                                    className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-background-dark transition-all font-semibold text-sm">
-                                    <span className="material-symbols-outlined text-lg">subscriptions</span>
-                                    <span>S'abonner</span>
+                                <button onClick={() => window.location.href = '/register'} className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110">
+                                    S'abonner
                                 </button>
                             </>
                         )}
                         {isLoggedIn && (
-                            <button 
-                                onClick={() => {
-                                    localStorage.removeItem('token');
-                                    window.location.reload();
-                                }}
-                                className="hidden md:flex items-center justify-center p-2.5 rounded-xl border border-error/30 text-error hover:bg-error/10 transition-all font-semibold text-sm"
-                                title="Déconnexion"
-                            >
-                                <span className="material-symbols-outlined text-lg">logout</span>
+                            <button onClick={() => {
+                                localStorage.removeItem('token');
+                                window.location.reload();
+                            }} className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors" title="Déconnexion">
+                                <span className="material-symbols-outlined">logout</span>
                             </button>
                         )}
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 lg:px-10 py-8">
-                {/* Categories */}
-                <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide no-scrollbar">
-                    <button 
-                        onClick={() => { setSelectedTag(null); setSelectedAuthor(null); }}
-                        className={`shrink-0 px-5 py-2 rounded-full text-sm font-medium ${!selectedTag && !selectedAuthor ? 'bg-primary text-background-dark' : 'bg-slate-100 dark:bg-slate-800'}`}
-                    >
-                        All Discoveries
-                    </button>
-                    {selectedTag && (
-                        <button className="shrink-0 px-5 py-2 bg-primary text-background-dark rounded-full text-sm font-medium">
-                            Tag: {selectedTag}
-                        </button>
-                    )}
-                    {selectedAuthor && (
-                        <button className="shrink-0 px-5 py-2 bg-primary text-background-dark rounded-full text-sm font-medium flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[14px]">person</span>
-                            {selectedAuthor}
-                        </button>
-                    )}
+            <main className="pt-24 pb-12 px-4 md:px-6 max-w-[1600px] mx-auto">
+                {/* Search Bar for Mobile */}
+                <div className="md:hidden relative w-full mb-6">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">search</span>
+                    <input
+                        className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500 shadow-lg"
+                        name="searchMobile"
+                        placeholder="Search inspirations..."
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
 
-                {/* Masonry Grid */}
+                {/* Dashboard Header */}
+                <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                    <div>
+                        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400 mb-2">Workspace / Gallery</div>
+                        <h1 className="text-[1.875rem] font-extrabold tracking-tight text-slate-100">
+                            {activeGroupId ? userGroups.find(g => (g.id || g.Id) === activeGroupId)?.name || userGroups.find(g => (g.id || g.Id) === activeGroupId)?.Name || 'Gallery' : 'Gallery'}
+                        </h1>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => { setSelectedTag(null); setSelectedAuthor(null); }}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded text-[12px] font-semibold transition-colors ${!selectedTag && !selectedAuthor ? 'bg-cyan-400 text-[#0f2323]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                        >
+                            <span className="material-symbols-outlined text-[16px]">grid_view</span>
+                            All Discoveries
+                        </button>
+                        {selectedTag && (
+                            <button className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors" onClick={() => setSelectedTag(null)}>
+                                <span className="material-symbols-outlined text-[16px]">label</span>
+                                Tag: {selectedTag}
+                                <span className="material-symbols-outlined text-[14px] ml-1 hover:text-white">close</span>
+                            </button>
+                        )}
+                        {selectedAuthor && (
+                            <button className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors" onClick={() => setSelectedAuthor(null)}>
+                                <span className="material-symbols-outlined text-[16px]">person</span>
+                                {selectedAuthor}
+                                <span className="material-symbols-outlined text-[14px] ml-1 hover:text-white">close</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Bento Grid */}
                 {isLoading ? (
-                    <div className="flex justify-center items-center py-20 text-slate-400">
+                    <div className="flex justify-center items-center py-20 text-cyan-400">
                         <span className="material-symbols-outlined animate-spin text-4xl">sync</span>
                     </div>
                 ) : (
-                    <div className="masonry">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 auto-rows-[280px]">
                         {filteredPhotos.map((photo, index) => {
                             const photoId = photo.id || photo.Id;
                             const author = photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
                             const originalUrl = photo.url || photo.Url;
-                            
-                            // Génère l'URL de la miniature en insérant "thumbnails/" après "/images/"
                             const thumbnailUrl = originalUrl ? getImageUrl(originalUrl.replace('/images/', '/images/thumbnails/')) : '';
-                            
+
+                            // Get tags for display
+                            const photoTagsRaw = photo.tags || photo.Tags || [];
+                            const photoTags = photoTagsRaw.map(tagObj => {
+                                const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
+                                return frTranslation ? (frTranslation.name || frTranslation.Name) : 'Tag';
+                            }).filter(Boolean);
+
+                            const isLarge = index % 4 === 0;
+                            const isWide = index % 4 === 3;
+
+                            if (isLarge) {
+                                return (
+                                    <div key={photoId} onClick={() => setSelectedPhotoIndex(index)}
+                                        className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300">
+                                        <img alt={`Photo par ${author}`}
+                                            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
+                                            src={thumbnailUrl || getImageUrl(originalUrl)} />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90"></div>
+                                        <div className="absolute bottom-0 left-0 p-6 w-full">
+                                            {photoTags.length > 0 && (
+                                                <span className="bg-cyan-400 text-[#0f2323] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-3 inline-block">
+                                                    {photoTags[0]}
+                                                </span>
+                                            )}
+                                            <h2 className="text-2xl font-bold text-white mb-1 truncate">{photo.title || `Captured by @${author}`}</h2>
+                                            <div className="flex items-center gap-4 mt-3">
+                                                <div className="flex items-center gap-2 text-slate-300 text-[12px] font-semibold hover:text-cyan-400" onClick={(e) => { e.stopPropagation(); setSelectedAuthor(author); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                                                    <span className="material-symbols-outlined text-[18px]">person</span> @{author}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            if (isWide) {
+                                return (
+                                    <div key={photoId} onClick={() => setSelectedPhotoIndex(index)}
+                                        className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300">
+                                        <img alt={`Photo par ${author}`}
+                                            className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                                            src={thumbnailUrl || getImageUrl(originalUrl)} />
+                                        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+                                            <button className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">View Image</button>
+                                        </div>
+                                        <div className="absolute top-4 left-4">
+                                            <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold text-cyan-400 uppercase tracking-widest border border-cyan-400/20">
+                                                {photoTags[0] || 'Gallery'}
+                                            </div>
+                                        </div>
+                                        <div className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors" onClick={(e) => { e.stopPropagation(); setSelectedAuthor(author); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                                            <span className="material-symbols-outlined text-[14px]">person</span> {author}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
                             return (
-                                <PhotoCard
-                                    key={photoId}
-                                    src={thumbnailUrl || getImageUrl(originalUrl)}
-                                    alt={`Photo par ${author}`}
-                                    author={`@${author}`}
-                                    onClick={() => setSelectedPhotoIndex(index)}
-                                    onAuthorClick={(clickedAuthor) => {
-                                        setSelectedAuthor(clickedAuthor);
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }}
-                                />
+                                <div key={photoId} onClick={() => setSelectedPhotoIndex(index)}
+                                    className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300">
+                                    <div className="relative flex-1 overflow-hidden">
+                                        <img alt={`Photo par ${author}`}
+                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            src={thumbnailUrl || getImageUrl(originalUrl)} />
+                                    </div>
+                                    <div className="p-4 bg-[#152b2b] shrink-0 border-t border-slate-800/60">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="text-sm font-bold text-slate-100 truncate pr-2">{photo.title || `Photo by @${author}`}</h3>
+                                            <span className="material-symbols-outlined text-slate-500 text-[18px] hover:text-cyan-400 transition-colors shrink-0">visibility</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            {photoTags.slice(0, 2).map(tag => (
+                                                <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 font-semibold uppercase whitespace-nowrap">{tag}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             );
                         })}
+
                         {filteredPhotos.length === 0 && (
-                            <div className="col-span-full text-center text-slate-500 mt-10">
-                                Aucune image pour le moment.
+                            <div className="col-span-full text-center text-slate-500 mt-10 p-10 border border-slate-800/60 rounded-xl bg-[#152b2b]/50">
+                                <span className="material-symbols-outlined text-4xl mb-3 text-slate-600">image_not_supported</span>
+                                <p>Aucune image pour le moment.</p>
                             </div>
                         )}
                     </div>
                 )}
             </main>
 
+            {/* Contextual FAB for Upload */}
+            {canUpload && (
+                <button
+                    onClick={() => setIsUploadOpen(true)}
+                    className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40">
+                    <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
+                </button>
+            )}
+
             {isUploadOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8">
                     <div className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl">
-                        <button 
+                        <button
                             onClick={() => setIsUploadOpen(false)}
                             className="absolute top-4 right-4 z-10 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                         >
                             <span className="material-symbols-outlined">close</span>
                         </button>
                         <div className="p-2 sm:p-4">
-                            <UploadPhoto 
+                            <UploadPhoto
                                 token={token}
                                 initialGroupId={activeGroupId}
                                 onUploadSuccess={() => {
                                     setIsUploadOpen(false);
                                     fetchPhotos(activeGroupId); // Recharge les photos pour le groupe actif après Upload
-                                }} 
+                                }}
                             />
                         </div>
                     </div>
@@ -316,11 +394,11 @@ export default function Gallery() {
 
             {/* Image Detail Modal */}
             {selectedPhotoIndex !== null && filteredPhotos[selectedPhotoIndex] && (
-                <ImageModal 
+                <ImageModal
                     photo={{
-                        ...filteredPhotos[selectedPhotoIndex], 
+                        ...filteredPhotos[selectedPhotoIndex],
                         fullUrl: getImageUrl(filteredPhotos[selectedPhotoIndex].url || filteredPhotos[selectedPhotoIndex].Url)
-                    }} 
+                    }}
                     onClose={() => setSelectedPhotoIndex(null)}
                     onPrev={selectedPhotoIndex > 0 ? () => setSelectedPhotoIndex(selectedPhotoIndex - 1) : null}
                     onNext={selectedPhotoIndex < filteredPhotos.length - 1 ? () => setSelectedPhotoIndex(selectedPhotoIndex + 1) : null}
@@ -335,9 +413,9 @@ export default function Gallery() {
                 />
             )}
 
-            <InviteModal 
-                isOpen={isInviteOpen} 
-                onClose={() => setIsInviteOpen(false)} 
+            <InviteModal
+                isOpen={isInviteOpen}
+                onClose={() => setIsInviteOpen(false)}
             />
         </div>
     );

@@ -30,7 +30,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             try {
                 const response = await api.get('/auth/groups');
                 setUserGroups(response.data);
-                
+
                 if (initialGroupId && response.data.some(g => (g.id || g.Id) === initialGroupId)) {
                     setSelectedGroupId(initialGroupId);
                 } else if (!selectedGroupId && response.data.length > 0) {
@@ -214,7 +214,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 {/* En-tête de la section */}
                 <div className="flex flex-col gap-2">
                     <h1 className="text-slate-900 dark:text-slate-100 text-4xl font-black tracking-tight">Ajouter une photo</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-lg">Partagez vos moments avec la communauté Vision.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-lg">Partagez vos moments avec la communauté PixelLyra.com.</p>
                 </div>
 
                 {/* Zone de Drag & Drop (Glisser-déposer) */}

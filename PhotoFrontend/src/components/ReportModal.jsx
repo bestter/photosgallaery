@@ -35,14 +35,14 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
     return (
         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
             {/* Modal Container */}
-            <div 
+            <div
                 className="max-w-md w-full bg-[#152b2b] shadow-2xl rounded-xl overflow-hidden border border-[#1e293b]/40 relative"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header / Identity Area */}
                 <div className="px-6 pt-6 pb-2 flex justify-between items-start">
                     <div>
-                        <h1 className="text-xl font-black text-primary tracking-tight italic uppercase">Vision</h1>
+                        <h1 className="text-xl font-black text-primary tracking-tight italic uppercase">PixelLyra.com</h1>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Report Content</p>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-primary transition-colors">

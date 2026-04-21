@@ -26,7 +26,7 @@ export default function AdminGroups() {
                 const response = await api.get('/admin/groups');
                 const loadedGroups = response.data;
                 setGroups(loadedGroups);
-                
+
                 // Read from URL
                 const params = new URLSearchParams(window.location.search);
                 const queryGroupId = params.get('groupId');
@@ -74,7 +74,7 @@ export default function AdminGroups() {
     const handleManageMembers = async (group, updateUrl = true) => {
         setSelectedGroup(group);
         const groupId = group.id || group.Id;
-        
+
         if (updateUrl) {
             const url = new URL(window.location.href);
             url.searchParams.set('groupId', groupId);
@@ -110,7 +110,7 @@ export default function AdminGroups() {
             // Refresh members
             const res = await api.get(`/admin/groups/${groupId}/members`);
             setMembers(res.data);
-            
+
             // Update group userCount
             setGroups(groups.map(g => (g.id || g.Id) === groupId ? { ...g, userCount: (g.userCount || 0) + 1 } : g));
             setSelectedUserId('');
@@ -157,7 +157,7 @@ export default function AdminGroups() {
                         <span className="material-symbols-outlined font-bold">visibility</span>
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Vision</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">PixelLyra.com</h1>
                         <p className="text-xs text-slate-500 dark:text-primary/70 font-medium">Admin Console</p>
                     </div>
                 </div>
@@ -208,13 +208,13 @@ export default function AdminGroups() {
                 {/* Header */}
                 <header className="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md">
                     <div className="flex items-center gap-4 flex-1 max-w-xl">
-                       {selectedGroup && (
-                           <button onClick={handleBackToGroups} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
-                               <span className="material-symbols-outlined">arrow_back</span>
-                               Retour aux groupes
-                           </button>
-                       )}
-                       {!selectedGroup && <h2 className="text-2xl font-bold">Groupes</h2>}
+                        {selectedGroup && (
+                            <button onClick={handleBackToGroups} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
+                                <span className="material-symbols-outlined">arrow_back</span>
+                                Retour aux groupes
+                            </button>
+                        )}
+                        {!selectedGroup && <h2 className="text-2xl font-bold">Groupes</h2>}
                     </div>
                     <div className="flex items-center gap-4">
                         <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => document.documentElement.classList.toggle('dark')}>
@@ -235,7 +235,7 @@ export default function AdminGroups() {
                             <div className="bg-white dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 mb-8 max-w-2xl">
                                 <h3 className="text-lg font-bold mb-4">Créer un nouveau groupe</h3>
                                 <form onSubmit={handleCreateGroup} className="flex gap-4">
-                                    <input 
+                                    <input
                                         type="text"
                                         value={newGroupName}
                                         onChange={(e) => setNewGroupName(e.target.value)}
@@ -282,13 +282,13 @@ export default function AdminGroups() {
                                                         <td className="px-6 py-4 text-slate-500">{dateStr}</td>
                                                         <td className="px-6 py-4 text-slate-500">{group.userCount || group.UserCount || 0}</td>
                                                         <td className="px-6 py-4 text-right">
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleManageMembers(group)}
                                                                 className="px-3 py-1.5 mr-2 text-primary bg-primary/10 hover:bg-primary/20 font-bold rounded-lg transition-colors text-sm"
                                                             >
                                                                 Membres
                                                             </button>
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleDeleteGroup(group.id || group.Id)}
                                                                 className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors align-middle"
                                                                 title="Supprimer ce groupe"
@@ -314,12 +314,12 @@ export default function AdminGroups() {
                                     <p className="text-slate-500 dark:text-slate-400 mt-1">Ajoutez ou retirez des membres du groupe.</p>
                                 </div>
                             </div>
-                            
+
                             {/* Add Member form */}
                             <div className="bg-white dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 mb-8 max-w-2xl">
                                 <h3 className="text-lg font-bold mb-4">Ajouter un utilisateur</h3>
                                 <form onSubmit={handleAddMember} className="flex gap-4">
-                                    <select 
+                                    <select
                                         className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all"
                                         value={selectedUserId}
                                         onChange={(e) => setSelectedUserId(e.target.value)}
@@ -383,7 +383,7 @@ export default function AdminGroups() {
                                                         </td>
                                                         <td className="px-6 py-4 text-slate-500">{joinedDate}</td>
                                                         <td className="px-6 py-4 text-right">
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleRemoveMember(member.userId || member.UserId)}
                                                                 className="px-3 py-1.5 text-xs font-bold text-red-600 border border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors"
                                                             >

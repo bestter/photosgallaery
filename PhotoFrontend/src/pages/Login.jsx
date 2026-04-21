@@ -37,7 +37,7 @@ const Login = () => {
                     <div className="flex flex-col items-center text-center mb-10">
                         {/* Brand Identity */}
                         <div className="mb-6">
-                            <span className="text-3xl font-black text-primary uppercase tracking-widest font-headline">Vision</span>
+                            <img alt="PixelLyra Logo" className="h-24 w-auto mx-auto" src="/Public/3hv8x.jpg" />
                         </div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-on-surface font-headline mb-2">Bienvenue</h1>
                         <p className="text-on-surface-variant text-sm font-medium">Accédez à votre galerie photographique</p>
@@ -51,14 +51,14 @@ const Login = () => {
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
                                     <span className="material-symbols-outlined" data-icon="person">person</span>
                                 </div>
-                                <input 
-                                    className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none" 
-                                    id="username" 
-                                    placeholder="Votre identifiant" 
+                                <input
+                                    className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
+                                    id="username"
+                                    placeholder="Votre identifiant"
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    required 
+                                    required
                                     disabled={isLoading}
                                 />
                             </div>
@@ -74,22 +74,22 @@ const Login = () => {
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
                                     <span className="material-symbols-outlined" data-icon="lock">lock</span>
                                 </div>
-                                <input 
-                                    className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none" 
-                                    id="password" 
-                                    placeholder="••••••••" 
+                                <input
+                                    className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
+                                    id="password"
+                                    placeholder="••••••••"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    required 
+                                    required
                                     disabled={isLoading}
                                 />
                             </div>
                         </div>
 
                         {/* Primary CTA */}
-                        <button 
-                            className="w-full bg-primary text-on-primary font-bold py-4 rounded uppercase tracking-widest text-xs hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50" 
+                        <button
+                            className="w-full bg-primary text-on-primary font-bold py-4 rounded uppercase tracking-widest text-xs hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                             type="submit"
                             disabled={isLoading}
                         >
@@ -100,7 +100,7 @@ const Login = () => {
                     {/* Secondary Action */}
                     <div className="mt-8 text-center">
                         <p className="text-sm text-on-surface-variant">
-                            Pas encore de compte ? 
+                            Pas encore de compte ?
                             <a className="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1" href="/register">S'inscrire</a>
                         </p>
                     </div>
@@ -109,7 +109,7 @@ const Login = () => {
 
             {/* Footer - Shell Navigation Filtered: Suppressed for transaction, but following JSON structure for visual anchor */}
             <footer className="flex flex-col justify-center items-center gap-6 pb-8 w-full bg-transparent z-10 relative">
-                <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">© 2024 Vision App. All rights reserved.</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">© 2024 PixelLyra.com App. All rights reserved.</span>
                 <div className="hidden md:flex gap-6">
                     <a className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors" href="#">Privacy Policy</a>
                     <a className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors" href="#">Terms of Service</a>
@@ -119,9 +119,9 @@ const Login = () => {
 
             {/* Aesthetic Layer: Subdued background image for depth */}
             <div className="fixed inset-0 -z-10 opacity-10 pointer-events-none">
-                <img 
-                    alt="Aesthetic depth image" 
-                    className="w-full h-full object-cover grayscale mix-blend-overlay" 
+                <img
+                    alt="Aesthetic depth image"
+                    className="w-full h-full object-cover grayscale mix-blend-overlay"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkddj18PimOapu8gM8vrh4Sux73NOpEf9tG5oxaWzWvJx61B33wB26tGj86YJpIEqkGJE3GJuoP70INRdBGPArOPIFz_bqp0HkdJyQ8XvLd2QvI5slEwJZY70i14DVIDRQcUQrCykqRZbUKCV4Z7kWIUzqdWpa89J1etA2dNp_vclW163tB-4RtC7VmFJX8GxDpT-QprYO4xiw0UDpcttcjbwduQZKycfPmXoUsLjIAJRBypw4Dep_D_NDwACY5y43KfMhTUaXcnE"
                 />
             </div>

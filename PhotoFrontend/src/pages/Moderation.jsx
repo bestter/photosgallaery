@@ -34,9 +34,9 @@ export default function Moderation() {
     const handleDismiss = async (reportId) => {
         try {
             await api.delete(`/admin/reports/${reportId}`);
-            setReports(prev => prev.map(r => 
-                (r.reportId === reportId || r.ReportId === reportId) 
-                    ? { ...r, status: 'Processed', Status: 'Processed' } 
+            setReports(prev => prev.map(r =>
+                (r.reportId === reportId || r.ReportId === reportId)
+                    ? { ...r, status: 'Processed', Status: 'Processed' }
                     : r
             ));
         } catch (error) {
@@ -64,13 +64,13 @@ export default function Moderation() {
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary text-3xl">visibility</span>
                         <div>
-                            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Vision Admin</h1>
+                            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">PixelLyra.com Admin</h1>
                             <p className="text-xs text-primary/70 font-medium mt-1">Système de Modération</p>
                         </div>
                     </div>
                 </div>
                 <nav className="flex-1 px-3 py-4 space-y-1">
-                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/" onClick={(e) => { e.preventDefault(); window.location.href='/'; }}>
+                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/" onClick={(e) => { e.preventDefault(); window.location.href = '/'; }}>
                         <span className="material-symbols-outlined">dashboard</span>
                         <span className="text-sm font-medium">Tableau de bord</span>
                     </a>
@@ -78,11 +78,11 @@ export default function Moderation() {
                         <span className="material-symbols-outlined">shield_with_heart</span>
                         <span className="text-sm font-medium">Modération</span>
                     </a>
-                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/dashboard" onClick={(e) => { e.preventDefault(); window.location.href='/dashboard'; }}>
+                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/dashboard" onClick={(e) => { e.preventDefault(); window.location.href = '/dashboard'; }}>
                         <span className="material-symbols-outlined">person</span>
                         <span className="text-sm font-medium">Gestion des usagers</span>
                     </a>
-                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/admin-groups" onClick={(e) => { e.preventDefault(); window.location.href='/admin-groups'; }}>
+                    <a className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 rounded-lg transition-colors" href="/admin-groups" onClick={(e) => { e.preventDefault(); window.location.href = '/admin-groups'; }}>
                         <span className="material-symbols-outlined">group</span>
                         <span className="text-sm font-medium">Gestion des groupes</span>
                     </a>
@@ -176,7 +176,7 @@ export default function Moderation() {
                         <div className="flex gap-3">
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                                <input className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64" placeholder="Rechercher..." type="text"/>
+                                <input className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64" placeholder="Rechercher..." type="text" />
                             </div>
                             <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
                                 <span className="material-symbols-outlined text-sm">filter_list</span> Filtrer
@@ -206,7 +206,7 @@ export default function Moderation() {
                                         <tr key={rId} className="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="w-12 h-12 rounded bg-slate-200 dark:bg-slate-800 overflow-hidden border border-slate-300 dark:border-slate-700">
-                                                    <img className="w-full h-full object-cover" alt="Image signalée" src={getImageUrl(pUrl)}/>
+                                                    <img className="w-full h-full object-cover" alt="Image signalée" src={getImageUrl(pUrl)} />
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
