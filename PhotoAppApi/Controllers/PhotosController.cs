@@ -306,10 +306,10 @@ namespace PhotoAppApi.Controllers
                 
                 if (groupId.HasValue && uploader != null)
                 {
-                    bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == uploader.Id && ug.GroupId == groupId.Value);
-                    if (!isMember && !User.IsInRole("Admin"))
+                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == uploader.Id && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin));
+                    if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
-                        _logger.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans en être membre.");
+                        _logger.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
                         return Forbid();
                     }
                 }

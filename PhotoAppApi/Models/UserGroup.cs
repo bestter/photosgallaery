@@ -8,6 +8,16 @@ namespace PhotoAppApi.Models
         public Guid GroupId { get; set; }
         public Group Group { get; set; } = null!;
 
+        public GroupUserRole Role { get; set; } = GroupUserRole.Member;
+
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    }
+
+
+    public enum GroupUserRole
+    {
+        None = 0,
+        Member = 1,
+        Admin = 9999
     }
 }

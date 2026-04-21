@@ -12,6 +12,7 @@ export default function AdminGroups() {
     const [members, setMembers] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
     const [selectedUserId, setSelectedUserId] = useState('');
+    const [selectedRole, setSelectedRole] = useState(1);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -23,7 +24,18 @@ export default function AdminGroups() {
         const fetchGroups = async () => {
             try {
                 const response = await api.get('/admin/groups');
-                setGroups(response.data);
+                const loadedGroups = response.data;
+                setGroups(loadedGroups);
+                
+                // Read from URL
+                const params = new URLSearchParams(window.location.search);
+                const queryGroupId = params.get('groupId');
+                if (queryGroupId) {
+                    const groupToSelect = loadedGroups.find(g => (g.id || g.Id) === queryGroupId);
+                    if (groupToSelect) {
+                        handleManageMembers(groupToSelect, false);
+                    }
+                }
             } catch (error) {
                 console.error("Erreur lors de la récupération des groupes:", error);
             } finally {
@@ -59,10 +71,17 @@ export default function AdminGroups() {
         }
     };
 
-    const handleManageMembers = async (group) => {
+    const handleManageMembers = async (group, updateUrl = true) => {
         setSelectedGroup(group);
+        const groupId = group.id || group.Id;
+        
+        if (updateUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('groupId', groupId);
+            window.history.pushState({}, '', url);
+        }
+
         try {
-            const groupId = group.id || group.Id;
             const res = await api.get(`/admin/groups/${groupId}/members`);
             setMembers(res.data);
 
@@ -75,12 +94,19 @@ export default function AdminGroups() {
         }
     };
 
+    const handleBackToGroups = () => {
+        setSelectedGroup(null);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('groupId');
+        window.history.pushState({}, '', url);
+    };
+
     const handleAddMember = async (e) => {
         e.preventDefault();
         if (!selectedUserId) return;
         const groupId = selectedGroup.id || selectedGroup.Id;
         try {
-            await api.post(`/admin/groups/${groupId}/members`, { userId: parseInt(selectedUserId) });
+            await api.post(`/admin/groups/${groupId}/members`, { userId: parseInt(selectedUserId), role: selectedRole });
             // Refresh members
             const res = await api.get(`/admin/groups/${groupId}/members`);
             setMembers(res.data);
@@ -103,6 +129,17 @@ export default function AdminGroups() {
             setGroups(groups.map(g => (g.id || g.Id) === groupId ? { ...g, userCount: Math.max((g.userCount || 1) - 1, 0) } : g));
         } catch (error) {
             alert("Erreur lors du retrait.");
+        }
+    };
+
+    const handleRoleChange = async (userId, newRole) => {
+        const groupId = selectedGroup.id || selectedGroup.Id;
+        try {
+            await api.put(`/admin/groups/${groupId}/members/${userId}/role`, { role: newRole });
+            setMembers(members.map(m => (m.userId || m.UserId) === userId ? { ...m, role: newRole, Role: newRole } : m));
+        } catch (error) {
+            console.error("Erreur mise à jour rôle:", error);
+            alert("Erreur lors de la mise à jour du rôle.");
         }
     };
 
@@ -172,7 +209,7 @@ export default function AdminGroups() {
                 <header className="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md">
                     <div className="flex items-center gap-4 flex-1 max-w-xl">
                        {selectedGroup && (
-                           <button onClick={() => setSelectedGroup(null)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
+                           <button onClick={handleBackToGroups} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
                                <span className="material-symbols-outlined">arrow_back</span>
                                Retour aux groupes
                            </button>
@@ -235,6 +272,12 @@ export default function AdminGroups() {
                                                     <tr key={group.id || group.Id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                         <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                                                             {group.name || group.Name}
+                                                            <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                                                                <span className="material-symbols-outlined text-[12px]">link</span>
+                                                                <a href={`/?groupId=${group.id || group.Id}`} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">
+                                                                    Lien public du groupe
+                                                                </a>
+                                                            </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-slate-500">{dateStr}</td>
                                                         <td className="px-6 py-4 text-slate-500">{group.userCount || group.UserCount || 0}</td>
@@ -289,7 +332,16 @@ export default function AdminGroups() {
                                             </option>
                                         ))}
                                     </select>
-                                    <button type="submit" className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors">
+                                    <select
+                                        className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all w-32 focus:outline-none"
+                                        value={selectedRole}
+                                        onChange={(e) => setSelectedRole(parseInt(e.target.value))}
+                                    >
+                                        <option value={1}>Membre</option>
+                                        <option value={9999}>Admin</option>
+                                        <option value={0}>Aucun</option>
+                                    </select>
+                                    <button type="submit" className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors focus:ring-2 focus:ring-primary focus:outline-none">
                                         Ajouter au groupe
                                     </button>
                                 </form>
@@ -305,6 +357,7 @@ export default function AdminGroups() {
                                         <thead className="bg-slate-50 dark:bg-slate-800/50">
                                             <tr>
                                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Utilisateur</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Rôle</th>
                                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date d'ajout</th>
                                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                                             </tr>
@@ -316,6 +369,17 @@ export default function AdminGroups() {
                                                     <tr key={member.userId || member.UserId} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                         <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                                                             {member.username || member.Username} <span className="font-normal text-slate-500 text-sm">({member.email || member.Email})</span>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
+                                                            <select
+                                                                className="px-2 py-1 bg-transparent border-b border-slate-300 dark:border-slate-700 focus:border-primary focus:ring-0 text-sm transition-all outline-none"
+                                                                value={member.role !== undefined ? member.role : member.Role}
+                                                                onChange={(e) => handleRoleChange(member.userId || member.UserId, parseInt(e.target.value))}
+                                                            >
+                                                                <option value={1} className="dark:bg-slate-800">Membre</option>
+                                                                <option value={9999} className="dark:bg-slate-800">Admin</option>
+                                                                <option value={0} className="dark:bg-slate-800">Aucun</option>
+                                                            </select>
                                                         </td>
                                                         <td className="px-6 py-4 text-slate-500">{joinedDate}</td>
                                                         <td className="px-6 py-4 text-right">
@@ -331,7 +395,7 @@ export default function AdminGroups() {
                                             })}
                                             {members.length === 0 && (
                                                 <tr>
-                                                    <td colSpan="3" className="text-center py-4 text-slate-500">Aucun membre dans ce groupe.</td>
+                                                    <td colSpan="4" className="text-center py-4 text-slate-500">Aucun membre dans ce groupe.</td>
                                                 </tr>
                                             )}
                                         </tbody>

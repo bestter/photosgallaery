@@ -36,10 +36,19 @@ export default function Gallery() {
             api.get('/auth/groups')
                 .then(res => {
                     setUserGroups(res.data);
-                    if (res.data.length > 0) {
+                    
+                    // Vérifier si un groupId est dans l'URL
+                    const params = new URLSearchParams(window.location.search);
+                    const urlGroupId = params.get('groupId');
+                    
+                    if (urlGroupId) {
+                        // Si le paramètre est présent, on l'utilise
+                        setActiveGroupId(urlGroupId);
+                    } else if (res.data.length > 0) {
+                        // Sinon le premier groupe par défaut
                         setActiveGroupId(res.data[0].id || res.data[0].Id);
                     } else {
-                        // S'il n'a pas de groupe, on peut quand même appeler fetchPhotos sans filtre
+                        // S'il n'a pas de groupe
                         fetchPhotos(null);
                     }
                 })
@@ -67,6 +76,10 @@ export default function Gallery() {
     useEffect(() => {
         if (activeGroupId) {
             fetchPhotos(activeGroupId);
+            // Maintenir l'URL synchronisée avec le groupe actif
+            const url = new URL(window.location.href);
+            url.searchParams.set('groupId', activeGroupId);
+            window.history.replaceState({}, '', url);
         }
     }, [activeGroupId]);
 

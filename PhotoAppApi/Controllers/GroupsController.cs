@@ -125,6 +125,7 @@ namespace PhotoAppApi.Controllers
                         ug.UserId,
                         ug.User.Username,
                         ug.User.Email,
+                        ug.Role,
                         ug.JoinedAt
                     })
                     .ToListAsync();
@@ -157,7 +158,8 @@ namespace PhotoAppApi.Controllers
                 var userGroup = new UserGroup
                 {
                     GroupId = id,
-                    UserId = request.UserId
+                    UserId = request.UserId,
+                    Role = request.Role,
                 };
 
                 await _context.UserGroups.AddAsync(userGroup);
@@ -193,6 +195,27 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, new { message = "Erreur lors du retrait du membre." });
             }
         }
+        // PUT: api/admin/groups/{id}/members/{userId}/role
+        [HttpPut("{id}/members/{userId}/role")]
+        public async Task<IActionResult> UpdateMemberRole(Guid id, int userId, [FromBody] UpdateMemberRoleRequest request)
+        {
+            _logger.Debug($"In {nameof(UpdateMemberRole)} with groupId: {id}, userId: {userId}, role: {request.Role}");
+            try
+            {
+                var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId);
+                if (userGroup == null) return NotFound(new { message = "Membre non trouvé dans ce groupe." });
+
+                userGroup.Role = request.Role;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Rôle mis à jour avec succès." });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occured in {nameof(UpdateMemberRole)}", ex);
+                return StatusCode(500, new { message = "Erreur lors de la mise à jour du rôle." });
+            }
+        }
     }
 
     public class CreateGroupRequest
@@ -205,5 +228,11 @@ namespace PhotoAppApi.Controllers
     {
         [Required]
         public int UserId { get; set; }
+        [Required] public GroupUserRole Role { get; set; } = GroupUserRole.Member;
+    }
+
+    public class UpdateMemberRoleRequest
+    {
+        [Required] public GroupUserRole Role { get; set; }
     }
 }
