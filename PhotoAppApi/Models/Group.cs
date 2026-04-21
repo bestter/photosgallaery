@@ -12,6 +12,8 @@ namespace PhotoAppApi.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public required string Description { get; set; }
+
         // Relation avec Utilisateurs-Groupes
         [System.Text.Json.Serialization.JsonIgnore]
         public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();

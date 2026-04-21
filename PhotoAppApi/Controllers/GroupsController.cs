@@ -64,7 +64,8 @@ namespace PhotoAppApi.Controllers
 
                 var group = new Group
                 {
-                    Name = request.Name
+                    Name = request.Name,
+                    Description = request.Description
                 };
 
                 await _context.Groups.AddAsync(group);
@@ -222,6 +223,9 @@ namespace PhotoAppApi.Controllers
     {
         [Required]
         public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public string Description { get; set; } = string.Empty;
     }
 
     public class AddMemberRequest

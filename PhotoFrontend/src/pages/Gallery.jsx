@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import UploadPhoto from '../components/UploadPhoto';
 import ImageModal from '../components/ImageModal';
 import InviteModal from '../components/InviteModal';
+import GroupRequestModal from '../components/GroupRequestModal';
 import GroupSelector from '../components/GroupSelector';
 import { getUserRole, isTokenExpired } from '../authHelper';
 import api from '../api';
@@ -9,6 +10,7 @@ import api from '../api';
 export default function Gallery() {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [isGroupRequestOpen, setIsGroupRequestOpen] = useState(false);
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
     const [photos, setPhotos] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
@@ -169,6 +171,13 @@ export default function Gallery() {
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
+                    {isLoggedIn && (
+                        <button
+                            onClick={() => setIsGroupRequestOpen(true)}
+                            className="hidden md:block border border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-colors">
+                            Créer un groupe
+                        </button>
+                    )}
                     {canUpload && (
                         <button
                             onClick={() => setIsUploadOpen(true)}
@@ -416,6 +425,11 @@ export default function Gallery() {
             <InviteModal
                 isOpen={isInviteOpen}
                 onClose={() => setIsInviteOpen(false)}
+            />
+
+            <GroupRequestModal
+                isOpen={isGroupRequestOpen}
+                onClose={() => setIsGroupRequestOpen(false)}
             />
         </div>
     );
