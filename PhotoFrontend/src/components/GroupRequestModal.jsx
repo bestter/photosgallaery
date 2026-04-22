@@ -14,17 +14,20 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // Simulate network request as endpoint might not exist yet
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await api.post('/GroupRequests', {
+                name: groupName,
+                description: groupGoal
+            });
 
             toast.success("Demande de création de groupe envoyée avec succès !");
-            
+
             setGroupName('');
             setGroupGoal('');
             setInviteEmails('');
             onClose();
         } catch (err) {
-            toast.error("Erreur lors de l'envoi de la demande.");
+            console.error("Group request error:", err);
+            toast.error(err.response?.data?.message || "Erreur lors de l'envoi de la demande.");
         } finally {
             setIsLoading(false);
         }
@@ -40,7 +43,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                     </div>
                     <img alt="Logo" className="h-12 w-12 object-contain opacity-80" src="/Byla3.jpg" />
                 </div>
-                
+
                 <form className="space-y-8" onSubmit={handleSubmit}>
                     {/* Group Name */}
                     <div>
@@ -52,7 +55,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             onChange={(e) => setGroupName(e.target.value)}
                         />
                     </div>
-                    
+
                     {/* Goal Description */}
                     <div>
                         <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupGoal">Description du but du groupe</label>
@@ -65,9 +68,9 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             onChange={(e) => setGroupGoal(e.target.value)}
                         ></textarea>
                     </div>
-                    
+
                     {/* Initial Members */}
-                    <div className="pt-6 border-t border-slate-800/40">
+                    {/* <div className="pt-6 border-t border-slate-800/40">
                         <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
                             <span className="material-symbols-outlined text-cyan-400" style={{fontVariationSettings: "'FILL' 1"}}>group_add</span>
                             Inviter les premiers membres
@@ -85,7 +88,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             <p className="text-sm text-slate-400">Un email d'invitation sera automatiquement envoyé à ces adresses une fois le groupe créé.</p>
                         </div>
                     </div>
-                    
+                     */}
                     {/* Actions */}
                     <div className="flex items-center justify-end gap-4 pt-6 mt-8 border-t border-slate-800/40">
                         <button

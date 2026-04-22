@@ -76,6 +76,27 @@ namespace PhotoAppApi.Controllers
                 };
 
                 await _context.Groups.AddAsync(group);
+
+                if (request.RequesterId.HasValue)
+                {
+                    var userGroup = new UserGroup
+                    {
+                        Group = group,
+                        UserId = request.RequesterId.Value,
+                        Role = GroupUserRole.Admin
+                    };
+                    await _context.UserGroups.AddAsync(userGroup);
+                }
+
+                if (request.RequestId.HasValue)
+                {
+                    var groupRequest = await _context.GroupRequests.FindAsync(request.RequestId.Value);
+                    if (groupRequest != null)
+                    {
+                        _context.GroupRequests.Remove(groupRequest);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
                 return Ok(new
@@ -234,6 +255,9 @@ namespace PhotoAppApi.Controllers
 
         [Required]
         public string Description { get; set; } = string.Empty;
+
+        public int? RequesterId { get; set; }
+        public Guid? RequestId { get; set; }
     }
 
     public class AddMemberRequest

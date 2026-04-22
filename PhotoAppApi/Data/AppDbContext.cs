@@ -24,6 +24,8 @@ namespace PhotoAppApi.Data
         public DbSet<UserGroup> UserGroups { get; set; }
         public DbSet<GroupInvitation> GroupInvitations { get; set; }
 
+        public DbSet<GroupRequest> GroupRequests { get; set; }
+
         // 2. On utilise l'API Fluent pour configurer la base de données
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
