@@ -145,9 +145,9 @@ export default function Moderation() {
                                     const photoId = report.photoId || report.PhotoId;
 
                                     return (
-                                        <tr key={rId} className="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+                                        <tr key={rId} className="hover:bg-surface-container-high/50 group transition-colors">
                                             <td className="px-6 py-4">
-                                                <div className="w-12 h-12 rounded bg-slate-200 dark:bg-slate-800 overflow-hidden border border-slate-300 dark:border-slate-700">
+                                                <div className="w-12 h-12 rounded bg-surface-container-highest overflow-hidden border border-outline-variant">
                                                     <img className="w-full h-full object-cover" alt="Image signalée" src={getImageUrl(pUrl)} />
                                                 </div>
                                             </td>
@@ -163,11 +163,11 @@ export default function Moderation() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20">{reason}</span>
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error/10 text-error border border-error/20">{reason}</span>
                                             </td>
                                             <td className="px-6 py-4 text-right space-x-2">
-                                                <button className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide">Effacer</button>
-                                                <button onClick={() => handleDismiss(rId)} className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide">Annuler</button>
+                                                <button className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide">Effacer</button>
+                                                <button onClick={() => handleDismiss(rId)} className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide border border-outline-variant/30">Annuler</button>
                                             </td>
                                         </tr>
                                     );

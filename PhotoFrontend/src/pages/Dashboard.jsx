@@ -109,24 +109,24 @@ export default function Dashboard() {
                                         const isCurrentUser = username === currentUsername;
 
                                         return (
-                                            <tr key={userId} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                            <tr key={userId} className="hover:bg-surface-container-high/50 group transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center font-bold text-slate-500 dark:text-slate-300">
+                                                        <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center font-bold text-on-surface-variant">
                                                             {username ? username.substring(0, 2).toUpperCase() : '?'}
                                                         </div>
-                                                        <span className="font-semibold text-slate-900 dark:text-white">{username}</span>
+                                                        <span className="font-semibold text-on-surface group-hover:text-primary transition-colors">{username}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{email}</td>
+                                                <td className="px-6 py-4 text-on-surface-variant">{email}</td>
                                                 <td className="px-6 py-4">
                                                     {groups && groups.length > 0 ? (
                                                         groups.length > 2 ? (
                                                             <div className="group relative inline-block cursor-pointer">
-                                                                <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                                                <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors">
                                                                     Groupes ({groups.length})
                                                                 </span>
-                                                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-max bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-slate-800">
+                                                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
                                                                     <div className="flex flex-col gap-1 items-center">
                                                                         {groups.map((g, i) => (
                                                                             <span key={i} className="whitespace-nowrap font-medium">{g}</span>
@@ -137,39 +137,39 @@ export default function Dashboard() {
                                                         ) : (
                                                             <div className="flex flex-wrap gap-1">
                                                                 {groups.map((g, i) => (
-                                                                    <span key={i} className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-700">
+                                                                    <span key={i} className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30">
                                                                         {g}
                                                                     </span>
                                                                 ))}
                                                             </div>
                                                         )
                                                     ) : (
-                                                        <span className="text-xs text-slate-400 italic">Aucun</span>
+                                                        <span className="text-xs text-on-surface-variant/70 italic">Aucun</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {role === 'Admin' && <span className="px-2.5 py-1 text-xs font-bold bg-emerald-500/20 text-emerald-500 rounded-full border border-emerald-500/30">Admin</span>}
+                                                    {role === 'Admin' && <span className="px-2.5 py-1 text-xs font-bold bg-tertiary/20 text-tertiary rounded-full border border-tertiary/30">Admin</span>}
                                                     {role === 'Creator' && <span className="px-2.5 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full border border-primary/30">Créateur</span>}
-                                                    {(role === 'User' || (!role && role !== 'Forbidden')) && <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-700">Utilisateur</span>}
-                                                    {role === 'Forbidden' && <span className="px-2.5 py-1 text-xs font-bold bg-red-500/20 text-red-500 rounded-full border border-red-500/30">Banni</span>}
+                                                    {(role === 'User' || (!role && role !== 'Forbidden')) && <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30">Utilisateur</span>}
+                                                    {role === 'Forbidden' && <span className="px-2.5 py-1 text-xs font-bold bg-error/20 text-error rounded-full border border-error/30">Banni</span>}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {role !== 'Admin' && (
                                                             role === 'Creator' ? (
-                                                                <button onClick={() => handleRoleUpdate(userId, 'User')} className="px-3 py-1.5 text-xs font-bold text-amber-600 border border-amber-500/50 hover:bg-amber-500/10 rounded-lg transition-colors">Rétrograder créateur</button>
+                                                                <button onClick={() => handleRoleUpdate(userId, 'User')} className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors">Rétrograder créateur</button>
                                                             ) : (
                                                                 <button onClick={() => handleRoleUpdate(userId, 'Creator')} className="px-3 py-1.5 text-xs font-bold text-primary border border-primary/50 hover:bg-primary/10 rounded-lg transition-colors">Promouvoir créateur</button>
                                                             )
                                                         )}
                                                         {role === 'Admin' ? (
                                                             isCurrentUser ? (
-                                                                <button disabled className="px-3 py-1.5 text-xs font-bold text-slate-400 border border-slate-400/30 cursor-not-allowed rounded-lg bg-slate-100 dark:bg-slate-800" title="Action non permise sur votre propre compte">Admin actuel</button>
+                                                                <button disabled className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50" title="Action non permise sur votre propre compte">Admin actuel</button>
                                                             ) : (
-                                                                <button onClick={() => handleRoleUpdate(userId, 'User')} className="px-3 py-1.5 text-xs font-bold text-amber-600 border border-amber-500/50 hover:bg-amber-500/10 rounded-lg transition-colors">Rétrograder admin</button>
+                                                                <button onClick={() => handleRoleUpdate(userId, 'User')} className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors">Rétrograder admin</button>
                                                             )
                                                         ) : (
-                                                            <button onClick={() => handleRoleUpdate(userId, 'Admin')} className="px-3 py-1.5 text-xs font-bold bg-primary text-background-dark hover:bg-primary/90 rounded-lg transition-colors">Promouvoir admin</button>
+                                                            <button onClick={() => handleRoleUpdate(userId, 'Admin')} className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary/90 rounded-lg transition-colors">Promouvoir admin</button>
                                                         )}
                                                         <button
                                                             disabled={isCurrentUser}
@@ -178,7 +178,7 @@ export default function Dashboard() {
                                                                     handleRoleUpdate(userId, role === 'Forbidden' ? 'User' : 'Forbidden');
                                                                 }
                                                             }}
-                                                            className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? 'text-slate-400 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : (role === 'Forbidden' ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-red-500 hover:bg-red-500/10')}`}
+                                                            className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? 'text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50' : (role === 'Forbidden' ? 'text-tertiary hover:bg-tertiary/10' : 'text-error hover:bg-error/10')}`}
                                                             title={isCurrentUser ? "Action non permise sur votre propre compte" : (role === 'Forbidden' ? "Réactiver ce compte" : "Bannir")}
                                                         >
                                                             <span className="material-symbols-outlined text-lg leading-none">{role === 'Forbidden' ? 'lock_open' : 'block'}</span>

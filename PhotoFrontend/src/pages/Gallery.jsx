@@ -344,7 +344,7 @@ export default function Gallery() {
                                         </div>
                                         <div className="absolute top-4 left-4">
                                             <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold text-cyan-400 uppercase tracking-widest border border-cyan-400/20">
-                                                {photoTags[0] || 'Gallery'}
+                                                {photoTags[0] || 'Sans catégories'}
                                             </div>
                                         </div>
                                         <div className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors" onClick={(e) => { e.stopPropagation(); setSelectedAuthor(author); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>

@@ -235,22 +235,22 @@ export default function AdminGroups() {
                                         </thead>
                                         <tbody className="divide-y divide-outline-variant/20 text-sm">
                                             {loading ? (
-                                                <tr><td colSpan="4" className="text-center py-4 text-slate-500">Chargement...</td></tr>
+                                                <tr><td colSpan="4" className="text-center py-4 text-on-surface-variant">Chargement...</td></tr>
                                             ) : groups.map(group => {
                                                 const dateStr = new Date(group.createdAt || group.CreatedAt).toLocaleDateString();
                                                 return (
-                                                    <tr key={group.id || group.Id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                                                    <tr key={group.id || group.Id} className="hover:bg-surface-container-high/50 transition-colors group">
+                                                        <td className="px-6 py-4 font-semibold text-on-surface group-hover:text-primary transition-colors">
                                                             {group.name || group.Name}
-                                                            <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                                                            <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
                                                                 <span className="material-symbols-outlined text-[12px]">link</span>
                                                                 <a href={`/group/${group.shortName || group.ShortName}`} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">
                                                                     Lien public du groupe
                                                                 </a>
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 text-slate-500">{dateStr}</td>
-                                                        <td className="px-6 py-4 text-slate-500">{group.userCount || group.UserCount || 0}</td>
+                                                        <td className="px-6 py-4 text-on-surface-variant">{dateStr}</td>
+                                                        <td className="px-6 py-4 text-on-surface-variant">{group.userCount || group.UserCount || 0}</td>
                                                         <td className="px-6 py-4 text-right">
                                                             <button
                                                                 onClick={() => handleManageMembers(group)}
@@ -278,19 +278,19 @@ export default function AdminGroups() {
                         <>
                             <div className="mb-8 flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                    <h2 className="text-3xl font-extrabold text-on-surface tracking-tight">
                                         Membres : {selectedGroup.name || selectedGroup.Name}
                                     </h2>
-                                    <p className="text-slate-500 dark:text-slate-400 mt-1">Ajoutez ou retirez des membres du groupe.</p>
+                                    <p className="text-on-surface-variant mt-1">Ajoutez ou retirez des membres du groupe.</p>
                                 </div>
                             </div>
 
                             {/* Add Member form */}
-                            <div className="bg-white dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 mb-8 max-w-2xl">
-                                <h3 className="text-lg font-bold mb-4">Ajouter un utilisateur</h3>
+                            <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 mb-8 max-w-2xl shadow-md">
+                                <h3 className="text-lg font-bold mb-4 text-on-surface">Ajouter un utilisateur</h3>
                                 <form onSubmit={handleAddMember} className="flex gap-4">
                                     <select
-                                        className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all"
+                                        className="flex-1 px-4 py-2 bg-surface-container text-on-surface border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all"
                                         value={selectedUserId}
                                         onChange={(e) => setSelectedUserId(e.target.value)}
                                         required
@@ -303,7 +303,7 @@ export default function AdminGroups() {
                                         ))}
                                     </select>
                                     <select
-                                        className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all w-32 focus:outline-none"
+                                        className="px-4 py-2 bg-surface-container text-on-surface border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all w-32 focus:outline-none"
                                         value={selectedRole}
                                         onChange={(e) => setSelectedRole(parseInt(e.target.value))}
                                     >
@@ -311,51 +311,51 @@ export default function AdminGroups() {
                                         <option value={9999}>Admin</option>
                                         <option value={0}>Aucun</option>
                                     </select>
-                                    <button type="submit" className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors focus:ring-2 focus:ring-primary focus:outline-none">
+                                    <button type="submit" className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors focus:ring-2 focus:ring-primary focus:outline-none shadow-[0_0_15px_rgba(0,206,209,0.3)]">
                                         Ajouter au groupe
                                     </button>
                                 </form>
                             </div>
 
                             {/* Members Table */}
-                            <div className="bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                    <h4 className="font-bold text-lg">Membres actuels</h4>
+                            <div className="bg-surface-container-low rounded-2xl border border-outline-variant/30 overflow-hidden shadow-md">
+                                <div className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between">
+                                    <h4 className="font-bold text-lg text-on-surface">Membres actuels</h4>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/50">
+                                        <thead className="bg-surface-container/50 border-b border-outline-variant/40">
                                             <tr>
-                                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Utilisateur</th>
-                                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Rôle</th>
-                                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date d'ajout</th>
-                                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Utilisateur</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Rôle</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date d'ajout</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-outline-variant/20 text-sm">
                                             {members.map(member => {
                                                 const joinedDate = new Date(member.joinedAt || member.JoinedAt).toLocaleDateString();
                                                 return (
-                                                    <tr key={member.userId || member.UserId} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                                                            {member.username || member.Username} <span className="font-normal text-slate-500 text-sm">({member.email || member.Email})</span>
+                                                    <tr key={member.userId || member.UserId} className="hover:bg-surface-container-high/50 group transition-colors">
+                                                        <td className="px-6 py-4 font-semibold text-on-surface group-hover:text-primary transition-colors">
+                                                            {member.username || member.Username} <span className="font-normal text-on-surface-variant text-sm">({member.email || member.Email})</span>
                                                         </td>
-                                                        <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
+                                                        <td className="px-6 py-4 font-medium text-on-surface">
                                                             <select
-                                                                className="px-2 py-1 bg-transparent border-b border-slate-300 dark:border-slate-700 focus:border-primary focus:ring-0 text-sm transition-all outline-none"
+                                                                className="px-2 py-1 bg-transparent border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-sm transition-all outline-none"
                                                                 value={member.role !== undefined ? member.role : member.Role}
                                                                 onChange={(e) => handleRoleChange(member.userId || member.UserId, parseInt(e.target.value))}
                                                             >
-                                                                <option value={1} className="dark:bg-slate-800">Membre</option>
-                                                                <option value={9999} className="dark:bg-slate-800">Admin</option>
-                                                                <option value={0} className="dark:bg-slate-800">Aucun</option>
+                                                                <option value={1} className="bg-surface-container text-on-surface">Membre</option>
+                                                                <option value={9999} className="bg-surface-container text-on-surface">Admin</option>
+                                                                <option value={0} className="bg-surface-container text-on-surface">Aucun</option>
                                                             </select>
                                                         </td>
-                                                        <td className="px-6 py-4 text-slate-500">{joinedDate}</td>
+                                                        <td className="px-6 py-4 text-on-surface-variant">{joinedDate}</td>
                                                         <td className="px-6 py-4 text-right">
                                                             <button
                                                                 onClick={() => handleRemoveMember(member.userId || member.UserId)}
-                                                                className="px-3 py-1.5 text-xs font-bold text-red-600 border border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                className="px-3 py-1.5 text-xs font-bold text-error border border-error/50 hover:bg-error/10 rounded-lg transition-colors"
                                                             >
                                                                 Retirer
                                                             </button>
@@ -365,7 +365,7 @@ export default function AdminGroups() {
                                             })}
                                             {members.length === 0 && (
                                                 <tr>
-                                                    <td colSpan="4" className="text-center py-4 text-slate-500">Aucun membre dans ce groupe.</td>
+                                                    <td colSpan="4" className="text-center py-4 text-on-surface-variant">Aucun membre dans ce groupe.</td>
                                                 </tr>
                                             )}
                                         </tbody>

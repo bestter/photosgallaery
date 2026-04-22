@@ -20,10 +20,10 @@ export default function Join() {
     }, []);
 
     return (
-        <div className="flex h-screen items-center justify-center bg-background-light dark:bg-background-dark font-display">
+        <div className="flex h-screen items-center justify-center bg-background text-on-surface font-body">
             <div className="text-center">
                 <span className="material-symbols-outlined animate-spin text-4xl text-primary block mb-4">sync</span>
-                <p className="text-slate-500 font-medium">Validation de l'invitation...</p>
+                <p className="text-on-surface-variant font-medium tracking-wide">Validation de l'invitation...</p>
             </div>
         </div>
     );
