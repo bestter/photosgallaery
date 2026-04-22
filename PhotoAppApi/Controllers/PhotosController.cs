@@ -723,7 +723,7 @@ namespace PhotoAppApi.Controllers
                 var defaultGroup = await _context.Groups.FirstOrDefaultAsync(g => g.Name == "Cercle Initial");
                 if (defaultGroup == null)
                 {
-                    defaultGroup = new Group { Name = "Cercle Initial", Description = "Groupe par défaut pour les utilisateurs existants" };
+                    defaultGroup = new Group { Name = "Cercle Initial", ShortName = "cercle-initial", Description = "Groupe par défaut pour les utilisateurs existants" };
                     _context.Groups.Add(defaultGroup);
                     await _context.SaveChangesAsync(); // Sauvegarder pour avoir l'ID généré
                 }

@@ -194,6 +194,7 @@ namespace PhotoAppApi.Controllers
                     {
                         ug.Group.Id,
                         ug.Group.Name,
+                        ug.Group.ShortName,
                         ug.Group.InviteToken
                     })
                     .ToListAsync();
@@ -206,6 +207,7 @@ namespace PhotoAppApi.Controllers
                        {
                            g.Id,
                            g.Name,
+                           g.ShortName,
                            g.InviteToken
                        })
                        .ToListAsync();

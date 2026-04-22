@@ -274,7 +274,7 @@ export default function AdminGroups() {
                                                             {group.name || group.Name}
                                                             <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
                                                                 <span className="material-symbols-outlined text-[12px]">link</span>
-                                                                <a href={`/?groupId=${group.id || group.Id}`} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">
+                                                                <a href={`/group/${group.shortName || group.ShortName}`} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">
                                                                     Lien public du groupe
                                                                 </a>
                                                             </div>

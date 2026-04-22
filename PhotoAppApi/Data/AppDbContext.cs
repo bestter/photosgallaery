@@ -48,6 +48,11 @@ namespace PhotoAppApi.Data
                 .HasOne(ug => ug.Group)
                 .WithMany(g => g.UserGroups)
                 .HasForeignKey(ug => ug.GroupId);
+
+            // Ajoute un index unique sur la colonne ShortName
+            modelBuilder.Entity<Group>()
+                .HasIndex(g => g.ShortName)
+                .IsUnique();
         }
     }
 }

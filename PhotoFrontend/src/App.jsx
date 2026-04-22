@@ -30,6 +30,7 @@ function App() {
   else if (currentPath === '/dashboard') Component = Dashboard;
   else if (currentPath === '/moderation') Component = Moderation;
   else if (currentPath === '/admin-groups') Component = AdminGroups;
+  else if (currentPath.startsWith('/group/')) Component = Gallery;
 
   return (
     <>

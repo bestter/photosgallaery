@@ -38,12 +38,23 @@ export default function Gallery() {
                 .then(res => {
                     setUserGroups(res.data);
 
-                    // Vérifier si un groupId est dans l'URL
-                    const params = new URLSearchParams(window.location.search);
-                    const urlGroupId = params.get('groupId');
+                    // Vérifier si un shortName est dans l'URL
+                    let urlGroupId = null;
+                    const pathParts = window.location.pathname.split('/');
+                    if (pathParts.length >= 3 && pathParts[1] === 'group') {
+                        const shortName = pathParts[2];
+                        const matchedGroup = res.data.find(g => (g.shortName || g.ShortName) === shortName);
+                        if (matchedGroup) {
+                            urlGroupId = matchedGroup.id || matchedGroup.Id;
+                        }
+                    } else {
+                        // Fallback pour ancien format ?groupId=
+                        const params = new URLSearchParams(window.location.search);
+                        urlGroupId = params.get('groupId');
+                    }
 
                     if (urlGroupId) {
-                        // Si le paramètre est présent, on l'utilise
+                        // Si le groupe est présent, on l'utilise
                         setActiveGroupId(urlGroupId);
                     } else if (res.data.length > 0) {
                         // Sinon le premier groupe par défaut
@@ -77,12 +88,19 @@ export default function Gallery() {
     useEffect(() => {
         if (activeGroupId) {
             fetchPhotos(activeGroupId);
+            
             // Maintenir l'URL synchronisée avec le groupe actif
-            const url = new URL(window.location.href);
-            url.searchParams.set('groupId', activeGroupId);
-            window.history.replaceState({}, '', url);
+            if (userGroups && userGroups.length > 0) {
+                const activeGroup = userGroups.find(g => (g.id || g.Id) === activeGroupId);
+                if (activeGroup && (activeGroup.shortName || activeGroup.ShortName)) {
+                    const url = new URL(window.location.href);
+                    url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
+                    url.searchParams.delete('groupId');
+                    window.history.replaceState({}, '', url);
+                }
+            }
         }
-    }, [activeGroupId]);
+    }, [activeGroupId, userGroups]);
 
     // Helper pour générer l'URL complète de l'image sécurisée
     const getImageUrl = (url) => {

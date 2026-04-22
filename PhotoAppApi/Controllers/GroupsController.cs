@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
 
 namespace PhotoAppApi.Controllers
@@ -34,6 +35,7 @@ namespace PhotoAppApi.Controllers
                     {
                         g.Id,
                         g.Name,
+                        g.ShortName,
                         g.InviteToken,
                         g.CreatedAt,
                         UserCount = g.UserGroups.Count(),
@@ -62,9 +64,14 @@ namespace PhotoAppApi.Controllers
                     return BadRequest(new { message = "Le nom du groupe est requis." });
                 }
 
+                //CREATE UNIQUE SHORTNAME
+                var groupsService = new GroupService(_context);
+                var shortName = await groupsService.GenerateUniqueSlugAsync(request.Name);
+
                 var group = new Group
                 {
                     Name = request.Name,
+                    ShortName = shortName,
                     Description = request.Description
                 };
 
@@ -75,6 +82,7 @@ namespace PhotoAppApi.Controllers
                 {
                     group.Id,
                     group.Name,
+                    group.ShortName,
                     group.InviteToken,
                     group.CreatedAt,
                     UserCount = 0,

@@ -6,7 +6,9 @@ namespace PhotoAppApi.Models
         public Guid Id { get; set; } = Guid.CreateVersion7();
         
         public required string Name { get; set; }
-        
+
+        public required string ShortName { get; set; }
+
         // UUID v7 for invitation link
         public Guid InviteToken { get; set; } = Guid.CreateVersion7();
 
