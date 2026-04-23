@@ -347,8 +347,8 @@ namespace PhotoAppApi.Controllers
                     string fileHash;
                     using (var stream = file.OpenReadStream())
                     {
-                        using var sha256 = SHA256.Create();
-                        var hashBytes = await sha256.ComputeHashAsync(stream);
+                        using var sha512 = SHA512.Create();
+                        var hashBytes = await sha512.ComputeHashAsync(stream);
                         fileHash = Convert.ToHexStringLower(hashBytes);
                     }
 
@@ -567,7 +567,7 @@ namespace PhotoAppApi.Controllers
                 int updatedCount = 0;
                 int missingFilesCount = 0;
 
-                using (var sha256 = SHA256.Create())
+                using (var sha512 = SHA512.Create())
                 {
                     // 2. Boucler sur chaque photo
                     foreach (var photo in photosSansHash)
@@ -580,7 +580,7 @@ namespace PhotoAppApi.Controllers
                             // Calculer le hash
                             using (var stream = System.IO.File.OpenRead(filePath))
                             {
-                                var hashBytes = await sha256.ComputeHashAsync(stream);
+                                var hashBytes = await sha512.ComputeHashAsync(stream);
                                 photo.FileHash = Convert.ToHexStringLower(hashBytes);
                             }
                             updatedCount++;
@@ -743,10 +743,15 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Assigner tous les utilisateurs existants à ce groupe
                 var allUsers = await _context.Users.ToListAsync();
+                var existingUserIdsInGroup = await _context.UserGroups
+                    .Where(ug => ug.GroupId == defaultGroup.Id)
+                    .Select(ug => ug.UserId)
+                    .ToListAsync();
+                var existingUserIdsSet = new HashSet<int>(existingUserIdsInGroup);
+
                 foreach (var user in allUsers)
                 {
-                    bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == user.Id && ug.GroupId == defaultGroup.Id);
-                    if (!isMember)
+                    if (!existingUserIdsSet.Contains(user.Id))
                     {
                         _context.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = defaultGroup.Id });
                     }
@@ -1088,9 +1093,6 @@ namespace PhotoAppApi.Controllers
                 }
             }            
              
-            //var userName = User.Identity?.Name;
-            //var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userName);
-
             var viewEvent = new PhotoViewEvent
             {
                 PhotoId = id,
