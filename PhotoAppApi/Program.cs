@@ -91,19 +91,21 @@ builder.Services.AddAuthentication(options =>
         },
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("Auth échouée : " + context.Exception.Message);
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("Auth échouée : {Message}", context.Exception.Message);
             return Task.CompletedTask;
         },
         OnTokenValidated = async context =>
         {
             // On récupère la base de données depuis le contexte de la requête
             var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
 
             // On cherche l'ID de l'utilisateur dans son jeton
             var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // 👇 AJOUTE CETTE LIGNE POUR L'ESPIONNAGE
-            Console.WriteLine($"[VIDEUR] Vérification du jeton. ID trouvé : {userIdClaim ?? "AUCUN !!"}");
+            logger.LogInformation("[VIDEUR] Vérification du jeton. ID trouvé : {UserIdClaim}", userIdClaim ?? "AUCUN !!");
 
             if (int.TryParse(userIdClaim, out int userId))
             {
@@ -161,6 +163,7 @@ builder.Services.AddSingleton(viewChannel.Writer);
 builder.Services.AddSingleton(viewChannel.Reader);
 // 3. Injecter le Service D'arrière plan (Le Worker)
 builder.Services.AddHostedService<PhotoViewProcessingWorker>();
+builder.Services.AddHostedService<HashCalculationBackgroundService>();
 
 
 builder.Services.AddLog4net();
