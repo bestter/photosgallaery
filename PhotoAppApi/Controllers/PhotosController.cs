@@ -743,10 +743,15 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Assigner tous les utilisateurs existants à ce groupe
                 var allUsers = await _context.Users.ToListAsync();
+                var existingUserIdsInGroup = await _context.UserGroups
+                    .Where(ug => ug.GroupId == defaultGroup.Id)
+                    .Select(ug => ug.UserId)
+                    .ToListAsync();
+                var existingUserIdsSet = new HashSet<int>(existingUserIdsInGroup);
+
                 foreach (var user in allUsers)
                 {
-                    bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == user.Id && ug.GroupId == defaultGroup.Id);
-                    if (!isMember)
+                    if (!existingUserIdsSet.Contains(user.Id))
                     {
                         _context.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = defaultGroup.Id });
                     }
