@@ -161,6 +161,7 @@ builder.Services.AddSingleton(viewChannel.Writer);
 builder.Services.AddSingleton(viewChannel.Reader);
 // 3. Injecter le Service D'arrière plan (Le Worker)
 builder.Services.AddHostedService<PhotoViewProcessingWorker>();
+builder.Services.AddHostedService<HashCalculationBackgroundService>();
 
 
 builder.Services.AddLog4net();
