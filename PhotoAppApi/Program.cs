@@ -176,6 +176,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+//https://gemini.google.com/app/387a36e26323a68d?hl=fr
+app.UseDefaultFiles();
+
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
@@ -195,5 +199,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//https://gemini.google.com/app/387a36e26323a68d?hl=fr
+app.MapFallbackToFile("/index.html");
 
 app.Run();
