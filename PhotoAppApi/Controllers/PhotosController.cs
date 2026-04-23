@@ -347,8 +347,8 @@ namespace PhotoAppApi.Controllers
                     string fileHash;
                     using (var stream = file.OpenReadStream())
                     {
-                        using var sha256 = SHA256.Create();
-                        var hashBytes = await sha256.ComputeHashAsync(stream);
+                        using var sha512 = SHA512.Create();
+                        var hashBytes = await sha512.ComputeHashAsync(stream);
                         fileHash = Convert.ToHexStringLower(hashBytes);
                     }
 
@@ -567,7 +567,7 @@ namespace PhotoAppApi.Controllers
                 int updatedCount = 0;
                 int missingFilesCount = 0;
 
-                using (var sha256 = SHA256.Create())
+                using (var sha512 = SHA512.Create())
                 {
                     // 2. Boucler sur chaque photo
                     foreach (var photo in photosSansHash)
@@ -580,7 +580,7 @@ namespace PhotoAppApi.Controllers
                             // Calculer le hash
                             using (var stream = System.IO.File.OpenRead(filePath))
                             {
-                                var hashBytes = await sha256.ComputeHashAsync(stream);
+                                var hashBytes = await sha512.ComputeHashAsync(stream);
                                 photo.FileHash = Convert.ToHexStringLower(hashBytes);
                             }
                             updatedCount++;
