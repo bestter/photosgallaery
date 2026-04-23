@@ -251,20 +251,32 @@ namespace PhotoAppApi.Controllers
                 }
 
                 var tagsToAttach = new List<Tag>();
+                var trimmedNames = tagNames.Select(n => n.Trim()).ToList();
 
-                foreach (var name in tagNames.Select(n => n.Trim()))
+                // 1. On pré-charge toutes les traductions existantes pour éviter le problème N+1
+                var existingTranslations = await _context.TagTranslations
+                    .Include(tt => tt.Tag)
+                    .Where(tt => trimmedNames.Contains(tt.Name) && tt.Language == Language.FR)
+                    .ToListAsync();
+
+                var translationDict = existingTranslations
+                    .GroupBy(tt => tt.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+                // Pour gérer les tags créés au cours de cette boucle (si doublons dans tagNames)
+                var newlyCreatedTags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var name in trimmedNames)
                 {
-                    // 1. On cherche la traduction existante
-                    // Note : On utilise .Tag pour le récupérer en même temps
-                    var existingTranslation = await _context.TagTranslations
-                        .Include(tt => tt.Tag)
-                        .FirstOrDefaultAsync(tt => tt.Name == name
-                                                && tt.Language == Language.FR);
-
-                    if (existingTranslation != null)
+                    if (translationDict.TryGetValue(name, out var existingTranslation))
                     {
-                        // Si le tag existe déjà, on utilise l'objet Tag associé à la traduction
+                        // Si le tag existe déjà en base, on utilise l'objet Tag associé
                         tagsToAttach.Add(existingTranslation.Tag);
+                    }
+                    else if (newlyCreatedTags.TryGetValue(name, out var newTagFromPreviousIteration))
+                    {
+                        // Si on l'a déjà créé dans une itération précédente du tagNames
+                        tagsToAttach.Add(newTagFromPreviousIteration);
                     }
                     else
                     {
@@ -278,7 +290,7 @@ namespace PhotoAppApi.Controllers
                         // 3. Création de sa traduction française
                         var newTranslation = new TagTranslation
                         {
-                            Tag = newTag, // Grâce à la modif du modèle, ceci fonctionne maintenant !
+                            Tag = newTag,
                             Name = name,
                             Language = Language.FR
                         };
@@ -287,8 +299,9 @@ namespace PhotoAppApi.Controllers
                         _context.Tags.Add(newTag);
                         _context.TagTranslations.Add(newTranslation);
 
-                        // On l'ajoute à notre liste pour la photo
+                        // On l'ajoute à nos listes
                         tagsToAttach.Add(newTag);
+                        newlyCreatedTags.Add(name, newTag);
                     }
                 }
 
