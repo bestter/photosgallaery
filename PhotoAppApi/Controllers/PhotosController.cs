@@ -1088,9 +1088,6 @@ namespace PhotoAppApi.Controllers
                 }
             }            
              
-            //var userName = User.Identity?.Name;
-            //var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userName);
-
             var viewEvent = new PhotoViewEvent
             {
                 PhotoId = id,
