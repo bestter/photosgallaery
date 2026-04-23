@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getUserRole, isTokenExpired } from '../authHelper';
 import api from '../api';
 import AdminLayout from '../components/AdminLayout';
@@ -17,6 +17,11 @@ export default function AdminGroups() {
     const [allUsers, setAllUsers] = useState([]);
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRole, setSelectedRole] = useState(1);
+
+    const availableUsers = useMemo(() => {
+        const memberIds = new Set(members.map(m => m.userId || m.UserId));
+        return allUsers.filter(u => !memberIds.has(u.id || u.Id));
+    }, [members, allUsers]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -296,7 +301,7 @@ export default function AdminGroups() {
                                         required
                                     >
                                         <option value="">-- Sélectionner un utilisateur --</option>
-                                        {allUsers.filter(u => !members.some(m => (m.userId || m.UserId) === (u.id || u.Id))).map(user => (
+                                        {availableUsers.map(user => (
                                             <option key={user.id || user.Id} value={user.id || user.Id}>
                                                 {user.username || user.Username} ({user.email || user.Email})
                                             </option>
