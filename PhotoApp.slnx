@@ -1,7 +1,9 @@
 <Solution>
+  <Project Path="Benchmark/Benchmark.csproj" />
   <Project Path="client-photo/client-photo/client-photo.esproj">
     <Build />
     <Deploy />
   </Project>
+  <Project Path="PhotoAppApi.Tests/PhotoAppApi.Tests.csproj" />
   <Project Path="PhotoAppApi/PhotoAppApi.csproj" />
 </Solution>
