@@ -1,0 +1,327 @@
+{
+  "auth": {
+    "login": {
+      "success": "Login successful!",
+      "error": "Incorrect credentials or server error.",
+      "title": "Welcome",
+      "subtitle": "Access your photo gallery",
+      "username_label": "User",
+      "username_placeholder": "Your identifier",
+      "password_label": "Password",
+      "forgot_password": "Forgot password?",
+      "password_placeholder": "••••••••",
+      "loading": "Logging in...",
+      "submit": "Login",
+      "no_account": "Don't have an account yet?",
+      "register_link": "Sign up"
+    },
+    "register": {
+      "password_mismatch": "Passwords do not match.",
+      "accept_terms_error": "You must accept the terms of use.",
+      "success": "Registration successful! You can now log in.",
+      "error": "Error during registration. This username might already be taken.",
+      "subtitle": "Create your account to start",
+      "username_label": "Username",
+      "username_placeholder": "Username",
+      "email_label": "Email Address",
+      "email_placeholder": "name@example.com",
+      "password_label": "Password",
+      "password_placeholder": "••••••••",
+      "confirm_password_label": "Confirm password",
+      "confirm_password_placeholder": "••••••••",
+      "accept_terms": "I accept the",
+      "terms_of_use": "Terms of Use",
+      "and": "and the",
+      "privacy_policy": "Privacy Policy",
+      "loading": "REGISTRATION IN PROGRESS...",
+      "submit": "SIGN UP",
+      "already_have_account": "Already have an account?",
+      "login_link": "Log in"
+    },
+    "join": {
+      "validating": "Validating invitation..."
+    }
+  },
+  "footer": {
+    "copyright": "© 2024 PixelLyra.com App. All rights reserved.",
+    "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service",
+    "contact_support": "Contact Support",
+    "system_info": "PixelLyra.com System v2.4.0 • Encrypted Connection"
+  },
+  "admin": {
+    "dashboard": {
+      "role_update_error": "Error updating role.",
+      "search_placeholder": "Search user, email...",
+      "title": "User Management",
+      "subtitle": "System Administration",
+      "subtitle_extended": "Manage roles, permissions, and security of user accounts.",
+      "user_directory": "User Directory",
+      "user_directory_subtitle": "Full list and role management",
+      "filter": "Filter",
+      "total_users": "Total Users",
+      "active_creators": "Active Creators",
+      "user_list": "User List",
+      "new_user": "New User",
+      "table": {
+        "status": "Status",
+        "user": "User",
+        "groups": "Groups",
+        "role": "Role",
+        "actions": "Actions",
+        "none": "None",
+        "username": "Username",
+        "email": "Email Address"
+      },
+      "role": {
+        "admin": "Admin",
+        "creator": "Creator",
+        "user": "User",
+        "banned": "Banned"
+      },
+      "action": {
+        "demote_creator": "Demote creator",
+        "promote_creator": "Promote creator",
+        "current_admin": "Current Admin",
+        "demote_admin": "Demote admin",
+        "promote_admin": "Promote admin",
+        "self_action_tooltip": "Action not allowed on your own account",
+        "unban": "Unban account",
+        "ban": "Ban"
+      },
+      "showing_users": "Showing {{count}} users"
+    },
+    "groups": {
+      "title": "Group Management",
+      "subtitle": "Create and manage groups for the platform.",
+      "members_title": "Members: {{name}}",
+      "members_subtitle": "Add or remove group members.",
+      "create_title": "Create a new group",
+      "create_from_request_info": "Group creation from a request. The requester will automatically be added as an administrator.",
+      "group_name_placeholder": "Group name",
+      "group_desc_placeholder": "Description (optional)",
+      "create_button": "Create group",
+      "list_title": "Group List",
+      "table": {
+        "name": "Group Name",
+        "date": "Creation Date",
+        "members": "Members",
+        "actions": "Actions"
+      },
+      "empty_list": "No group found. Create a new one!",
+      "public_link": "Public group link",
+      "action": {
+        "members": "Members",
+        "delete": "Delete",
+        "remove": "Remove"
+      },
+      "back_button": "Back to groups",
+      "back_to_groups": "Back to groups",
+      "add_member": "Add a member",
+      "select_user": "Select a user...",
+      "role": {
+        "member": "Member (Read/Write)",
+        "admin": "Admin",
+        "none": "None (Blocked)"
+      },
+      "add_button": "Add to group",
+      "current_members": "Current members",
+      "members_table": {
+        "user": "User",
+        "role": "Role",
+        "added": "Added on",
+        "actions": "Actions"
+      },
+      "no_members": "No members in this group.",
+      "loading": "Loading..."
+    },
+    "moderation": {
+      "title": "Moderation Center",
+      "subtitle": "Manage content reported by the community.",
+      "total_reports": "Total Reports",
+      "since_last_month": "since last month",
+      "pending": "Pending",
+      "backlog_reduction": "backlog reduction",
+      "processed": "Processed",
+      "efficiency_increase": "efficiency increase",
+      "reported_images": "Reported Images",
+      "search_placeholder": "Search...",
+      "filter": "Filter",
+      "table": {
+        "image": "Image",
+        "image_name": "Image Name",
+        "reported_user": "Reported User",
+        "reason": "Report Reason",
+        "actions": "Actions"
+      },
+      "anonymous": "Anonymous",
+      "action": {
+        "delete": "Delete",
+        "dismiss": "Dismiss"
+      },
+      "no_reports": "No pending reports."
+    },
+    "group_requests": {
+      "title": "Group Creation Requests",
+      "subtitle": "Review and moderate pending group applications before they are published to the network. Ensure alignment with community guidelines.",
+      "confirm_reject": "Are you sure you want to reject and delete this request?",
+      "delete_error": "Error during deletion.",
+      "table": {
+        "group_name": "Group Name",
+        "description": "Description",
+        "requester": "Requester",
+        "actions": "Actions"
+      },
+      "loading": "Loading requests...",
+      "no_requests": "No pending requests.",
+      "action": {
+        "reject": "Reject",
+        "accept": "Accept"
+      }
+    }
+  },
+  "gallery": {
+    "search_placeholder": "Search inspirations, tags, authors...",
+    "create_group": "Create group",
+    "upload": "Upload",
+    "dashboard_tooltip": "Dashboard",
+    "invite_tooltip": "Invite",
+    "login": "Login",
+    "subscribe": "Subscribe",
+    "logout_tooltip": "Logout",
+    "search_mobile_placeholder": "Search inspirations...",
+    "workspace_gallery": "Workspace / Gallery",
+    "gallery_title": "Gallery",
+    "all_discoveries": "All Discoveries",
+    "tag": "Tag"
+  },
+  "components": {
+    "admin_layout": {
+      "nav": {
+        "users": "User Management",
+        "groups": "Group Management",
+        "requests": "Group Requests",
+        "moderation": "Moderation"
+      },
+      "system_control": "System Control",
+      "back_to_site": "Back to site",
+      "logout": "Logout"
+    },
+    "group_selector": {
+      "your_collectives": "Your Collectives"
+    },
+    "report_modal": {
+      "title": "Report Content",
+      "flagging_item": "Flagging Item",
+      "by": "By",
+      "reason": "Reason",
+      "reason_placeholder": "Explain why this content violates our terms...",
+      "guidance": "Reports are reviewed within 24 hours. Abuse of the reporting system may result in account restrictions.",
+      "sending": "Sending...",
+      "submit": "Submit Report",
+      "cancel": "Cancel",
+      "anonymous": "Anonymous",
+      "error": {
+        "enter_reason": "Please enter a reason for the report.",
+        "failed": "Error during reporting."
+      },
+      "success": "Report recorded successfully."
+    },
+    "group_request_modal": {
+      "title": "Create a new group",
+      "subtitle": "Start a new community around a common theme.",
+      "group_name": "Group Name",
+      "group_name_placeholder": "Ex: Urban Photographers Paris",
+      "description": "Group goal description",
+      "description_placeholder": "Describe the main objective of this group and what members will find there...",
+      "cancel": "Cancel",
+      "sending": "Sending...",
+      "submit": "Submit Request",
+      "success": "Group creation request sent successfully!",
+      "error": {
+        "send_failed": "Error sending request."
+      }
+    },
+    "image_modal": {
+      "not_available": "N/A",
+      "new": "New",
+      "unknown_camera": "Unknown",
+      "anonymous": "Anonymous",
+      "preparing_download": "Preparing download...",
+      "download_success": "Download successful!",
+      "download_error": "Error during download.",
+      "share_title": "Photo by {{author}} on PixelLyra.com",
+      "share_text": "Look at this beautiful photo by {{author}}!",
+      "share_success_native": "Shared successfully!",
+      "share_success_clipboard": "Image link copied to clipboard!",
+      "share_error": "Error sharing.",
+      "photographer": "Photographer",
+      "download": "Download",
+      "cannot_like_own": "You cannot like your own photo",
+      "likes": "Likes",
+      "share": "Share",
+      "reported": "Reported",
+      "cannot_report_own": "You cannot report your own photo",
+      "report": "Report",
+      "added_on": "Added on",
+      "taken_on": "Taken on",
+      "views": "Views"
+    },
+    "invite_modal": {
+      "error": {
+        "load_groups": "Cannot load your circles for invitation.",
+        "select_group": "You must select a circle.",
+        "send_failed": "Error sending invitation."
+      },
+      "success": "Invitation sent successfully!",
+      "title": "Invite to a circle",
+      "subtitle": "Share access to PixelLyra.com",
+      "group_label": "Choose the target circle",
+      "group_placeholder": "Select a circle...",
+      "first_name": "First Name",
+      "first_name_placeholder": "John",
+      "last_name": "Last Name",
+      "last_name_placeholder": "Doe",
+      "email": "Email Address",
+      "email_placeholder": "colleague@example.com",
+      "message": "Personal message (optional)",
+      "message_placeholder": "Join our private gallery...",
+      "sending": "Sending...",
+      "send": "Send invitation",
+      "cancel": "Cancel"
+    },
+    "upload": {
+      "error": {
+        "session_expired": "Your session has expired. Please log in again.",
+        "select_file": "Please select a file.",
+        "tag_limit": "Please select between 1 and 12 tags.",
+        "select_group": "Please select a visibility circle.",
+        "file_too_large": "The file is too large. Maximum size is {{size}} MB.",
+        "provide_title": "Please provide a title.",
+        "duplicate": "This image has already been uploaded!",
+        "unsafe": "The image was detected as potentially unsafe.",
+        "failed": "Upload failed.",
+        "unauthorized": "You don't have permission to do this."
+      },
+      "loading": "Uploading your images...",
+      "duplicates_ignored": "Some duplicates were ignored.",
+      "success": "Upload successful!",
+      "title": "Add a photo",
+      "subtitle": "Share your moments with the PixelLyra.com community.",
+      "drag_drop": "Drag and drop your photo here",
+      "browse_files": "or click to browse your files (JPG, PNG, max 20 MB)",
+      "select_file_btn": "Select a file",
+      "photo_title": "Photo Title",
+      "photo_title_placeholder": "Enter a catchy title",
+      "description": "Description",
+      "description_placeholder": "Tell the story behind this shot...",
+      "tags": "Tags",
+      "tags_placeholder": "Add tags separated by commas (ex: nature, travel)",
+      "visibility": "Visibility (Circle)",
+      "extract_gps": "Extract and save GPS coordinates if available",
+      "cancel": "Cancel",
+      "publish_btn": "Publish photo",
+      "uploading": "Sending..."
+    }
+  }
+}
