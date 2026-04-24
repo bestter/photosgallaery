@@ -39,6 +39,38 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task SearchTags_EmptyQuery_ReturnsEmptyList()
+        {
+            // Arrange
+            using var context = GetDbContext();
+            var controller = new TagsController(context);
+
+            // Act
+            var result = await controller.SearchTags("");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedTags = Assert.IsAssignableFrom<IEnumerable<string>>(okResult.Value);
+            Assert.Empty(returnedTags);
+        }
+
+        [Fact]
+        public async Task SearchTags_NullQuery_ReturnsEmptyList()
+        {
+            // Arrange
+            using var context = GetDbContext();
+            var controller = new TagsController(context);
+
+            // Act
+            var result = await controller.SearchTags(null);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedTags = Assert.IsAssignableFrom<IEnumerable<string>>(okResult.Value);
+            Assert.Empty(returnedTags);
+        }
+
+        [Fact]
         public async Task SearchTags_WhenQueryMatches_ReturnsSuggestionsInFrench()
         {
             // Arrange
