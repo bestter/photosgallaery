@@ -56,18 +56,28 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
-        public async Task DeleteGroup_WhenIdNotFound_ReturnsNotFoundObjectResult()
+        public async Task DeleteGroup_ReturnsOk_WhenGroupExists()
         {
             // Arrange
             using var context = GetDatabaseContext();
+            var group = new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = "Test Group",
+                ShortName = "test-group",
+                Description = "A test group"
+            };
+            context.Groups.Add(group);
+            await context.SaveChangesAsync();
             var controller = new GroupsController(context);
-            var randomId = Guid.NewGuid();
 
             // Act
-            var result = await controller.DeleteGroup(randomId);
+            var result = await controller.DeleteGroup(group.Id);
 
             // Assert
-            Assert.IsType<NotFoundObjectResult>(result);
+            Assert.IsType<OkObjectResult>(result);
+            var deletedGroup = await context.Groups.FindAsync(group.Id);
+            Assert.Null(deletedGroup);
         }
     }
 }
