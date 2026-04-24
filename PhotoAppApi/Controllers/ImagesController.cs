@@ -26,10 +26,12 @@ namespace PhotoAppApi.Controllers
         public async Task<IActionResult> GetImage(string fileName)
         {
             _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
+
+            var safeFileName = Path.GetFileName(fileName);
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
-                var photo = await _context.Photos.FirstOrDefaultAsync(p => p.FileName == fileName);
+                var photo = await _context.Photos.FirstOrDefaultAsync(p => p.FileName == safeFileName);
 
                 if (photo == null)
                 {
@@ -59,7 +61,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 var rootPath = _env.ContentRootPath;
-                var filePath = Path.Combine(rootPath, "PrivateImages", fileName);
+                var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
 
                 if (!System.IO.File.Exists(filePath))
                 {
@@ -67,7 +69,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // Déterminer le content type
-                var ext = Path.GetExtension(fileName).ToLowerInvariant();
+                var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch
                 {
                     ".png" => "image/png",
@@ -89,10 +91,12 @@ namespace PhotoAppApi.Controllers
         public async Task<IActionResult> GetThumbnail(string fileName)
         {
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
+
+            var safeFileName = Path.GetFileName(fileName);
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
-                var photo = await _context.Photos.FirstOrDefaultAsync(p => p.FileName == fileName);
+                var photo = await _context.Photos.FirstOrDefaultAsync(p => p.FileName == safeFileName);
 
                 if (photo == null) return NotFound();
 
@@ -115,11 +119,11 @@ namespace PhotoAppApi.Controllers
                 }
 
                 var rootPath = _env.ContentRootPath;
-                var filePath = Path.Combine(rootPath, "PrivateImages", "thumbnails", fileName);
+                var filePath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
 
                 if (!System.IO.File.Exists(filePath)) return NotFound();
 
-                var ext = Path.GetExtension(fileName).ToLowerInvariant();
+                var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch
                 {
                     ".png" => "image/png",
