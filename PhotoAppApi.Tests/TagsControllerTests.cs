@@ -23,26 +23,51 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
-        public async Task SearchTags_ReturnsEmptyList_WhenQueryIsNullOrWhitespace()
+        public async Task SearchTags_EmptyQuery_ReturnsEmptyList()
         {
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new TagsController(context);
 
             // Act
-            var resultNull = await controller.SearchTags(null);
-            var resultEmpty = await controller.SearchTags("");
-            var resultWhitespace = await controller.SearchTags("   ");
+            var result = await controller.SearchTags("");
 
             // Assert
-            var okResultNull = Assert.IsType<OkObjectResult>(resultNull);
-            Assert.Empty(Assert.IsAssignableFrom<IEnumerable<string>>(okResultNull.Value));
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedTags = Assert.IsAssignableFrom<IEnumerable<string>>(okResult.Value);
+            Assert.Empty(returnedTags);
+        }
 
-            var okResultEmpty = Assert.IsType<OkObjectResult>(resultEmpty);
-            Assert.Empty(Assert.IsAssignableFrom<IEnumerable<string>>(okResultEmpty.Value));
+        [Fact]
+        public async Task SearchTags_NullQuery_ReturnsEmptyList()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new TagsController(context);
 
-            var okResultWhitespace = Assert.IsType<OkObjectResult>(resultWhitespace);
-            Assert.Empty(Assert.IsAssignableFrom<IEnumerable<string>>(okResultWhitespace.Value));
+            // Act
+            var result = await controller.SearchTags(null);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedTags = Assert.IsAssignableFrom<IEnumerable<string>>(okResult.Value);
+            Assert.Empty(returnedTags);
+        }
+
+        [Fact]
+        public async Task SearchTags_WhitespaceQuery_ReturnsEmptyList()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new TagsController(context);
+
+            // Act
+            var result = await controller.SearchTags("   ");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedTags = Assert.IsAssignableFrom<IEnumerable<string>>(okResult.Value);
+            Assert.Empty(returnedTags);
         }
 
         [Fact]
