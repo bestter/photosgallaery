@@ -16,7 +16,7 @@ COPY PhotoAppApi/ ./
 # MAGIE : On copie les fichiers React générés à l'étape 1 dans le dossier wwwroot du C#
 COPY --from=build-front /PhotoFrontend/dist ./wwwroot
 # On compile l'application C#
-RUN dotnet publish -c Release -o out
+RUN dotnet publish PhotoAppApi.csproj -c Release -o out
 
 # --- ÉTAPE 3 : Image finale (Très légère, sans Node ni SDK C#) ---
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
