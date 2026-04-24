@@ -54,5 +54,20 @@ namespace PhotoAppApi.Tests
             // The controller returns: return NotFound(new { message = "Groupe non trouvé." });
             // We can check the message if needed
         }
+
+        [Fact]
+        public async Task DeleteGroup_WhenIdNotFound_ReturnsNotFoundObjectResult()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+            var randomId = Guid.NewGuid();
+
+            // Act
+            var result = await controller.DeleteGroup(randomId);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
     }
 }
