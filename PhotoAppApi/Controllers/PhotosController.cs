@@ -362,7 +362,7 @@ namespace PhotoAppApi.Controllers
                     }
 
                     // 4. Sauvegarde physique
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     // Création du sous-dossier pour les miniatures si nécessaire
