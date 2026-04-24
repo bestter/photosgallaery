@@ -62,6 +62,7 @@ describe('authHelper', () => {
     describe('isTokenExpired', () => {
         it('should return true when token is empty or string null/undefined', () => {
             expect(isTokenExpired(null)).toBe(true);
+            expect(isTokenExpired('')).toBe(true);
             expect(isTokenExpired('null')).toBe(true);
             expect(isTokenExpired('undefined')).toBe(true);
         });
@@ -86,6 +87,20 @@ describe('authHelper', () => {
             const currentTime = Date.now() / 1000;
             const token = createToken({ exp: currentTime + 5 }); // Expires in 5 seconds
             expect(isTokenExpired(token)).toBe(true);
+        });
+
+        it('should return false when token expires in exactly 10 seconds (boundary)', () => {
+            // Because Date.now() is called in the test and then in the function,
+            // the function's currentTime might be slightly larger, causing exp < currentTime + 10 to be true.
+            // So we use 10.5 seconds to safely test the boundary without mocking Date.now
+            const currentTime = Date.now() / 1000;
+            const token = createToken({ exp: currentTime + 10.5 }); // Just above the boundary
+            expect(isTokenExpired(token)).toBe(false);
+        });
+
+        it('should return false when token has no exp claim', () => {
+            const token = createToken({ role: "User" }); // No exp claim
+            expect(isTokenExpired(token)).toBe(false);
         });
     });
 });
