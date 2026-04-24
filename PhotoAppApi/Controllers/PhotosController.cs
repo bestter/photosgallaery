@@ -742,19 +742,25 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 2. Assigner tous les utilisateurs existants à ce groupe
-                var allUsers = await _context.Users.ToListAsync();
+                var allUserIds = await _context.Users.Select(u => u.Id).ToListAsync();
                 var existingUserIdsInGroup = await _context.UserGroups
                     .Where(ug => ug.GroupId == defaultGroup.Id)
                     .Select(ug => ug.UserId)
                     .ToListAsync();
                 var existingUserIdsSet = new HashSet<int>(existingUserIdsInGroup);
 
-                foreach (var user in allUsers)
+                var missingMemberships = new List<UserGroup>();
+                foreach (var userId in allUserIds)
                 {
-                    if (!existingUserIdsSet.Contains(user.Id))
+                    if (!existingUserIdsSet.Contains(userId))
                     {
-                        _context.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = defaultGroup.Id });
+                        missingMemberships.Add(new UserGroup { UserId = userId, GroupId = defaultGroup.Id });
                     }
+                }
+
+                if (missingMemberships.Any())
+                {
+                    _context.UserGroups.AddRange(missingMemberships);
                 }
 
                 // 3. Déplacer les images de wwwroot vers PrivateImages

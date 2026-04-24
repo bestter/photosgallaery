@@ -20,6 +20,25 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
+        public async Task CreateGroup_ReturnsBadRequest_WhenNameIsEmpty()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+            var request = new CreateGroupRequest
+            {
+                Name = string.Empty,
+                Description = "A description"
+            };
+
+            // Act
+            var result = await controller.CreateGroup(request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
         public async Task DeleteGroup_ReturnsNotFound_WhenGroupDoesNotExist()
         {
             // Arrange

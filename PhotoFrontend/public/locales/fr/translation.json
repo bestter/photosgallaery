@@ -1,0 +1,327 @@
+{
+  "auth": {
+    "login": {
+      "success": "Connexion réussie !",
+      "error": "Identifiants incorrects ou erreur serveur.",
+      "title": "Bienvenue",
+      "subtitle": "Accédez à votre galerie photographique",
+      "username_label": "Usager",
+      "username_placeholder": "Votre identifiant",
+      "password_label": "Mot de passe",
+      "forgot_password": "Mot de passe oublié ?",
+      "password_placeholder": "••••••••",
+      "loading": "Connexion en cours...",
+      "submit": "Se connecter",
+      "no_account": "Pas encore de compte ?",
+      "register_link": "S'inscrire"
+    },
+    "register": {
+      "password_mismatch": "Les mots de passe ne correspondent pas.",
+      "accept_terms_error": "Vous devez accepter les conditions d'utilisation.",
+      "success": "Inscription réussie ! Vous pouvez maintenant vous connecter.",
+      "error": "Erreur lors de l'inscription. Ce nom d'utilisateur est peut-être déjà pris.",
+      "subtitle": "Créez votre compte pour commencer",
+      "username_label": "Nom d'utilisateur",
+      "username_placeholder": "Nom d'utilisateur",
+      "email_label": "Adresse Courriel",
+      "email_placeholder": "nom@exemple.com",
+      "password_label": "Mot de passe",
+      "password_placeholder": "••••••••",
+      "confirm_password_label": "Confirmer le mot de passe",
+      "confirm_password_placeholder": "••••••••",
+      "accept_terms": "J'accepte les",
+      "terms_of_use": "Conditions d'utilisation",
+      "and": "et la",
+      "privacy_policy": "Politique de confidentialité",
+      "loading": "INSCRIPTION EN COURS...",
+      "submit": "S'INSCRIRE",
+      "already_have_account": "Déjà un compte ?",
+      "login_link": "Se connecter"
+    },
+    "join": {
+      "validating": "Validation de l'invitation..."
+    }
+  },
+  "footer": {
+    "copyright": "© 2024 PixelLyra.com App. All rights reserved.",
+    "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service",
+    "contact_support": "Contact Support",
+    "system_info": "PixelLyra.com System v2.4.0 • Encrypted Connection"
+  },
+  "admin": {
+    "dashboard": {
+      "role_update_error": "Erreur lors de la modification du rôle.",
+      "search_placeholder": "Rechercher un utilisateur, un email...",
+      "title": "Gestion des usagers",
+      "subtitle": "Administration système",
+      "subtitle_extended": "Gérez les rôles, les permissions et la sécurité des comptes utilisateurs.",
+      "user_directory": "Annuaire des utilisateurs",
+      "user_directory_subtitle": "Liste complète et gestion des rôles",
+      "filter": "Filtrer",
+      "total_users": "Utilisateurs Totaux",
+      "active_creators": "Créateurs Actifs",
+      "user_list": "Liste des utilisateurs",
+      "new_user": "Nouvel usager",
+      "table": {
+        "status": "Status",
+        "user": "Utilisateur",
+        "groups": "Groupes",
+        "role": "Rôle",
+        "actions": "Actions",
+        "none": "Aucun",
+        "username": "Nom d'usager",
+        "email": "Adresse courriel"
+      },
+      "role": {
+        "admin": "Admin",
+        "creator": "Créateur",
+        "user": "Utilisateur",
+        "banned": "Banni"
+      },
+      "action": {
+        "demote_creator": "Rétrograder créateur",
+        "promote_creator": "Promouvoir créateur",
+        "current_admin": "Admin actuel",
+        "demote_admin": "Rétrograder admin",
+        "promote_admin": "Promouvoir admin",
+        "self_action_tooltip": "Action non permise sur votre propre compte",
+        "unban": "Réactiver ce compte",
+        "ban": "Bannir"
+      },
+      "showing_users": "Affichage de {{count}} utilisateurs"
+    },
+    "groups": {
+      "title": "Gestion des groupes",
+      "subtitle": "Créez et gérez les groupes pour la plateforme.",
+      "members_title": "Membres : {{name}}",
+      "members_subtitle": "Ajoutez ou retirez des membres du groupe.",
+      "create_title": "Créer un nouveau groupe",
+      "create_from_request_info": "Création d'un groupe à partir d'une demande. Le demandeur sera automatiquement ajouté en tant qu'administrateur.",
+      "group_name_placeholder": "Nom du groupe",
+      "group_desc_placeholder": "Description (optionnel)",
+      "create_button": "Créer le groupe",
+      "list_title": "Liste des groupes",
+      "table": {
+        "name": "Nom du groupe",
+        "date": "Date de création",
+        "members": "Membres",
+        "actions": "Actions"
+      },
+      "empty_list": "Aucun groupe trouvé. Créez-en un nouveau !",
+      "public_link": "Lien public du groupe",
+      "action": {
+        "members": "Membres",
+        "delete": "Supprimer",
+        "remove": "Retirer"
+      },
+      "back_button": "Retour aux groupes",
+      "back_to_groups": "Retour aux groupes",
+      "add_member": "Ajouter un membre",
+      "select_user": "Sélectionner un utilisateur...",
+      "role": {
+        "member": "Membre (Lecture/Écriture)",
+        "admin": "Admin",
+        "none": "Aucun (Bloqué)"
+      },
+      "add_button": "Ajouter au groupe",
+      "current_members": "Membres actuels",
+      "members_table": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "added": "Ajouté le",
+        "actions": "Actions"
+      },
+      "no_members": "Aucun membre dans ce groupe.",
+      "loading": "Chargement..."
+    },
+    "moderation": {
+      "title": "Centre de Modération",
+      "subtitle": "Gérez les contenus signalés par la communauté.",
+      "total_reports": "Total Signalements",
+      "since_last_month": "depuis le mois dernier",
+      "pending": "En attente",
+      "backlog_reduction": "réduction du backlog",
+      "processed": "Traités",
+      "efficiency_increase": "efficacité accrue",
+      "reported_images": "Images Signalées",
+      "search_placeholder": "Rechercher...",
+      "filter": "Filtrer",
+      "table": {
+        "image": "Image",
+        "image_name": "Nom de l'image",
+        "reported_user": "Utilisateur signalé",
+        "reason": "Motif du signalement",
+        "actions": "Actions"
+      },
+      "anonymous": "Anonyme",
+      "action": {
+        "delete": "Effacer",
+        "dismiss": "Annuler"
+      },
+      "no_reports": "Aucun signalement en attente."
+    },
+    "group_requests": {
+      "title": "Group Creation Requests",
+      "subtitle": "Review and moderate pending group applications before they are published to the network. Ensure alignment with community guidelines.",
+      "confirm_reject": "Êtes-vous sûr de vouloir refuser et supprimer cette demande ?",
+      "delete_error": "Erreur lors de la suppression.",
+      "table": {
+        "group_name": "Group Name",
+        "description": "Description",
+        "requester": "Requester",
+        "actions": "Actions"
+      },
+      "loading": "Chargement des requêtes...",
+      "no_requests": "Aucune requête en attente.",
+      "action": {
+        "reject": "Reject",
+        "accept": "Accept"
+      }
+    }
+  },
+  "gallery": {
+    "search_placeholder": "Search inspirations, tags, authors...",
+    "create_group": "Créer un groupe",
+    "upload": "Upload",
+    "dashboard_tooltip": "Dashboard",
+    "invite_tooltip": "Inviter",
+    "login": "Login",
+    "subscribe": "S'abonner",
+    "logout_tooltip": "Déconnexion",
+    "search_mobile_placeholder": "Search inspirations...",
+    "workspace_gallery": "Workspace / Gallery",
+    "gallery_title": "Gallery",
+    "all_discoveries": "All Discoveries",
+    "tag": "Tag"
+  },
+  "components": {
+    "admin_layout": {
+      "nav": {
+        "users": "Gestion des usagers",
+        "groups": "Gestion des groupes",
+        "requests": "Requêtes de Groupes",
+        "moderation": "Modération"
+      },
+      "system_control": "System Control",
+      "back_to_site": "Retour au site",
+      "logout": "Déconnexion"
+    },
+    "group_selector": {
+      "your_collectives": "Your Collectives"
+    },
+    "report_modal": {
+      "title": "Report Content",
+      "flagging_item": "Flagging Item",
+      "by": "Par",
+      "reason": "Reason",
+      "reason_placeholder": "Explain why this content violates our terms...",
+      "guidance": "Reports are reviewed within 24 hours. Abuse of the reporting system may result in account restrictions.",
+      "sending": "Envoi...",
+      "submit": "Submit Report",
+      "cancel": "Cancel",
+      "anonymous": "Anonyme",
+      "error": {
+        "enter_reason": "Veuillez entrer une raison pour le signalement.",
+        "failed": "Erreur lors du signalement."
+      },
+      "success": "Signalement enregistré avec succès."
+    },
+    "group_request_modal": {
+      "title": "Créer un nouveau groupe",
+      "subtitle": "Démarrez une nouvelle communauté autour d'une thématique commune.",
+      "group_name": "Nom du groupe",
+      "group_name_placeholder": "Ex: Photographes Urbains Paris",
+      "description": "Description du but du groupe",
+      "description_placeholder": "Décrivez l'objectif principal de ce groupe et ce que les membres y trouveront...",
+      "cancel": "Annuler",
+      "sending": "Envoi...",
+      "submit": "Soumettre la demande",
+      "success": "Demande de création de groupe envoyée avec succès !",
+      "error": {
+        "send_failed": "Erreur lors de l'envoi de la demande."
+      }
+    },
+    "image_modal": {
+      "not_available": "N/D",
+      "new": "Nouvelle",
+      "unknown_camera": "Inconnu",
+      "anonymous": "Anonyme",
+      "preparing_download": "Préparation du téléchargement...",
+      "download_success": "Téléchargement réussi !",
+      "download_error": "Erreur lors du téléchargement.",
+      "share_title": "Photo par {{author}} sur PixelLyra.com",
+      "share_text": "Regarde cette magnifique photo de {{author}} !",
+      "share_success_native": "Partagé avec succès !",
+      "share_success_clipboard": "Lien de l'image copié dans le presse-papier !",
+      "share_error": "Erreur lors du partage.",
+      "photographer": "Photographe",
+      "download": "Download",
+      "cannot_like_own": "Vous ne pouvez pas aimer votre propre photo",
+      "likes": "Likes",
+      "share": "Share",
+      "reported": "Reported",
+      "cannot_report_own": "Vous ne pouvez pas signaler votre propre photo",
+      "report": "Report",
+      "added_on": "Ajoutée le",
+      "taken_on": "Prise le",
+      "views": "Vues"
+    },
+    "invite_modal": {
+      "error": {
+        "load_groups": "Impossible de charger vos cercles pour l'invitation.",
+        "select_group": "Vous devez sélectionner un cercle.",
+        "send_failed": "Erreur lors de l'envoi de l'invitation."
+      },
+      "success": "Invitation envoyée avec succès !",
+      "title": "Inviter dans un cercle",
+      "subtitle": "Partagez l'accès à PixelLyra.com",
+      "group_label": "Choisissez le cercle ciblé",
+      "group_placeholder": "Sélectionnez un cercle...",
+      "first_name": "Prénom",
+      "first_name_placeholder": "Jean",
+      "last_name": "Nom",
+      "last_name_placeholder": "Tremblay",
+      "email": "Adresse Courriel",
+      "email_placeholder": "collegue@exemple.com",
+      "message": "Message personnel (optionnel)",
+      "message_placeholder": "Rejoins notre galerie privée...",
+      "sending": "Envoi...",
+      "send": "Envoyer l'invitation",
+      "cancel": "Annuler"
+    },
+    "upload": {
+      "error": {
+        "session_expired": "Votre session a expiré. Veuillez vous reconnecter.",
+        "select_file": "Veuillez sélectionner un fichier.",
+        "tag_limit": "Veuillez sélectionner entre 1 et 12 tags.",
+        "select_group": "Veuillez sélectionner un cercle de visibilité.",
+        "file_too_large": "Le fichier est trop volumineux. La taille maximale est de {{size}} MB.",
+        "provide_title": "Veuillez fournir un titre.",
+        "duplicate": "Cette image a déjà été téléversée !",
+        "unsafe": "L'image a été détectée comme potentiellement non sécuritaire.",
+        "failed": "Échec de l'upload.",
+        "unauthorized": "Vous n'avez pas l'autorisation de faire cela."
+      },
+      "loading": "Téléversement de vos images...",
+      "duplicates_ignored": "Certains doublons ont été ignorés.",
+      "success": "Upload réussi !",
+      "title": "Ajouter une photo",
+      "subtitle": "Partagez vos moments avec la communauté PixelLyra.com.",
+      "drag_drop": "Glissez-déposez votre photo ici",
+      "browse_files": "ou cliquez pour parcourir vos fichiers (JPG, PNG, max 20 Mo)",
+      "select_file_btn": "Sélectionner un fichier",
+      "photo_title": "Titre de la photo",
+      "photo_title_placeholder": "Entrez un titre accrocheur",
+      "description": "Description",
+      "description_placeholder": "Racontez l'histoire derrière ce cliché...",
+      "tags": "Tags",
+      "tags_placeholder": "Ajoutez des tags séparés par des virgules (ex: nature, voyage)",
+      "visibility": "Visibilité (Cercle)",
+      "extract_gps": "Extraire et enregistrer les coordonnées GPS si disponibles",
+      "cancel": "Annuler",
+      "publish_btn": "Publier la photo",
+      "uploading": "Envoi en cours..."
+    }
+  }
+}
