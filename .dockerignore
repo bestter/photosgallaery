@@ -38,6 +38,8 @@
 **\.env.test.local
 **\.env.production.local
 **\appsettings.Production.json
+# MAIS autoriser explicitement le fichier de production public !
+!.env.production
 
 **\publish_temp
 
