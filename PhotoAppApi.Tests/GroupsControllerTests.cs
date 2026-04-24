@@ -36,6 +36,53 @@ namespace PhotoAppApi.Tests
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
+            var messageProperty = badRequestResult.Value.GetType().GetProperty("message")?.GetValue(badRequestResult.Value, null) as string;
+            Assert.Equal("Le nom du groupe est requis.", messageProperty);
+        }
+
+        [Fact]
+        public async Task CreateGroup_ReturnsBadRequest_WhenNameIsNull()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+            var request = new CreateGroupRequest
+            {
+                Name = null!,
+                Description = "A description"
+            };
+
+            // Act
+            var result = await controller.CreateGroup(request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
+            var messageProperty = badRequestResult.Value.GetType().GetProperty("message")?.GetValue(badRequestResult.Value, null) as string;
+            Assert.Equal("Le nom du groupe est requis.", messageProperty);
+        }
+
+        [Fact]
+        public async Task CreateGroup_ReturnsBadRequest_WhenNameIsWhitespace()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+            var request = new CreateGroupRequest
+            {
+                Name = "   ",
+                Description = "A description"
+            };
+
+            // Act
+            var result = await controller.CreateGroup(request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
+            var messageProperty = badRequestResult.Value.GetType().GetProperty("message")?.GetValue(badRequestResult.Value, null) as string;
+            Assert.Equal("Le nom du groupe est requis.", messageProperty);
         }
 
         [Fact]
