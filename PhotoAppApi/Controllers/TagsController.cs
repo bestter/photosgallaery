@@ -20,7 +20,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/tags/search?q=nat
         [HttpGet("search")]
-        public async Task<IActionResult> SearchTags([FromQuery] string q)
+        public async Task<IActionResult> SearchTags([FromQuery] string? q)
         {
             _logger.Debug($"In {nameof(SearchTags)} with q: {q}");
             try
