@@ -1,4 +1,4 @@
-## 2024-04-24 - [Path Traversal in File Upload]
-**Vulnerability:** Path Traversal via unsanitized `file.FileName` used in `Path.Combine` during image upload. This can lead to arbitrary file creation/overwrite if an attacker manipulates the file name in a multipart form-data request.
-**Learning:** `Path.Combine` doesn't sanitize directory traversal characters (`../`). Appending an untrusted filename, even when prefixed with a GUID (e.g. `Guid.NewGuid().ToString() + "_" + file.FileName`), allows breaking out of the intended uploads directory if the filename starts with multiple `../`.
-**Prevention:** Always sanitize filenames from user input using `Path.GetFileName()` or equivalent before appending to paths.
+## 2025-02-14 - Fix Path Traversal in Image Retrieval
+**Vulnerability:** The `ImagesController` accepted a raw `fileName` string from the route and directly concatenated it into a file path using `Path.Combine(rootPath, "PrivateImages", fileName)`. This allowed an attacker to bypass intended directory limits using traversal sequences (e.g., `../../`), potentially reading arbitrary files from the host server.
+**Learning:** ASP.NET Core route parameters are not inherently sanitized against file system traversal characters. When dealing with file downloads or physical file access based on user input, it's critical to never trust the input string blindly, even if it's expected to be just a "filename".
+**Prevention:** Always use `Path.GetFileName(userInput)` before passing user-provided file names to `Path.Combine()` or any file system APIs. This function safely strips out any preceding directory paths, ensuring only the final file name component is used.
