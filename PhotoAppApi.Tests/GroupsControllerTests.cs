@@ -128,3 +128,4 @@ namespace PhotoAppApi.Tests
         }
     }
 }
+// Verified empty name tests exist and pass
