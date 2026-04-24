@@ -175,5 +175,32 @@ namespace PhotoAppApi.Tests
             Assert.Single(tags);
             Assert.Contains("NATURE", tags);
         }
+
+        [Fact]
+        public async Task SearchTags_ThrowsException_Returns500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+            var context = new AppDbContext(options);
+            context.Dispose(); // Dispose it so any query will throw ObjectDisposedException
+
+            var controller = new TagsController(context);
+
+            // Act
+            var result = await controller.SearchTags("test");
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            var value = statusCodeResult.Value;
+            Assert.NotNull(value);
+            var propertyInfo = value.GetType().GetProperty("message");
+            Assert.NotNull(propertyInfo);
+            var message = propertyInfo.GetValue(value) as string;
+            Assert.Equal("Erreur lors de la recherche de tags.", message);
+        }
     }
 }
