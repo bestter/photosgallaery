@@ -18,6 +18,7 @@ export default function AdminGroups() {
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRole, setSelectedRole] = useState(1);
 
+    // O(N) optimized filtering using a Set and useMemo to prevent unnecessary N*M computations on each render
     const availableUsers = useMemo(() => {
         const memberIds = new Set(members.map(m => m.userId || m.UserId));
         return allUsers.filter(u => !memberIds.has(u.id || u.Id));
