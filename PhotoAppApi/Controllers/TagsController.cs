@@ -36,6 +36,7 @@ namespace PhotoAppApi.Controllers
                     .Select(tt => tt.Name)
                     .Distinct()
                     .Take(10) // On limite à 10 pour la performance
+                    .OrderBy(name => name) // Tri alphabétique
                     .ToListAsync();
 
                 return Ok(suggestions);
