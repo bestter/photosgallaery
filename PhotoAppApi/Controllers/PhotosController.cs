@@ -48,6 +48,7 @@ namespace PhotoAppApi.Controllers
                 var cleanTag = tag?.Trim().ToLowerInvariant();
 
                 var query = _context.Photos
+                    .AsNoTracking()
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
                     .OrderByDescending(p => p.UploadedAt)
@@ -71,20 +72,19 @@ namespace PhotoAppApi.Controllers
 
                 // Filtrer par accès de groupe pour des raisons de sécurité
                 var currentUsername = User.Identity?.Name;
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserId = int.TryParse(currentUserIdString, out var id) ? id : null;
                 bool isAdmin = User.IsInRole("Admin");
 
-                if (!isAdmin && currentUsername != null)
+                if (!isAdmin && currentUserId.HasValue)
                 {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == currentUsername);
-                    if (user != null)
-                    {
-                        var userGroupIds = await _context.UserGroups
-                            .Where(ug => ug.UserId == user.Id)
-                            .Select(ug => ug.GroupId)
-                            .ToListAsync();
+                    var userGroupIds = await _context.UserGroups
+                        .AsNoTracking()
+                        .Where(ug => ug.UserId == currentUserId.Value)
+                        .Select(ug => ug.GroupId)
+                        .ToListAsync();
 
-                        query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
-                    }
+                    query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
                 }
 
                 // On exécute la requête pour obtenir la liste des photos
@@ -108,21 +108,19 @@ namespace PhotoAppApi.Controllers
                 var userLikedPhotoIds = new HashSet<int>();
                 var userReportedPhotoIds = new HashSet<int>();
 
-                if (!string.IsNullOrEmpty(currentUsername))
+                if (currentUserId.HasValue)
                 {
-                    var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
-                    if (user != null)
-                    {
-                        // On récupère uniquement les IDs des photos que CET utilisateur a aimées
-                        var likedIds = await _context.PhotoLikes
-                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == user.Id)
-                            .Select(l => l.PhotoId)
-                            .ToListAsync();
+                    // On récupère uniquement les IDs des photos que CET utilisateur a aimées
+                    var likedIds = await _context.PhotoLikes
+                        .AsNoTracking()
+                        .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
+                        .Select(l => l.PhotoId)
+                        .ToListAsync();
 
-                        userLikedPhotoIds = new HashSet<int>(likedIds);
-                    }
+                    userLikedPhotoIds = new HashSet<int>(likedIds);
 
                     var reportedIds = await _context.ImageReports
+                        .AsNoTracking()
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
                         .ToListAsync();
