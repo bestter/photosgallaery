@@ -1,10 +1,12 @@
-# fly.toml app configuration file generated for photoapp-dry-wind-9022 on 2026-04-20T16:54:52-04:00
+# fly.toml app configuration file generated for pixellyra on 2026-04-24T13:17:30-04:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = 'pixellyra'
 primary_region = 'yyz'
+
+[build]
 
 [http_service]
   internal_port = 8080
