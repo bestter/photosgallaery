@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import { isTokenExpired, getUserRole } from '../authHelper';
@@ -24,6 +25,13 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
 
     const MAX_SIZE_BYTES = 50 * 1024 * 1024;
 
+        const isSessionValid = useCallback(() => {
+        if (!token || isTokenExpired(token)) {
+            return false;
+        }
+        return true;
+    }, [token]);
+
     useEffect(() => {
         // Charger les groupes de l'utilisateur
         const fetchGroups = async () => {
@@ -45,7 +53,8 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         if (isSessionValid()) {
             fetchGroups();
         }
-    }, [token, initialGroupId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, initialGroupId, isSessionValid]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
@@ -107,12 +116,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         }
     };
 
-    const isSessionValid = () => {
-        if (!token || isTokenExpired(token)) {
-            return false;
-        }
-        return true;
-    };
+
 
     const canUpload = () => {
         const role = getUserRole(token);
@@ -322,7 +326,14 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                             Annuler
                         </button>
                         <button type="submit" className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50">
-                            Publier la photo
+                            {isUploading ? (
+                            <>
+                                <span className="material-symbols-outlined animate-spin mr-2">sync</span>
+                                Téléversement...
+                            </>
+                        ) : (
+                            "Publier la photo"
+                        )}
                         </button>
                     </div>
                 </form>
