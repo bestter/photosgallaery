@@ -497,7 +497,8 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Construire le chemin physique vers le fichier sur le serveur
                 var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var filePath = Path.Combine(rootPath, "images", photo.FileName);
+                var safeFileName = Path.GetFileName(photo.FileName);
+                var filePath = Path.Combine(rootPath, "images", safeFileName);
 
                 // 3. Supprimer le fichier physique s'il existe sur le disque dur
                 if (System.IO.File.Exists(filePath))
@@ -570,7 +571,8 @@ namespace PhotoAppApi.Controllers
                     // 2. Boucler sur chaque photo
                     foreach (var photo in photosSansHash)
                     {
-                        var filePath = Path.Combine(rootPath, "images", photo.FileName);
+                        var safeFileName = Path.GetFileName(photo.FileName);
+                        var filePath = Path.Combine(rootPath, "images", safeFileName);
 
                         // 3. Vérifier si le fichier physique existe toujours
                         if (System.IO.File.Exists(filePath))
@@ -679,8 +681,9 @@ namespace PhotoAppApi.Controllers
 
                 foreach (var photo in photos)
                 {
-                    var originalPath = Path.Combine(uploadsFolder, photo.FileName);
-                    var thumbPath = Path.Combine(thumbFolder, photo.FileName);
+                    var safeFileName = Path.GetFileName(photo.FileName);
+                    var originalPath = Path.Combine(uploadsFolder, safeFileName);
+                    var thumbPath = Path.Combine(thumbFolder, safeFileName);
 
                     // 1. Si la miniature existe déjà, on ne gaspille pas de temps CPU, on passe !
                     if (System.IO.File.Exists(thumbPath)) continue;
@@ -784,8 +787,9 @@ namespace PhotoAppApi.Controllers
                     }
 
                     // Move original file
-                    var oldFilePath = Path.Combine(oldRootPath, photo.FileName);
-                    var newFilePath = Path.Combine(newRootPath, photo.FileName);
+                    var safeFileName = Path.GetFileName(photo.FileName);
+                    var oldFilePath = Path.Combine(oldRootPath, safeFileName);
+                    var newFilePath = Path.Combine(newRootPath, safeFileName);
                     
                     if (System.IO.File.Exists(oldFilePath) && !System.IO.File.Exists(newFilePath))
                     {
@@ -794,8 +798,8 @@ namespace PhotoAppApi.Controllers
                     }
 
                     // Move thumbnail file
-                    var oldThumbFile = Path.Combine(oldThumbPath, photo.FileName);
-                    var newThumbFile = Path.Combine(newThumbPath, photo.FileName);
+                    var oldThumbFile = Path.Combine(oldThumbPath, safeFileName);
+                    var newThumbFile = Path.Combine(newThumbPath, safeFileName);
                     if (System.IO.File.Exists(oldThumbFile) && !System.IO.File.Exists(newThumbFile))
                     {
                         System.IO.File.Move(oldThumbFile, newThumbFile);
