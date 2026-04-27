@@ -35,8 +35,8 @@ namespace PhotoAppApi.Controllers
                     .Where(tt => tt.Language == Language.FR && tt.Name.ToLower().Contains(query))
                     .Select(tt => tt.Name)
                     .Distinct()
-                    .Take(10) // On limite à 10 pour la performance
                     .OrderBy(name => name) // Tri alphabétique
+                    .Take(10) // On limite à 10 pour la performance                    
                     .ToListAsync();
 
                 return Ok(suggestions);
