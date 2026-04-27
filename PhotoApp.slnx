@@ -8,6 +8,7 @@
   <Project Path="PhotoAppApi/PhotoAppApi.csproj" />
   <Project Path="PhotoFrontend/" Type="Website" DisplayName="PhotoFrontend">
     <BuildType Project="Debug" />
+    <Build Project="false" />
     <Properties Name="WebsiteProperties">
       <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
       <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
