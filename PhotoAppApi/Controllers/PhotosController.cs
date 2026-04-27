@@ -915,18 +915,17 @@ namespace PhotoAppApi.Controllers
                 var currentUserLikedPhotoIds = new HashSet<int>();
                 var currentUserReportedPhotoIds = new HashSet<int>();
 
-                if (!string.IsNullOrEmpty(currentUsername))
-                {
-                    var currentUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
-                    if (currentUser != null)
-                    {
-                        var likedIds = await _context.PhotoLikes
-                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUser.Id)
-                            .Select(l => l.PhotoId)
-                            .ToListAsync();
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserId = int.TryParse(currentUserIdString, out var id) ? id : null;
 
-                        currentUserLikedPhotoIds = new HashSet<int>(likedIds);
-                    }
+                if (currentUserId.HasValue)
+                {
+                    var likedIds = await _context.PhotoLikes
+                        .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
+                        .Select(l => l.PhotoId)
+                        .ToListAsync();
+
+                    currentUserLikedPhotoIds = new HashSet<int>(likedIds);
 
                     var reportedIds = await _context.ImageReports
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
@@ -988,17 +987,16 @@ namespace PhotoAppApi.Controllers
                 var currentUserLikedPhotoIds = new HashSet<int>();
                 var currentUserReportedPhotoIds = new HashSet<int>();
 
-                if (!string.IsNullOrEmpty(currentUsername))
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserId = int.TryParse(currentUserIdString, out var id) ? id : null;
+
+                if (currentUserId.HasValue)
                 {
-                    var currentUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
-                    if (currentUser != null)
-                    {
-                        var likedIds = await _context.PhotoLikes
-                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUser.Id)
-                            .Select(l => l.PhotoId)
-                            .ToListAsync();
-                        currentUserLikedPhotoIds = new HashSet<int>(likedIds);
-                    }
+                    var likedIds = await _context.PhotoLikes
+                        .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
+                        .Select(l => l.PhotoId)
+                        .ToListAsync();
+                    currentUserLikedPhotoIds = new HashSet<int>(likedIds);
 
                     var reportedIds = await _context.ImageReports
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
@@ -1060,17 +1058,16 @@ namespace PhotoAppApi.Controllers
                 var currentUsername = User.Identity?.Name;
                 var currentUserLikedPhotoIds = new HashSet<int>();
 
-                if (!string.IsNullOrEmpty(currentUsername))
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserId = int.TryParse(currentUserIdString, out var id) ? id : null;
+
+                if (currentUserId.HasValue)
                 {
-                    var currentUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
-                    if (currentUser != null)
-                    {
-                        var likedIds = await _context.PhotoLikes
-                            .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUser.Id)
-                            .Select(l => l.PhotoId)
-                            .ToListAsync();
-                        currentUserLikedPhotoIds = new HashSet<int>(likedIds);
-                    }
+                    var likedIds = await _context.PhotoLikes
+                        .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
+                        .Select(l => l.PhotoId)
+                        .ToListAsync();
+                    currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                 }
 
                 foreach (var photo in photos)
