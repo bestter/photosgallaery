@@ -168,8 +168,15 @@ builder.Services.AddHostedService<HashCalculationBackgroundService>();
 
 builder.Services.AddLog4net();
 
-// 4. Injection du service d'emails
-builder.Services.AddTransient<IEmailService, MockEmailService>();
+//4.Injection du service d'emails
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddTransient<IEmailService, MockEmailService>();
+}
+else
+{
+    builder.Services.AddTransient<IEmailService, ResendEmailService>();
+}
 
 var app = builder.Build();
 
