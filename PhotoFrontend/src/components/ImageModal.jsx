@@ -172,9 +172,11 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 {/* Close Button (Top Right) */}
                 <button
                     onClick={onClose}
+                    aria-label="Close"
+                    title="Close"
                     className="absolute top-4 right-4 z-20 p-2 rounded-full bg-background-dark/50 text-slate-100 hover:bg-primary/20 transition-colors"
                 >
-                    <span className="material-symbols-outlined">close</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">close</span>
                 </button>
 
                 {/* Left Section: Large Image */}
@@ -186,13 +188,13 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Navigation Arrows */}
                     {onPrev && (
-                        <button onClick={onPrev} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
-                            <span className="material-symbols-outlined">chevron_left</span>
+                        <button onClick={onPrev} aria-label="Previous image" title="Previous image" className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                            <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                         </button>
                     )}
                     {onNext && (
-                        <button onClick={onNext} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
-                            <span className="material-symbols-outlined">chevron_right</span>
+                        <button onClick={onNext} aria-label="Next image" title="Next image" className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                            <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
                 </div>

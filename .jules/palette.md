@@ -1,0 +1,3 @@
+## 2025-04-26 - Icon-Only Button Accessibility Pattern
+**Learning:** When using Material Symbols ligatures (like `close`, `chevron_left`) inside `<span>` tags for icon-only buttons, screen readers attempt to read the ligature text, which can be confusing (e.g., "chevron underscore left button").
+**Action:** Always add `aria-hidden="true"` to the `<span>` containing the material symbol ligature, and ensure the parent `<button>` has a descriptive `aria-label` and `title` to provide accessible context to screen readers and tooltips to sighted users.
