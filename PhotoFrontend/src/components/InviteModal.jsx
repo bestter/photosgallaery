@@ -58,7 +58,25 @@ const InviteModal = ({ isOpen, onClose }) => {
             setMessage('');
             onClose();
         } catch (err) {
-            toast.error(err.response?.data?.message || "Erreur lors de l'envoi de l'invitation.");
+            console.error("Erreur d'invitation:", err.response?.data || err);
+            let errorMessage = "Erreur lors de l'envoi de l'invitation.";
+            
+            if (err.response?.data) {
+                if (err.response.data.message) {
+                    errorMessage = err.response.data.message;
+                } else if (err.response.data.errors) {
+                    // Extract the first validation error message (ASP.NET Core ValidationProblemDetails)
+                    const errors = err.response.data.errors;
+                    const firstKey = Object.keys(errors)[0];
+                    if (firstKey && errors[firstKey].length > 0) {
+                        errorMessage = errors[firstKey][0];
+                    }
+                } else if (typeof err.response.data === 'string') {
+                    errorMessage = err.response.data;
+                }
+            }
+            
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
