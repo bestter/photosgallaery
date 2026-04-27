@@ -60,6 +60,15 @@ describe('authHelper', () => {
     });
 
     describe('isTokenExpired', () => {
+        beforeAll(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2024-01-01T12:00:00Z').getTime());
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
         it('should return true when token is empty or string null/undefined', () => {
             expect(isTokenExpired(null)).toBe(true);
             expect(isTokenExpired('')).toBe(true);
@@ -90,11 +99,8 @@ describe('authHelper', () => {
         });
 
         it('should return false when token expires in exactly 10 seconds (boundary)', () => {
-            // Because Date.now() is called in the test and then in the function,
-            // the function's currentTime might be slightly larger, causing exp < currentTime + 10 to be true.
-            // So we use 10.5 seconds to safely test the boundary without mocking Date.now
             const currentTime = Date.now() / 1000;
-            const token = createToken({ exp: currentTime + 10.5 }); // Just above the boundary
+            const token = createToken({ exp: currentTime + 10 }); // Exactly 10 seconds
             expect(isTokenExpired(token)).toBe(false);
         });
 
