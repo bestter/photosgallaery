@@ -37,13 +37,13 @@ namespace PhotoAppApi.Controllers
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
 
-                if (user == null) return Unauthorized("Identifiants incorrects.");
+                if (user == null) return Unauthorized(new { message = "Identifiants incorrects." });
 
                 // 2. Si ton application plante ici, c'est que user.PasswordHash n'est pas un hash valide en base de données !
                 if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 {
                     // 3. Changement ici : uniformisation du format JSON
-                    return BadRequest(new { message = "Mot de passe incorrect." });
+                    return Unauthorized(new { message = "Identifiants incorrects." });
                 }
 
 
