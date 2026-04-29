@@ -34,6 +34,10 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
                 onClose();
+            } else if (e.key === 'ArrowLeft' && onPrev) {
+                onPrev();
+            } else if (e.key === 'ArrowRight' && onNext) {
+                onNext();
             }
         };
 
@@ -42,7 +46,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [onClose]);
+    }, [onClose, onPrev, onNext]);
 
     if (!photo) return null;
 
@@ -188,12 +192,12 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Navigation Arrows */}
                     {onPrev && (
-                        <button onClick={onPrev} aria-label="Previous image" title="Previous image" className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                        <button onClick={onPrev} aria-label="Previous image (Left Arrow)" title="Previous image (Left Arrow)" className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                         </button>
                     )}
                     {onNext && (
-                        <button onClick={onNext} aria-label="Next image" title="Next image" className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                        <button onClick={onNext} aria-label="Next image (Right Arrow)" title="Next image (Right Arrow)" className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
