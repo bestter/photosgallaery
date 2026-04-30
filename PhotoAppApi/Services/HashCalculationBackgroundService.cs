@@ -48,7 +48,7 @@ public class HashCalculationBackgroundService : BackgroundService
 
                         foreach (var photo in photosWithoutHash)
                         {
-                            var safeFileName = Path.GetFileName(photo.FileName);
+                            var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                             var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
                             var publicFilePath = Path.Combine(publicImagesFolder, safeFileName);
 

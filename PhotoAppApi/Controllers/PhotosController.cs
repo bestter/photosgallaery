@@ -379,7 +379,7 @@ namespace PhotoAppApi.Controllers
                     seenInBatch.Add(fileHash);
 
                     // 4. Sauvegarde physique
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName.Replace("\\", "/"));
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     // Création du sous-dossier pour les miniatures si nécessaire
@@ -516,7 +516,7 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Construire le chemin physique vers le fichier sur le serveur
                 var rootPath = _env.ContentRootPath;
-                var safeFileName = Path.GetFileName(photo.FileName);
+                var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                 var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
                 var thumbPath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
 
@@ -598,7 +598,7 @@ namespace PhotoAppApi.Controllers
                     // 2. Boucler sur chaque photo
                     foreach (var photo in photosSansHash)
                     {
-                        var safeFileName = Path.GetFileName(photo.FileName);
+                        var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                         var filePath = Path.Combine(rootPath, "images", safeFileName);
 
                         // 3. Vérifier si le fichier physique existe toujours
@@ -708,7 +708,7 @@ namespace PhotoAppApi.Controllers
 
                 foreach (var photo in photos)
                 {
-                    var safeFileName = Path.GetFileName(photo.FileName);
+                    var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                     var originalPath = Path.Combine(uploadsFolder, safeFileName);
                     var thumbPath = Path.Combine(thumbFolder, safeFileName);
 
@@ -814,7 +814,7 @@ namespace PhotoAppApi.Controllers
                     }
 
                     // Move original file
-                    var safeFileName = Path.GetFileName(photo.FileName);
+                    var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                     var oldFilePath = Path.Combine(oldRootPath, safeFileName);
                     var newFilePath = Path.Combine(newRootPath, safeFileName);
                     
