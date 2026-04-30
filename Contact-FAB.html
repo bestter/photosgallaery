@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "background": "#0e1515",
+            "secondary-container": "#39485a",
+            "on-secondary-fixed-variant": "#39485a",
+            "surface": "#0e1515",
+            "on-secondary": "#233143",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-secondary-container": "#a7b6cc",
+            "error-container": "#93000a",
+            "surface-container": "#1a2121",
+            "surface-dim": "#0e1515",
+            "inverse-primary": "#00696b",
+            "on-primary": "#003738",
+            "on-tertiary": "#003824",
+            "surface-container-lowest": "#090f0f",
+            "on-background": "#dde4e3",
+            "inverse-on-surface": "#2b3232",
+            "primary-fixed-dim": "#2ddbde",
+            "on-error-container": "#ffdad6",
+            "primary": "#47eaed",
+            "primary-fixed": "#5af8fb",
+            "on-primary-container": "#005354",
+            "error": "#ffb4ab",
+            "secondary-fixed-dim": "#b9c8de",
+            "on-tertiary-fixed": "#002113",
+            "outline-variant": "#3b4949",
+            "on-surface-variant": "#bac9c9",
+            "on-primary-fixed": "#002020",
+            "on-secondary-fixed": "#0d1c2d",
+            "tertiary-fixed": "#6ffbbe",
+            "on-primary-fixed-variant": "#004f51",
+            "outline": "#859493",
+            "surface-container-low": "#161d1d",
+            "surface-bright": "#333b3a",
+            "inverse-surface": "#dde4e3",
+            "on-error": "#690005",
+            "secondary-fixed": "#d4e4fa",
+            "on-tertiary-container": "#005539",
+            "secondary": "#b9c8de",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface-container-high": "#242b2b",
+            "primary-container": "#00ced1",
+            "surface-tint": "#2ddbde",
+            "tertiary-container": "#3dd197",
+            "surface-variant": "#2f3636",
+            "surface-container-highest": "#2f3636",
+            "tertiary": "#60eeb1",
+            "on-surface": "#dde4e3"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline": ["Inter"],
+            "display": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        },
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .masonry {
+      column-count: 2;
+      column-gap: 1rem;
+    }
+    .masonry-item {
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    body {
+      background-color: #0e1515;
+      color: #dde4e3;
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-slate-950/50 backdrop-blur-md border-b border-cyan-400/10 shadow-[0_0_15px_rgba(0,206,209,0.1)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-cyan-400 active:scale-95 duration-200 cursor-pointer">grid_view</span>
+<h1 class="font-Inter font-black tracking-widest uppercase text-xs text-cyan-400">GALLERY</h1>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-cyan-400 hover:text-cyan-300 transition-colors active:scale-95 duration-200 cursor-pointer">search</span>
+</div>
+</header>
+<!-- Main Canvas: Masonry Grid -->
+<main class="pt-24 pb-32 px-4 max-w-7xl mx-auto">
+<div class="masonry">
+<!-- Photo 1 -->
+<div class="masonry-item rounded-xl overflow-hidden border border-cyan-400/10 bg-surface-container shadow-lg">
+<img class="w-full h-auto object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" data-alt="A cinematic, high-contrast photograph of a futuristic neon city street at night, reflected in rain-slicked pavement. The scene is dominated by deep cyan and electric teal lighting, with sharp architectural silhouettes cutting through a hazy atmosphere. The mood is moody and high-tech, following a cyberpunk noir aesthetic with professional digital photography clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6QBhKJK-j8aXcIEyzXpbd3hWV6Z5II8Tb8P2YyDMuAO677v23l847FmG26xSPziPJrQSeMSJYOputuDUNP9LZokkqailyNqlbU_m9HuxGW27RJPFjJvATgCQGD5AR4NDQ0LUWslNnOxem2xurxvJdxpCUj54JVvf6Wwg-YDQJCoopaMTg8u9s_HhyztJ5qcQJfAQf2576Tx05ykXH24pgJLC3inxn_hqmB7pIOD-go5v5IugnW9sOyo3eW9skgdV7TF1ofQfVPng"/>
+</div>
+<!-- Photo 2 -->
+<div class="masonry-item rounded-xl overflow-hidden border border-cyan-400/10 bg-surface-container shadow-lg">
+<img class="w-full h-auto object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" data-alt="An intricate macro shot of futuristic hardware components and circuit boards illuminated by an internal cyan glow. The lighting highlights sharp metallic edges and translucent glass elements against a dark, industrial background. The composition is technical and precise, evoking an atmosphere of high-end data processing and advanced cybernetic engineering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuyvxY3uEjanEXZpsdjqG8uxHTEHck4it2KpEE-GqNrRNGLDjiey8qyfarNIGFvniK_pfAtzhMBTcKAI6V6xfMfTjgEhHeIlk9ZUMzZ9mYbS4BPwL_Z4iAbHA9n4PXAgyAiHZBB3SxY8LTk2H8IlW6Uslh6yL1HQYmNgmXN9LGj7rbbr8VGm5x3MmQpX1h5mklfJqpQxjU_hFM0eF58ZjqrG0TxIWH7Op2oOofvWGPZdbjDFhHJrCItHWfE2qzrS_ksXfgDoWNoYg"/>
+</div>
+<!-- Photo 3 -->
+<div class="masonry-item rounded-xl overflow-hidden border border-cyan-400/10 bg-surface-container shadow-lg">
+<img class="w-full h-auto object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" data-alt="A moody portrait of a person in a dark, minimalist setting, with intense cyan light catching the contours of their face. The aesthetic is futuristic and cinematic, featuring heavy shadows and a clean, sharp focus on technical details. The overall color palette is restricted to deep blacks and vibrant electric blues, creating a sophisticated electronic noir vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_BjmGj2_adMrrC3RvhRxhEp_boFUPPnTX3pbg5iI9doCp3FIoobMqzcbV_McjZ1QeC84DxDMfo8CCrwiWhJh0QtM0CeOe9idxBfMoNEPrvw1NLi1LcHNL6_AK6W64da4um9QRXu7hZmPF2el1WO2oeH25r-mm8Ru2qyofXNcZHi-ghaCr56QlDJ9MoPTGn7llJRf_Mts21TNl9I1Dt80bzOvX8pq5dxm50twKqwm83Yb-4YAsuPQjg1P4XqQHOVCdxw7BqaDQH0k"/>
+</div>
+<!-- Photo 4 -->
+<div class="masonry-item rounded-xl overflow-hidden border border-cyan-400/10 bg-surface-container shadow-lg">
+<img class="w-full h-auto object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" data-alt="A wide-angle landscape shot of a brutalist architectural structure made of dark glass and steel, set against a twilight sky with a deep teal gradient. Thin strips of neon cyan light trace the structural lines of the building, creating a wireframe-like glow. The atmosphere is quiet, powerful, and technologically advanced, emphasizing geometric precision and scale." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGM-M1rghTbH4fHNASWcN3g7OMPRcQG6YCzrTiJbMgrT0XLo-Yt5eksN8KOYYWzl0Lly7_AiMNCyHqiiPKANQoR5gXm8oQjwVThwI9FngI0Kfai3FWlMtlg5slgbGwe_523sAbE9IQCm69RkiyeiMSq9aaP-PPXFZpFQjyx5g-Olh9wbJKBu_Q7kwni9fzyFkYFFT29wPoNp38Rxq0KVJqRrtjgFGnn26pozKpZXGj_GqvzaqmQvz1FMz2qplR-3k5E3kuffSEw90"/>
+</div>
+<!-- Photo 5 -->
+<div class="masonry-item rounded-xl overflow-hidden border border-cyan-400/10 bg-surface-container shadow-lg">
+<img class="w-full h-auto object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" data-alt="A conceptual digital art piece showing a network of light-emitting fibers weaving through a dark, crystalline void. The fibers glow with a brilliant cyan luminescence, casting soft blue light onto faceted geometric surfaces. The scene feels like a visualized data stream inside a quantum computer, maintaining a high-contrast and minimalist cyberpunk aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfcO1FXyLFgoHpAcNJBNfrkERHp4BvazuWkJbSitTSmn_qgFOMe1k8stfcc--E_57RIzgSZLIaHVILVTmx_C-Cy6QYODI7Z2nZs0T5wup4KZ6v-_6WYM8J74XqeW0xtODcdQ1ZC6M7MFMnFnbXD-jS-1O2ryfUKIKTsrYPlvlNFHcAMLrmiOANfzizrIAu-soQ_Iy2dXjegabcd0ustzrdgbf9uAzB4EP8xqtgWrk5v7s6llhO-jI7zwXbz06Q0QsR8VuC-DM1uyc"/>
+</div>
+<!-- Photo 6 -->
+<div class="masonry-item rounded-xl overflow-hidden border border-cyan-400/10 bg-surface-container shadow-lg">
+<img class="w-full h-auto object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" data-alt="Abstract art photography featuring layers of blurred glass and light diffraction. The primary colors are deep slate and electric cyan, creating a sense of movement and digital depth. The lighting is soft yet localized, highlighting textures that resemble digital screens or rain on a futuristic cockpit window. The mood is atmospheric and contemplative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOrnRtL863vjkFwxigEMhMKLlMGWxDIwdDvEy7PT5rp6mg2iyNbuz0RJdIrTen6tFL3XhuK6ycjGW1CW9nUjGxMardCJ-L6I4JXjlKLZ8GSWnUlwAAHBtQdJVY6qA7l0UQcn9edKDKzD2rgZW3pRSjDqrruZhOIgDx9LaLYGRoDvrdaCRqvSl0Iq6IHZHL9kJLIF70JaDMM9DGNPnIZS9WJsPzVtZzKuk77l3zDt_AlqSrFW0_cPQQB5ZkLFzNt1U2roNGyz-6aOc"/>
+</div>
+</div>
+</main>
+<!-- Premium FAB for Contact -->
+<button class="fixed bottom-24 right-6 flex items-center gap-3 px-5 py-3 rounded-full bg-slate-950/80 backdrop-blur-xl border border-cyan-400/30 text-cyan-400 shadow-[0_0_20px_rgba(0,206,209,0.4)] hover:shadow-[0_0_30px_rgba(0,206,209,0.7)] active:scale-95 transition-all duration-300 group z-[60]">
+<span class="material-symbols-outlined text-cyan-400 font-variation-settings-'FILL' 1 transition-transform group-hover:rotate-12">mail</span>
+<span class="font-Inter font-bold text-[10px] tracking-widest uppercase">CONTACT</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-slate-950/80 backdrop-blur-lg border-t border-cyan-900/30 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] z-50">
+<a class="flex flex-col items-center justify-center text-cyan-400 bg-cyan-400/10 rounded-xl p-2 shadow-[0_0_10px_rgba(0,206,209,0.3)] active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">photo_library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 p-2 hover:bg-cyan-900/20 hover:text-cyan-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 p-2 hover:bg-cyan-900/20 hover:text-cyan-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 p-2 hover:bg-cyan-900/20 hover:text-cyan-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+</a>
+</nav>
+</body></html>
