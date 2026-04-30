@@ -895,15 +895,36 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Aller chercher toutes les photos que cet utilisateur a aimées
                 // J'ai ajouté l'inclusion des Tags pour que ton ImageModal puisse les afficher correctement !
+                var currentUserIdStringForAccess = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserIdForAccess = int.TryParse(currentUserIdStringForAccess, out var currentIdParsed) ? currentIdParsed : null;
+                bool isAdmin = User.IsInRole("Admin");
+
+                var query = _context.PhotoLikes
+                    .AsNoTracking()
+                    .Where(l => l.UserId == targetUser.Id)
+                    .Include(l => l.Photo)
+                        .ThenInclude(p => p.Tags) // Pour afficher les badges
+                            .ThenInclude(t => t.Translations)
+                    .Select(l => l.Photo)
+                    .AsQueryable();
+
+                if (!isAdmin && currentUserIdForAccess.HasValue)
+                {
+                    var userGroupIds = await _context.UserGroups
+                        .AsNoTracking()
+                        .Where(ug => ug.UserId == currentUserIdForAccess.Value)
+                        .Select(ug => ug.GroupId)
+                        .ToListAsync();
+
+                    query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
+                }
+                else if (!isAdmin && !currentUserIdForAccess.HasValue)
+                {
+                    query = query.Where(p => !p.GroupId.HasValue);
+                }
+
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var likedPhotos = await _context.PhotoLikes
-                                                .AsNoTracking()
-                                                .Where(l => l.UserId == targetUser.Id)
-                                                .Include(l => l.Photo)
-                                                    .ThenInclude(p => p.Tags) // Pour afficher les badges
-                                                        .ThenInclude(t => t.Translations)
-                                                .Select(l => l.Photo)
-                                                .ToListAsync();
+                var likedPhotos = await query.ToListAsync();
 
                 if (likedPhotos.Count == 0) return Ok(likedPhotos);
 
@@ -970,15 +991,36 @@ namespace PhotoAppApi.Controllers
                 var targetUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
                 if (targetUser == null) return NotFound(new { message = "Utilisateur introuvable." });
 
-                // 2. Chercher toutes ses photos publiées
-                // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var userPhotos = await _context.Photos
+                var currentUserIdStringForAccess = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserIdForAccess = int.TryParse(currentUserIdStringForAccess, out var currentIdParsed) ? currentIdParsed : null;
+                bool isAdmin = User.IsInRole("Admin");
+
+                var query = _context.Photos
                     .AsNoTracking()
                     .Where(p => p.UploaderUsername == targetUser.Username) // On filtre par UploaderUsername !
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
                     .OrderByDescending(p => p.UploadedAt)
-                    .ToListAsync();
+                    .AsQueryable();
+
+                if (!isAdmin && currentUserIdForAccess.HasValue)
+                {
+                    var userGroupIds = await _context.UserGroups
+                        .AsNoTracking()
+                        .Where(ug => ug.UserId == currentUserIdForAccess.Value)
+                        .Select(ug => ug.GroupId)
+                        .ToListAsync();
+
+                    query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
+                }
+                else if (!isAdmin && !currentUserIdForAccess.HasValue)
+                {
+                    query = query.Where(p => !p.GroupId.HasValue);
+                }
+
+                // 2. Chercher toutes ses photos publiées
+                // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
+                var userPhotos = await query.ToListAsync();
 
                 if (userPhotos.Count == 0) return Ok(userPhotos);
 
@@ -1040,16 +1082,36 @@ namespace PhotoAppApi.Controllers
                 _logger.Debug($"In {nameof(GetMostViewedPhotos)} with count: {count}");
 
                 // 1. On récupère les N photos les plus vues (> 0 vues)
-                // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
+                var currentUserIdStringForAccess = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserIdForAccess = int.TryParse(currentUserIdStringForAccess, out var currentIdParsed) ? currentIdParsed : null;
+                bool isAdmin = User.IsInRole("Admin");
+
                 var query = _context.Photos
                     .AsNoTracking()
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
                     .Where(p => p.ViewsCount > 0)
-                    .OrderByDescending(p => p.ViewsCount)
-                    .Take(count)
                     .AsQueryable();
 
+                if (!isAdmin && currentUserIdForAccess.HasValue)
+                {
+                    var userGroupIds = await _context.UserGroups
+                        .AsNoTracking()
+                        .Where(ug => ug.UserId == currentUserIdForAccess.Value)
+                        .Select(ug => ug.GroupId)
+                        .ToListAsync();
+
+                    query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
+                }
+                else if (!isAdmin && !currentUserIdForAccess.HasValue)
+                {
+                    query = query.Where(p => !p.GroupId.HasValue);
+                }
+
+                query = query.OrderByDescending(p => p.ViewsCount)
+                             .Take(count);
+
+                // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
                 var photos = await query.ToListAsync();
 
                 if (photos.Count == 0) return Ok(photos);
