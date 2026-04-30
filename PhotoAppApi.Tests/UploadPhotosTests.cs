@@ -108,5 +108,63 @@ namespace PhotoAppApi.Tests
             var photosInDb = await context.Photos.ToListAsync();
             Assert.Single(photosInDb);
         }
+
+        [Fact]
+        public async Task UploadPhotos_Should_Reject_Duplicate_FileHash_In_Same_Batch()
+        {
+            // Arrange
+            var options = CreateNewContextOptions();
+            using var context = new AppDbContext(options);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.ContentRootPath).Returns(Directory.GetCurrentDirectory());
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, "mock"));
+
+            var controller = new PhotosController(context, envMock.Object, channelMock.Object)
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext() { User = user }
+                }
+            };
+
+            var fileContent = "same content";
+            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+
+            var stream1 = new MemoryStream(fileBytes);
+            var formFileMock1 = new Mock<IFormFile>();
+            formFileMock1.Setup(f => f.Length).Returns(stream1.Length);
+            formFileMock1.Setup(f => f.FileName).Returns("img1.jpg");
+            formFileMock1.Setup(f => f.OpenReadStream()).Returns(stream1);
+
+            var stream2 = new MemoryStream(fileBytes);
+            var formFileMock2 = new Mock<IFormFile>();
+            formFileMock2.Setup(f => f.Length).Returns(stream2.Length);
+            formFileMock2.Setup(f => f.FileName).Returns("img2.jpg");
+            formFileMock2.Setup(f => f.OpenReadStream()).Returns(stream2);
+
+            var files = new List<IFormFile> { formFileMock1.Object, formFileMock2.Object };
+            var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
+
+            // Act
+            var result = await controller.UploadPhotos(files, tags, null, false);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var json = JsonSerializer.Serialize(okResult.Value);
+            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+            var errorsList = JsonSerializer.Deserialize<List<string>>(dict["erreurs"].GetRawText());
+
+            Assert.Contains(errorsList, e => e.Contains("img2.jpg") && e.Contains("double"));
+
+            var photosInDb = await context.Photos.ToListAsync();
+            Assert.Single(photosInDb);
+        }
     }
 }
