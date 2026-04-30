@@ -37,6 +37,12 @@ builder.Services.Configure<FormOptions>(options =>
 // 1. Connexion MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YOUR_DB_SERVER"))
+{
+    throw new InvalidOperationException("La chaîne de connexion à la base de données n'est pas configurée correctement. " +
+                                        "Une chaîne valide doit être fournie via la configuration (ex: variable d'environnement ConnectionStrings__DefaultConnection).");
+}
+
 // Dans ton Program.cs
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(

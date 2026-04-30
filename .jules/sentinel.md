@@ -23,6 +23,10 @@
 **Vulnerability:** Placeholder JWT Secret in Configuration. The application used a known, weak placeholder string as the JWT signing key in `appsettings.json`.
 **Learning:** Hardcoding or using well-known placeholder secrets in configuration files is a major security risk. If an application is deployed with these defaults, attackers can easily forge JWT tokens, bypassing authentication and potentially gaining administrative access.
 **Prevention:** Never include real secrets in source control. Use empty strings or distinct placeholders for development, and implement mandatory validation at application startup to ensure a secure, unique key is provided (e.g., via environment variables) before the application can start.
+## 2026-04-30 - Prevent Default Database Credentials Deployment
+**Vulnerability:** Placeholder database credentials ("YOUR_DB_SERVER", etc.) left in `appsettings.json` can cause broken connections if deployed, or potentially unauthorized access if a default service is exposed.
+**Learning:** Emptying connection strings in configuration files is insufficient if it causes obscure errors at startup (e.g., when `ServerVersion.AutoDetect` fails).
+**Prevention:** Explicitly validate connection strings in `Program.cs` during startup. If null, empty, or containing placeholder text, fail fast with a clear, localized `InvalidOperationException` to guide developers to correctly configure the environment.
 ## 2024-05-01 - Path Traversal in GetImage and GetThumbnail
 **Vulnerability:** Path Traversal via `fileName` parameter using backslashes (`\`) which evade `Path.GetFileName()` on Linux.
 **Learning:** `Path.GetFileName(@"..\..\etc\passwd")` on Windows correctly returns `"passwd"`, effectively neutralizing traversal. However, on Linux systems, backslashes are valid filename characters, so it returns the entire malicious string `@"..\..\etc\passwd"`. If this string is later appended to a directory path, it can act as a valid filename on Linux but will be treated as directory traversal if the resulting path is consumed by another library or if it is ever parsed on a Windows client/system later.
