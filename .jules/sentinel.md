@@ -1,7 +1,3 @@
-## $(date +%Y-%m-%d) - Prevent Default Database Credentials Deployment
- **Vulnerability:** Placeholder database credentials ("YOUR_DB_SERVER", etc.) left in `appsettings.json` can cause broken connections if deployed, or potentially unauthorized access if a default service is exposed.
- **Learning:** Emptying connection strings in configuration files is insufficient if it causes obscure errors at startup (e.g., when `ServerVersion.AutoDetect` fails).
- **Prevention:** Explicitly validate connection strings in `Program.cs` during startup. If null, empty, or containing placeholder text, fail fast with a clear, localized `InvalidOperationException` to guide developers to correctly configure the environment.
 ## 2025-04-26 - [Defense in Depth: Protecting Against Poisoned Database Records]
 **Vulnerability:** Path Traversal via database-sourced fields (CWE-22). The application correctly sanitized user-uploaded filenames but failed to re-sanitize those filenames when reading them back from the database (e.g., in `photo.FileName`) before using them in file operations like `Path.Combine()`.
 **Learning:** Even if data is sanitized upon input (e.g., file upload), you cannot implicitly trust data coming from the database. A malicious actor with direct DB access or who exploits another vulnerability (like SQLi) could poison the `FileName` column (e.g., `../../../etc/passwd`), leading to arbitrary file read/write/delete during maintenance or deletion tasks.
@@ -27,3 +23,7 @@
 **Vulnerability:** Placeholder JWT Secret in Configuration. The application used a known, weak placeholder string as the JWT signing key in `appsettings.json`.
 **Learning:** Hardcoding or using well-known placeholder secrets in configuration files is a major security risk. If an application is deployed with these defaults, attackers can easily forge JWT tokens, bypassing authentication and potentially gaining administrative access.
 **Prevention:** Never include real secrets in source control. Use empty strings or distinct placeholders for development, and implement mandatory validation at application startup to ensure a secure, unique key is provided (e.g., via environment variables) before the application can start.
+## 2026-04-30 - Prevent Default Database Credentials Deployment
+**Vulnerability:** Placeholder database credentials ("YOUR_DB_SERVER", etc.) left in `appsettings.json` can cause broken connections if deployed, or potentially unauthorized access if a default service is exposed.
+**Learning:** Emptying connection strings in configuration files is insufficient if it causes obscure errors at startup (e.g., when `ServerVersion.AutoDetect` fails).
+**Prevention:** Explicitly validate connection strings in `Program.cs` during startup. If null, empty, or containing placeholder text, fail fast with a clear, localized `InvalidOperationException` to guide developers to correctly configure the environment.
