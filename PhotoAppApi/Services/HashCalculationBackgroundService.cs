@@ -19,69 +19,82 @@ public class HashCalculationBackgroundService : BackgroundService
     {
         _logger.LogInformation("HashCalculationBackgroundService is starting.");
 
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            try
+            while (!stoppingToken.IsCancellationRequested)
             {
-                using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
-
-                var photosWithoutHash = await dbContext.Photos
-                    .Where(p => p.FileHash == null || p.FileHash == string.Empty)
-                    .Take(50)
-                    .ToListAsync(stoppingToken);
-
-                if (photosWithoutHash.Count > 0)
+                try
                 {
-                    _logger.LogInformation($"Found {photosWithoutHash.Count} photos without hash. Processing...");
+                    using var scope = _serviceProvider.CreateScope();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
 
-                    var rootContentPath = env.ContentRootPath;
-                    var privateImagesFolder = Path.Combine(rootContentPath, "PrivateImages");
+                    var photosWithoutHash = await dbContext.Photos
+                        .Where(p => p.FileHash == null || p.FileHash == string.Empty)
+                        .Take(50)
+                        .ToListAsync(stoppingToken);
 
-                    var rootWebPath = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                    var publicImagesFolder = Path.Combine(rootWebPath, "images");
-
-                    using var sha512 = SHA512.Create();
-
-                    foreach (var photo in photosWithoutHash)
+                    if (photosWithoutHash.Count > 0)
                     {
-                        var safeFileName = Path.GetFileName(photo.FileName);
-                        var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
-                        var publicFilePath = Path.Combine(publicImagesFolder, safeFileName);
+                        _logger.LogInformation($"Found {photosWithoutHash.Count} photos without hash. Processing...");
 
-                        var filePath = File.Exists(privateFilePath) ? privateFilePath :
-                                       File.Exists(publicFilePath) ? publicFilePath : null;
+                        var rootContentPath = env.ContentRootPath;
+                        var privateImagesFolder = Path.Combine(rootContentPath, "PrivateImages");
 
-                        if (filePath != null)
+                        var rootWebPath = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        var publicImagesFolder = Path.Combine(rootWebPath, "images");
+
+                        using var sha512 = SHA512.Create();
+
+                        foreach (var photo in photosWithoutHash)
                         {
-                            using var stream = File.OpenRead(filePath);
-                            var hashBytes = await sha512.ComputeHashAsync(stream, stoppingToken);
-                            photo.FileHash = Convert.ToHexStringLower(hashBytes);
+                            var safeFileName = Path.GetFileName(photo.FileName);
+                            var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
+                            var publicFilePath = Path.Combine(publicImagesFolder, safeFileName);
+
+                            var filePath = File.Exists(privateFilePath) ? privateFilePath :
+                                           File.Exists(publicFilePath) ? publicFilePath : null;
+
+                            if (filePath != null)
+                            {
+                                using var stream = File.OpenRead(filePath);
+                                var hashBytes = await sha512.ComputeHashAsync(stream, stoppingToken);
+                                photo.FileHash = Convert.ToHexStringLower(hashBytes);
+                            }
+                            else
+                            {
+                                _logger.LogWarning($"File not found for photo {photo.Id}: {photo.FileName}");
+                                photo.FileHash = "FILE_MISSING";
+                            }
                         }
-                        else
-                        {
-                            _logger.LogWarning($"File not found for photo {photo.Id}: {photo.FileName}");
-                            photo.FileHash = "FILE_MISSING";
-                        }
+
+                        await dbContext.SaveChangesAsync(stoppingToken);
+                        _logger.LogInformation($"Processed {photosWithoutHash.Count} photos.");
                     }
-
-                    await dbContext.SaveChangesAsync(stoppingToken);
-                    _logger.LogInformation($"Processed {photosWithoutHash.Count} photos.");
+                    else
+                    {
+                        // No photos without hash, wait longer before checking again
+                        await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                    }
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    // No photos without hash, wait longer before checking again
-                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                    // This is expected during shutdown, bubble it up to the outer catch
+                    throw;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred executing HashCalculationBackgroundService.");
-            }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred executing HashCalculationBackgroundService.");
+                }
 
-            // Small delay to prevent tight loop if there are many photos to process or an error occurs
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                // Small delay to prevent tight loop if there are many photos to process or an error occurs
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Task was canceled, exit gracefully
+            _logger.LogInformation("HashCalculationBackgroundService is stopping cleanly.");
         }
     }
 }

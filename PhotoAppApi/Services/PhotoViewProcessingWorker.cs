@@ -104,6 +104,10 @@ namespace PhotoAppApi.Services
 
                 _logger.LogInformation($"✅ Lot de {batch.Count} vues traité et enregistré en DB.");
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("⚠️ Traitement du lot de vues annulé en raison de l'arrêt du service.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Erreur critique lors de la transaction du lot de vues.");

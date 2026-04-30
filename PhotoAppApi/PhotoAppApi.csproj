@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RepositoryType>git</RepositoryType>
+    <UserSecretsId>1281a857-f40c-4b7d-8b82-9321cabb0dc9</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
