@@ -63,6 +63,19 @@ namespace PhotoAppApi.Controllers
                 var rootPath = _env.ContentRootPath;
                 var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
 
+                var fullRootPath = Path.GetFullPath(Path.Combine(rootPath, "PrivateImages"));
+                var fullFilePath = Path.GetFullPath(filePath);
+                if (!fullFilePath.StartsWith(fullRootPath + Path.DirectorySeparatorChar))
+                {
+                    return BadRequest("Invalid file path.");
+                }
+
+                // Extra protection against Windows-style traversal payloads on Linux
+                if (safeFileName.Contains("..\\") || safeFileName.Contains("../") || safeFileName.Contains(".."))
+                {
+                    return BadRequest("Invalid file path.");
+                }
+
                 if (!System.IO.File.Exists(filePath))
                 {
                     return NotFound();
@@ -120,6 +133,18 @@ namespace PhotoAppApi.Controllers
 
                 var rootPath = _env.ContentRootPath;
                 var filePath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
+
+                var fullRootPath = Path.GetFullPath(Path.Combine(rootPath, "PrivateImages", "thumbnails"));
+                var fullFilePath = Path.GetFullPath(filePath);
+                if (!fullFilePath.StartsWith(fullRootPath + Path.DirectorySeparatorChar))
+                {
+                    return BadRequest("Invalid file path.");
+                }
+
+                if (safeFileName.Contains("..\\") || safeFileName.Contains("../") || safeFileName.Contains(".."))
+                {
+                    return BadRequest("Invalid file path.");
+                }
 
                 if (!System.IO.File.Exists(filePath)) return NotFound();
 
