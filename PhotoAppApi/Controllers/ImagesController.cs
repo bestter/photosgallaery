@@ -27,8 +27,9 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.Contains('/') || fileName.Contains('\\') || fileName.Contains("..")) return BadRequest("Invalid file name.");
-            var safeFileName = fileName;
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
+            if (fileName.Contains('/') || fileName.Contains('\\') || fileName.Contains("..")) return BadRequest("Invalid file name.");
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
@@ -106,8 +107,9 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.Contains('/') || fileName.Contains('\\') || fileName.Contains("..")) return BadRequest("Invalid file name.");
-            var safeFileName = fileName;
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
+            if (fileName.Contains('/') || fileName.Contains('\\') || fileName.Contains("..")) return BadRequest("Invalid file name.");
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
