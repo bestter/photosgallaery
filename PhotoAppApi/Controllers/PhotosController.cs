@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -337,27 +339,44 @@ namespace PhotoAppApi.Controllers
                 var uploadedPhotos = new List<Photo>();
                 var errors = new List<string>();
 
-                // 2. Boucler sur chaque fichier envoyé
+                // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
+                var fileHashes = new List<(IFormFile File, string Hash)>();
                 foreach (var file in files)
                 {
                     if (file.Length == 0) continue;
+                    using var stream = file.OpenReadStream();
+                    using var sha512 = SHA512.Create();
+                    var hashBytes = await sha512.ComputeHashAsync(stream);
+                    fileHashes.Add((file, Convert.ToHexStringLower(hashBytes)));
+                }
 
-                    string fileHash;
-                    using (var stream = file.OpenReadStream())
-                    {
-                        using var sha512 = SHA512.Create();
-                        var hashBytes = await sha512.ComputeHashAsync(stream);
-                        fileHash = Convert.ToHexStringLower(hashBytes);
-                    }
+                var distinctHashes = fileHashes.Select(fh => fh.Hash).Distinct().ToList();
+                var existingHashes = await _context.Photos
+                    .AsNoTracking()
+                    .Where(p => distinctHashes.Contains(p.FileHash))
+                    .Select(p => p.FileHash)
+                    .ToListAsync();
 
-                    // 3. Vérifier les doublons
-                    bool isDuplicate = await _context.Photos.AnyAsync(p => p.FileHash == fileHash);
-                    if (isDuplicate)
+                var existingHashesSet = new HashSet<string>(existingHashes);
+                var seenInBatch = new HashSet<string>();
+
+                // 3. Boucler sur chaque fichier envoyé
+                foreach (var (file, fileHash) in fileHashes)
+                {
+                    // Vérification des doublons en base
+                    if (existingHashesSet.Contains(fileHash))
                     {
-                        // Au lieu de bloquer toute la requête, on note l'erreur et on passe à l'image suivante
                         errors.Add($"L'image '{file.FileName}' existe déjà dans la galerie.");
                         continue;
                     }
+
+                    // Vérification des doublons au sein du même batch
+                    if (seenInBatch.Contains(fileHash))
+                    {
+                        errors.Add($"L'image '{file.FileName}' est présente en double dans cet envoi.");
+                        continue;
+                    }
+                    seenInBatch.Add(fileHash);
 
                     // 4. Sauvegarde physique
                     var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
