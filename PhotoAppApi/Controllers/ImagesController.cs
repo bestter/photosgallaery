@@ -31,7 +31,8 @@ namespace PhotoAppApi.Controllers
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
-                var photo = await _context.Photos.FirstOrDefaultAsync(p => p.FileName == safeFileName);
+                // ⚡ Bolt: Optimizing photo query to only fetch the necessary GroupId, drastically reducing data transfer and avoiding change tracking overhead.
+                var photo = await _context.Photos.Where(p => p.FileName == safeFileName).Select(p => new { p.GroupId }).FirstOrDefaultAsync();
 
                 if (photo == null)
                 {
@@ -95,7 +96,8 @@ namespace PhotoAppApi.Controllers
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
-                var photo = await _context.Photos.FirstOrDefaultAsync(p => p.FileName == safeFileName);
+                // ⚡ Bolt: Optimizing photo query to only fetch the necessary GroupId, drastically reducing data transfer and avoiding change tracking overhead.
+                var photo = await _context.Photos.Where(p => p.FileName == safeFileName).Select(p => new { p.GroupId }).FirstOrDefaultAsync();
 
                 if (photo == null) return NotFound();
 

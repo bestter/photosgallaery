@@ -6,3 +6,6 @@
 **Learning:** In ASP.NET Core APIs using JWT authentication, fetching the entire user record from the database (e.g., `await _context.Users.SingleOrDefaultAsync`) solely to retrieve the user's ID is a common N+1/redundant query bottleneck. The C# `ClaimsPrincipal` already contains this information.
 
 **Action:** Whenever a controller endpoint needs the authenticated user's ID, always extract it directly from the token claims using `User.FindFirst(ClaimTypes.NameIdentifier)?.Value` instead of querying the database. This bypasses an unnecessary database roundtrip and saves resources.
+## 2024-05-18 - Avoid loading full EF models for simple authorization checks
+**Learning:** Found that `ImagesController` queries the entire `Photo` table row (~15 columns) sequentially per image fetched only to read the `GroupId` for checking user access rights. This means every time the gallery was scrolled, a huge amount of unneeded string parsing, memory allocation, and GC overhead happened behind the scenes.
+**Action:** Use `.Where().Select(x => new { x.ColumnNeeded }).FirstOrDefaultAsync()` to project only the strictly required column and avoid full entity tracking and materialization when simple values (like foreign keys) are all that are needed.
