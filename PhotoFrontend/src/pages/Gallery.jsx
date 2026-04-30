@@ -406,7 +406,16 @@ export default function Gallery() {
                   <div
                     key={photoId}
                     onClick={() => setSelectedPhotoIndex(index)}
-                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
+                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Ouvrir la photo ${photo.title || "par " + author}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedPhotoIndex(index);
+                      }
+                    }}
                   >
                     <img
                       alt={`Photo par ${author}`}
@@ -448,7 +457,16 @@ export default function Gallery() {
                   <div
                     key={photoId}
                     onClick={() => setSelectedPhotoIndex(index)}
-                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
+                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Ouvrir la photo ${photo.title || "par " + author}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedPhotoIndex(index);
+                      }
+                    }}
                   >
                     <img
                       alt={`Photo par ${author}`}
@@ -486,7 +504,16 @@ export default function Gallery() {
                 <div
                   key={photoId}
                   onClick={() => setSelectedPhotoIndex(index)}
-                  className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
+                  className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ouvrir la photo ${photo.title || "par " + author}`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedPhotoIndex(index);
+                    }
+                  }}
                 >
                   <div className="relative flex-1 overflow-hidden">
                     <img
