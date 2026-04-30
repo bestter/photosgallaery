@@ -38,20 +38,19 @@ namespace PhotoAppApi.Controllers
                     return NotFound();
                 }
 
-                var currentUsername = User.Identity?.Name;
-                
-                // Si la photo appartient à un groupe, vérifier que l'utilisateur en fait partie ou est Admin
+                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
+                // This saves one DB query per private image/thumbnail load, drastically reducing latency and DB load.
                 if (photo.GroupId.HasValue)
                 {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == currentUsername);
-                    if (user == null) return Unauthorized();
+                    var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
 
                     bool isAdmin = User.IsInRole("Admin");
                     
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == user.Id && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
                         
                         if (!isMember)
                         {
@@ -100,19 +99,18 @@ namespace PhotoAppApi.Controllers
 
                 if (photo == null) return NotFound();
 
-                var currentUsername = User.Identity?.Name;
-                
+                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
                 if (photo.GroupId.HasValue)
                 {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == currentUsername);
-                    if (user == null) return Unauthorized();
+                    var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
 
                     bool isAdmin = User.IsInRole("Admin");
                     
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == user.Id && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
                         
                         if (!isMember) return Forbid();
                     }
