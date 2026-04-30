@@ -1,9 +1,12 @@
 <Solution>
+  <Folder Name="/Éléments de solution/">
+    <File Path=".gitignore" />
+    <File Path="AGENTS.md" />
+    <File Path="Dockerfile" />
+    <File Path="fly.toml" />
+    <File Path="LICENSE" />
+  </Folder>
   <Project Path="Benchmark/Benchmark.csproj" />
-  <Project Path="client-photo/client-photo/client-photo.esproj">
-    <Build />
-    <Deploy />
-  </Project>
   <Project Path="PhotoAppApi.Tests/PhotoAppApi.Tests.csproj" />
   <Project Path="PhotoAppApi/PhotoAppApi.csproj" />
   <Project Path="PhotoFrontend/" Type="Website" DisplayName="PhotoFrontend">
