@@ -81,7 +81,6 @@ namespace PhotoAppApi.Controllers
     };
 
             // Note: En production, mets cette clé dans appsettings.json !
-            //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ma_super_cle_secrete_de_64_caracteres_minimum_123!"));
             var secretKey = _configuration["Jwt:Key"] ?? throw new NotSupportedException("Jwt:Key configuration is missing");
             SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
