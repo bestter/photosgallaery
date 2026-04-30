@@ -10,3 +10,8 @@
 **Vulnerability:** Username Enumeration. The login endpoint (`/api/auth/login`) returned different HTTP status codes and error messages depending on whether the username was found (`401 Unauthorized("Identifiants incorrects.")`) or the password was incorrect (`400 BadRequest({ message: "Mot de passe incorrect." })`).
 **Learning:** Returning specific error messages during authentication allows an attacker to enumerate valid usernames. If an attacker knows a username is valid, they can focus their brute-force or credential stuffing attacks on that specific account.
 **Prevention:** Always return a generic error message (e.g., "Identifiants incorrects.") and the same HTTP status code (e.g., `401 Unauthorized`) for all authentication failures (invalid username, invalid password) to prevent information leakage.
+
+## 2024-05-27 - [Failed Data Deletion: Hardcoded Public Path on Delete]
+**Vulnerability:** Failed Data Deletion (Orphaned Files). The `DeletePhoto` method in `PhotosController.cs` was using a hardcoded `wwwroot/images` path to delete photos and didn't attempt to delete thumbnails, while uploads and other features used the `PrivateImages` directory.
+**Learning:** If file storage paths are updated for features like uploads or viewing (e.g., migrating from public `wwwroot` to a private `PrivateImages` folder), all related operations like deletions must also be updated. Otherwise, sensitive data will be left orphaned on the filesystem, accessible if the directory is ever exposed, and causing resource exhaustion.
+**Prevention:** Use consistent path resolution across all file operations. Centralize path configuration (e.g., using `_env.ContentRootPath` consistently) and ensure deletion logic covers all generated assets (like thumbnails).

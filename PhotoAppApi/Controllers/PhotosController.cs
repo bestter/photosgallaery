@@ -496,9 +496,10 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 2. Construire le chemin physique vers le fichier sur le serveur
-                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var rootPath = _env.ContentRootPath;
                 var safeFileName = Path.GetFileName(photo.FileName);
-                var filePath = Path.Combine(rootPath, "images", safeFileName);
+                var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
+                var thumbPath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
 
                 // 3. Supprimer le fichier physique s'il existe sur le disque dur
                 if (System.IO.File.Exists(filePath))
@@ -509,6 +510,13 @@ namespace PhotoAppApi.Controllers
                 else
                 {
                     _logger.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
+                }
+
+                // Supprimer également la miniature si elle existe
+                if (System.IO.File.Exists(thumbPath))
+                {
+                    System.IO.File.Delete(thumbPath);
+                    _logger.Debug($"Fichier miniature supprimé: {thumbPath}");
                 }
 
                 // --- NOUVEAU CODE ICI 👇 ---
