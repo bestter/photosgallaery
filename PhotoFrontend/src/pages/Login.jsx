@@ -109,7 +109,7 @@ const Login = () => {
 
             {/* Footer - Shell Navigation Filtered: Suppressed for transaction, but following JSON structure for visual anchor */}
             <footer className="flex flex-col justify-center items-center gap-6 pb-8 w-full bg-transparent z-10 relative">
-                <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">© 2024 PixelLyra.com App. All rights reserved.</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">© 6 PixelLyra.com App. All rights reserved.</span>
                 <div className="hidden md:flex gap-6">
                     <a className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors" href="#">Privacy Policy</a>
                     <a className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors" href="#">Terms of Service</a>
