@@ -6,7 +6,9 @@ import Moderation from './pages/Moderation';
 import AdminGroups from './pages/AdminGroups';
 import AdminGroupRequests from './pages/AdminGroupRequests';
 import { Toaster } from 'react-hot-toast';
+import ContactFab from './components/ContactFab';
 import Join from './pages/Join';
+import Contact from './pages/Contact';
 import { isTokenExpired } from './authHelper';
 
 function App() {
@@ -16,7 +18,7 @@ function App() {
   const token = localStorage.getItem('token');
   const isLoggedIn = token && !isTokenExpired(token);
 
-  const isPublicRoute = currentPath === '/login' || currentPath === '/register' || currentPath.startsWith('/join');
+  const isPublicRoute = currentPath === '/login' || currentPath === '/register' || currentPath.startsWith('/join') || currentPath === '/contact';
 
   if (!isLoggedIn && !isPublicRoute) {
       window.location.href = '/login';
@@ -32,12 +34,14 @@ function App() {
   else if (currentPath === '/moderation') Component = Moderation;
   else if (currentPath === '/admin-groups') Component = AdminGroups;
   else if (currentPath === '/admin-group-requests') Component = AdminGroupRequests;
+  else if (currentPath === '/contact') Component = Contact;
   else if (currentPath.startsWith('/group/')) Component = Gallery;
 
   return (
     <>
       <Toaster />
       <Component />
+      <ContactFab />
     </>
   );
 }

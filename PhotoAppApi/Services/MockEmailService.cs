@@ -1,3 +1,4 @@
+using System.Text;
 using System.Threading.Tasks;
 
 namespace PhotoAppApi.Services
@@ -8,6 +9,19 @@ namespace PhotoAppApi.Services
 
         public MockEmailService()
         {
+        }
+
+        public Task SendContactEmailAsync(string name, string email, string subject, string message)
+        {
+            _logger.Info("========================================");
+            _logger.Info("[EMAIL SIMULATION] <h2>Nouveau message de contact via PixelLyra</h2>");
+            _logger.Info($"<p><strong>Nom :</strong> {name}</p>");
+            _logger.Info($"<p><strong>Courriel :</strong> {email}</p>");
+            _logger.Info($"<p><strong>Sujet :</strong> {subject}</p>");
+            _logger.Info($"<p><strong>Message :</strong><br/>{message.Replace("\n", "<br/>")}</p>");
+            _logger.Info("========================================");
+
+            return Task.CompletedTask;
         }
 
         public Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl)

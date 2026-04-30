@@ -43,7 +43,7 @@
     }
   },
   "footer": {
-    "copyright": "© 2024 PixelLyra.com App. All rights reserved.",
+    "copyright": "© 2026 PixelLyra.com App. All rights reserved.",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
     "contact_support": "Contact Support",
@@ -194,6 +194,28 @@
     "gallery_title": "Gallery",
     "all_discoveries": "All Discoveries",
     "tag": "Tag"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "nav_title": "Contact",
+    "subtitle": "Send us a message and we'll respond as soon as possible.",
+    "name_label": "Name",
+    "name_placeholder": "Your name",
+    "email_label": "Email",
+    "email_placeholder": "your@email.com",
+    "subject_label": "Subject",
+    "subject_placeholder": "Subject of your message",
+    "message_label": "Message",
+    "message_placeholder": "How can we help you?",
+    "submit": "Send",
+    "submitting": "Sending...",
+    "error_fill_all": "Please fill in all fields.",
+    "success_msg": "Your message has been sent successfully.",
+    "error_msg": "Error sending the message.",
+    "connect": "Connect",
+    "instagram": "Instagram",
+    "vimeo": "Vimeo",
+    "dev_api": "Developer API"
   },
   "components": {
     "admin_layout": {

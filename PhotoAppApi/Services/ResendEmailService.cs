@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Resend;
@@ -37,6 +37,18 @@ namespace PhotoAppApi.Services
             sb.AppendLine("========================================");
 
             await EnvoyerCourrielAsync(email, $"{inviterName} vous a invité à rejoindre le cercle {groupName} sur Vision", sb.ToString());
+        }
+
+        public async Task SendContactEmailAsync(string name, string email, string subject, string message)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("<h2>Nouveau message de contact via PixelLyra</h2>");
+            sb.AppendLine($"<p><strong>Nom :</strong> {name}</p>");
+            sb.AppendLine($"<p><strong>Courriel :</strong> {email}</p>");
+            sb.AppendLine($"<p><strong>Sujet :</strong> {subject}</p>");
+            sb.AppendLine($"<p><strong>Message :</strong><br/>{message.Replace("\n", "<br/>")}</p>");
+
+            await EnvoyerCourrielAsync(fromEmail, $"Contact - {subject}", sb.ToString());
         }
 
         private async Task EnvoyerCourrielAsync(string destinataire, string sujet, string contenuHtml)
