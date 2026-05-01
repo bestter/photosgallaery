@@ -1,3 +1,7 @@
 ## 2024-04-30 - Keyboard Navigation in Non-Semantic Grids
 **Learning:** React `onClick` handlers on `div` elements do not provide native keyboard support. Users relying on keyboard navigation cannot activate these items, breaking accessibility for custom grid/masonry layouts where wrapping everything in a `<button>` may cause layout shifts or invalid HTML structure.
 **Action:** Always add `role="button"`, `tabIndex={0}`, an `aria-label`, and an `onKeyDown` handler (listening for `Enter` and `Space`) to non-semantic interactive elements. Additionally, provide explicit focus indicators like `focus-visible:ring-2` to visually guide keyboard users without disrupting mouse click styling.
+
+## 2024-05-18 - Keyboard Accessibility for Non-Semantic Interactive Elements
+**Learning:** In React components like `PhotoCard` where `<div>` and `<span>` tags are used as interactive, clickable elements, they become completely inaccessible to keyboard users and screen readers by default. Missing `tabIndex` prevents them from receiving focus, missing `role="button"` prevents screen readers from understanding they are interactive, and missing `onKeyDown` handlers prevents them from being activated via the 'Enter' or 'Space' keys.
+**Action:** Whenever using non-semantic elements as interactive controls, always add `role="button"`, `tabIndex={0}`, an `onKeyDown` handler (for 'Enter' and 'Space'), an appropriate `aria-label`, and `focus-visible` styling (e.g. `focus-visible:ring-2`) to ensure full accessibility and usability.
