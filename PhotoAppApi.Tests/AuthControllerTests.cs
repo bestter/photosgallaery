@@ -29,7 +29,8 @@ namespace PhotoAppApi.Tests
         private IConfiguration GetConfiguration()
         {
             var mockConfig = new Mock<IConfiguration>();
-            mockConfig.Setup(c => c["Jwt:Key"]).Returns("ma_super_cle_secrete_de_64_caracteres_minimum_123!");
+            // Use a key that is at least 64 bytes (512 bits) long to avoid IDX10720
+            mockConfig.Setup(c => c["Jwt:Key"]).Returns("ma_super_cle_secrete_de_64_caracteres_minimum_123_qui_doit_etre_vraiment_tres_longue_123456789012345678901234567890!");
             return mockConfig.Object;
         }
 
@@ -223,6 +224,194 @@ namespace PhotoAppApi.Tests
             var value = statusCodeResult.Value;
             var message = value.GetType().GetProperty("message").GetValue(value) as string;
             Assert.Equal("Une erreur interne est survenue lors de l'enregistrement.", message);
+        }
+
+        [Fact]
+        public async Task Login_ValidCredentials_ReturnsOk()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var password = "password123";
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            context.Users.Add(new User
+            {
+                Id = 1,
+                Username = "validuser",
+                Email = "valid@example.com",
+                PasswordHash = hashedPassword,
+                Role = UserRole.User
+            });
+            await context.SaveChangesAsync();
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            // Set controller context so we don't throw exception on some internal components if it attempts to resolve context, etc.
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "validuser",
+                Password = password
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            if (result is ObjectResult objRes && objRes.StatusCode == 500)
+            {
+                var msg = objRes.Value.GetType().GetProperty("message")?.GetValue(objRes.Value) as string;
+                throw new Exception("Returned 500: " + msg);
+            }
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = okResult.Value;
+            var token = value.GetType().GetProperty("token").GetValue(value) as string;
+            Assert.False(string.IsNullOrEmpty(token));
+        }
+
+        [Fact]
+        public async Task Login_InvalidUser_ReturnsUnauthorized()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "nonexistentuser",
+                Password = "password123"
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            // Assert
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var value = unauthorizedResult.Value;
+            var message = value.GetType().GetProperty("message").GetValue(value) as string;
+            Assert.Equal("Identifiants incorrects.", message);
+        }
+
+        [Fact]
+        public async Task Login_InvalidPassword_ReturnsUnauthorized()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var password = "password123";
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            context.Users.Add(new User
+            {
+                Username = "validuser",
+                Email = "valid@example.com",
+                PasswordHash = hashedPassword,
+                Role = UserRole.User
+            });
+            await context.SaveChangesAsync();
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "validuser",
+                Password = "wrongpassword"
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            // Assert
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var value = unauthorizedResult.Value;
+            var message = value.GetType().GetProperty("message").GetValue(value) as string;
+            Assert.Equal("Identifiants incorrects.", message);
+        }
+
+        [Fact]
+        public async Task Login_ForbiddenUser_Returns403()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var password = "password123";
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            context.Users.Add(new User
+            {
+                Username = "banneduser",
+                Email = "banned@example.com",
+                PasswordHash = hashedPassword,
+                Role = UserRole.Forbidden
+            });
+            await context.SaveChangesAsync();
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "banneduser",
+                Password = password
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(403, statusCodeResult.StatusCode);
+
+            var value = statusCodeResult.Value;
+            var message = value.GetType().GetProperty("message").GetValue(value) as string;
+            Assert.Equal("Accès refusé. Ce compte a été suspendu par l'administration.", message);
+        }
+
+        [Fact]
+        public async Task Login_ExceptionDuringDatabase_Returns500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new AppDbContext(options);
+            context.Dispose(); // Force exception
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "user",
+                Password = "password123"
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            var value = statusCodeResult.Value;
+            var message = value.GetType().GetProperty("message").GetValue(value) as string;
+            Assert.Equal("Une erreur interne est survenue lors de la connexion.", message);
         }
     }
 }
