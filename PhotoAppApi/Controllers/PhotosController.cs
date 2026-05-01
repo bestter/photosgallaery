@@ -853,10 +853,9 @@ namespace PhotoAppApi.Controllers
                 // 1. Trouver qui est connecté
                 var currentUsername = User.Identity?.Name;
 
-                // Trouver l'utilisateur dans la base de données pour avoir son ID
-                // (Assure-toi que _context.Users correspond à ta table d'utilisateurs)
-                var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == currentUsername);
-                if (user == null) return Unauthorized(new { message = "Utilisateur non trouvé." });
+                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized(new { message = "Utilisateur non trouvé." });
 
                 // 2. Vérifier si la photo existe
                 var photo = await _context.Photos.FindAsync(id);
@@ -869,7 +868,7 @@ namespace PhotoAppApi.Controllers
 
                 // 3. Chercher si le "Like" existe déjà pour cet utilisateur et cette photo
                 var existingLike = await _context.PhotoLikes
-                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == user.Id);
+                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == userId);
 
                 if (existingLike != null)
                 {
@@ -880,13 +879,12 @@ namespace PhotoAppApi.Controllers
                 }
                 else
                 {
-                    // Le Like n'existe pas : on le crée (Like)
                     var newLike = new PhotoLike
                     {
                         PhotoId = id,
-                        Photo = photo, // Assure-toi que ta classe PhotoLike a bien une propriété de navigation "Photo"
-                        UserId = user.Id, // ou user.Id.ToString() selon le type de ta clé
-                        User = user, // Assure-toi que ta classe PhotoLike a bien une propriété de navigation "User"
+                        Photo = photo,
+                        UserId = userId,
+                        User = null!,
                         LikedAt = DateTime.UtcNow
                     };
 
