@@ -413,5 +413,98 @@ namespace PhotoAppApi.Tests
             var message = value.GetType().GetProperty("message").GetValue(value) as string;
             Assert.Equal("Une erreur interne est survenue lors de la connexion.", message);
         }
+        [Fact]
+        public async Task Login_AdminRole_ReturnsAdminClaim()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var password = "password123";
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            context.Users.Add(new User
+            {
+                Id = 2,
+                Username = "adminuser",
+                Email = "admin@example.com",
+                PasswordHash = hashedPassword,
+                Role = UserRole.Admin
+            });
+            await context.SaveChangesAsync();
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "adminuser",
+                Password = password
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = okResult.Value;
+            var tokenString = value.GetType().GetProperty("token").GetValue(value) as string;
+            Assert.False(string.IsNullOrEmpty(tokenString));
+
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(tokenString);
+            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role);
+
+            Assert.NotNull(roleClaim);
+            Assert.Equal("Admin", roleClaim.Value);
+        }
+
+        [Fact]
+        public async Task Login_CreatorRole_ReturnsCreatorClaim()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var password = "password123";
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            context.Users.Add(new User
+            {
+                Id = 3,
+                Username = "creatoruser",
+                Email = "creator@example.com",
+                PasswordHash = hashedPassword,
+                Role = UserRole.Creator
+            });
+            await context.SaveChangesAsync();
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+
+            var request = new UserLoginDto
+            {
+                Username = "creatoruser",
+                Password = password
+            };
+
+            // Act
+            var result = await controller.Login(request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = okResult.Value;
+            var tokenString = value.GetType().GetProperty("token").GetValue(value) as string;
+            Assert.False(string.IsNullOrEmpty(tokenString));
+
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(tokenString);
+            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role);
+
+            Assert.NotNull(roleClaim);
+            Assert.Equal("Creator", roleClaim.Value);
+        }
     }
 }
