@@ -11,6 +11,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     const [tags, setTags] = useState([]);
     const [tagInput, setTagInput] = useState("");
     const [suggestions, setSuggestions] = useState([]);
+    const searchCache = useRef(new Map());
     
     // NOUVEAU: État pour la case à cocher (cochée par défaut)
     const [includeGps, setIncludeGps] = useState(true);
@@ -20,11 +21,16 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (tagInput.length > 1) {
-                try {
-                    const response = await api.get(`/tags/search?q=${tagInput}`);
-                    setSuggestions(response.data);
-                } catch (err) {
-                    console.error("Erreur lors de la recherche de tags", err);
+                if (searchCache.current.has(tagInput)) {
+                    setSuggestions(searchCache.current.get(tagInput));
+                } else {
+                    try {
+                        const response = await api.get(`/tags/search?q=${tagInput}`);
+                        searchCache.current.set(tagInput, response.data);
+                        setSuggestions(response.data);
+                    } catch (err) {
+                        console.error("Erreur lors de la recherche de tags", err);
+                    }
                 }
             } else {
                 setSuggestions([]); 
