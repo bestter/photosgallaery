@@ -187,6 +187,13 @@ else
 
 var app = builder.Build();
 
+// Middleware de sécurité pour ajouter l'en-tête X-Frame-Options
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    await next();
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
