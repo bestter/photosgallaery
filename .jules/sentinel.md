@@ -43,3 +43,7 @@
 **Vulnerability:** Lack of test coverage for the core `Login` endpoint.
 **Learning:** Implementing tests ensures the application reacts correctly to valid credentials, invalid credentials, and forbidden roles, verifying key application logic and status codes (200, 401, 403, 500).
 **Prevention:** Complete unit test coverage using in-memory databases and mocked JWT configurations guarantees authentication responses are verified to avoid future regressions.
+## 2025-02-14 - Prevent Username Enumeration via Timing Attack
+**Vulnerability:** The `/api/auth/login` endpoint would return instantly if a user was not found, but took significantly longer to respond if the user existed because of the `BCrypt.Verify` operation. An attacker could observe this timing difference to enumerate valid usernames in the database.
+**Learning:** Using computationally expensive hashing algorithms like BCrypt means the password validation branch is slow. Bailing early when the user is not found exposes the timing difference.
+**Prevention:** Always verify the password against a dummy hash when the user doesn't exist to ensure the execution time of the authentication request remains constant regardless of whether the username is valid or not.

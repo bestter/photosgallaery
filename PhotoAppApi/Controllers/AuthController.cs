@@ -22,6 +22,9 @@ namespace PhotoAppApi.Controllers
 
         private readonly Logger _logger;
 
+        // 🛡️ Sentinel: Dummy hash to equalize response times and prevent username enumeration via timing attacks
+        private static readonly string _dummyHash = BCrypt.Net.BCrypt.HashPassword("dummy_password_for_timing_attack_mitigation");
+
         public AuthController(AppDbContext context, IConfiguration configuration)
         {
             _logger = new();
@@ -37,12 +40,14 @@ namespace PhotoAppApi.Controllers
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
 
-                if (user == null) return Unauthorized(new { message = "Identifiants incorrects." });
+                // 🛡️ Sentinel: Mitigate User Enumeration Timing Attacks
+                // Always verify the password against a hash so the execution time remains constant regardless of whether the user exists or not.
+                string hashToVerify = user != null ? user.PasswordHash : _dummyHash;
 
-                // 2. Si ton application plante ici, c'est que user.PasswordHash n'est pas un hash valide en base de données !
-                if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, hashToVerify);
+
+                if (user == null || !isPasswordValid)
                 {
-                    // 3. Changement ici : uniformisation du format JSON
                     return Unauthorized(new { message = "Identifiants incorrects." });
                 }
 
