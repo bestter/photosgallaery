@@ -134,8 +134,7 @@ namespace PhotoAppApi.Tests
                 }
             };
 
-            var fileContent = "same content";
-            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+            var fileBytes = System.Convert.FromHexString("47494638396101000100800000000000ffffff21f90401000000002c000000000100010000020144003b");
 
             var stream1 = new MemoryStream(fileBytes);
             var formFileMock1 = new Mock<IFormFile>();
