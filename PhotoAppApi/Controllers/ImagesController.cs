@@ -27,9 +27,13 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.Contains("/") || fileName.Contains("\\") || fileName.Contains("..")) return BadRequest("Invalid file name.");
-            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
-            var safeFileName = Path.GetFileName(fileName);
+            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+
+            // Explicitly normalize path separators for cross-platform safety
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+
+            // Prevent basic traversal attempts
+            if (fileName != safeFileName) return BadRequest("Invalid file name.");
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
@@ -107,9 +111,13 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.Contains("/") || fileName.Contains("\\") || fileName.Contains("..")) return BadRequest("Invalid file name.");
-            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
-            var safeFileName = Path.GetFileName(fileName);
+            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+
+            // Explicitly normalize path separators for cross-platform safety
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+
+            // Prevent basic traversal attempts
+            if (fileName != safeFileName) return BadRequest("Invalid file name.");
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
