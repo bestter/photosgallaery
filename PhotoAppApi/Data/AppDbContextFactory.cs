@@ -1,31 +1,40 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace PhotoAppApi.Data
 {
-    // Cette classe sert UNIQUEMENT à la génération du bundle et aux outils de migration
     public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         public AppDbContext CreateDbContext(string[] args)
         {
-            // 1. On configure la lecture des fichiers appsettings
+            // 1. Détecter l'environnement (Development par défaut)
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+            // 2. Construire la configuration pour lire TOUTES les sources
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                .AddJsonFile($"appsettings.{env}.json", optional: true)
+                .AddUserSecrets<AppDbContext>()
+                .AddEnvironmentVariables() // <-- MAGIE : Permet de lire les variables injectées sous Linux
                 .Build();
 
-            // 2. On va chercher la vraie chaîne de connexion (assure-toi que le nom correspond à ton appsettings)
-            // S'il ne la trouve pas (ex: pendant ton script PowerShell), il garde le "dummy"
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
-                                   ?? "Server=localhost;Database=dummy;Uid=root;Pwd=dummy;";
+            // 3. Récupérer la chaîne
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            // 4. Sécurité anti-chaîne vide (remplace le "??")
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                connectionString = "Server=localhost;Database=dummy;Uid=root;Pwd=dummy;";
+            }
 
             var builder = new DbContextOptionsBuilder<AppDbContext>();
-
-            // 3. On utilise la chaîne trouvée
             builder.UseMySql(connectionString, ServerVersion.Parse("10.5.0-mariadb"));
 
             return new AppDbContext(builder.Options);
         }
     }
-}
+}       

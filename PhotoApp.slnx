@@ -5,6 +5,8 @@
     <File Path="Dockerfile" />
     <File Path="fly.toml" />
     <File Path="LICENSE" />
+    <File Path="Scripts/DeploiementGalerie.ps1" />
+    <File Path="Scripts/deploy-settings.json" />
   </Folder>
   <Project Path="Benchmark/Benchmark.csproj" />
   <Project Path="PhotoAppApi.Tests/PhotoAppApi.Tests.csproj" />
