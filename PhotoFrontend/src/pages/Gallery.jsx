@@ -32,6 +32,20 @@ export default function Gallery() {
     isLoggedIn && (userRole === "Admin" || userRole === "Creator");
   const canSeeDashboard = isLoggedIn && userRole === "Admin";
 
+  // Récupération des photos depuis l'API, dépendante du groupe sélectionné
+  const fetchPhotos = async (groupId) => {
+    try {
+      setIsLoading(true);
+      const url = groupId ? `/photos?groupId=${groupId}` : "/photos";
+      const response = await api.get(url);
+      setPhotos(response.data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des photos :", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Récupérer les groupes
   useEffect(() => {
     if (isLoggedIn) {
@@ -74,20 +88,6 @@ export default function Gallery() {
         });
     }
   }, [isLoggedIn]);
-
-  // Récupération des photos depuis l'API, dépendante du groupe sélectionné
-  const fetchPhotos = async (groupId) => {
-    try {
-      setIsLoading(true);
-      const url = groupId ? `/photos?groupId=${groupId}` : "/photos";
-      const response = await api.get(url);
-      setPhotos(response.data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des photos :", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (activeGroupId) {
@@ -263,7 +263,7 @@ export default function Gallery() {
                   onClick={() => (window.location.href = "/register")}
                   className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110"
                 >
-                  S'abonner
+                  S&apos;abonner
                 </button>
               </>
             )}
@@ -547,11 +547,25 @@ export default function Gallery() {
             })}
 
             {filteredPhotos.length === 0 && (
-              <div className="col-span-full text-center text-slate-500 mt-10 p-10 border border-slate-800/60 rounded-xl bg-[#152b2b]/50">
-                <span className="material-symbols-outlined text-4xl mb-3 text-slate-600">
+              <div className="col-span-full flex flex-col items-center justify-center text-slate-500 mt-10 p-12 border border-slate-800/60 rounded-xl bg-[#152b2b]/50">
+                <span className="material-symbols-outlined text-5xl mb-4 text-slate-500" aria-hidden="true">
                   image_not_supported
                 </span>
-                <p>Aucune image pour le moment.</p>
+                <h3 className="text-xl font-bold text-slate-300 mb-2">Aucune image trouvée</h3>
+                <p className="text-sm mb-6 max-w-md text-center">
+                  {searchQuery || selectedTag || selectedAuthor
+                    ? "Essayez de modifier vos filtres de recherche pour trouver ce que vous cherchez."
+                    : "Cet espace est encore vide. Soyez le premier à le remplir !"}
+                </p>
+                {canUpload && !searchQuery && !selectedTag && !selectedAuthor && (
+                  <button
+                    onClick={() => setIsUploadOpen(true)}
+                    className="bg-cyan-400 text-[#0f2323] px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform hover:brightness-110 flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[20px]" aria-hidden="true">add_photo_alternate</span>
+                    Ajouter une photo
+                  </button>
+                )}
               </div>
             )}
           </div>
