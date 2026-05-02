@@ -47,3 +47,11 @@
 **Vulnerability:** The `/api/auth/login` endpoint would return instantly if a user was not found, but took significantly longer to respond if the user existed because of the `BCrypt.Verify` operation. An attacker could observe this timing difference to enumerate valid usernames in the database.
 **Learning:** Using computationally expensive hashing algorithms like BCrypt means the password validation branch is slow. Bailing early when the user is not found exposes the timing difference.
 **Prevention:** Always verify the password against a dummy hash when the user doesn't exist to ensure the execution time of the authentication request remains constant regardless of whether the username is valid or not.
+
+## $(date +%Y-%m-%d) - Path Traversal Vulnerability in ImagesController
+
+**Vulnerability:** The `GetImage` and `GetThumbnail` endpoints in `ImagesController.cs` solely relied on `Path.GetFileName()` to sanitize the `fileName` route parameter. On Linux/Unix environments, `Path.GetFileName()` does not remove Windows-style path separators (`\`), allowing potential path traversal payloads (e.g., `..\..\etc\passwd`) to bypass the intended security check and resolve outside the application's root directory.
+
+**Learning:** `Path.GetFileName()` is highly dependent on the underlying OS. When a .NET application runs on Linux, it only treats `/` as a directory separator. Attackers can exploit this mismatch by supplying `\` characters, which the application fails to recognize as traversal attempts. Additionally, when testing file uploads that rely on libraries like `ImageSharp`, dummy text files will fail to parse and can cause tests to throw unhandled exceptions instead of returning standard HTTP error codes like `BadRequest`.
+
+**Prevention:** Never rely purely on `Path.GetFileName()` or `Path.GetInvalidFileNameChars()` for cross-platform security validation of user-supplied paths. Explicitly reject file paths containing `/`, `\`, or `..` before attempting any file resolution. When writing unit tests for upload functionality, always mock file streams with real image bytes (e.g., a minimal 1x1 GIF) to prevent internal library exceptions from masking the behavior of the controller.

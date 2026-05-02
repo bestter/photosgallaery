@@ -27,7 +27,8 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+            if (string.IsNullOrEmpty(fileName) || fileName.Contains("/") || fileName.Contains("\\") || fileName.Contains("..")) return BadRequest("Invalid file name.");
+            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
             var safeFileName = Path.GetFileName(fileName);
             try
             {
@@ -106,7 +107,8 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+            if (string.IsNullOrEmpty(fileName) || fileName.Contains("/") || fileName.Contains("\\") || fileName.Contains("..")) return BadRequest("Invalid file name.");
+            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
             var safeFileName = Path.GetFileName(fileName);
             try
             {
