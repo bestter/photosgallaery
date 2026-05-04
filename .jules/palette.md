@@ -5,3 +5,7 @@
 ## 2024-05-18 - Keyboard Accessibility for Non-Semantic Interactive Elements
 **Learning:** In React components like `PhotoCard` where `<div>` and `<span>` tags are used as interactive, clickable elements, they become completely inaccessible to keyboard users and screen readers by default. Missing `tabIndex` prevents them from receiving focus, missing `role="button"` prevents screen readers from understanding they are interactive, and missing `onKeyDown` handlers prevents them from being activated via the 'Enter' or 'Space' keys.
 **Action:** Whenever using non-semantic elements as interactive controls, always add `role="button"`, `tabIndex={0}`, an `onKeyDown` handler (for 'Enter' and 'Space'), an appropriate `aria-label`, and `focus-visible` styling (e.g. `focus-visible:ring-2`) to ensure full accessibility and usability.
+
+## 2026-05-04 - Add aria-hidden to decorative icons
+**Learning:** When using Material Symbols ligatures inside text buttons, screen readers announce the ligature text (e.g. "sync") instead of just the button text.
+**Action:** Always append `aria-hidden="true"` to ligature `<span>` elements when they are purely decorative or placed alongside visible text within buttons.
