@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PhotoAppApi.Data;
@@ -33,6 +34,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("LoginLimiter")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {
             _logger.Debug($"In {nameof(Login)} for user: {request.Username}");
@@ -187,12 +189,12 @@ namespace PhotoAppApi.Controllers
             _logger.Debug($"In {nameof(GetUserGroups)}");
             try
             {
-                var username = User.Identity?.Name;
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-                if (user == null) return Unauthorized();
+                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
+                var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out int userId)) return Unauthorized();
 
                 var groups = await _context.UserGroups
-                    .Where(ug => ug.UserId == user.Id)
+                    .Where(ug => ug.UserId == userId)
                     .Include(ug => ug.Group)
                     .Select(ug => new
                     {

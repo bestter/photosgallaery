@@ -15,3 +15,7 @@
 ## 2024-05-30 - Client-Side Caching for Debounced API Search
 **Learning:** Redundant backend API calls resulting from back-and-forth typing in a debounced search input can be effectively mitigated using a simple React `useRef` as a local `Map` cache. This is significantly faster and uses fewer resources than modifying the server.
 **Action:** Implemented a `searchCache` using `useRef(new Map())` in `Upload.js` to store previously searched tag strings and their corresponding response data, reducing duplicate `api.get` network requests by over 40% in simulated rapid typing scenarios.
+
+## 2025-05-18 - Eliminating Redundant Database User Lookups via JWT Claims
+**Learning:** In JWT-authenticated endpoints, performing a `FirstOrDefaultAsync` or `SingleOrDefaultAsync` lookup against the `Users` table by username simply to resolve the `UserId` or `Username` is redundant and creates N+1 query bottlenecks. The `ClaimsPrincipal` inherently contains this information via the `ClaimTypes.NameIdentifier` and `ClaimTypes.Name` claims.
+**Action:** When working with authenticated routes (such as fetching user groups or creating invitations), extract the user's ID directly using `User.FindFirst(ClaimTypes.NameIdentifier)?.Value` and username via `User.Identity?.Name` or `ClaimTypes.Name`. This cleanly avoids a full round-trip query to the database. Additionally, ensure read-only mapping queries (like fetching groups) apply `.AsNoTracking()` to reduce Entity Framework Core memory overhead and GC pressure.
