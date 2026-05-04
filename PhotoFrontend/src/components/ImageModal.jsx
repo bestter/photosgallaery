@@ -230,13 +230,15 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="grid grid-cols-4 gap-3">
                         <button
                             onClick={handleDownload}
+                            aria-label="Télécharger l'image"
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity">
-                            <span className="material-symbols-outlined">download</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">download</span>
                             <span className="text-[10px] font-bold uppercase">Download</span>
                         </button>
 
                         <button
                             onClick={handleLike}
+                            aria-label={isLiked ? "Retirer le like de la photo" : "Aimer la photo"}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors ${isLiked
                                 ? "bg-primary text-background-dark border-primary hover:opacity-90"
                                 : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
@@ -245,7 +247,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             title={isMyPhoto ? "Vous ne pouvez pas aimer votre propre photo" : ""}
                         >
                             {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
-                            <span className="material-symbols-outlined" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                             <span className="text-[10px] font-bold uppercase">
                                 {likesCount} Likes
                             </span>
@@ -253,28 +255,31 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                         <button
                             onClick={handleShare}
+                            aria-label="Partager l'image"
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors">
-                            <span className="material-symbols-outlined">share</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">share</span>
                             <span className="text-[10px] font-bold uppercase">Share</span>
                         </button>
 
                         {hasReported ? (
                             <button
                                 disabled
+                                aria-label="Image déjà signalée"
                                 className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed">
-                                <span className="material-symbols-outlined text-slate-500">flag</span>
+                                <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
                                 <span className="text-[10px] font-bold uppercase">Reported</span>
                             </button>
                         ) : (
                             <button
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
+                                aria-label="Signaler l'image"
                                 title={isMyPhoto ? "Vous ne pouvez pas signaler votre propre photo" : ""}
                                 className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors ${isMyPhoto
                                     ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
                                     : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
                                     }`}>
-                                <span className="material-symbols-outlined">flag</span>
+                                <span className="material-symbols-outlined" aria-hidden="true">flag</span>
                                 <span className="text-[10px] font-bold uppercase">Report</span>
                             </button>
                         )}
@@ -335,12 +340,13 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     {latitude != null && longitude != null && (
                         <div className="mt-auto pt-6 border-t border-slate-800 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary text-sm">location_on</span>
+                                <span className="material-symbols-outlined text-primary text-sm" aria-hidden="true">location_on</span>
                                 <span className="text-xs text-slate-400">
                                     Localisation estimée
                                 </span>
                             </div>
                             <button
+                                aria-label="Voir la localisation sur la carte"
                                 className="text-xs font-bold text-primary hover:underline"
                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
                             >
