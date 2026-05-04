@@ -22,6 +22,8 @@ $Config = Get-Content $ConfigFile | ConvertFrom-Json
 $ServerUserHost = $Config.ServerUserHost
 $DbConnectionString = $Config.DbConnectionString
 
+Write-Host $DbConnectionString
+
 $BackendLocalPath = "C:\Users\marti\source\repos\PhotoApp\PhotoAppApi\"
 $FrontendLocalPath = "C:\Users\marti\source\repos\PhotoApp\PhotoFrontend\"
 
@@ -39,16 +41,28 @@ try {
     New-Item -ItemType Directory -Path $PublishDir | Out-Null
 
     # ==========================================
-    # 1. Base de données (MariaDB)
-    # ==========================================
-    Write-Host "`n[1/5] Préparation de la migration MariaDB..." -ForegroundColor Cyan
-    Push-Location $BackendLocalPath
+# 1. Base de données (MariaDB)
+# ==========================================
+Write-Host "`n[1/5] Préparation de la migration MariaDB..." -ForegroundColor Cyan
+Push-Location $BackendLocalPath
 
+# On force l'environnement Staging pour que les User Secrets soient chargés
+$env:ASPNETCORE_ENVIRONMENT = "Staging"
 
-    # Remarque : on utilise directement $PublishDir car c'est maintenant un chemin absolu !
-    dotnet ef migrations bundle --self-contained -r linux-x64 --force -o "$PublishDir\efbundle"
-    if ($LASTEXITCODE -ne 0) { throw "Échec de la création du bundle de migration de base de données." }
-    Pop-Location
+dotnet ef migrations bundle `
+    --self-contained `
+    -r linux-x64 `
+    --force `
+    -o "$PublishDir\efbundle"
+
+if ($LASTEXITCODE -ne 0) { 
+    throw "Échec de la création du bundle de migration de base de données." 
+}
+
+# On nettoie la variable
+$env:ASPNETCORE_ENVIRONMENT = $null
+
+Pop-Location
 
     # ==========================================
     # 2. Compilation Frontend (React)
@@ -71,10 +85,15 @@ try {
     dotnet publish $BackendLocalPath -c Release -r linux-x64 --self-contained false -o "$PublishDir\backend"
     if ($LASTEXITCODE -ne 0) { throw "Échec de la compilation 'dotnet publish' du backend." }
 
+
     # NOUVELLE LIGNE : On supprime les photos de test locales du paquet de déploiement
     Write-Host "  -> Nettoyage des données de test locales..."
     $LocalImagesDir = "$PublishDir\backend\wwwroot\images"
     if (Test-Path $LocalImagesDir) { Remove-Item -Recurse -Force $LocalImagesDir }
+
+    # ---> AJOUTE CECI : On empêche d'écraser les configurations du serveur <---
+    Write-Host "  -> Retrait des fichiers de configuration locaux du paquet..."
+    Remove-Item "$PublishDir\backend\appsettings*.json" -Force -ErrorAction SilentlyContinue
 
     # ==========================================
     # 4. Transfert vers le serveur (SCP)
@@ -101,7 +120,7 @@ try {
     scp "$PublishDir\efbundle" "${ServerUserHost}:/tmp/efbundle"
     if ($LASTEXITCODE -ne 0) { throw "Échec du transfert du bundle de base de données." }
     
-    ssh $ServerUserHost "chmod +x /tmp/efbundle && /tmp/efbundle --connection '$DbConnectionString'"
+    ssh $ServerUserHost "chmod +x /tmp/efbundle && cd $BackendRemotePath && ConnectionStrings__DefaultConnection='$DbConnectionString' /tmp/efbundle"
     if ($LASTEXITCODE -ne 0) { throw "La migration de la base de données a échoué sur le serveur." }
 
     # ==========================================

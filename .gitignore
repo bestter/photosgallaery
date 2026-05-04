@@ -37,6 +37,7 @@ Thumbs.db
 .env.test.local
 .env.production.local
 appsettings.Production.json
+appsettings.Staging.json
 
 publish_temp/
 

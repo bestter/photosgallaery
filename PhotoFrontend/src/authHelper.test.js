@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getUserRole, isTokenExpired } from './authHelper';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { getUserRole, getUsernameFromToken } from './authHelper';
 import { jwtDecode } from 'jwt-decode';
 
 vi.mock('jwt-decode');
@@ -111,5 +113,62 @@ describe('isTokenExpired', () => {
         // Expiration is well into the future
         jwtDecode.mockReturnValue({ exp: 2000 });
         expect(isTokenExpired('valid-token')).toBe(false);
+    });
+});
+
+describe('getUsernameFromToken', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should return null if token is falsy', () => {
+        expect(getUsernameFromToken(null)).toBeNull();
+        expect(getUsernameFromToken(undefined)).toBeNull();
+        expect(getUsernameFromToken('')).toBeNull();
+    });
+
+    it('should return null if jwtDecode throws an error', () => {
+        jwtDecode.mockImplementation(() => {
+            throw new Error('Invalid token');
+        });
+        expect(getUsernameFromToken('invalid-token')).toBeNull();
+    });
+
+    it('should extract username from .NET claims URL', () => {
+        jwtDecode.mockReturnValue({
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": "user1"
+        });
+        expect(getUsernameFromToken('valid-token')).toBe('user1');
+    });
+
+    it('should extract username from unique_name if .NET claims URL is absent', () => {
+        jwtDecode.mockReturnValue({
+            unique_name: "user2"
+        });
+        expect(getUsernameFromToken('valid-token')).toBe('user2');
+    });
+
+    it('should extract username from sub if both .NET claims URL and unique_name are absent', () => {
+        jwtDecode.mockReturnValue({
+            sub: "user3"
+        });
+        expect(getUsernameFromToken('valid-token')).toBe('user3');
+    });
+
+    it('should prioritize .NET claims URL over unique_name and sub', () => {
+        jwtDecode.mockReturnValue({
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": "user1",
+            unique_name: "user2",
+            sub: "user3"
+        });
+        expect(getUsernameFromToken('valid-token')).toBe('user1');
+    });
+
+    it('should prioritize unique_name over sub', () => {
+        jwtDecode.mockReturnValue({
+            unique_name: "user2",
+            sub: "user3"
+        });
+        expect(getUsernameFromToken('valid-token')).toBe('user2');
     });
 });
