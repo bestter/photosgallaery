@@ -29,15 +29,16 @@ namespace PhotoAppApi.Controllers
             _logger.Debug($"In {nameof(CreateInvitation)} for email: {dto.Email} in group: {dto.GroupId}");
             try
             {
-                var username = User.Identity?.Name;
-                var inviter = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-                if (inviter == null) return Unauthorized();
+                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId and Username directly from JWT claims.
+                var inviterIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var inviterUsername = User.Identity?.Name;
+                if (!int.TryParse(inviterIdString, out int inviterId) || string.IsNullOrEmpty(inviterUsername)) return Unauthorized();
 
                 // Validation : L'inviteur fait-il partie du groupe ?
                 var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == dto.GroupId);
                 if (group == null) return NotFound(new { message = "Cercle introuvable." });
 
-                bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == inviter.Id && ug.GroupId == group.Id);
+                bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == inviterId && ug.GroupId == group.Id);
                 if (!isMember && !User.IsInRole("Admin"))
                 {
                     return Forbid();
@@ -75,7 +76,7 @@ namespace PhotoAppApi.Controllers
                 var invitation = new GroupInvitation
                 {
                     GroupId = group.Id,
-                    InviterId = inviter.Id,
+                    InviterId = inviterId,
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
                     Email = dto.Email,
@@ -93,7 +94,7 @@ namespace PhotoAppApi.Controllers
                     email: invitation.Email,
                     firstName: invitation.FirstName,
                     lastName: invitation.LastName,
-                    inviterName: inviter.Username,
+                    inviterName: inviterUsername,
                     groupName: group.Name,
                     message: invitation.Message ?? "",
                     inviteUrl: inviteUrl
