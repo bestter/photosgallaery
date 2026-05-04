@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PhotoAppApi.Data;
@@ -33,6 +34,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("LoginLimiter")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {
             _logger.Debug($"In {nameof(Login)} for user: {request.Username}");
