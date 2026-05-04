@@ -8,8 +8,10 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Text;
 using System.Threading.Channels;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -185,6 +187,21 @@ else
     builder.Services.AddTransient<IEmailService, ResendEmailService>();
 }
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("LoginLimiter", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 5,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
+
 var app = builder.Build();
 
 // Middleware de sécurité pour ajouter l'en-tête X-Frame-Options
@@ -218,6 +235,8 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseCors("AllowReactApp");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
