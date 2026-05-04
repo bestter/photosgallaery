@@ -394,7 +394,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             >
               {isUploading ? (
                 <>
-                  <span className="material-symbols-outlined animate-spin mr-2">
+                  <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
                     sync
                   </span>
                   Téléversement...

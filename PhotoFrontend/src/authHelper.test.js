@@ -1,3 +1,5 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getUserRole, isTokenExpired } from './authHelper';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getUserRole, getUsernameFromToken } from './authHelper';
 import { jwtDecode } from 'jwt-decode';
@@ -62,6 +64,55 @@ describe('getUserRole', () => {
 
         jwtDecode.mockReturnValue({ role: "Guest" });
         expect(getUserRole('valid-token')).toBe('Guest');
+    });
+});
+
+
+describe('isTokenExpired', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('should return true if token is falsy or specific string strings', () => {
+        expect(isTokenExpired(null)).toBe(true);
+        expect(isTokenExpired(undefined)).toBe(true);
+        expect(isTokenExpired('')).toBe(true);
+        expect(isTokenExpired('null')).toBe(true);
+        expect(isTokenExpired('undefined')).toBe(true);
+    });
+
+    it('should return true if jwtDecode throws an error', () => {
+        jwtDecode.mockImplementation(() => {
+            throw new Error('Invalid token');
+        });
+        expect(isTokenExpired('invalid-token')).toBe(true);
+    });
+
+    it('should return true if token is expired (considering 10s margin)', () => {
+        const currentTime = 1000;
+        vi.setSystemTime(currentTime * 1000);
+
+        // Expiration is less than 1010
+        jwtDecode.mockReturnValue({ exp: 1009 });
+        expect(isTokenExpired('expired-token')).toBe(true);
+    });
+
+    it('should return false if token is not expired (considering 10s margin)', () => {
+        const currentTime = 1000;
+        vi.setSystemTime(currentTime * 1000);
+
+        // Expiration is exactly 1010
+        jwtDecode.mockReturnValue({ exp: 1010 });
+        expect(isTokenExpired('valid-token')).toBe(false);
+
+        // Expiration is well into the future
+        jwtDecode.mockReturnValue({ exp: 2000 });
+        expect(isTokenExpired('valid-token')).toBe(false);
     });
 });
 
