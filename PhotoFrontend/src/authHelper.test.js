@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getUserRole, isTokenExpired } from './authHelper';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getUserRole, getUsernameFromToken } from './authHelper';
+import { getUserRole, isTokenExpired, getUsernameFromToken } from './authHelper';
 import { jwtDecode } from 'jwt-decode';
 
 vi.mock('jwt-decode');
