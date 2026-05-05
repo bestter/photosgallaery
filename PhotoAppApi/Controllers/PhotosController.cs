@@ -656,6 +656,22 @@ namespace PhotoAppApi.Controllers
                     return NotFound(new { message = "L'image que vous essayez de signaler n'existe plus." });
                 }
 
+                // 🛡️ Sentinel: Fix IDOR by validating group membership
+                if (photo.GroupId.HasValue)
+                {
+                    var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
+
+                    bool isAdmin = User.IsInRole("Admin");
+                    if (!isAdmin)
+                    {
+                        bool isMember = await _context.UserGroups
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+
+                        if (!isMember) return Forbid();
+                    }
+                }
+
                 if (photo.UploaderUsername == User.Identity?.Name)
                 {
                     return BadRequest(new { message = "Vous ne pouvez pas signaler votre propre photo." });
@@ -863,6 +879,19 @@ namespace PhotoAppApi.Controllers
                 // 2. Vérifier si la photo existe
                 var photo = await _context.Photos.FindAsync(id);
                 if (photo == null) return NotFound(new { message = "Photo introuvable." });
+
+                // 🛡️ Sentinel: Fix IDOR by validating group membership
+                if (photo.GroupId.HasValue)
+                {
+                    bool isAdmin = User.IsInRole("Admin");
+                    if (!isAdmin)
+                    {
+                        bool isMember = await _context.UserGroups
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+
+                        if (!isMember) return Forbid();
+                    }
+                }
 
                 if (photo.UploaderUsername == currentUsername)
                 {
