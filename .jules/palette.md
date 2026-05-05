@@ -1,3 +1,6 @@
 ## 2025-02-28 - Empty State with Call-to-Action
 **Learning:** When users encounter an empty gallery or zero search results, a generic message like "Aucune image pour le moment" leaves them stuck. Providing a context-aware message (differentiating between "no uploads yet" and "no search results") alongside a relevant call-to-action (like an "Upload" button) significantly improves onboarding and feature discovery.
 **Action:** Always design empty states as opportunities for action rather than dead ends, ensuring they have helpful guidance and accessible, relevant buttons (using aria-hidden="true" on decorative icons).
+## 2026-05-05 - Explicit Disabled States on Action Buttons
+**Learning:** Relying solely on CSS (e.g., `disabled:opacity-50`) or logical checks within a submit handler isn't enough for good UX or accessibility. Form submission buttons should visually and functionally communicate when they cannot be clicked, especially for required fields like file selection.
+**Action:** Always add explicit `disabled` attributes linked to form validation state on critical action buttons. Additionally, use `title` (or `aria-label`) tooltips on disabled buttons to give users immediate, context-aware feedback on *why* the button is disabled and what they need to do to proceed.
