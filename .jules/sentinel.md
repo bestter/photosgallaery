@@ -63,3 +63,7 @@
 **Learning:** When comparing two values for ownership or authorization—especially strings that can be null—do not assume that equality (or equivalence through double-nulls) implies valid authorization. Null equivalence can inadvertently bypass security checks if neither the resource nor the actor has a valid identifier.
 
 **Prevention:** Always explicitly verify that the acting user has a valid, non-empty identifier before comparing it against the resource's owner identifier. For example, explicitly check `string.IsNullOrEmpty(currentUsername)` and reject the action if it's true, regardless of what the resource's owner identifier is.
+## 2026-05-05 - [Fixing IDOR Vulnerability in Modification Endpoints]
+**Vulnerability:** Insecure Direct Object Reference (IDOR) on modifying actions. Actions such as `ToggleLike` and `ReportPhoto` only validated user authentication without verifying the user's specific group-based authorization rights to view and interact with the private photo.
+**Learning:** Developers correctly secured data fetching APIs like `GetPhotos` with precise group filtering and roles matching (`isAdmin`). But endpoints designed for modifying specific object instances (e.g. Likes and Reports) did not re-validate the target photo’s authorization context.
+**Prevention:** It is mandatory to enforce authorization and ownership context validations comprehensively across ALL interaction actions, including object modifications, rather than isolating permissions logic only on data retrieval.
