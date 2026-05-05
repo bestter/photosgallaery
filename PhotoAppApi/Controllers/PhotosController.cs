@@ -509,9 +509,12 @@ namespace PhotoAppApi.Controllers
                 var currentUsername = User.Identity?.Name;
                 var isAdmin = User.IsInRole("Admin");
 
-                if (photo.UploaderUsername != currentUsername && !isAdmin)
+                if (!isAdmin)
                 {
-                    return Forbid(); // Retourne une erreur 403 : "Tu n'as pas le droit !"
+                    if (string.IsNullOrEmpty(currentUsername) || photo.UploaderUsername != currentUsername)
+                    {
+                        return Forbid(); // Retourne une erreur 403 : "Tu n'as pas le droit !"
+                    }
                 }
 
                 // 2. Construire le chemin physique vers le fichier sur le serveur

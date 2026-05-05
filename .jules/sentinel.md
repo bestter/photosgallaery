@@ -56,10 +56,10 @@
 
 **Prevention:** Never rely purely on `Path.GetFileName()` or `Path.GetInvalidFileNameChars()` for cross-platform security validation of user-supplied paths. Explicitly reject file paths containing `/`, `\`, or `..` before attempting any file resolution. When writing unit tests for upload functionality, always mock file streams with real image bytes (e.g., a minimal 1x1 GIF) to prevent internal library exceptions from masking the behavior of the controller.
 
-## 2026-05-04 - Prevent Brute-Force Attacks on Login Endpoint
+## 2026-05-04 - Authorization Bypass via Null Equivalence in Ownership Check
 
-**Vulnerability:** The `/api/auth/login` endpoint lacked rate limiting. An attacker could perform a brute-force or credential stuffing attack by sending hundreds or thousands of login requests per second without being blocked. This could lead to account takeover and significant server resource exhaustion.
+**Vulnerability:** In `PhotosController.DeletePhoto`, the authorization logic checked ownership using `if (photo.UploaderUsername != currentUsername && !isAdmin)`. Since `photo.UploaderUsername` is nullable (e.g., photos uploaded by anonymous users or before users were forced to have names) and `currentUsername` could be null (if the JWT token lacks the Name claim or the user isn't fully authenticated), `null != null` evaluates to `false`. This caused the `Forbid()` block to be skipped, allowing an anonymous user to delete photos lacking an uploader username.
 
-**Learning:** Authentication endpoints are prime targets for automated attacks. Relying purely on strong passwords and correct functional logic is insufficient. Without explicit request limits, an application is completely vulnerable to high-velocity guessing attacks. ASP.NET Core 8 provides built-in rate limiting middleware that is simple to configure and highly effective.
+**Learning:** When comparing two values for ownership or authorization—especially strings that can be null—do not assume that equality (or equivalence through double-nulls) implies valid authorization. Null equivalence can inadvertently bypass security checks if neither the resource nor the actor has a valid identifier.
 
-**Prevention:** Implement Defense in Depth by applying a Rate Limiter (e.g., `AddFixedWindowLimiter`) globally or specifically to sensitive endpoints like login using the `[EnableRateLimiting]` attribute. This ensures attackers are throttled and receive HTTP 429 (Too Many Requests) when attempting automated attacks.
+**Prevention:** Always explicitly verify that the acting user has a valid, non-empty identifier before comparing it against the resource's owner identifier. For example, explicitly check `string.IsNullOrEmpty(currentUsername)` and reject the action if it's true, regardless of what the resource's owner identifier is.
