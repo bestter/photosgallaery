@@ -19,3 +19,7 @@
 ## 2025-05-18 - Eliminating Redundant Database User Lookups via JWT Claims
 **Learning:** In JWT-authenticated endpoints, performing a `FirstOrDefaultAsync` or `SingleOrDefaultAsync` lookup against the `Users` table by username simply to resolve the `UserId` or `Username` is redundant and creates N+1 query bottlenecks. The `ClaimsPrincipal` inherently contains this information via the `ClaimTypes.NameIdentifier` and `ClaimTypes.Name` claims.
 **Action:** When working with authenticated routes (such as fetching user groups or creating invitations), extract the user's ID directly using `User.FindFirst(ClaimTypes.NameIdentifier)?.Value` and username via `User.Identity?.Name` or `ClaimTypes.Name`. This cleanly avoids a full round-trip query to the database. Additionally, ensure read-only mapping queries (like fetching groups) apply `.AsNoTracking()` to reduce Entity Framework Core memory overhead and GC pressure.
+
+## 2024-05-18 - Eliminate Change Tracking Overhead in EF Core Read-Only Queries
+**Learning:** Entity Framework Core adds significant memory and CPU overhead when executing `.ToListAsync()` or tracking changes on fetched entities. Many administrative and view-only endpoints were fetching full entities without needing to modify them.
+**Action:** Consistently apply `.AsNoTracking()` to `IQueryable` chains where the fetched entities are strictly read-only and won't be modified before returning the response. This pattern reduces memory usage and CPU cycles, improving the scalability of administrative list endpoints.
