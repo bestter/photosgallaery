@@ -4,3 +4,7 @@
 ## 2026-05-05 - Explicit Disabled States on Action Buttons
 **Learning:** Relying solely on CSS (e.g., `disabled:opacity-50`) or logical checks within a submit handler isn't enough for good UX or accessibility. Form submission buttons should visually and functionally communicate when they cannot be clicked, especially for required fields like file selection.
 **Action:** Always add explicit `disabled` attributes linked to form validation state on critical action buttons. Additionally, use `title` (or `aria-label`) tooltips on disabled buttons to give users immediate, context-aware feedback on *why* the button is disabled and what they need to do to proceed.
+
+## 2025-05-06 - Search Input Accessibility
+**Learning:** Search inputs (especially on mobile layouts without visible labels) often lack adequate context for screen readers. While placeholders provide visual hints, they are not a substitute for proper ARIA labels.
+**Action:** Always add an explicit `aria-label` to search inputs, ensuring that users navigating with screen readers understand the input's purpose.

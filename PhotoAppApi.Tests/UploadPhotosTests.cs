@@ -76,11 +76,10 @@ namespace PhotoAppApi.Tests
             await context.SaveChangesAsync();
 
             // Create fake IFormFile
-            var stream = new MemoryStream(fileBytes);
             var formFileMock = new Mock<IFormFile>();
-            formFileMock.Setup(f => f.Length).Returns(stream.Length);
+            formFileMock.Setup(f => f.Length).Returns(fileBytes.Length);
             formFileMock.Setup(f => f.FileName).Returns("new_image.jpg");
-            formFileMock.Setup(f => f.OpenReadStream()).Returns(stream);
+            formFileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
 
             var files = new List<IFormFile> { formFileMock.Object };
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
@@ -136,17 +135,15 @@ namespace PhotoAppApi.Tests
 
             var fileBytes = System.Convert.FromHexString("47494638396101000100800000000000ffffff21f90401000000002c000000000100010000020144003b");
 
-            var stream1 = new MemoryStream(fileBytes);
             var formFileMock1 = new Mock<IFormFile>();
-            formFileMock1.Setup(f => f.Length).Returns(stream1.Length);
+            formFileMock1.Setup(f => f.Length).Returns(fileBytes.Length);
             formFileMock1.Setup(f => f.FileName).Returns("img1.jpg");
-            formFileMock1.Setup(f => f.OpenReadStream()).Returns(stream1);
+            formFileMock1.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
 
-            var stream2 = new MemoryStream(fileBytes);
             var formFileMock2 = new Mock<IFormFile>();
-            formFileMock2.Setup(f => f.Length).Returns(stream2.Length);
+            formFileMock2.Setup(f => f.Length).Returns(fileBytes.Length);
             formFileMock2.Setup(f => f.FileName).Returns("img2.jpg");
-            formFileMock2.Setup(f => f.OpenReadStream()).Returns(stream2);
+            formFileMock2.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
 
             var files = new List<IFormFile> { formFileMock1.Object, formFileMock2.Object };
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });

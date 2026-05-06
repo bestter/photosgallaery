@@ -67,3 +67,8 @@
 **Vulnerability:** Insecure Direct Object Reference (IDOR) on modifying actions. Actions such as `ToggleLike` and `ReportPhoto` only validated user authentication without verifying the user's specific group-based authorization rights to view and interact with the private photo.
 **Learning:** Developers correctly secured data fetching APIs like `GetPhotos` with precise group filtering and roles matching (`isAdmin`). But endpoints designed for modifying specific object instances (e.g. Likes and Reports) did not re-validate the target photo’s authorization context.
 **Prevention:** It is mandatory to enforce authorization and ownership context validations comprehensively across ALL interaction actions, including object modifications, rather than isolating permissions logic only on data retrieval.
+
+## $(date +%Y-%m-%d) - Prevent Denial of Service (DoS) via File Upload Exhaustion
+**Vulnerability:** File upload endpoints (like `/api/photos/upload`) were lacking explicit rate limiting, making the application susceptible to resource exhaustion or DoS attacks from automated scripts repeatedly uploading large payloads.
+**Learning:** Even if the file size itself is limited (`[RequestSizeLimit]`), an attacker could still exhaust server resources (CPU, I/O, disk space) by sending many requests in a short amount of time.
+**Prevention:** Implement endpoint-specific rate limiting (`EnableRateLimiting`) partitioned by IP address on resource-intensive endpoints (such as file uploads) to constrain the maximum number of requests a single user can make within a specified time window.
