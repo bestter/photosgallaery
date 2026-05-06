@@ -1,4 +1,5 @@
 using System.Linq;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -228,7 +229,8 @@ namespace PhotoAppApi.Controllers
         [Authorize(Policy = "CanUpload")]
         [RequireWebsiteHeader] // 🔒 NOUVEAU: Empêche Postman / scripts de contourner le site web
         [HttpPost("upload")]
-        [RequestSizeLimit(52428800)] // Force explicitement la limite de 50 Mo sur cette route
+        [RequestSizeLimit(52428800)]
+        [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
         public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true)
         {
             try
