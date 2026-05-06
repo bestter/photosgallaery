@@ -201,6 +201,7 @@ export default function Gallery() {
             <input
               className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500"
               name="search"
+              aria-label="Search inspirations, tags, authors"
               placeholder="Search inspirations, tags, authors..."
               type="text"
               value={searchQuery}
@@ -295,6 +296,7 @@ export default function Gallery() {
           <input
             className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
+            aria-label="Search inspirations"
             placeholder="Search inspirations..."
             type="text"
             value={searchQuery}
@@ -548,24 +550,37 @@ export default function Gallery() {
 
             {filteredPhotos.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center text-slate-500 mt-10 p-12 border border-slate-800/60 rounded-xl bg-[#152b2b]/50">
-                <span className="material-symbols-outlined text-5xl mb-4 text-slate-500" aria-hidden="true">
+                <span
+                  className="material-symbols-outlined text-5xl mb-4 text-slate-500"
+                  aria-hidden="true"
+                >
                   image_not_supported
                 </span>
-                <h3 className="text-xl font-bold text-slate-300 mb-2">Aucune image trouvée</h3>
+                <h3 className="text-xl font-bold text-slate-300 mb-2">
+                  Aucune image trouvée
+                </h3>
                 <p className="text-sm mb-6 max-w-md text-center">
                   {searchQuery || selectedTag || selectedAuthor
                     ? "Essayez de modifier vos filtres de recherche pour trouver ce que vous cherchez."
                     : "Cet espace est encore vide. Soyez le premier à le remplir !"}
                 </p>
-                {canUpload && !searchQuery && !selectedTag && !selectedAuthor && (
-                  <button
-                    onClick={() => setIsUploadOpen(true)}
-                    className="bg-cyan-400 text-[#0f2323] px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform hover:brightness-110 flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-[20px]" aria-hidden="true">add_photo_alternate</span>
-                    Ajouter une photo
-                  </button>
-                )}
+                {canUpload &&
+                  !searchQuery &&
+                  !selectedTag &&
+                  !selectedAuthor && (
+                    <button
+                      onClick={() => setIsUploadOpen(true)}
+                      className="bg-cyan-400 text-[#0f2323] px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform hover:brightness-110 flex items-center gap-2"
+                    >
+                      <span
+                        className="material-symbols-outlined text-[20px]"
+                        aria-hidden="true"
+                      >
+                        add_photo_alternate
+                      </span>
+                      Ajouter une photo
+                    </button>
+                  )}
               </div>
             )}
           </div>
