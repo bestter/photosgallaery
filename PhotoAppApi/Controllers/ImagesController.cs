@@ -25,24 +25,22 @@ namespace PhotoAppApi.Controllers
         [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImage(string fileName)
         {
-            _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
+            // 🛡️ Sentinel: Sanitize the fileName to prevent Path Traversal (CWE-22)
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
-            // We reject early if the fileName contains path separators or traversal sequences.
-            if (string.IsNullOrEmpty(fileName) ||
-                fileName.Contains("/") ||
-                fileName.Contains("\\") ||
-                fileName.Contains("..") ||
-                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            // Use Path.GetFileName as a recognized sanitizer.
+            // We replace backslashes to ensure cross-platform consistency.
+            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+
+            // Reject if the input was not a simple filename or contains traversal sequences.
+            if (safeFileName != fileName ||
+                safeFileName.Contains("..") ||
+                safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
                 return BadRequest("Invalid file name.");
             }
 
-            // Explicitly normalize path separators for cross-platform safety
-            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
-
-            // Prevent basic traversal attempts
-            if (fileName != safeFileName) return BadRequest("Invalid file name.");
+            _logger.Debug($"In {nameof(GetImage)} for file: {safeFileName}");
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
@@ -118,23 +116,19 @@ namespace PhotoAppApi.Controllers
         [HttpGet("thumbnails/{fileName}")]
         public async Task<IActionResult> GetThumbnail(string fileName)
         {
-            _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
+            // 🛡️ Sentinel: Sanitize the fileName to prevent Path Traversal (CWE-22)
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
-            if (string.IsNullOrEmpty(fileName) ||
-                fileName.Contains("/") ||
-                fileName.Contains("\\") ||
-                fileName.Contains("..") ||
-                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+
+            if (safeFileName != fileName ||
+                safeFileName.Contains("..") ||
+                safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
                 return BadRequest("Invalid file name.");
             }
 
-            // Explicitly normalize path separators for cross-platform safety
-            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
-
-            // Prevent basic traversal attempts
-            if (fileName != safeFileName) return BadRequest("Invalid file name.");
+            _logger.Debug($"In {nameof(GetThumbnail)} for file: {safeFileName}");
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
