@@ -496,7 +496,7 @@ namespace PhotoAppApi.Tests
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var value = okResult.Value;
-            var tokenString = value.GetType().GetProperty("token").GetValue(value) as string;
+            var tokenString = value?.GetType().GetProperty("token")?.GetValue(value) as string;
             Assert.False(string.IsNullOrEmpty(tokenString));
 
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();

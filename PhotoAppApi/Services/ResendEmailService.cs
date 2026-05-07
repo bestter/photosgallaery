@@ -21,7 +21,7 @@ namespace PhotoAppApi.Services
 
         public async Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.AppendLine("========================================");            
             sb.AppendLine($"Subject: {inviterName} vous a invité à rejoindre le cercle {groupName} sur Vision");
             sb.AppendLine($"\nBonjour {firstName} {lastName},");
