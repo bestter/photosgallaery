@@ -23,3 +23,7 @@
 ## 2024-05-18 - Eliminate Change Tracking Overhead in EF Core Read-Only Queries
 **Learning:** Entity Framework Core adds significant memory and CPU overhead when executing `.ToListAsync()` or tracking changes on fetched entities. Many administrative and view-only endpoints were fetching full entities without needing to modify them.
 **Action:** Consistently apply `.AsNoTracking()` to `IQueryable` chains where the fetched entities are strictly read-only and won't be modified before returning the response. This pattern reduces memory usage and CPU cycles, improving the scalability of administrative list endpoints.
+
+## 2025-05-18 - Eliminate DB Query for Current User in JWT Auth
+**Learning:** In JWT-authenticated controllers (like `PhotosController`), querying `_context.Users.FirstOrDefaultAsync` using the username just to get the `UserId` is an unnecessary N+1 performance drain per request.
+**Action:** Extract the `UserId` directly from the JWT claims using `User.FindFirst(ClaimTypes.NameIdentifier)?.Value` and parse it instead of performing a database hit.
