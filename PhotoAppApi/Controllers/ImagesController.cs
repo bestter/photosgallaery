@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
 using System.Security.Claims;
 
@@ -13,12 +14,14 @@ namespace PhotoAppApi.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly IMemoryCache _cache;
         private readonly Logger _logger;
 
-        public ImagesController(AppDbContext context, IWebHostEnvironment env)
+        public ImagesController(AppDbContext context, IWebHostEnvironment env, IMemoryCache cache)
         {
             _context = context;
             _env = env;
+            _cache = cache;
             _logger = new();
         }
 
@@ -82,7 +85,16 @@ namespace PhotoAppApi.Controllers
                     return BadRequest("Invalid file path.");
                 }
 
-                if (!System.IO.File.Exists(filePath))
+                string cacheKey = $"file_exists_{filePath}";
+                if (!_cache.TryGetValue(cacheKey, out bool fileExists))
+                {
+                    fileExists = System.IO.File.Exists(filePath);
+                    var cacheOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(10));
+                    _cache.Set(cacheKey, fileExists, cacheOptions);
+                }
+
+                if (!fileExists)
                 {
                     return NotFound();
                 }
@@ -158,7 +170,16 @@ namespace PhotoAppApi.Controllers
                     return BadRequest("Invalid file path.");
                 }
 
-                if (!System.IO.File.Exists(filePath)) return NotFound();
+                string cacheKey = $"file_exists_{filePath}";
+                if (!_cache.TryGetValue(cacheKey, out bool fileExists))
+                {
+                    fileExists = System.IO.File.Exists(filePath);
+                    var cacheOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(10));
+                    _cache.Set(cacheKey, fileExists, cacheOptions);
+                }
+
+                if (!fileExists) return NotFound();
 
                 var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch
