@@ -8,3 +8,4 @@
 ## 2025-05-06 - Search Input Accessibility
 **Learning:** Search inputs (especially on mobile layouts without visible labels) often lack adequate context for screen readers. While placeholders provide visual hints, they are not a substitute for proper ARIA labels.
 **Action:** Always add an explicit `aria-label` to search inputs, ensuring that users navigating with screen readers understand the input's purpose.
+## 2026-05-07 - Explicit Disabled States on Authentication Forms\n**Learning:** Implementing disabled states and tooltips based on form validation enhances user experience and accessibility, but requires escaping special characters in JSX (like apostrophes with \&apos;) to pass strict linting rules.\n**Action:** Apply disabled states using form validation logic, provide descriptive tooltips, and always resolve 'react/no-unescaped-entities' lint errors.
