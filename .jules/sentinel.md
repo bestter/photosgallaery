@@ -72,3 +72,8 @@
 **Vulnerability:** File upload endpoints (like `/api/photos/upload`) were lacking explicit rate limiting, making the application susceptible to resource exhaustion or DoS attacks from automated scripts repeatedly uploading large payloads.
 **Learning:** Even if the file size itself is limited (`[RequestSizeLimit]`), an attacker could still exhaust server resources (CPU, I/O, disk space) by sending many requests in a short amount of time.
 **Prevention:** Implement endpoint-specific rate limiting (`EnableRateLimiting`) partitioned by IP address on resource-intensive endpoints (such as file uploads) to constrain the maximum number of requests a single user can make within a specified time window.
+
+## 2024-05-07 - [Missing Role Authorization on Maintenance Endpoint]
+**Vulnerability:** The endpoint `/api/photos/maintenance/backfill-hashes` had a `[Authorize]` attribute, allowing any authenticated user to trigger an expensive backfill operation meant only for Admins.
+**Learning:** For maintenance and administrative endpoints, simple authentication is insufficient. If a role requirement (e.g. `[Authorize(Roles = "Admin")]`) is missing, it results in a Broken Access Control / Missing Authorization vulnerability, which could be abused for Denial of Service or unintended data modification.
+**Prevention:** Always verify that administrative routes explicitly enforce role-based access control, rather than just requiring an authenticated session.

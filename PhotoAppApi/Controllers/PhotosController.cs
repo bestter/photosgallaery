@@ -579,7 +579,7 @@ namespace PhotoAppApi.Controllers
 
         // POST: api/photos/maintenance/backfill-hashes (Privé: Admin seulement)
         // Route temporaire pour mettre à jour les anciennes images
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/backfill-hashes")]
         public async Task<IActionResult> BackfillHashes()
         {
