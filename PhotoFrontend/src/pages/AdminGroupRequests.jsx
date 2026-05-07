@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { getUserRole, isTokenExpired } from '../authHelper';
 import api from '../api';
 import AdminLayout from '../components/AdminLayout';
+import { useTranslation } from "react-i18next";
 
 export default function AdminGroupRequests() {
+    const { t } = useTranslation();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -58,20 +60,20 @@ export default function AdminGroupRequests() {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-surface-container/50 border-b border-outline-variant/40">
-                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase">Group Name</th>
-                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase">Description</th>
-                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase">Requester</th>
-                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase text-right">Actions</th>
+                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase">{t("admin.group_requests.table.group_name")}</th>
+                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase">{t("admin.group_requests.table.description")}</th>
+                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase">{t("admin.group_requests.table.requester")}</th>
+                            <th className="py-4 px-6 font-label text-on-surface-variant font-semibold text-xs tracking-wider uppercase text-right">{t("admin.group_requests.table.actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/20 text-sm">
                         {loading ? (
                             <tr>
-                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">Chargement des requêtes...</td>
+                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">{t("admin.group_requests.loading")}</td>
                             </tr>
                         ) : requests.length === 0 ? (
                             <tr>
-                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">Aucune requête en attente.</td>
+                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">{t("admin.group_requests.no_requests")}</td>
                             </tr>
                         ) : requests.map((req) => (
                             <tr key={req.id} className="hover:bg-surface-container-high/50 transition-colors group">

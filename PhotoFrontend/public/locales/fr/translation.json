@@ -18,7 +18,7 @@
     "register": {
       "password_mismatch": "Les mots de passe ne correspondent pas.",
       "accept_terms_error": "Vous devez accepter les conditions d'utilisation.",
-      "success": "Inscription réussie ! Vous pouvez maintenant vous connecter.",
+      "success": "Compte créé avec succès ! Connectez-vous.",
       "error": "Erreur lors de l'inscription. Ce nom d'utilisateur est peut-être déjà pris.",
       "subtitle": "Créez votre compte pour commencer",
       "username_label": "Nom d'utilisateur",
@@ -36,7 +36,13 @@
       "loading": "INSCRIPTION EN COURS...",
       "submit": "S'INSCRIRE",
       "already_have_account": "Déjà un compte ?",
-      "login_link": "Se connecter"
+      "login_link": "Se connecter",
+      "title": "PixelLyra.com",
+      "and_the": "et la",
+      "error_passwords_match": "Les mots de passe ne correspondent pas.",
+      "error_accept_terms": "Vous devez accepter les conditions d'utilisation.",
+      "error_general": "Erreur lors de la création du compte. Vérifiez vos informations.",
+      "fill_all": "Veuillez remplir tous les champs"
     },
     "join": {
       "validating": "Validation de l'invitation..."
@@ -117,23 +123,24 @@
       },
       "back_button": "Retour aux groupes",
       "back_to_groups": "Retour aux groupes",
-      "add_member": "Ajouter un membre",
-      "select_user": "Sélectionner un utilisateur...",
+      "add_member": "Ajouter un utilisateur",
+      "select_user": "-- Sélectionner un utilisateur --",
       "role": {
-        "member": "Membre (Lecture/Écriture)",
+        "member": "Membre",
         "admin": "Admin",
-        "none": "Aucun (Bloqué)"
+        "none": "Aucun"
       },
       "add_button": "Ajouter au groupe",
       "current_members": "Membres actuels",
       "members_table": {
         "user": "Utilisateur",
         "role": "Rôle",
-        "added": "Ajouté le",
+        "added": "Date d'ajout",
         "actions": "Actions"
       },
       "no_members": "Aucun membre dans ce groupe.",
-      "loading": "Chargement..."
+      "loading": "Chargement...",
+      "back": "arrow_back"
     },
     "moderation": {
       "title": "Centre de Modération",
@@ -315,7 +322,7 @@
     "upload": {
       "error": {
         "session_expired": "Votre session a expiré. Veuillez vous reconnecter.",
-        "select_file": "Veuillez sélectionner un fichier.",
+        "select_file": "Veuillez choisir au moins un fichier",
         "tag_limit": "Veuillez sélectionner entre 1 et 12 tags.",
         "select_group": "Veuillez sélectionner un cercle de visibilité.",
         "file_too_large": "Le fichier est trop volumineux. La taille maximale est de {{size}} MB.",
@@ -323,11 +330,13 @@
         "duplicate": "Cette image a déjà été téléversée !",
         "unsafe": "L'image a été détectée comme potentiellement non sécuritaire.",
         "failed": "Échec de l'upload.",
-        "unauthorized": "Vous n'avez pas l'autorisation de faire cela."
+        "unauthorized": "Vous n'avez pas l'autorisation de faire cela.",
+        "load_groups": "Impossible de charger vos cercles.",
+        "size_limit": "La taille totale dépasse la limite de 50 Mo."
       },
       "loading": "Téléversement de vos images...",
       "duplicates_ignored": "Certains doublons ont été ignorés.",
-      "success": "Upload réussi !",
+      "success": "{{count}} fichier(s) prêt(s) !",
       "title": "Ajouter une photo",
       "subtitle": "Partagez vos moments avec la communauté PixelLyra.com.",
       "drag_drop": "Glissez-déposez votre photo ici",
@@ -345,5 +354,8 @@
       "publish_btn": "Publier la photo",
       "uploading": "Envoi en cours..."
     }
+  },
+  "join": {
+    "validating_invitation": "Validation de l'invitation..."
   }
 }
