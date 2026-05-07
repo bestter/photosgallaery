@@ -28,19 +28,22 @@ async def moderate_image(file: UploadFile = File(...)):
         # Prédiction
         results = classifier(image)
         
-        # Le modèle retourne généralement [{"label": "nsfw", "score": 0.XX}, {"label": "safe", "score": 0.XX}]
-        nsfw_score = next((r["score"] for r in results if r["label"].lower() == "nsfw"), 0.0)
-        safe_score = next((r["score"] for r in results if r["label"].lower() == "safe"), 0.0)
+        # === LOG IMPORTANT pour debug ===
+        print("=== RAW MODEL OUTPUT ===")
+        print(results)
+        print("========================")
 
-        is_nsfw = nsfw_score > 0.65  # Seuil que tu peux ajuster
+        nsfw_score = next(
+            (r["score"] for r in results if r["label"].lower() == "nsfw"),
+            0.0
+        )
 
-        return JSONResponse({
-            "is_nsfw": is_nsfw,
+        return {
+            "is_nsfw": nsfw_score > 0.60,
             "nsfw_score": round(nsfw_score, 4),
-            "safe_score": round(safe_score, 4),
-            "label": "nsfw" if is_nsfw else "safe",
-            "all_results": results
-        })
+            "safe_score": round(1.0 - nsfw_score, 4),
+            "label": results[0]["label"]
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
