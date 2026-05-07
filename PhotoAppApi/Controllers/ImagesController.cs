@@ -27,7 +27,16 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
+            // We reject early if the fileName contains path separators or traversal sequences.
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("/") ||
+                fileName.Contains("\\") ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
             // Explicitly normalize path separators for cross-platform safety
             var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
@@ -111,7 +120,15 @@ namespace PhotoAppApi.Controllers
         {
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("/") ||
+                fileName.Contains("\\") ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
             // Explicitly normalize path separators for cross-platform safety
             var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
