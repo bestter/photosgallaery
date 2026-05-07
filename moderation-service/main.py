@@ -39,7 +39,7 @@ async def moderate_image(file: UploadFile = File(...)):
         )
 
         return {
-            "is_nsfw": nsfw_score > 0.60,
+            "is_nsfw": nsfw_score > 0.55,
             "nsfw_score": round(nsfw_score, 4),
             "safe_score": round(1.0 - nsfw_score, 4),
             "label": results[0]["label"]
