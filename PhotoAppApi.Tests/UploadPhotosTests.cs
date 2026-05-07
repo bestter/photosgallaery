@@ -15,6 +15,7 @@ using Moq;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using Xunit;
 
 namespace PhotoAppApi.Tests
@@ -84,8 +85,12 @@ namespace PhotoAppApi.Tests
             var files = new List<IFormFile> { formFileMock.Object };
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
 
+            var moderationMock = new Mock<IModerationService>();
+            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
+
             // Act
-            var result = await controller.UploadPhotos(files, tags, null, false);
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -148,8 +153,12 @@ namespace PhotoAppApi.Tests
             var files = new List<IFormFile> { formFileMock1.Object, formFileMock2.Object };
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
 
+            var moderationMock = new Mock<IModerationService>();
+            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
+
             // Act
-            var result = await controller.UploadPhotos(files, tags, null, false);
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -161,6 +170,63 @@ namespace PhotoAppApi.Tests
 
             var photosInDb = await context.Photos.ToListAsync();
             Assert.Single(photosInDb);
+        }
+
+        [Fact]
+        public async Task UploadPhotos_Should_Reject_Nsfw_Image()
+        {
+            // Arrange
+            var options = CreateNewContextOptions();
+            using var context = new AppDbContext(options);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.ContentRootPath).Returns(Directory.GetCurrentDirectory());
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, "mock"));
+
+            var controller = new PhotosController(context, envMock.Object, channelMock.Object)
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext() { User = user }
+                }
+            };
+
+            var fileContent = "dummy nsfw image content";
+            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+
+            var formFileMock = new Mock<IFormFile>();
+            formFileMock.Setup(f => f.Length).Returns(fileBytes.Length);
+            formFileMock.Setup(f => f.FileName).Returns("nsfw_image.jpg");
+            formFileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
+
+            var files = new List<IFormFile> { formFileMock.Object };
+            var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
+
+            var moderationMock = new Mock<IModerationService>();
+            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new ModerationResult { IsNsfw = true, NsfwScore = 0.95, SafeScore = 0.05, Label = "nsfw" });
+
+            // Act
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var value = badRequestResult.Value;
+            var json = JsonSerializer.Serialize(value);
+            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+            
+            Assert.NotNull(dict);
+            Assert.True(dict.ContainsKey("message"));
+            Assert.Contains("Image contains inappropriate content", dict["message"].GetString() ?? string.Empty);
+            
+            var photosInDb = await context.Photos.ToListAsync();
+            Assert.Empty(photosInDb);
         }
     }
 }

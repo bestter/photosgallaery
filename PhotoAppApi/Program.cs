@@ -142,6 +142,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var moderationUrl = builder.Configuration["ModerationURL"];
+if (!string.IsNullOrWhiteSpace(moderationUrl))
+{
+    builder.Services.AddHttpClient("ModerationClient", client =>
+    {
+        client.BaseAddress = new Uri(moderationUrl); // ou URL interne Fly
+        client.Timeout = TimeSpan.FromSeconds(30);
+    });
+    builder.Services.AddScoped<IModerationService, ModerationService>();
+}
+
+
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CanUpload", policy =>
         policy.RequireRole("Admin", "Creator"));

@@ -1,14 +1,15 @@
-using System.Linq;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -127,7 +128,7 @@ namespace PhotoAppApi.Controllers
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
                         .ToListAsync();
-                    userReportedPhotoIds = new HashSet<int>(reportedIds);
+                    userReportedPhotoIds = [.. reportedIds];
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
@@ -231,7 +232,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true)
+        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true)
         {
             try
             {
@@ -239,6 +240,21 @@ namespace PhotoAppApi.Controllers
 
                 if (files == null || files.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
+
+                if (moderationService != null) {    
+                    foreach (var file in files)
+                    {
+                        await using var stream = file.OpenReadStream();
+                        var result = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType);
+
+                        if (result.IsNsfw)
+                            return BadRequest(new { message = "Image contains inappropriate content", score = result.NsfwScore });
+                    }
+                }
+                else
+                {
+                    _logger.Warn("ModerationService non configuré. Le téléversement se poursuit sans modération.");
+                }
 
 
                 var tagNames = string.IsNullOrWhiteSpace(tags)
@@ -358,8 +374,8 @@ namespace PhotoAppApi.Controllers
                 var distinctHashes = fileHashes.Select(fh => fh.Hash).Distinct().ToList();
                 var existingHashes = await _context.Photos
                     .AsNoTracking()
-                    .Where(p => distinctHashes.Contains(p.FileHash))
-                    .Select(p => p.FileHash)
+                    .Where(p => p.FileHash != null && distinctHashes.Contains(p.FileHash))
+                    .Select(p => p.FileHash!)
                     .ToListAsync();
 
                 var existingHashesSet = new HashSet<string>(existingHashes);
