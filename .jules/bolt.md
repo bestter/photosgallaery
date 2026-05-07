@@ -31,3 +31,6 @@
 ## 2026-05-07 - [Caching File Existence in ImagesController]
 **Learning:** Synchronous `System.IO.File.Exists` calls in high-concurrency endpoints (like image serving) block thread pool threads, leading to increased latency and potential thread exhaustion. Memory lookups are orders of magnitude faster (~20x in benchmarks).
 **Action:** Injected `IMemoryCache` into `ImagesController` and implemented caching for file existence checks in `GetImage` and `GetThumbnail` with a 10-minute sliding expiration. Registered the memory cache service in `Program.cs`.
+## 2025-05-08 - Unit Tests for ContactController
+**Learning:** Writing test coverage for API endpoints helps ensure inputs are handled correctly, dependencies are interacted with properly, and edge cases do not result in unhandled exceptions.
+**Action:** Created unit tests for the ContactController to verify correct success responses, bad request on missing fields, and internal server errors on external dependency failure.
