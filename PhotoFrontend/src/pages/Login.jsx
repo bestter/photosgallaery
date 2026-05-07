@@ -40,7 +40,7 @@ const Login = () => {
               <img
                 alt="PixelLyra Logo"
                 className="h-24 w-auto mx-auto"
-                src="/Public/3hv8x.jpg"
+                src="/3hv8x.jpg"
               />
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-on-surface font-headline mb-2">
