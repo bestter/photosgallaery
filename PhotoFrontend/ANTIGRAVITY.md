@@ -12,8 +12,11 @@
 
 ## 3. Règles d'édition du code React
 * **Architecture des composants :** Génère exclusivement des composants fonctionnels modernes basés sur les Hooks.
+* **Système de Design (STRICT) :** Avant toute création ou modification visuelle (composants, layout, couleurs, typographie), tu dois impérativement lire et appliquer les directives définies dans le fichier `DESIGN.md`. Aucune classe CSS, style en ligne ou composant UI ne doit contredire ce document de référence. Si un élément UI demandé n'est pas couvert par `DESIGN.md`, tu dois me le signaler et demander des instructions plutôt que d'improviser.
 * **Gestion des textes (i18n) :** Garde un œil strict sur l'internationalisation. Ne code jamais de chaînes de caractères en dur dans le JSX. Si je te demande d'ajouter un nouveau bouton ou un titre, utilise d'emblée le hook `useTranslation()` de `react-i18next` et rappelle-moi de mettre à jour les fichiers `fr.json` et `en.json` correspondants dans le dossier public.
 * **Mises à jour optimistes :** Pour toute interaction liée à la base de données (comme cliquer sur le bouton pour aimer une photo), mets à jour l'état local de l'interface immédiatement pour garantir une sensation de fluidité, sans attendre le retour de l'API.
 
 ## 4. Maintenance de l'infrastructure
 * **Environnement et Déploiement :** Le frontend sera déployé via un conteneur Docker sur Fly.io. Si tu as besoin d'ajouter une nouvelle variable d'environnement (dans le `.env` local pour Vite), vérifie toujours que le `Dockerfile` du frontend expose ou utilise correctement cette variable lors de l'étape `npm run build`.
+* **Sécurité & Conventions :** * **Toutes** les variables d'environnement sensibles (URL de l'API, clés, etc.) doivent être impérativement préfixées par `VITE_`. 
+    * Ne jamais utiliser de secrets ou de tokens sensibles directement dans le code source ; passe-les uniquement via les variables d'environnement configurées.
