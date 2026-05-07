@@ -77,3 +77,8 @@
 **Vulnerability:** The endpoint `/api/photos/maintenance/backfill-hashes` had a `[Authorize]` attribute, allowing any authenticated user to trigger an expensive backfill operation meant only for Admins.
 **Learning:** For maintenance and administrative endpoints, simple authentication is insufficient. If a role requirement (e.g. `[Authorize(Roles = "Admin")]`) is missing, it results in a Broken Access Control / Missing Authorization vulnerability, which could be abused for Denial of Service or unintended data modification.
 **Prevention:** Always verify that administrative routes explicitly enforce role-based access control, rather than just requiring an authenticated session.
+
+## 2026-05-07 - [Path Traversal in ImagesController]
+**Vulnerability:** Path Traversal (CWE-22) in GetImage and GetThumbnail endpoints.
+**Learning:** Relying on sanitization (like Path.GetFileName) alone can be bypassable or leave edge cases. A "reject-early" strategy for route parameters is more secure.
+**Prevention:** Strictly validate input strings that will be used in path construction. Reject any input containing directory separators ('/', '\') or traversal sequences ('..') before any further processing.
