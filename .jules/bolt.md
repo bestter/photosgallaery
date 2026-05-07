@@ -31,3 +31,6 @@
 ## 2026-05-07 - [Caching File Existence in ImagesController]
 **Learning:** Synchronous `System.IO.File.Exists` calls in high-concurrency endpoints (like image serving) block thread pool threads, leading to increased latency and potential thread exhaustion. Memory lookups are orders of magnitude faster (~20x in benchmarks).
 **Action:** Injected `IMemoryCache` into `ImagesController` and implemented caching for file existence checks in `GetImage` and `GetThumbnail` with a 10-minute sliding expiration. Registered the memory cache service in `Program.cs`.
+## 2025-05-18 - Refactor Exception Handling for Performance and Clarity
+**Learning:** Catching generic exceptions (`catch (Exception)`) without logging them makes debugging difficult and hides potential issues. While we shouldn't expose sensitive information to the user, the exception details should still be recorded.
+**Action:** Replace `catch (Exception)` with `catch (Exception ex)` and use a logger to record the exception details internally, while continuing to return a generic 500 error to the client. This improves observability without compromising security.
