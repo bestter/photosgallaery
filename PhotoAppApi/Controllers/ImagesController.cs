@@ -28,9 +28,16 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Sanitize the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            // Use Path.GetFileName as a recognized sanitizer.
-            // We replace backslashes to ensure cross-platform consistency.
-            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
+            // We reject early if the fileName contains path separators or traversal sequences.
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("/") ||
+                fileName.Contains("\\") ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
             // Reject if the input was not a simple filename or contains traversal sequences.
             if (safeFileName != fileName ||
@@ -119,7 +126,15 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Sanitize the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("/") ||
+                fileName.Contains("\\") ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
             if (safeFileName != fileName ||
                 safeFileName.Contains("..") ||
