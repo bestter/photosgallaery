@@ -1,0 +1,16 @@
+🧪 Add tests for API interceptors in api.js
+
+🎯 **What:** The testing gap addressed
+This PR addresses the missing error tests for the Axios response and request interceptors in `PhotoFrontend/src/api.js`.
+
+📊 **Coverage:** What scenarios are now tested
+The following scenarios are now covered by unit tests using Vitest:
+- Network error (no response) triggers a `toast.error` with specific message and icon.
+- 401 Unauthorized error correctly clears the `token` from `localStorage` and redirects the user to `/login?ejected=true`.
+- 403 Forbidden error behaves exactly like 401 (clears token, redirects).
+- No redirection happens if the user is already on the `/login` route.
+- 500 Internal Server error triggers a distinct `toast.error`.
+- Tests for request interceptor ensuring `X-App-Client` and `Authorization` (if token exists) headers are successfully appended to outgoing requests.
+
+✨ **Result:** The improvement in test coverage
+We now have full coverage over the Axios interceptors ensuring critical UI feedback (toasts) and security behavior (forced logouts on token expiry) won't silently regress in the future.
