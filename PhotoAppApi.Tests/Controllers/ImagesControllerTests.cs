@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
@@ -15,6 +16,7 @@ namespace PhotoAppApi.Tests.Controllers
     public class ImagesControllerTests : IDisposable
     {
         private readonly Mock<IWebHostEnvironment> _mockEnv;
+        private readonly IMemoryCache _cache;
         private readonly string _tempDir;
         private readonly string _privateImagesDir;
         private readonly string _thumbnailsDir;
@@ -22,6 +24,7 @@ namespace PhotoAppApi.Tests.Controllers
         public ImagesControllerTests()
         {
             _mockEnv = new Mock<IWebHostEnvironment>();
+            _cache = new MemoryCache(new MemoryCacheOptions());
 
             // Setup a temporary directory to act as ContentRootPath
             _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -55,7 +58,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB
             var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg" };
@@ -74,7 +77,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB
             var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg" };
@@ -99,7 +102,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB. The Path.GetFileName on traversal payload will extract "passwd"
             var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd" };
@@ -121,7 +124,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB. The Path.GetFileName on traversal payload will extract "passwd"
             var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd" };

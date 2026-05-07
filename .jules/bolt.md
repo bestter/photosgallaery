@@ -27,3 +27,7 @@
 ## 2025-05-18 - Eliminate DB Query for Current User in JWT Auth
 **Learning:** In JWT-authenticated controllers (like `PhotosController`), querying `_context.Users.FirstOrDefaultAsync` using the username just to get the `UserId` is an unnecessary N+1 performance drain per request.
 **Action:** Extract the `UserId` directly from the JWT claims using `User.FindFirst(ClaimTypes.NameIdentifier)?.Value` and parse it instead of performing a database hit.
+
+## 2026-05-07 - [Caching File Existence in ImagesController]
+**Learning:** Synchronous `System.IO.File.Exists` calls in high-concurrency endpoints (like image serving) block thread pool threads, leading to increased latency and potential thread exhaustion. Memory lookups are orders of magnitude faster (~20x in benchmarks).
+**Action:** Injected `IMemoryCache` into `ImagesController` and implemented caching for file existence checks in `GetImage` and `GetThumbnail` with a 10-minute sliding expiration. Registered the memory cache service in `Program.cs`.

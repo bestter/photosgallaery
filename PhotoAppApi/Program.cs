@@ -146,6 +146,7 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CanUpload", policy =>
         policy.RequireRole("Admin", "Creator"));
 
+builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
