@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import Footer from "../components/Footer";
 
 const Register = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,12 +17,12 @@ const Register = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas.");
+      toast.error(t("auth.register.error_passwords_match"));
       return;
     }
 
     if (!acceptTerms) {
-      toast.error("Vous devez accepter les conditions d'utilisation.");
+      toast.error(t("auth.register.error_accept_terms"));
       return;
     }
 
@@ -39,11 +41,11 @@ const Register = () => {
         localStorage.removeItem("inviteToken");
       }
 
-      toast.success("Compte créé avec succès ! Connectez-vous.");
+      toast.success(t("auth.register.success"));
       window.location.href = "/login";
     } catch (err) {
       toast.error(
-        "Erreur lors de la création du compte. Vérifiez vos informations.",
+        t("auth.register.error_general"),
       );
     } finally {
       setIsLoading(false);
@@ -96,7 +98,7 @@ const Register = () => {
                 <input
                   className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
                   id="full_name"
-                  placeholder="Nom d'utilisateur"
+                  placeholder={t("auth.register.username_placeholder")}
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -124,7 +126,7 @@ const Register = () => {
                 <input
                   className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
                   id="email"
-                  placeholder="nom@exemple.com"
+                  placeholder={t("auth.register.email_placeholder")}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -151,7 +153,7 @@ const Register = () => {
                 <input
                   className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
                   id="password"
-                  placeholder="••••••••"
+                  placeholder={t("auth.register.password_placeholder")}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -179,7 +181,7 @@ const Register = () => {
                 <input
                   className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
                   id="confirm_password"
-                  placeholder="••••••••"
+                  placeholder={t("auth.register.password_placeholder")}
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -205,7 +207,7 @@ const Register = () => {
                 className="text-[12px] text-on-surface-variant leading-relaxed"
                 htmlFor="terms"
               >
-                J&apos;accepte les{" "}
+                {t("auth.register.accept_terms")}{" "}
                 <a className="text-primary hover:underline" href="#">
                   Conditions d&apos;utilisation
                 </a>{" "}
@@ -231,9 +233,9 @@ const Register = () => {
               }
               title={
                 !username || !email || !password || !confirmPassword
-                  ? "Veuillez remplir tous les champs"
+                  ? t("auth.register.fill_all")
                   : !acceptTerms
-                    ? "Veuillez accepter les conditions d'utilisation"
+                    ? t("auth.register.error_accept_terms")
                     : ""
               }
             >

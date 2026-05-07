@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 export default function Join() {
+    const { t } = useTranslation();
     // Dans l'URL, ce sera /join/:inviteToken
     // Toutefois, si on n'utilise pas react-router-dom useParams, on peut lire depuis pathname
     // Si l'appli n'a pas react-router-dom (et utilise window.location), on le récupérera via Split
@@ -23,7 +26,7 @@ export default function Join() {
         <div className="flex h-screen items-center justify-center bg-background text-on-surface font-body">
             <div className="text-center">
                 <span className="material-symbols-outlined animate-spin text-4xl text-primary block mb-4">sync</span>
-                <p className="text-on-surface-variant font-medium tracking-wide">Validation de l'invitation...</p>
+                <p className="text-on-surface-variant font-medium tracking-wide">{t("join.validating_invitation")}</p>
             </div>
         </div>
     );
