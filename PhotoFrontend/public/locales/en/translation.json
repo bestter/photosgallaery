@@ -18,25 +18,31 @@
     "register": {
       "password_mismatch": "Passwords do not match.",
       "accept_terms_error": "You must accept the terms of use.",
-      "success": "Registration successful! You can now log in.",
+      "success": "Account successfully created! Please login.",
       "error": "Error during registration. This username might already be taken.",
-      "subtitle": "Create your account to start",
+      "subtitle": "Create your account to get started",
       "username_label": "Username",
       "username_placeholder": "Username",
       "email_label": "Email Address",
       "email_placeholder": "name@example.com",
       "password_label": "Password",
       "password_placeholder": "••••••••",
-      "confirm_password_label": "Confirm password",
+      "confirm_password_label": "Confirm Password",
       "confirm_password_placeholder": "••••••••",
       "accept_terms": "I accept the",
       "terms_of_use": "Terms of Use",
       "and": "and the",
       "privacy_policy": "Privacy Policy",
-      "loading": "REGISTRATION IN PROGRESS...",
-      "submit": "SIGN UP",
+      "loading": "REGISTERING...",
+      "submit": "REGISTER",
       "already_have_account": "Already have an account?",
-      "login_link": "Log in"
+      "login_link": "Login",
+      "title": "PixelLyra.com",
+      "and_the": "and the",
+      "error_passwords_match": "Passwords do not match.",
+      "error_accept_terms": "You must accept the terms of use.",
+      "error_general": "Error creating account. Please check your information.",
+      "fill_all": "Please fill in all fields"
     },
     "join": {
       "validating": "Validating invitation..."
@@ -117,23 +123,24 @@
       },
       "back_button": "Back to groups",
       "back_to_groups": "Back to groups",
-      "add_member": "Add a member",
-      "select_user": "Select a user...",
+      "add_member": "Add user",
+      "select_user": "-- Select a user --",
       "role": {
-        "member": "Member (Read/Write)",
+        "member": "Member",
         "admin": "Admin",
-        "none": "None (Blocked)"
+        "none": "None"
       },
       "add_button": "Add to group",
       "current_members": "Current members",
       "members_table": {
         "user": "User",
         "role": "Role",
-        "added": "Added on",
+        "added": "Added Date",
         "actions": "Actions"
       },
       "no_members": "No members in this group.",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "back": "arrow_back"
     },
     "moderation": {
       "title": "Moderation Center",
@@ -315,7 +322,7 @@
     "upload": {
       "error": {
         "session_expired": "Your session has expired. Please log in again.",
-        "select_file": "Please select a file.",
+        "select_file": "Please select at least one file",
         "tag_limit": "Please select between 1 and 12 tags.",
         "select_group": "Please select a visibility circle.",
         "file_too_large": "The file is too large. Maximum size is {{size}} MB.",
@@ -323,11 +330,13 @@
         "duplicate": "This image has already been uploaded!",
         "unsafe": "The image was detected as potentially unsafe.",
         "failed": "Upload failed.",
-        "unauthorized": "You don't have permission to do this."
+        "unauthorized": "You don't have permission to do this.",
+        "load_groups": "Cannot load your circles.",
+        "size_limit": "Total size exceeds the 50 MB limit."
       },
       "loading": "Uploading your images...",
       "duplicates_ignored": "Some duplicates were ignored.",
-      "success": "Upload successful!",
+      "success": "{{count}} file(s) ready!",
       "title": "Add a photo",
       "subtitle": "Share your moments with the PixelLyra.com community.",
       "drag_drop": "Drag and drop your photo here",
@@ -345,5 +354,8 @@
       "publish_btn": "Publish photo",
       "uploading": "Sending..."
     }
+  },
+  "join": {
+    "validating_invitation": "Validating invitation..."
   }
 }

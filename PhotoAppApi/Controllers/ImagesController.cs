@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace PhotoAppApi.Controllers
 {
@@ -25,15 +26,17 @@ namespace PhotoAppApi.Controllers
         [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImage(string fileName)
         {
-            _logger.Debug($"In {nameof(GetImage)} for file: {fileName}");
+            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+            // Reject any file name that doesn't strictly match a simple, safe filename pattern.
+            // This is a robust allow-list approach that satisfies static analysis tools like CodeQL.
+            bool isStrictlyValid = Regex.IsMatch(fileName, @"^[a-zA-Z0-9_\-\.]+$") && !fileName.Contains("..");
+            if (!isStrictlyValid) return BadRequest("Invalid file name.");
 
-            // Explicitly normalize path separators for cross-platform safety
-            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            string safeFileName = fileName;
 
-            // Prevent basic traversal attempts
-            if (fileName != safeFileName) return BadRequest("Invalid file name.");
+            _logger.Debug($"In {nameof(GetImage)} for file: {safeFileName}");
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
@@ -101,7 +104,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetImage)} for file: {fileName}", ex);
+                _logger.Error($"An error occured in {nameof(GetImage)} for file: {safeFileName}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération de l'image." });
             }
         }
@@ -109,15 +112,15 @@ namespace PhotoAppApi.Controllers
         [HttpGet("thumbnails/{fileName}")]
         public async Task<IActionResult> GetThumbnail(string fileName)
         {
-            _logger.Debug($"In {nameof(GetThumbnail)} for file: {fileName}");
+            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
+            bool isStrictlyValid = Regex.IsMatch(fileName, @"^[a-zA-Z0-9_\-\.]+$") && !fileName.Contains("..");
+            if (!isStrictlyValid) return BadRequest("Invalid file name.");
 
-            // Explicitly normalize path separators for cross-platform safety
-            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            string safeFileName = fileName;
 
-            // Prevent basic traversal attempts
-            if (fileName != safeFileName) return BadRequest("Invalid file name.");
+            _logger.Debug($"In {nameof(GetThumbnail)} for file: {safeFileName}");
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
@@ -173,7 +176,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetThumbnail)} for file: {fileName}", ex);
+                _logger.Error($"An error occured in {nameof(GetThumbnail)} for file: {safeFileName}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération de la miniature." });
             }
         }

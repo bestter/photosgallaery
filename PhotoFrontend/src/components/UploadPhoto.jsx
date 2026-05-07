@@ -1,10 +1,12 @@
-/* eslint-disable no-unused-vars */
+
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { isTokenExpired, getUserRole } from "../authHelper";
 
 const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
+  const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -49,7 +51,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         }
       } catch (error) {
         console.error("Erreur lors du chargement des groupes", error);
-        toast.error("Impossible de charger vos cercles.");
+        toast.error(t("components.upload.error.load_groups"));
       }
     };
 
@@ -109,13 +111,13 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
       const totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
 
       if (totalSize > MAX_SIZE_BYTES) {
-        toast.error("La taille totale dépasse la limite de 50 Mo.");
+        toast.error(t("components.upload.error.size_limit"));
         if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
 
       setFiles(selectedFiles);
-      toast.success(`${selectedFiles.length} fichier(s) prêt(s) !`, {
+      toast.success(t("components.upload.success", { count: selectedFiles.length }), {
         icon: "📸",
       });
     }
@@ -149,7 +151,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
     }
 
     if (files.length === 0)
-      return toast.error("Veuillez choisir au moins un fichier");
+      return toast.error(t("components.upload.error.select_file"));
 
     const tagsList =
       typeof tags === "string"
@@ -160,7 +162,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         : tags;
 
     if (tagsList.length < 1 || tagsList.length > 12) {
-      alert("Veuillez sélectionner entre 1 et 12 tags.");
+      alert(t("components.upload.error.tag_limit"));
       setIsUploading(false);
       return;
     }
@@ -392,7 +394,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             <button
               type="submit"
               disabled={isUploading || files.length === 0}
-              title={files.length === 0 ? "Veuillez choisir au moins un fichier" : ""}
+              title={files.length === 0 ? t("components.upload.error.select_file") : ""}
               className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
             >
               {isUploading ? (
