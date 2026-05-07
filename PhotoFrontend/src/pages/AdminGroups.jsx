@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getUserRole, isTokenExpired } from '../authHelper';
 import api from '../api';
+import toast from 'react-hot-toast';
 import AdminLayout from '../components/AdminLayout';
 import { useTranslation } from "react-i18next";
 
@@ -54,7 +55,7 @@ export default function AdminGroups() {
                 if (params.get('requesterId')) setRequesterId(params.get('requesterId'));
                 if (params.get('requestId')) setRequestId(params.get('requestId'));
             } catch (error) {
-                console.error("Erreur lors de la récupération des groupes:", error);
+                toast.error("Erreur lors de la récupération des groupes.");
             } finally {
                 setLoading(false);
             }
@@ -74,6 +75,7 @@ export default function AdminGroups() {
 
             const response = await api.post('/admin/groups', body);
             setGroups([response.data, ...groups]);
+            toast.success("Groupe créé avec succès.");
             setNewGroupName('');
             setNewGroupDescription('');
             setRequesterId('');
@@ -88,8 +90,7 @@ export default function AdminGroups() {
             window.history.pushState({}, '', url);
 
         } catch (error) {
-            console.error("Erreur lors de la création du groupe:", error);
-            alert("Erreur lors de la création.");
+            toast.error("Erreur lors de la création du groupe.");
         }
     };
 
@@ -99,8 +100,7 @@ export default function AdminGroups() {
             await api.delete(`/admin/groups/${id}`);
             setGroups(groups.filter(g => (g.id || g.Id) !== id));
         } catch (error) {
-            console.error("Erreur lors de la suppression du groupe:", error);
-            alert("Erreur lors de la suppression.");
+            toast.error("Erreur lors de la suppression du groupe.");
         }
     };
 
@@ -123,7 +123,7 @@ export default function AdminGroups() {
                 setAllUsers(usersRes.data);
             }
         } catch (error) {
-            console.error("Erreur récupération membres", error);
+            toast.error("Erreur lors de la récupération des membres.");
         }
     };
 
@@ -148,7 +148,7 @@ export default function AdminGroups() {
             setGroups(groups.map(g => (g.id || g.Id) === groupId ? { ...g, userCount: (g.userCount || 0) + 1 } : g));
             setSelectedUserId('');
         } catch (error) {
-            alert(error.response?.data?.message || "Erreur lors de l'ajout.");
+            toast.error(error.response?.data?.message || "Erreur lors de l'ajout.");
         }
     };
 
@@ -161,7 +161,7 @@ export default function AdminGroups() {
             // Update group userCount
             setGroups(groups.map(g => (g.id || g.Id) === groupId ? { ...g, userCount: Math.max((g.userCount || 1) - 1, 0) } : g));
         } catch (error) {
-            alert("Erreur lors du retrait.");
+            toast.error("Erreur lors du retrait.");
         }
     };
 
@@ -171,8 +171,7 @@ export default function AdminGroups() {
             await api.put(`/admin/groups/${groupId}/members/${userId}/role`, { role: newRole });
             setMembers(members.map(m => (m.userId || m.UserId) === userId ? { ...m, role: newRole, Role: newRole } : m));
         } catch (error) {
-            console.error("Erreur mise à jour rôle:", error);
-            alert("Erreur lors de la mise à jour du rôle.");
+            toast.error("Erreur lors de la mise à jour du rôle.");
         }
     };
 
