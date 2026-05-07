@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import LanguageSelector from "../components/LanguageSelector";
+import Footer from "../components/Footer";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -31,7 +31,7 @@ const Login = () => {
   return (
     <div className="bg-background text-on-background font-body min-h-screen flex flex-col glass-background fixed inset-0 z-50 overflow-y-auto">
       {/* Global Navigation Suppressed for Transactional Page (Login) */}
-      <main className="flex-grow flex items-center justify-center px-6 py-12 w-full min-h-full z-10 relative">
+      <main className="flex-grow flex items-center justify-center px-6 py-12 w-full z-10 relative">
         {/* Login Card */}
         <div className="w-full max-w-md bg-surface-container-low p-8 lg:p-10 rounded-xl border border-outline-variant/40 shadow-2xl relative overflow-hidden">
           {/* Decorative Accent */}
@@ -148,33 +148,7 @@ const Login = () => {
         </div>
       </main>
 
-      {/* Footer - Shell Navigation Filtered: Suppressed for transaction, but following JSON structure for visual anchor */}
-      <footer className="flex flex-col justify-center items-center gap-6 pb-8 w-full bg-transparent z-10 relative">
-        <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">
-          {t("footer.copyright")}
-        </span>
-        <div className="hidden md:flex gap-6 items-center">
-          <a
-            className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors"
-            href="#"
-          >
-            {t("footer.privacy_policy")}
-          </a>
-          <a
-            className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors"
-            href="#"
-          >
-            {t("footer.terms_of_service")}
-          </a>
-          <a
-            className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors"
-            href="#"
-          >
-            {t("footer.contact_support")}
-          </a>
-          <LanguageSelector />
-        </div>
-      </footer>
+      <Footer className="bg-transparent border-t-0 pb-8 pt-0" />
 
       {/* Aesthetic Layer: Subdued background image for depth */}
       <div className="fixed inset-0 -z-10 opacity-10 pointer-events-none">

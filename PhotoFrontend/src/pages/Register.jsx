@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import Footer from "../components/Footer";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -51,7 +52,7 @@ const Register = () => {
 
   return (
     <div
-      className="font-body text-on-surface min-h-screen flex items-center justify-center relative overflow-hidden bg-[#081414]"
+      className="font-body text-on-surface min-h-screen flex flex-col relative overflow-y-auto bg-[#081414] z-50"
       style={{
         backgroundImage:
           "radial-gradient(circle at 20% 30%, rgba(0, 206, 209, 0.1) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(0, 206, 209, 0.08) 0%, transparent 40%)",
@@ -64,7 +65,7 @@ const Register = () => {
       </div>
 
       {/* Main Registration Shell */}
-      <main className="w-full max-w-md px-6 py-12 relative z-10">
+      <main className="flex-grow flex flex-col items-center justify-center w-full max-w-md mx-auto px-6 py-12 relative z-10">
         {/* Brand Logo / Title */}
         <div className="mb-10 text-center">
           <h1 className="text-primary font-headline font-black text-4xl tracking-tighter uppercase mb-2">
@@ -260,12 +261,7 @@ const Register = () => {
         </div>
       </main>
 
-      {/* Footer Meta (Subtle) */}
-      <footer className="fixed bottom-6 w-full text-center pointer-events-none z-10">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-700">
-          PixelLyra.com System v2.4.0 • Encrypted Connection
-        </span>
-      </footer>
+      <Footer className="bg-transparent border-t-0 pb-8 pt-0" />
     </div>
   );
 };

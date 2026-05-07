@@ -6,6 +6,7 @@ import GroupRequestModal from "../components/GroupRequestModal";
 import GroupSelector from "../components/GroupSelector";
 import { getUserRole, isTokenExpired } from "../authHelper";
 import api from "../api";
+import Footer from "../components/Footer";
 
 export default function Gallery() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -167,7 +168,7 @@ export default function Gallery() {
   });
 
   return (
-    <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen">
+    <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen flex flex-col relative">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-cyan-400/10 shadow-xl shadow-black/20 flex justify-between items-center px-4 md:px-6 py-3">
         <div className="flex items-center gap-4 md:gap-8">
@@ -287,7 +288,7 @@ export default function Gallery() {
         </div>
       </header>
 
-      <main className="pt-24 pb-12 px-4 md:px-6 max-w-[1600px] mx-auto">
+      <main className="flex-grow pt-24 pb-12 px-4 md:px-6 max-w-[1600px] w-full mx-auto">
         {/* Search Bar for Mobile */}
         <div className="md:hidden relative w-full mb-6">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">
@@ -663,6 +664,8 @@ export default function Gallery() {
           }}
         />
       )}
+
+      <Footer className="mt-auto" />
 
       <InviteModal
         isOpen={isInviteOpen}

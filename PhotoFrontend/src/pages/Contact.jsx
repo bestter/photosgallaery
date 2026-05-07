@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import api from '../api';
 import { getUserRole, isTokenExpired } from "../authHelper";
 import { useTranslation } from 'react-i18next';
+import Footer from '../components/Footer';
 
 export default function Contact() {
   const { t } = useTranslation();
@@ -142,21 +143,7 @@ export default function Contact() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-cyan-400/10 py-12 mt-auto bg-slate-900/80 text-cyan-400 font-sans text-[10px] font-bold uppercase tracking-widest">
-        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-[0.75rem] font-black tracking-[0.15em] text-cyan-400">PIXELLYRA</div>
-          <div className="flex gap-6 flex-wrap justify-center">
-            <a className="text-slate-500 hover:text-cyan-400 transition-colors" href="#">{t('footer.privacy_policy')}</a>
-            <a className="text-slate-500 hover:text-cyan-400 transition-colors" href="#">{t('footer.terms_of_service')}</a>
-            <a className="text-slate-500 hover:text-cyan-400 transition-colors" href="#">{t('contact.instagram')}</a>
-            <a className="text-slate-500 hover:text-cyan-400 transition-colors" href="#">{t('contact.vimeo')}</a>
-          </div>
-          <div className="text-slate-500">
-            {t('footer.copyright')}
-          </div>
-        </div>
-      </footer>
+      <Footer className="mt-auto" />
     </div>
   );
 }

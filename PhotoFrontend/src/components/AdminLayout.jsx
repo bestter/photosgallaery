@@ -1,4 +1,5 @@
 import React from 'react';
+import Footer from './Footer';
 
 export default function AdminLayout({ children, title, subtitle, topActions }) {
     const currentPath = window.location.pathname;
@@ -76,16 +77,19 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                 </header>
 
                 {/* Main Canvas */}
-                <main className="flex-1 overflow-y-auto p-8 pt-24 pb-12 w-full max-w-7xl mx-auto">
-                    {(title || subtitle) && (
-                        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                            <div>
-                                {title && <h2 className="text-display font-display font-extrabold tracking-tight text-on-surface mb-2">{title}</h2>}
-                                {subtitle && <p className="text-on-surface-variant text-sm max-w-2xl">{subtitle}</p>}
+                <main className="flex-1 overflow-y-auto w-full flex flex-col relative bg-[#081414]">
+                    <div className="p-8 pt-24 pb-12 w-full max-w-7xl mx-auto flex-grow">
+                        {(title || subtitle) && (
+                            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                                <div>
+                                    {title && <h2 className="text-display font-display font-extrabold tracking-tight text-on-surface mb-2">{title}</h2>}
+                                    {subtitle && <p className="text-on-surface-variant text-sm max-w-2xl">{subtitle}</p>}
+                                </div>
                             </div>
-                        </div>
-                    )}
-                    {children}
+                        )}
+                        {children}
+                    </div>
+                    <Footer className="mt-auto bg-slate-900/40" />
                 </main>
             </div>
         </div>
