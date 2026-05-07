@@ -317,11 +317,14 @@ namespace PhotoAppApi.Controllers
 
                 // Validation du groupe
                 var currentUsername = User.Identity?.Name;
-                var uploader = await _context.Users.FirstOrDefaultAsync(u => u.Username == currentUsername);
                 
-                if (groupId.HasValue && uploader != null)
+                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
+
+                if (groupId.HasValue && currentUserId.HasValue)
                 {
-                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == uploader.Id && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin));
+                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin));
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
                         _logger.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
