@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
+import LanguageSelector from "../components/LanguageSelector";
 
 const Login = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -15,11 +18,11 @@ const Login = () => {
       const response = await api.post("/auth/login", { username, password });
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
-        toast.success("Connexion réussie !");
+        toast.success(t("auth.login.success"));
         window.location.href = "/";
       }
     } catch (err) {
-      toast.error("Identifiants incorrects ou erreur serveur.");
+      toast.error(t("auth.login.error"));
     } finally {
       setIsLoading(false);
     }
@@ -44,10 +47,10 @@ const Login = () => {
               />
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-on-surface font-headline mb-2">
-              Bienvenue
+              {t("auth.login.title")}
             </h1>
             <p className="text-on-surface-variant text-sm font-medium">
-              Accédez à votre galerie photographique
+              {t("auth.login.subtitle")}
             </p>
           </div>
 
@@ -58,7 +61,7 @@ const Login = () => {
                 className="block text-[10px] font-bold uppercase tracking-widest text-primary ml-1"
                 htmlFor="username"
               >
-                Usager
+                {t("auth.login.username_label")}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -72,7 +75,7 @@ const Login = () => {
                 <input
                   className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
                   id="username"
-                  placeholder="Votre identifiant"
+                  placeholder={t("auth.login.username_placeholder")}
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -89,13 +92,13 @@ const Login = () => {
                   className="text-[10px] font-bold uppercase tracking-widest text-primary"
                   htmlFor="password"
                 >
-                  Mot de passe
+                  {t("auth.login.password_label")}
                 </label>
                 <a
                   className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
                   href="#"
                 >
-                  Mot de passe oublié ?
+                  {t("auth.login.forgot_password")}
                 </a>
               </div>
               <div className="relative group">
@@ -107,7 +110,7 @@ const Login = () => {
                 <input
                   className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
                   id="password"
-                  placeholder="••••••••"
+                  placeholder={t("auth.login.password_placeholder")}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -123,22 +126,22 @@ const Login = () => {
               type="submit"
               disabled={isLoading || !username || !password}
               title={
-                !username || !password ? "Veuillez remplir tous les champs" : ""
+                !username || !password ? t("contact.error_fill_all") : ""
               }
             >
-              {isLoading ? "Connexion en cours..." : "Se connecter"}
+              {isLoading ? t("auth.login.loading") : t("auth.login.submit")}
             </button>
           </form>
 
           {/* Secondary Action */}
           <div className="mt-8 text-center">
             <p className="text-sm text-on-surface-variant">
-              Pas encore de compte ?
+              {t("auth.login.no_account")}
               <a
                 className="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1"
                 href="/register"
               >
-                S&apos;inscrire
+                {t("auth.login.register_link")}
               </a>
             </p>
           </div>
@@ -148,27 +151,28 @@ const Login = () => {
       {/* Footer - Shell Navigation Filtered: Suppressed for transaction, but following JSON structure for visual anchor */}
       <footer className="flex flex-col justify-center items-center gap-6 pb-8 w-full bg-transparent z-10 relative">
         <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">
-          © 6 PixelLyra.com App. All rights reserved.
+          {t("footer.copyright")}
         </span>
-        <div className="hidden md:flex gap-6">
+        <div className="hidden md:flex gap-6 items-center">
           <a
             className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors"
             href="#"
           >
-            Privacy Policy
+            {t("footer.privacy_policy")}
           </a>
           <a
             className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors"
             href="#"
           >
-            Terms of Service
+            {t("footer.terms_of_service")}
           </a>
           <a
             className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 hover:text-cyan-300 transition-colors"
             href="#"
           >
-            Contact Support
+            {t("footer.contact_support")}
           </a>
+          <LanguageSelector />
         </div>
       </footer>
 
