@@ -82,3 +82,7 @@
 **Vulnerability:** Path Traversal (CWE-22) in GetImage and GetThumbnail endpoints.
 **Learning:** Relying on sanitization (like Path.GetFileName) alone can be bypassable or leave edge cases. A "reject-early" strategy for route parameters is more secure.
 **Prevention:** Strictly validate input strings that will be used in path construction. Reject any input containing directory separators ('/', '\') or traversal sequences ('..') before any further processing.
+## 2025-05-08 - Added tests for ContactController.SubmitContactForm
+**Vulnerability:** Lack of test coverage for the ContactController endpoint.
+**Learning:** Implementing tests ensures the application correctly handles requests, validates input fields, correctly utilizes the mocked email service and returns the expected HTTP responses.
+**Prevention:** By verifying valid, missing fields, and error states, we ensure stability and protect against potential unhandled exceptions or regressions in external dependency calls.
