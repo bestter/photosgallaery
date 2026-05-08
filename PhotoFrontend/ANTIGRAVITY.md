@@ -18,5 +18,11 @@
 
 ## 4. Maintenance de l'infrastructure
 * **Environnement et Déploiement :** Le frontend sera déployé via un conteneur Docker sur Fly.io. Si tu as besoin d'ajouter une nouvelle variable d'environnement (dans le `.env` local pour Vite), vérifie toujours que le `Dockerfile` du frontend expose ou utilise correctement cette variable lors de l'étape `npm run build`.
-* **Sécurité & Conventions :** * **Toutes** les variables d'environnement sensibles (URL de l'API, clés, etc.) doivent être impérativement préfixées par `VITE_`. 
+* **Sécurité & Conventions :** * **Toutes** les variables d'environnement sensibles (URL de l'API, clés, etc.) doivent être impérativement préfixées par `VITE_`.
     * Ne jamais utiliser de secrets ou de tokens sensibles directement dans le code source ; passe-les uniquement via les variables d'environnement configurées.
+
+## 5. Règles de Conduite de l'Agent
+* **Formatage du Code :** Avant de générer, de modifier du code ou de soumettre un *diff*, analyser et respecter impérativement les règles d'indentation, de retours à la ligne et de style définies dans le fichier `.editorconfig` à la racine du projet.
+* **Minimalisme :** Prioriser un code fonctionnel, durable et facilement maintenable. Éviter toute sur-ingénierie et ne pas introduire de bibliothèques tierces non nécessaires.
+* **Validation :** Toute modification de la logique d'affaire ou de l'accès aux données doit être accompagnée des tests unitaires ou d'intégration appropriés avant la soumission d'un Pull Request.
+* **Langue :** Rédiger la documentation technique, les commentaires de code et les messages de commit en anglais.
