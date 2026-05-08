@@ -45,4 +45,6 @@
 * Toute modification impliquant de nouvelles dépendances système, des changements de ports, ou l'ajout de variables d'environnement (spécialement celles préfixées par `VITE_` pour le frontend) doit être impérativement reflétée dans les `Dockerfile` correspondants.
 
 ## 4. Tests et Validation
-* Toute modification de la logique d'affaire ou de l'accès aux données doit être accompagnée des tests unitaires ou d'intégration appropriés avant la soumission d'un Pull Request.
+* **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C#, **Vitest** pour le frontend React). Si la logique d'affaire change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
+* **Couverture des nouveautés :** Toute nouvelle fonctionnalité ou modification touchant à l'accès aux données doit être accompagnée de nouveaux tests appropriés utilisant le framework correspondant.
+* **Validation stricte :** S'assurer que l'ensemble de la suite de tests passe avec succès avant de soumettre un Pull Request ou de finaliser un *diff*.
