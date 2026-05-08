@@ -7,6 +7,9 @@ namespace PhotoAppApi.Models
         public int Id { get; set; }
         public required string FileName { get; set; }
         public required string Url { get; set; }
+               
+        public required string ThumbnailUrl { get; set; }
+
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
         public string? UploaderUsername { get; set; }
 

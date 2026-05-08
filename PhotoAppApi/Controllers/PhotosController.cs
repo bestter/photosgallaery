@@ -1,3 +1,5 @@
+using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,6 +16,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Channels;
+using Tag = PhotoAppApi.Models.Tag;
 
 namespace PhotoAppApi.Controllers
 {
@@ -26,15 +29,30 @@ namespace PhotoAppApi.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly Logger _logger;
+        private readonly IObjectStorageService _storage;
 
         private readonly ChannelWriter<PhotoViewEvent> _viewChannelWriter;
 
-        public PhotosController(AppDbContext context, IWebHostEnvironment env, ChannelWriter<PhotoViewEvent> viewChannelWriter)
+        public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter)
         {
             _logger = new();
             _context = context;
             _env = env;
+            _storage = storage;
             _viewChannelWriter = viewChannelWriter;
+        }
+
+        public async Task<string> GetImageUrlAsync(string objectKey)
+        {
+            //var request = new GetPreSignedUrlRequest
+            //{
+            //    BucketName = "nom-de-ton-bucket",
+            //    Key = objectKey, // Ex: "photos/mon-image.jpg" (Attention: pas de slash au début !)
+            //    Expires = DateTime.UtcNow.AddHours(1), // Durée de validité
+            //    Verb = HttpVerb.GET
+            //};
+
+            return await _storage.GetPresignedUrlAsync(objectKey, TimeSpan.FromHours(1));
         }
 
         // GET: api/photos (Sécurisé pour récupérer selon les groupes)
@@ -43,7 +61,7 @@ namespace PhotoAppApi.Controllers
         public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos(
             [FromQuery] string? tag = null,
             [FromQuery] Language lang = Language.FR,
-            [FromQuery] Guid? groupId = null)
+            [FromQuery] Guid? groupId = null, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(GetPhotos)}");
             try
@@ -86,13 +104,13 @@ namespace PhotoAppApi.Controllers
                         .AsNoTracking()
                         .Where(ug => ug.UserId == currentUserId.Value)
                         .Select(ug => ug.GroupId)
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
                 }
 
                 // On exécute la requête pour obtenir la liste des photos
-                var photos = await query.ToListAsync();
+                var photos = await query.ToListAsync(cancellationToken);
 
                 if (photos.Count == 0) return Ok(photos);
 
@@ -106,7 +124,7 @@ namespace PhotoAppApi.Controllers
                     .Where(l => photoIds.Contains(l.PhotoId))
                     .GroupBy(l => l.PhotoId)
                     .Select(g => new { PhotoId = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
+                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count, cancellationToken);
 
                 // C. On vérifie qui est connecté                
                 var userLikedPhotoIds = new HashSet<int>();
@@ -119,7 +137,7 @@ namespace PhotoAppApi.Controllers
                         .AsNoTracking()
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     userLikedPhotoIds = new HashSet<int>(likedIds);
 
@@ -127,13 +145,15 @@ namespace PhotoAppApi.Controllers
                         .AsNoTracking()
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
                     userReportedPhotoIds = [.. reportedIds];
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
                 foreach (var photo in photos)
                 {
+                    photo.Url = await GetImageUrlAsync(photo.Url);
+                    photo.ThumbnailUrl = await GetImageUrlAsync(photo.ThumbnailUrl);
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
@@ -232,7 +252,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true)
+        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -245,7 +265,7 @@ namespace PhotoAppApi.Controllers
                     foreach (var file in files)
                     {
                         await using var stream = file.OpenReadStream();
-                        var result = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType);
+                        var result = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, cancellationToken);
 
                         if (result.IsNsfw)
                             return BadRequest(new { message = "Image contains inappropriate content", score = result.NsfwScore });
@@ -275,14 +295,14 @@ namespace PhotoAppApi.Controllers
                 var existingTranslations = await _context.TagTranslations
                     .Include(tt => tt.Tag)
                     .Where(tt => trimmedNames.Contains(tt.Name) && tt.Language == Language.FR)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var translationDict = existingTranslations
                     .GroupBy(tt => tt.Name, StringComparer.OrdinalIgnoreCase)
                     .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
                 // Pour gérer les tags créés au cours de cette boucle (si doublons dans tagNames)
-                var newlyCreatedTags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
+                var newlyCreatedTags = new Dictionary<string, Models.Tag>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var name in trimmedNames)
                 {
@@ -340,7 +360,7 @@ namespace PhotoAppApi.Controllers
 
                 if (groupId.HasValue && currentUserId.HasValue)
                 {
-                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin));
+                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
                         _logger.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
@@ -351,11 +371,11 @@ namespace PhotoAppApi.Controllers
                 var rootPath = _env.ContentRootPath;
                 var uploadsFolder = Path.Combine(rootPath, "PrivateImages");
 
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    _logger.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
-                    Directory.CreateDirectory(uploadsFolder);
-                }
+                //if (!Directory.Exists(uploadsFolder))
+                //{
+                //    _logger.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
+                //    Directory.CreateDirectory(uploadsFolder);
+                //}
 
                 var uploadedPhotos = new List<Photo>();
                 var errors = new List<string>();
@@ -366,7 +386,7 @@ namespace PhotoAppApi.Controllers
                 {
                     using var stream = file.OpenReadStream();
                     using var sha512 = SHA512.Create();
-                    var hashBytes = await sha512.ComputeHashAsync(stream);
+                    var hashBytes = await sha512.ComputeHashAsync(stream, cancellationToken);
                     return (File: file, Hash: Convert.ToHexStringLower(hashBytes));
                 }));
                 var fileHashes = (await Task.WhenAll(hashTasks)).ToList();
@@ -376,7 +396,7 @@ namespace PhotoAppApi.Controllers
                     .AsNoTracking()
                     .Where(p => p.FileHash != null && distinctHashes.Contains(p.FileHash))
                     .Select(p => p.FileHash!)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var existingHashesSet = new HashSet<string>(existingHashes);
                 var seenInBatch = new HashSet<string>();
@@ -399,24 +419,26 @@ namespace PhotoAppApi.Controllers
                     }
                     seenInBatch.Add(fileHash);
 
-                    // 4. Sauvegarde physique
+                    //// 4. Sauvegarde physique
                     var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName.Replace("\\", "/"));
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    //var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                    // Création du sous-dossier pour les miniatures si nécessaire
-                    var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
-                    if (!Directory.Exists(thumbFolder))
-                    {
-                        _logger.Info($"Le dossier '{thumbFolder}' n'existe pas. Création du dossier.");
-                        Directory.CreateDirectory(thumbFolder);
-                    }
-                    var thumbPath = Path.Combine(thumbFolder, uniqueFileName);
+                    //// Création du sous-dossier pour les miniatures si nécessaire
+                    //var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
+                    //if (!Directory.Exists(thumbFolder))
+                    //{
+                    //    _logger.Info($"Le dossier '{thumbFolder}' n'existe pas. Création du dossier.");
+                    //    Directory.CreateDirectory(thumbFolder);
+                    //}
+                    //var thumbPath = Path.Combine("thumbFolder", uniqueFileName);
 
-                    // A. Sauvegarde de l'image originale (Haute résolution)
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
+                    //// A. Sauvegarde de l'image originale (Haute résolution)
+                    //using (var stream = new FileStream(filePath, FileMode.Create))
+                    //{
+                    //    await file.CopyToAsync(stream);
+                    //}
+
+                    var key = await _storage.UploadImageAsync(file, uniqueFileName, "gallery", cancellationToken);
 
                     // B. Création et sauvegarde de la miniature (Basse résolution)
                     // On recharge l'image à partir du flux pour ImageSharp
@@ -424,7 +446,7 @@ namespace PhotoAppApi.Controllers
                     int originalHeight = 0;
 
                     using (var stream = file.OpenReadStream())
-                    using (var image = await Image.LoadAsync(stream))
+                    using (var image = await Image.LoadAsync(stream, cancellationToken))
                     {
                         originalWidth = image.Width;
                         originalHeight = image.Height;
@@ -433,14 +455,15 @@ namespace PhotoAppApi.Controllers
                         var photo = new Photo
                         {
                             FileName = uniqueFileName,
-                            Url = $"/api/images/{uniqueFileName}",
+                            Url = key,
                             UploaderUsername = currentUsername ?? "Anonyme",
                             FileHash = fileHash,
                             Tags = tagsToAttach.ToList(),
                             GroupId = groupId,
                             FileSize = file.Length,
                             ResolutionWidth = originalWidth,
-                            ResolutionHeight = originalHeight
+                            ResolutionHeight = originalHeight,
+                            ThumbnailUrl = string.Empty,
                             // Les autres propriétés (GPS, date) seront remplies ci-dessous si elles existent
                         };
 
@@ -479,7 +502,9 @@ namespace PhotoAppApi.Controllers
                             Mode = ResizeMode.Max
                         }));
 
-                        await image.SaveAsync(thumbPath);
+                        //await image.SaveAsync(thumbPath);
+                        var thumbnailsKey = await _storage.UploadImageAsync(file, uniqueFileName, "thumbnails", cancellationToken);
+                        photo.ThumbnailUrl = thumbnailsKey;
 
                         // On ajoute la photo finalisée au contexte
                         _context.Photos.Add(photo);
@@ -490,7 +515,7 @@ namespace PhotoAppApi.Controllers
                 // 6. Sauvegarder dans MariaDB s'il y a eu de nouvelles images
                 if (uploadedPhotos.Count != 0)
                 {
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                 }
 
                 // 7. Retourner un résumé clair au client React
@@ -1134,6 +1159,8 @@ namespace PhotoAppApi.Controllers
 
                 foreach (var photo in userPhotos)
                 {
+                    photo.Url = await GetImageUrlAsync(photo.Url);
+                    photo.ThumbnailUrl = await GetImageUrlAsync(photo.ThumbnailUrl);
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
@@ -1219,6 +1246,8 @@ namespace PhotoAppApi.Controllers
 
                 foreach (var photo in photos)
                 {
+                    photo.Url  = await GetImageUrlAsync(photo.Url);
+                    photo.ThumbnailUrl = await GetImageUrlAsync(photo.ThumbnailUrl);
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                 }

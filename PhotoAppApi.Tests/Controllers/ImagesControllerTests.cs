@@ -61,7 +61,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB
-            var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg" };
+            var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
             await context.SaveChangesAsync();
 
@@ -80,13 +80,13 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB
-            var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg" };
+            var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
             await context.SaveChangesAsync();
 
             // Create a dummy file
             var filePath = Path.Combine(_privateImagesDir, "valid.jpg");
-            await File.WriteAllTextAsync(filePath, "dummy content");
+            await File.WriteAllTextAsync(filePath, "dummy content", TestContext.Current.CancellationToken);
 
             // Act
             var result = await controller.GetImage("valid.jpg");
@@ -105,9 +105,9 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB. The Path.GetFileName on traversal payload will extract "passwd"
-            var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd" };
+            var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             // The traversal payload
             string traversalPayload = @"..\..\etc\passwd";
@@ -127,9 +127,9 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new ImagesController(context, _mockEnv.Object, _cache);
 
             // Mock a photo in the DB. The Path.GetFileName on traversal payload will extract "passwd"
-            var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd" };
+            var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             // The traversal payload
             string traversalPayload = @"..\..\etc\passwd";

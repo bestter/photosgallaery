@@ -24,7 +24,7 @@ namespace PhotoAppApi.Services
             return WebUtility.HtmlEncode(noLineBreaks);
         }
 
-        public Task SendContactEmailAsync(string name, string email, string subject, string message)
+        public Task SendContactEmailAsync(string name, string email, string subject, string message, CancellationToken cancellationToken = default)
         {
             var sanitizedName = SanitizeForLog(name);
             var sanitizedEmail = SanitizeForLog(email);
@@ -44,7 +44,7 @@ namespace PhotoAppApi.Services
             return Task.CompletedTask;
         }
 
-        public Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl)
+        public Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl, CancellationToken cancellationToken = default)
         {
             var sanitizedEmail = SanitizeForLog(email);
             var sanitizedFirstName = SanitizeForLog(firstName);

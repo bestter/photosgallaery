@@ -51,7 +51,8 @@ namespace PhotoAppApi.Tests
                 new Claim(ClaimTypes.Role, "Admin")
             }, "mock"));
 
-            var controller = new PhotosController(context, envMock.Object, channelMock.Object)
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)  
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -72,9 +73,11 @@ namespace PhotoAppApi.Tests
                 FileName = "existing_image.jpg",
                 Url = "/api/images/existing_image.jpg",
                 UploaderUsername = "anotheruser",
-                FileHash = fileHash
+                FileHash = fileHash,
+                    UploadedAt = DateTime.UtcNow,
+                    ThumbnailUrl = "/api/images/existing_image_thumbnail.jpg",
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             // Create fake IFormFile
             var formFileMock = new Mock<IFormFile>();
@@ -86,11 +89,11 @@ namespace PhotoAppApi.Tests
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
 
             var moderationMock = new Mock<IModerationService>();
-            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>()))
+            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false);
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -109,7 +112,7 @@ namespace PhotoAppApi.Tests
             Assert.Contains(errorsList, e => e.Contains("new_image.jpg"));
 
             // Verify it was not added again
-            var photosInDb = await context.Photos.ToListAsync();
+            var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
             Assert.Single(photosInDb);
         }
 
@@ -129,8 +132,10 @@ namespace PhotoAppApi.Tests
                 new Claim(ClaimTypes.Name, "testuser"),
                 new Claim(ClaimTypes.Role, "Admin")
             }, "mock"));
+            
+            var storageMock = new Mock<IObjectStorageService>();
 
-            var controller = new PhotosController(context, envMock.Object, channelMock.Object)
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -154,21 +159,21 @@ namespace PhotoAppApi.Tests
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
 
             var moderationMock = new Mock<IModerationService>();
-            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>()))
+            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false);
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false,TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var json = JsonSerializer.Serialize(okResult.Value);
             var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-            var errorsList = JsonSerializer.Deserialize<List<string>>(dict["erreurs"].GetRawText());
+            var errorsList = JsonSerializer.Deserialize<List<string>>(dict?["erreurs"].GetRawText() ?? "[]");
 
             Assert.Contains(errorsList, e => e.Contains("img2.jpg") && e.Contains("double"));
 
-            var photosInDb = await context.Photos.ToListAsync();
+            var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
             Assert.Single(photosInDb);
         }
 
@@ -189,7 +194,8 @@ namespace PhotoAppApi.Tests
                 new Claim(ClaimTypes.Role, "Admin")
             }, "mock"));
 
-            var controller = new PhotosController(context, envMock.Object, channelMock.Object)
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -225,7 +231,7 @@ namespace PhotoAppApi.Tests
             Assert.True(dict.ContainsKey("message"));
             Assert.Contains("Image contains inappropriate content", dict["message"].GetString() ?? string.Empty);
             
-            var photosInDb = await context.Photos.ToListAsync();
+            var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
             Assert.Empty(photosInDb);
         }
     }

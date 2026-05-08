@@ -1,18 +1,19 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using PhotoAppApi.Controllers;
+using PhotoAppApi.Data;
+using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using System;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using PhotoAppApi.Controllers;
-using PhotoAppApi.Data;
-using PhotoAppApi.Models;
 using Xunit;
-using Microsoft.Extensions.Logging;
 
 namespace PhotoAppApi.Tests.Controllers
 {
@@ -34,10 +35,10 @@ namespace PhotoAppApi.Tests.Controllers
             using var context = new AppDbContext(_dbContextOptions);
 
             var user = new User { Id = 1, Username = "testuser", PasswordHash = "hash" };
-            var photo = new Photo { Id = 1, FileName = "test_image.jpg", UploaderUsername = "testuser", Url = "test" };
+            var photo = new Photo { Id = 1, FileName = "test_image.jpg", UploaderUsername = "testuser", Url = "test", ThumbnailUrl = string.Empty };
             context.Users.Add(user);
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var envMock = new Mock<IWebHostEnvironment>();
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -53,8 +54,9 @@ namespace PhotoAppApi.Tests.Controllers
             File.WriteAllText(thumbPath, "dummy");
 
             var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
 
-            var controller = new PhotosController(context, envMock.Object, channelMock.Object);
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
             var claims = new[] { new Claim(ClaimTypes.Name, "testuser"), new Claim(ClaimTypes.Role, "User") };
             var identity = new ClaimsIdentity(claims, "TestAuthType");

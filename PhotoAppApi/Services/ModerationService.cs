@@ -14,7 +14,7 @@ namespace PhotoAppApi.Services
             _httpClient = httpClientFactory.CreateClient("ModerationClient");
         }
 
-        public async Task<ModerationResult> CheckImageAsync(Stream imageStream, string fileName, string contentType)
+        public async Task<ModerationResult> CheckImageAsync(Stream imageStream, string fileName, string contentType, CancellationToken cancellation = default)
         {
             try
             {
@@ -23,10 +23,10 @@ namespace PhotoAppApi.Services
                 streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
                 content.Add(streamContent, "file", fileName);
 
-                var response = await _httpClient.PostAsync("/moderate", content);
+                var response = await _httpClient.PostAsync("/moderate", content, cancellation);
                 response.EnsureSuccessStatusCode();
 
-                var result = await response.Content.ReadFromJsonAsync<ModerationResult>();
+                var result = await response.Content.ReadFromJsonAsync<ModerationResult>(cancellation);
                 return result ?? new ModerationResult { IsNsfw = true };
             }
             catch (Exception ex)
