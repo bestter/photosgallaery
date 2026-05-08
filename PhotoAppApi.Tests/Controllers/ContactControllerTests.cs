@@ -51,6 +51,10 @@ namespace PhotoAppApi.Tests.Controllers
         [InlineData("John", null, "Hello", "Test")]
         [InlineData("John", "john@example.com", null, "Test")]
         [InlineData("John", "john@example.com", "Hello", null)]
+        [InlineData(" ", "john@example.com", "Hello", "Test")]
+        [InlineData("John", " ", "Hello", "Test")]
+        [InlineData("John", "john@example.com", " ", "Test")]
+        [InlineData("John", "john@example.com", "Hello", " ")]
         public async Task SubmitContactForm_MissingFields_ReturnsBadRequest(string name, string email, string subject, string message)
         {
             // Arrange
@@ -68,6 +72,18 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Tous les champs sont requis.", badRequestResult.Value);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SubmitContactForm_NullRequest_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.SubmitContactForm(null);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Requête invalide.", badRequestResult.Value);
             _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
