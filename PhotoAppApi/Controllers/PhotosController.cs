@@ -361,15 +361,15 @@ namespace PhotoAppApi.Controllers
                 var errors = new List<string>();
 
                 // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
-                var fileHashes = new List<(IFormFile File, string Hash)>();
-                foreach (var file in files)
+                // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
+                var hashTasks = files.Where(file => file.Length > 0).Select(file => Task.Run(async () =>
                 {
-                    if (file.Length == 0) continue;
                     using var stream = file.OpenReadStream();
                     using var sha512 = SHA512.Create();
                     var hashBytes = await sha512.ComputeHashAsync(stream);
-                    fileHashes.Add((file, Convert.ToHexStringLower(hashBytes)));
-                }
+                    return (File: file, Hash: Convert.ToHexStringLower(hashBytes));
+                }));
+                var fileHashes = (await Task.WhenAll(hashTasks)).ToList();
 
                 var distinctHashes = fileHashes.Select(fh => fh.Hash).Distinct().ToList();
                 var existingHashes = await _context.Photos
