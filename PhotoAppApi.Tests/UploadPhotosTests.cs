@@ -220,11 +220,11 @@ namespace PhotoAppApi.Tests
             var value = badRequestResult.Value;
             var json = JsonSerializer.Serialize(value);
             var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-            
+
             Assert.NotNull(dict);
             Assert.True(dict.ContainsKey("message"));
             Assert.Contains("Image contains inappropriate content", dict["message"].GetString() ?? string.Empty);
-            
+
             var photosInDb = await context.Photos.ToListAsync();
             Assert.Empty(photosInDb);
         }

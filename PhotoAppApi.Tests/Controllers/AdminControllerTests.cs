@@ -223,5 +223,169 @@ namespace PhotoAppApi.Tests.Controllers
             var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
             Assert.Equal("Erreur lors de la récupération des utilisateurs.", message);
         }
+
+        [Fact]
+        public async Task GetReports_ReturnsEmptyList_WhenNoReportsExist()
+        {
+            // Arrange
+            using var context = GetDbContext();
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.GetReports();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var items = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value);
+            Assert.Empty(items);
+        }
+
+        [Fact]
+        public async Task GetReports_ReturnsReports_JoinedWithPhotos()
+        {
+            // Arrange
+            using var context = GetDbContext();
+
+            var photo = new Photo
+            {
+                Id = 1,
+                FileName = "test.jpg",
+                Url = "/uploads/test.jpg",
+                UploaderUsername = "uploader1"
+            };
+
+            var report = new ImageReport
+            {
+                Id = 1,
+                PhotoId = 1,
+                Reason = "Inappropriate content",
+                Status = "Pending",
+                ReportedAt = DateTime.UtcNow
+            };
+
+            context.Photos.Add(photo);
+            context.ImageReports.Add(report);
+            await context.SaveChangesAsync();
+
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.GetReports();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+
+            // Use dynamic or reflection to inspect anonymous types
+            var items = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value);
+            var reportsList = items.ToList();
+            Assert.Single(reportsList);
+
+            var firstReport = reportsList[0];
+            Assert.Equal(1, firstReport.GetType().GetProperty("ReportId").GetValue(firstReport));
+            Assert.Equal(1, firstReport.GetType().GetProperty("PhotoId").GetValue(firstReport));
+            Assert.Equal("/uploads/test.jpg", firstReport.GetType().GetProperty("PhotoUrl").GetValue(firstReport));
+            Assert.Equal("uploader1", firstReport.GetType().GetProperty("Uploader").GetValue(firstReport));
+            Assert.Equal("Inappropriate content", firstReport.GetType().GetProperty("Reason").GetValue(firstReport));
+            Assert.Equal("Pending", firstReport.GetType().GetProperty("Status").GetValue(firstReport));
+        }
+
+        [Fact]
+        public async Task GetReports_WhenExceptionOccurs_ReturnsStatusCode500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new AppDbContext(options);
+            // Dispose the context immediately so any query throws an ObjectDisposedException
+            context.Dispose();
+
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.GetReports();
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            // Validate the message via reflection
+            var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
+            Assert.Equal("Erreur lors de la récupération des signalements.", message);
+        }
+
+        [Fact]
+        public async Task DeleteReport_WithValidId_UpdatesStatusToProcessed()
+        {
+            // Arrange
+            using var context = GetDbContext();
+
+            var report = new ImageReport
+            {
+                Id = 1,
+                PhotoId = 1,
+                Reason = "Test report",
+                Status = "Pending"
+            };
+
+            context.ImageReports.Add(report);
+            await context.SaveChangesAsync();
+
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.DeleteReport(1);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+
+            // Validate the message via reflection
+            var message = okResult.Value.GetType().GetProperty("message").GetValue(okResult.Value) as string;
+            Assert.Equal("Le signalement a été marqué comme traité.", message);
+
+            // Verify status was updated
+            var dbReport = await context.ImageReports.FindAsync(1);
+            Assert.Equal("Processed", dbReport.Status);
+        }
+
+        [Fact]
+        public async Task DeleteReport_WithInvalidId_ReturnsNotFound()
+        {
+            // Arrange
+            using var context = GetDbContext();
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.DeleteReport(999);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteReport_WhenExceptionOccurs_ReturnsStatusCode500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new AppDbContext(options);
+            context.Dispose(); // Will cause ObjectDisposedException
+
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.DeleteReport(1);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            // Validate the message via reflection
+            var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
+            Assert.Equal("Une erreur interne est survenue lors de l'effacement du signalement.", message);
+        }
     }
 }
