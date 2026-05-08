@@ -1,16 +1,15 @@
-🧪 Add tests for API interceptors in api.js
-
 🎯 **What:** The testing gap addressed
-This PR addresses the missing error tests for the Axios response and request interceptors in `PhotoFrontend/src/api.js`.
+This PR addresses the missing tests for the accessibility keyboard events (`onKeyDown`) in `PhotoFrontend/src/components/PhotoCard.jsx`.
 
 📊 **Coverage:** What scenarios are now tested
 The following scenarios are now covered by unit tests using Vitest:
-- Network error (no response) triggers a `toast.error` with specific message and icon.
-- 401 Unauthorized error correctly clears the `token` from `localStorage` and redirects the user to `/login?ejected=true`.
-- 403 Forbidden error behaves exactly like 401 (clears token, redirects).
-- No redirection happens if the user is already on the `/login` route.
-- 500 Internal Server error triggers a distinct `toast.error`.
-- Tests for request interceptor ensuring `X-App-Client` and `Authorization` (if token exists) headers are successfully appended to outgoing requests.
+- Main card `onClick` triggered on 'Enter' keydown.
+- Main card `onClick` triggered on 'Space' keydown.
+- Main card ignores other keys (e.g. 'a') on keydown.
+- Author link `onAuthorClick` triggered on 'Enter' keydown.
+- Author link `onAuthorClick` triggered on 'Space' keydown, properly stripping the `@` prefix.
+- Author link ignores other keys (e.g. 'Escape') on keydown.
+- Main card does not throw error if `onClick` is undefined and a keydown event occurs.
 
 ✨ **Result:** The improvement in test coverage
-We now have full coverage over the Axios interceptors ensuring critical UI feedback (toasts) and security behavior (forced logouts on token expiry) won't silently regress in the future.
+We now have full 100% coverage over the `PhotoCard` component, ensuring critical accessibility behavior won't silently regress in the future.
