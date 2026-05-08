@@ -32,12 +32,11 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            // Reject any file name that doesn't strictly match a simple, safe filename pattern.
-            // This is a robust allow-list approach that satisfies static analysis tools like CodeQL.
-            bool isStrictlyValid = Regex.IsMatch(fileName, @"^[a-zA-Z0-9_\-\.]+$") && !fileName.Contains("..");
-            if (!isStrictlyValid) return BadRequest("Invalid file name.");
-
-            string safeFileName = fileName;
+            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            if (safeFileName != fileName || safeFileName.Contains("..") || safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
             _logger.Debug($"In {nameof(GetImage)} for file: {safeFileName}");
             try
@@ -124,10 +123,11 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            bool isStrictlyValid = Regex.IsMatch(fileName, @"^[a-zA-Z0-9_\-\.]+$") && !fileName.Contains("..");
-            if (!isStrictlyValid) return BadRequest("Invalid file name.");
-
-            string safeFileName = fileName;
+            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            if (safeFileName != fileName || safeFileName.Contains("..") || safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {safeFileName}");
             try
