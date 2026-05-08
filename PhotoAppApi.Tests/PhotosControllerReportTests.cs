@@ -80,8 +80,8 @@ namespace PhotoAppApi.Tests
             using var context = new AppDbContext(options);
             var groupId = Guid.NewGuid();
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user", ThumbnailUrl = string.Empty };
-            var userGroup = new UserGroup { UserId = 1, GroupId = groupId, User = new User{Id=1, Username="testuser"}, Group = new Group{Id=groupId, Name="test", ShortName="test", Description="test"} };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user" };
+            var userGroup = new UserGroup { UserId = 1, GroupId = groupId, User = new User { Id = 1, Username = "testuser" }, Group = new Group { Id = groupId, Name = "test", ShortName = "test", Description = "test" } };
             context.Photos.Add(photo);
             context.UserGroups.Add(userGroup);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
