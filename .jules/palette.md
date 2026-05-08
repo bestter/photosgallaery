@@ -12,3 +12,6 @@
 ## 2024-05-18 - Dynamiser les textes statiques
 **Learning:** Hardcoded string literals in React components bypass internationalization setups (`react-i18next`) making the application inaccessible for non-native speakers, hindering i18n support.
 **Action:** Replaced hardcoded text in `Join.jsx`, `Register.jsx`, `AdminGroups.jsx`, `AdminGroupRequests.jsx`, and `UploadPhoto.jsx` with dynamic calls using the `useTranslation()` hook. Populated the `fr/translation.json` and `en/translation.json` localized dictionaries to include the newly identified strings.
+## 2026-05-08 - Adding aria-labels to Dashboard pagination and role buttons
+**Learning:** The Dashboard component uses many icon-only buttons (pagination chevrons, block/unlock role icons) built with `<span>` elements containing Material Symbols, which lack accessible names.
+**Action:** Add `aria-label` attributes describing the button's action and `aria-hidden="true"` to the decorative `<span>` element to ensure screen reader users receive proper context without redundant icon name announcements.
