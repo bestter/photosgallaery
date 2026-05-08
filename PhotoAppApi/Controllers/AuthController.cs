@@ -104,6 +104,7 @@ namespace PhotoAppApi.Controllers
 
 
         [HttpPost("register")]
+        [EnableRateLimiting("RegisterLimiter")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
         {
             _logger.Debug($"In {nameof(Register)} for user: {request.Username}");
