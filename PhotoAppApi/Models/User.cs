@@ -5,13 +5,13 @@ namespace PhotoAppApi.Models
     {
         // Forbidden : -1 (pour les utilisateurs bannis ou avec des permissions très limitées)
         Forbidden = -1,
-        
+
         //User : 0 (valeur par défaut pour les utilisateurs réguliers)        
         User = 0,
 
         //Créateur: Ce rôle peut être utilisé pour les utilisateurs qui ont des permissions spéciales, comme la possibilité de créer du contenu ou d'accéder à certaines fonctionnalités avancées. On lui attribue une valeur de 1 pour le différencier clairement du rôle "User".
         Creator = 1,
-        
+
         // Admin : 9999 (on utilise un nombre très élevé pour éviter les conflits avec d'autres rôles)
         Admin = 9999
     }
