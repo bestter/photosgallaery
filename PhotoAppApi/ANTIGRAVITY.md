@@ -16,9 +16,3 @@
 
 ## 4. Maintenance de l'infrastructure (Fly.io & Docker)
 * **Surveillance du conteneur :** Si tu modifies la configuration des ports d'écoute de l'application (dans `appsettings.json` ou `launchSettings.json`) ou si tu ajoutes une dépendance nécessitant des librairies système spécifiques, mets à jour immédiatement le `Dockerfile` local pour garantir que le prochain déploiement sur Fly.io réussira.
-
-## 5. Règles de Conduite de l'Agent
-* **Formatage du Code :** Avant de générer, de modifier du code ou de soumettre un *diff*, analyser et respecter impérativement les règles d'indentation, de retours à la ligne et de style définies dans le fichier `.editorconfig` à la racine du projet.
-* **Minimalisme :** Prioriser un code fonctionnel, durable et facilement maintenable. Éviter toute sur-ingénierie et ne pas introduire de bibliothèques tierces non nécessaires.
-* **Validation :** Toute modification de la logique d'affaire ou de l'accès aux données doit être accompagnée des tests unitaires ou d'intégration appropriés avant la soumission d'un Pull Request.
-* **Langue :** Rédiger la documentation technique, les commentaires de code et les messages de commit en anglais.

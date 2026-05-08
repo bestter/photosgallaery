@@ -1,8 +1,3 @@
-⚡ Optimize BackfillHashes Concurrent I/O
-
-💡 **What:** Optimized the `BackfillHashes` endpoint in `PhotosController.cs` to execute stream hashing in parallel rather than sequentially.
-🎯 **Why:** Hashing streams sequentially was introducing unnecessary blocking and slow behavior given modern multi-core processors. Running it in batches ensures I/O isn't stalling processing operations.
-📊 **Measured Improvement:** Simulated ~100 1MB files through local hash processing. The concurrent approach processes roughly 3 to 4 times as fast (Sequential Baseline: 347ms-635ms, Concurrent Proposed: 87ms-136ms).
 🎯 **What:** The testing gap addressed
 This PR addresses the missing tests for the accessibility keyboard events (`onKeyDown`) in `PhotoFrontend/src/components/PhotoCard.jsx`.
 
