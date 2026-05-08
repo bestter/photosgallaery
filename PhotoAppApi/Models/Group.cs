@@ -4,7 +4,7 @@ namespace PhotoAppApi.Models
     {
         // UUID v7 as Primary Key
         public Guid Id { get; set; } = Guid.CreateVersion7();
-        
+
         public required string Name { get; set; }
 
         public required string ShortName { get; set; }

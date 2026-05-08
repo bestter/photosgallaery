@@ -10,7 +10,7 @@ namespace PhotoAppApi.Services
 
         public MockEmailService(ILogger<MockEmailService> logger)
         {
-            _logger = logger;        
+            _logger = logger;
         }
 
         private static string SanitizeForLog(string input)
@@ -54,17 +54,17 @@ namespace PhotoAppApi.Services
             var sanitizedMessage = SanitizeForLog(message);
             var sanitizedInviteUrl = SanitizeForLog(inviteUrl);
 
-            _logger.LogInformation  ("========================================");
+            _logger.LogInformation("========================================");
             _logger.LogInformation($"[EMAIL SIMULATION] Sending invitation to {sanitizedEmail}");
             _logger.LogInformation($"Subject: {sanitizedInviterName} vous a invité à rejoindre le cercle {sanitizedGroupName} sur Vision");
             _logger.LogInformation($"\nBonjour {sanitizedFirstName} {sanitizedLastName},");
             _logger.LogInformation($"\nVous avez été invité par {sanitizedInviterName} à rejoindre notre galerie privée.");
-            
+
             if (!string.IsNullOrWhiteSpace(message))
             {
                 _logger.LogInformation($"\nMessage personnel : \"{sanitizedMessage}\"");
             }
-            
+
             _logger.LogInformation($"\nPour accepter l'invitation et créer votre compte, veuillez cliquer sur ce lien exclusif :");
             _logger.LogInformation($"URL : {sanitizedInviteUrl}");
             _logger.LogInformation("========================================");

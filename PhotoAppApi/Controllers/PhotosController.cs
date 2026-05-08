@@ -57,7 +57,7 @@ namespace PhotoAppApi.Controllers
                         .ThenInclude(t => t.Translations)
                     .OrderByDescending(p => p.UploadedAt)
                     .AsQueryable();
-                
+
                 // Filtrer par groupId explicitement si demandé depuis l'interface
                 if (groupId.HasValue)
                 {
@@ -189,7 +189,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);               
+                _logger.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);
             }
         }
 
@@ -241,7 +241,8 @@ namespace PhotoAppApi.Controllers
                 if (files == null || files.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (moderationService != null) {    
+                if (moderationService != null)
+                {
                     foreach (var file in files)
                     {
                         await using var stream = file.OpenReadStream();
@@ -333,7 +334,7 @@ namespace PhotoAppApi.Controllers
 
                 // Validation du groupe
                 var currentUsername = User.Identity?.Name;
-                
+
                 // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
@@ -617,30 +618,41 @@ namespace PhotoAppApi.Controllers
                 int updatedCount = 0;
                 int missingFilesCount = 0;
 
-                using (var sha512 = SHA512.Create())
+                // 2. Boucler sur chaque photo (Optimized for concurrent hashing)
+                // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
+                var fileTasks = photosSansHash.Select(photo => Task.Run(async () =>
                 {
-                    // 2. Boucler sur chaque photo
-                    foreach (var photo in photosSansHash)
-                    {
-                        var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
-                        var filePath = Path.Combine(rootPath, "images", safeFileName);
+                    var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
+                    var filePath = Path.Combine(rootPath, "images", safeFileName);
 
-                        // 3. Vérifier si le fichier physique existe toujours
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            // Calculer le hash
-                            using (var stream = System.IO.File.OpenRead(filePath))
-                            {
-                                var hashBytes = await sha512.ComputeHashAsync(stream);
-                                photo.FileHash = Convert.ToHexStringLower(hashBytes);
-                            }
-                            updatedCount++;
-                        }
-                        else
-                        {
-                            missingFilesCount++;
-                            _logger.Warn($"Fichier introuvable pour la photo ID {photo.Id} : {filePath}");
-                        }
+                    // 3. Vérifier si le fichier physique existe toujours
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        // Calculer le hash
+                        using var stream = System.IO.File.OpenRead(filePath);
+                        using var sha512 = SHA512.Create();
+                        var hashBytes = await sha512.ComputeHashAsync(stream);
+                        return (Photo: photo, Hash: Convert.ToHexStringLower(hashBytes), Exists: true, FilePath: filePath);
+                    }
+                    else
+                    {
+                        return (Photo: photo, Hash: (string?)null, Exists: false, FilePath: filePath);
+                    }
+                }));
+
+                var results = await Task.WhenAll(fileTasks);
+
+                foreach (var result in results)
+                {
+                    if (result.Exists)
+                    {
+                        result.Photo.FileHash = result.Hash;
+                        updatedCount++;
+                    }
+                    else
+                    {
+                        missingFilesCount++;
+                        _logger.Warn($"Fichier introuvable pour la photo ID {result.Photo.Id} : {result.FilePath}");
                     }
                 }
 
@@ -834,9 +846,9 @@ namespace PhotoAppApi.Controllers
                 // 3. Déplacer les images de wwwroot vers PrivateImages
                 var oldRootPath = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "images");
                 var newRootPath = Path.Combine(_env.ContentRootPath, "PrivateImages");
-                
+
                 if (!Directory.Exists(newRootPath)) Directory.CreateDirectory(newRootPath);
-                
+
                 var oldThumbPath = Path.Combine(oldRootPath, "thumbnails");
                 var newThumbPath = Path.Combine(newRootPath, "thumbnails");
                 if (!Directory.Exists(newThumbPath)) Directory.CreateDirectory(newThumbPath);
@@ -857,7 +869,7 @@ namespace PhotoAppApi.Controllers
                     var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                     var oldFilePath = Path.Combine(oldRootPath, safeFileName);
                     var newFilePath = Path.Combine(newRootPath, safeFileName);
-                    
+
                     if (System.IO.File.Exists(oldFilePath) && !System.IO.File.Exists(newFilePath))
                     {
                         System.IO.File.Move(oldFilePath, newFilePath);
@@ -1234,16 +1246,17 @@ namespace PhotoAppApi.Controllers
             // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT), 
             // décommente et utilise ce qui suit (sinon UserId reste null) :
 
-            
+
             int? userId = null;
             if (User.Identity?.IsAuthenticated == true)
             {
                 var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-                if (idClaim != null && int.TryParse(idClaim.Value, out var parsedId)) {
+                if (idClaim != null && int.TryParse(idClaim.Value, out var parsedId))
+                {
                     userId = parsedId;
                 }
-            }            
-             
+            }
+
             var viewEvent = new PhotoViewEvent
             {
                 PhotoId = id,

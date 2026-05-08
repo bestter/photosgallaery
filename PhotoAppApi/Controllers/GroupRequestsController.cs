@@ -49,7 +49,7 @@ namespace PhotoAppApi.Controllers
                         }
                     })
                     .ToListAsync();
-                
+
                 return Ok(requests);
             }
             catch (Exception ex)

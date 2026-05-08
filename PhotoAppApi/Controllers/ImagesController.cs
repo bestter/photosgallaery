@@ -38,7 +38,17 @@ namespace PhotoAppApi.Controllers
                 return BadRequest("Invalid file name.");
             }
 
-            string safeFileName = fileName;
+            // Reject any file name that doesn't strictly match a simple, safe filename pattern.
+            // This is a robust allow-list approach that satisfies static analysis tools like CodeQL.
+            if (!Regex.IsMatch(fileName, @"^[a-zA-Z0-9_\-\.]+$") || fileName.Contains(".."))
+            {
+                return BadRequest("Invalid file name.");
+            }
+
+            // Define the safeFileName and enforce that GetFileName matches exactly.
+            // The Regex already guarantees it's a simple, single filename block, but this explicit
+            // parsing and assignment satisfies CodeQL dataflow analysis by breaking the trace.
+            string safeFileName = Path.GetFileName(fileName);
 
             _logger.Debug($"In {nameof(GetImage)} for file: {safeFileName}");
             try
@@ -60,12 +70,12 @@ namespace PhotoAppApi.Controllers
                     if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
 
                     bool isAdmin = User.IsInRole("Admin");
-                    
+
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
                             .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
-                        
+
                         if (!isMember)
                         {
                             return Forbid(); // Interdit
@@ -84,10 +94,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // Extra protection against Windows-style traversal payloads on Linux
-                if (safeFileName.Contains("..\\") || safeFileName.Contains("../") || safeFileName.Contains(".."))
-                {
-                    return BadRequest("Invalid file path.");
-                }
+
 
                 var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch
@@ -118,7 +125,7 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, new { message = "Erreur lors de la récupération de l'image." });
             }
         }
-        
+
         [HttpGet("thumbnails/{fileName}")]
         public async Task<IActionResult> GetThumbnail(string fileName)
         {
@@ -131,7 +138,17 @@ namespace PhotoAppApi.Controllers
                 return BadRequest("Invalid file name.");
             }
 
-            string safeFileName = fileName;
+            // Reject any file name that doesn't strictly match a simple, safe filename pattern.
+            // This is a robust allow-list approach that satisfies static analysis tools like CodeQL.
+            if (!Regex.IsMatch(fileName, @"^[a-zA-Z0-9_\-\.]+$") || fileName.Contains(".."))
+            {
+                return BadRequest("Invalid file name.");
+            }
+
+            // Define the safeFileName and enforce that GetFileName matches exactly.
+            // The Regex already guarantees it's a simple, single filename block, but this explicit
+            // parsing and assignment satisfies CodeQL dataflow analysis by breaking the trace.
+            string safeFileName = Path.GetFileName(fileName);
 
             _logger.Debug($"In {nameof(GetThumbnail)} for file: {safeFileName}");
             try
@@ -149,12 +166,12 @@ namespace PhotoAppApi.Controllers
                     if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
 
                     bool isAdmin = User.IsInRole("Admin");
-                    
+
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
                             .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
-                        
+
                         if (!isMember) return Forbid();
                     }
                 }
@@ -169,10 +186,7 @@ namespace PhotoAppApi.Controllers
                     return BadRequest("Invalid file path.");
                 }
 
-                if (safeFileName.Contains("..\\") || safeFileName.Contains("../") || safeFileName.Contains(".."))
-                {
-                    return BadRequest("Invalid file path.");
-                }
+
 
                 var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch

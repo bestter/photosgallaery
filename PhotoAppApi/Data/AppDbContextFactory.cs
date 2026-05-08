@@ -37,4 +37,4 @@ namespace PhotoAppApi.Data
             return new AppDbContext(builder.Options);
         }
     }
-}       
+}

@@ -5,3 +5,6 @@
 **What:** Added unit tests for `GetAllGroups` in `GroupsControllerTests.cs`.
 **Coverage:** Verified that `GetAllGroups` correctly returns a collection of anonymous objects containing group details (like UserCount and PhotoCount) and sorts them descending by CreatedAt. Covered scenarios for populated data and an empty database.
 **Result:** Increased test coverage for `GroupsController`, ensuring projection correctness and sorting stability.
+## 2026-05-08 - Added tests for AdminController.GetReports and AdminController.DeleteReport
+ **Learning:** Discovered that endpoints were missing unit tests in `AdminController`.
+ **Action:** Added `GetReports_ReturnsEmptyList_WhenNoReportsExist`, `GetReports_ReturnsAllReports_JoinedWithPhotos`, `GetReports_WhenExceptionOccurs_ReturnsStatusCode500`, `DeleteReport_WithValidId_UpdatesStatusToProcessed`, `DeleteReport_WithInvalidId_ReturnsNotFound`, and `DeleteReport_WhenExceptionOccurs_ReturnsStatusCode500` to `AdminControllerTests.cs`.

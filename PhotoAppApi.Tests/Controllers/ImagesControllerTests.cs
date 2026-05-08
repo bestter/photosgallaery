@@ -94,6 +94,7 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             var fileStreamResult = Assert.IsType<FileStreamResult>(result);
             Assert.Equal("image/jpeg", fileStreamResult.ContentType);
+            fileStreamResult.FileStream?.Dispose();
             // Optionally we can verify it has a valid stream, but simply being FileStreamResult implies we successfully opened it.
         }
 
