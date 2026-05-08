@@ -106,6 +106,22 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetAllUsers_ReturnsEmptyList_WhenNoUsersExist()
+        {
+            // Arrange
+            using var context = GetDbContext();
+            var controller = new AdminController(context);
+
+            // Act
+            var result = await controller.GetAllUsers();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var items = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value);
+            Assert.Empty(items);
+        }
+
+        [Fact]
         public async Task GetAllUsers_ReturnsAllUsers_WithRoleAndGroups()
         {
             // Arrange

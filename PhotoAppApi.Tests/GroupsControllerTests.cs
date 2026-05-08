@@ -98,8 +98,133 @@ namespace PhotoAppApi.Tests
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
-            // The controller returns: return NotFound(new { message = "Groupe non trouvé." });
-            // We can check the message if needed
+        }
+
+        [Fact]
+        public async Task GetAllGroups_ReturnsOkResult_WithGroups_SortedByCreatedAtDescending()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+
+            var group1 = new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = "Group 1",
+                ShortName = "group-1",
+                Description = "A test group",
+                CreatedAt = DateTime.UtcNow.AddDays(-2)
+            };
+            var group2 = new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = "Group 2",
+                ShortName = "group-2",
+                Description = "Another test group",
+                CreatedAt = DateTime.UtcNow.AddDays(-1)
+            };
+
+            var user = new User
+            {
+                Id = 1,
+                Username = "testuser",
+                Email = "test@example.com",
+                PasswordHash = "hash",
+                Role = UserRole.User
+            };
+
+            var userGroup = new UserGroup
+            {
+                GroupId = group2.Id,
+                UserId = user.Id,
+                Group = group2,
+                User = user,
+                Role = GroupUserRole.Member
+            };
+
+            var photo = new Photo
+            {
+                Id = Guid.NewGuid(),
+                FileName = "test.jpg",
+                Url = "/test.jpg",
+                FileHash = "hash",
+                UserId = user.Id,
+                GroupId = group2.Id,
+                User = user,
+                Group = group2
+            };
+
+            context.Groups.AddRange(group1, group2);
+            context.Users.Add(user);
+            context.UserGroups.Add(userGroup);
+            context.Photos.Add(photo);
+            await context.SaveChangesAsync();
+
+            var controller = new GroupsController(context);
+
+            // Act
+            var result = await controller.GetAllGroups();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = okResult.Value;
+            Assert.NotNull(resultValue);
+
+            var enumerable = resultValue as System.Collections.IEnumerable;
+            Assert.NotNull(enumerable);
+
+            var resultList = new List<object>();
+            foreach(var item in enumerable)
+            {
+                resultList.Add(item);
+            }
+
+            Assert.Equal(2, resultList.Count);
+
+            // Should be sorted by CreatedAt descending, so group2 first
+            var firstItem = resultList[0];
+            var firstItemName = firstItem.GetType().GetProperty("Name")?.GetValue(firstItem, null) as string;
+            var firstItemUserCount = (int)(firstItem.GetType().GetProperty("UserCount")?.GetValue(firstItem, null) ?? 0);
+            var firstItemPhotoCount = (int)(firstItem.GetType().GetProperty("PhotoCount")?.GetValue(firstItem, null) ?? 0);
+
+            Assert.Equal("Group 2", firstItemName);
+            Assert.Equal(1, firstItemUserCount);
+            Assert.Equal(1, firstItemPhotoCount);
+
+            var secondItem = resultList[1];
+            var secondItemName = secondItem.GetType().GetProperty("Name")?.GetValue(secondItem, null) as string;
+            var secondItemUserCount = (int)(secondItem.GetType().GetProperty("UserCount")?.GetValue(secondItem, null) ?? 0);
+            var secondItemPhotoCount = (int)(secondItem.GetType().GetProperty("PhotoCount")?.GetValue(secondItem, null) ?? 0);
+
+            Assert.Equal("Group 1", secondItemName);
+            Assert.Equal(0, secondItemUserCount);
+            Assert.Equal(0, secondItemPhotoCount);
+        }
+
+        [Fact]
+        public async Task GetAllGroups_ReturnsOkResult_WhenNoGroupsExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+
+            // Act
+            var result = await controller.GetAllGroups();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = okResult.Value;
+            Assert.NotNull(resultValue);
+
+            var enumerable = resultValue as System.Collections.IEnumerable;
+            Assert.NotNull(enumerable);
+
+            var resultList = new List<object>();
+            foreach(var item in enumerable)
+            {
+                resultList.Add(item);
+            }
+
+            Assert.Empty(resultList);
         }
 
         [Fact]
@@ -128,4 +253,3 @@ namespace PhotoAppApi.Tests
         }
     }
 }
-// Verified empty name tests exist and pass
