@@ -91,3 +91,7 @@
 **Vulnerability:** Unauthenticated registration endpoint (`/api/auth/register`) performed expensive BCrypt hashing without rate limiting, exposing the application to Denial of Service (DoS) via CPU exhaustion.
 **Learning:** Endpoints that consume significant CPU resources (like password hashing) must be protected against abuse, especially when they are unauthenticated.
 **Prevention:** Apply a strict fixed-window rate limiter (e.g., 3 requests per 10 minutes per IP) using `[EnableRateLimiting]` on resource-intensive endpoints.
+## 2024-05-18 - [Fix Path Traversal in ImagesController]
+ **Vulnerability:** Path Traversal (CWE-22) in `ImagesController.cs` methods `GetImage` and `GetThumbnail` where the path was only sanitized using `Replace("\\", "/")` and `.Contains("..")`, missing other evasive techniques and edge cases across platforms.
+ **Learning:** Simple string replacement and `Contains("..")` are insufficient for robust path traversal prevention. CodeQL and secure coding guidelines recommend a consolidated validation utilizing `Path.GetFileName` to ensure the input resolves strictly to a simple filename, without any directories or invalid characters.
+ **Prevention:** Implement a consolidated guard clause: `if (string.IsNullOrEmpty(fileName) || fileName.Contains("..") || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName != Path.GetFileName(fileName.Replace("\\", "/"))) return BadRequest("Invalid file name.");`
