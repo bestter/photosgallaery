@@ -8,10 +8,12 @@ namespace PhotoAppApi.Controllers
     public class ContactController : ControllerBase
     {
         private readonly IEmailService _emailService;
+        private readonly Logger _logger;
 
         public ContactController(IEmailService emailService)
         {
             _emailService = emailService;
+            _logger = new Logger();
         }
 
         [HttpPost]
@@ -30,8 +32,9 @@ namespace PhotoAppApi.Controllers
                 await _emailService.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message);
                 return Ok(new { message = "Votre message a été envoyé avec succès." });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.Error($"An error occurred in {nameof(SubmitContactForm)}", ex);
                 // Ne pas exposer d'informations sensibles
                 return StatusCode(500, "Une erreur s'est produite lors de l'envoi du message.");
             }

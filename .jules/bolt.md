@@ -34,3 +34,11 @@
 ## 2025-05-08 - Unit Tests for ContactController
 **Learning:** Writing test coverage for API endpoints helps ensure inputs are handled correctly, dependencies are interacted with properly, and edge cases do not result in unhandled exceptions.
 **Action:** Created unit tests for the ContactController to verify correct success responses, bad request on missing fields, and internal server errors on external dependency failure.
+## 2025-05-18 - Refactor Exception Handling for Performance and Clarity
+**Learning:** Catching generic exceptions (`catch (Exception)`) without logging them makes debugging difficult and hides potential issues. While we shouldn't expose sensitive information to the user, the exception details should still be recorded.
+**Action:** Replace `catch (Exception)` with `catch (Exception ex)` and use a logger to record the exception details internally, while continuing to return a generic 500 error to the client. This improves observability without compromising security.
+## 2024-06-25 - Prevent O(n) filter recalculation in Gallery
+
+**Learning:** Re-calculating expensive filter logic (like mapping over nested arrays for tagging/translations) on every render in React causes significant input lag when the user interacts with fast-updating states (like typing in a search bar).
+**Action:** Always wrap derived datasets like `filteredPhotos` in `useMemo` with their specific dependencies, preventing unrelated state changes from blocking the main thread.
+
