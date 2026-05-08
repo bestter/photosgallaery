@@ -44,28 +44,28 @@ try {
     New-Item -ItemType Directory -Path $PublishDir | Out-Null
 
     # ==========================================
-# 1. Base de données (MariaDB)
-# ==========================================
-Write-Host "`n[1/5] Préparation de la migration MariaDB..." -ForegroundColor Cyan
-Push-Location $BackendLocalPath
+    # 1. Base de données (MariaDB)
+    # ==========================================
+    Write-Host "`n[1/5] Préparation de la migration MariaDB..." -ForegroundColor Cyan
+    Push-Location $BackendLocalPath
 
-# On force l'environnement Staging pour que les User Secrets soient chargés
-$env:ASPNETCORE_ENVIRONMENT = "Staging"
+    # On force l'environnement Staging pour que les User Secrets soient chargés
+    $env:ASPNETCORE_ENVIRONMENT = "Staging"
 
-dotnet ef migrations bundle `
-    --self-contained `
-    -r linux-x64 `
-    --force `
-    -o "$PublishDir\efbundle"
+    dotnet ef migrations bundle `
+        --self-contained `
+        -r linux-x64 `
+        --force `
+        -o "$PublishDir\efbundle"
 
-if ($LASTEXITCODE -ne 0) { 
-    throw "Échec de la création du bundle de migration de base de données." 
-}
+    if ($LASTEXITCODE -ne 0) { 
+        throw "Échec de la création du bundle de migration de base de données." 
+    }
 
-# On nettoie la variable
-$env:ASPNETCORE_ENVIRONMENT = $null
+    # On nettoie la variable
+    $env:ASPNETCORE_ENVIRONMENT = $null
 
-Pop-Location
+    Pop-Location
 
     # ==========================================
     # 2. Compilation Frontend (React)
@@ -88,6 +88,22 @@ Pop-Location
     dotnet publish $BackendLocalPath -c Release -r linux-x64 --self-contained false -o "$PublishDir\backend"
     if ($LASTEXITCODE -ne 0) { throw "Échec de la compilation 'dotnet publish' du backend." }
 
+    # --- NOUVELLE LOGIQUE DE CONFIGURATION ---
+    Write-Host "  -> Préparation de la configuration de Production..."
+    $AppsettingsJson = "$PublishDir\backend\appsettings.json"
+    $AppsettingsProd = "$PublishDir\backend\appsettings.Production.json"
+
+    if (Test-Path $AppsettingsProd) {
+        # On remplace le contenu de appsettings.json par celui de Production
+        Copy-Item -Path $AppsettingsProd -Destination $AppsettingsJson -Force
+        Write-Host "     [OK] appsettings.json mis à jour avec les paramètres de Production."
+    }
+
+    # On supprime TOUS les fichiers appsettings.*.json (dev, production, etc.) 
+    # pour ne laisser QUE le appsettings.json final dans le paquet.
+    Write-Host "  -> Nettoyage des fichiers de configuration secondaires..."
+    Get-ChildItem -Path "$PublishDir\backend\appsettings.*.json" | Remove-Item -Force
+    # ------------------------------------------
 
     # NOUVELLE LIGNE : On supprime les photos de test locales du paquet de déploiement
     Write-Host "  -> Nettoyage des données de test locales..."
