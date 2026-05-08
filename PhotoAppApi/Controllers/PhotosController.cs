@@ -545,23 +545,27 @@ namespace PhotoAppApi.Controllers
                 var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
                 var thumbPath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
 
-                // 3. Supprimer le fichier physique s'il existe sur le disque dur
-                if (System.IO.File.Exists(filePath))
+                // ⚡ Bolt: Execute file deletion concurrently with database operations to minimize latency
+                var fileDeletionTask = Task.Run(() =>
                 {
-                    System.IO.File.Delete(filePath);
-                    _logger.Debug($"Fichier physique supprimé: {filePath}");
-                }
-                else
-                {
-                    _logger.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
-                }
+                    // 3. Supprimer le fichier physique s'il existe sur le disque dur
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                        _logger.Debug($"Fichier physique supprimé: {filePath}");
+                    }
+                    else
+                    {
+                        _logger.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
+                    }
 
-                // Supprimer également la miniature si elle existe
-                if (System.IO.File.Exists(thumbPath))
-                {
-                    System.IO.File.Delete(thumbPath);
-                    _logger.Debug($"Fichier miniature supprimé: {thumbPath}");
-                }
+                    // Supprimer également la miniature si elle existe
+                    if (System.IO.File.Exists(thumbPath))
+                    {
+                        System.IO.File.Delete(thumbPath);
+                        _logger.Debug($"Fichier miniature supprimé: {thumbPath}");
+                    }
+                });
 
                 // --- NOUVEAU CODE ICI 👇 ---
                 // 3.5 Chercher et supprimer tous les signalements associés à cette photo
@@ -581,7 +585,10 @@ namespace PhotoAppApi.Controllers
                 _context.Photos.Remove(photo);
                 await _context.SaveChangesAsync();
 
-                _logger.Debug($"Enregistrement DB supprimé avec succès pour l'ID: {id}");
+                // Wait for file deletion to complete before returning
+                await fileDeletionTask;
+
+                _logger.Debug($"Enregistrement DB et fichiers physiques supprimés avec succès pour l'ID: {id}");
 
                 // On retourne un code 200 (Ok) pour confirmer au frontend (React) que tout s'est bien passé
                 return Ok(new { message = "Photo et ses signalements supprimés avec succès." });
