@@ -135,21 +135,18 @@ namespace PhotoAppApi.Tests
             var userGroup = new UserGroup
             {
                 GroupId = group2.Id,
-                UserId = user.Id,
                 Group = group2,
-                User = user,
+
                 Role = GroupUserRole.Member
             };
 
             var photo = new Photo
             {
-                Id = Guid.NewGuid(),
+                Id = 1,
                 FileName = "test.jpg",
                 Url = "/test.jpg",
                 FileHash = "hash",
-                UserId = user.Id,
                 GroupId = group2.Id,
-                User = user,
                 Group = group2
             };
 
@@ -173,7 +170,7 @@ namespace PhotoAppApi.Tests
             Assert.NotNull(enumerable);
 
             var resultList = new List<object>();
-            foreach(var item in enumerable)
+            foreach (var item in enumerable)
             {
                 resultList.Add(item);
             }
@@ -219,7 +216,7 @@ namespace PhotoAppApi.Tests
             Assert.NotNull(enumerable);
 
             var resultList = new List<object>();
-            foreach(var item in enumerable)
+            foreach (var item in enumerable)
             {
                 resultList.Add(item);
             }
