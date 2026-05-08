@@ -32,8 +32,14 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
-            if (safeFileName != fileName || safeFileName.Contains("..") || safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            var invalidChars = Path.GetInvalidFileNameChars();
+            if (fileName.IndexOfAny(invalidChars) >= 0 || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+            {
+                return BadRequest("Invalid file name.");
+            }
+
+            string safeFileName = Path.GetFileName(fileName);
+            if (safeFileName != fileName)
             {
                 return BadRequest("Invalid file name.");
             }
@@ -123,8 +129,14 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            string safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
-            if (safeFileName != fileName || safeFileName.Contains("..") || safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            var invalidChars = Path.GetInvalidFileNameChars();
+            if (fileName.IndexOfAny(invalidChars) >= 0 || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+            {
+                return BadRequest("Invalid file name.");
+            }
+
+            string safeFileName = Path.GetFileName(fileName);
+            if (safeFileName != fileName)
             {
                 return BadRequest("Invalid file name.");
             }
