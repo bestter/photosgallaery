@@ -91,3 +91,9 @@
 **Vulnerability:** Unauthenticated registration endpoint (`/api/auth/register`) performed expensive BCrypt hashing without rate limiting, exposing the application to Denial of Service (DoS) via CPU exhaustion.
 **Learning:** Endpoints that consume significant CPU resources (like password hashing) must be protected against abuse, especially when they are unauthenticated.
 **Prevention:** Apply a strict fixed-window rate limiter (e.g., 3 requests per 10 minutes per IP) using `[EnableRateLimiting]` on resource-intensive endpoints.
+
+## 2025-02-27 - [Fix Path Traversal in ImagesController]
+ **Vulnerability:** Path Traversal vulnerability in ImagesController `GetImage` and `GetThumbnail` methods (CWE-22). The previous validation logic only checked for `..` but was flagged as insufficient by static analysis tools like CodeQL.
+ **Learning:** Simple string checks like `.Contains("..")` or custom regex are often inadequate or difficult to prove as fully secure for mitigating Path Traversal attacks. CodeQL and standard security practices require robust, consolidated path parsing.
+ **Prevention:** Use a consolidated path validation check using `Path.GetFileName` and `Path.GetInvalidFileNameChars`. Explicitly reject the request if the provided file name changes after parsing `Path.GetFileName(fileName.Replace("\\", "/"))`, if it still contains `..`, or if it contains invalid characters.
+ **Additional Context:** While simple Regex block + checking `GetFileName` logic may seem secure, CodeQL's Data Flow analysis tracks user inputs specifically traversing into `Path.GetFullPath`, `FileStream`, etc., and flag it if it's not aggressively checked in exactly the specific order or breaks the trace via exact path reconstruction techniques.
