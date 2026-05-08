@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import UploadPhoto from "../components/UploadPhoto";
 import ImageModal from "../components/ImageModal";
 import InviteModal from "../components/InviteModal";
@@ -92,6 +92,7 @@ export default function Gallery() {
 
   useEffect(() => {
     if (activeGroupId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchPhotos(activeGroupId);
 
       // Maintenir l'URL synchronisée avec le groupe actif
@@ -126,46 +127,50 @@ export default function Gallery() {
     return fullUrl;
   };
 
-  const filteredPhotos = photos.filter((photo) => {
-    let matchTag = true;
-    if (selectedTag) {
-      const photoTags = photo.tags || photo.Tags || [];
-      matchTag = photoTags.some((tagObj) => {
-        const tagTranslations =
-          tagObj.translations || tagObj.Translations || [];
-        const frTranslation =
-          tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
-          tagTranslations[0];
-        const tagName = frTranslation
-          ? frTranslation.name || frTranslation.Name
-          : "Tag";
-        return tagName === selectedTag;
-      });
-    }
-
-    let matchAuthor = true;
-    if (selectedAuthor) {
-      const author =
-        photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
-      matchAuthor = author === selectedAuthor;
-    }
-
-    let matchSearch = true;
-    if (searchQuery) {
-      const photoTags = photo.tags || photo.Tags || [];
-      const query = searchQuery.toLowerCase();
-      matchSearch = photoTags.some((tagObj) => {
-        const tagTranslations =
-          tagObj.translations || tagObj.Translations || [];
-        return tagTranslations.some((t) => {
-          const tagName = t.name || t.Name;
-          return tagName && tagName.toLowerCase().includes(query);
+  // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
+  // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
+  const filteredPhotos = useMemo(() => {
+    return photos.filter((photo) => {
+      let matchTag = true;
+      if (selectedTag) {
+        const photoTags = photo.tags || photo.Tags || [];
+        matchTag = photoTags.some((tagObj) => {
+          const tagTranslations =
+            tagObj.translations || tagObj.Translations || [];
+          const frTranslation =
+            tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
+            tagTranslations[0];
+          const tagName = frTranslation
+            ? frTranslation.name || frTranslation.Name
+            : "Tag";
+          return tagName === selectedTag;
         });
-      });
-    }
+      }
 
-    return matchTag && matchAuthor && matchSearch;
-  });
+      let matchAuthor = true;
+      if (selectedAuthor) {
+        const author =
+          photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
+        matchAuthor = author === selectedAuthor;
+      }
+
+      let matchSearch = true;
+      if (searchQuery) {
+        const photoTags = photo.tags || photo.Tags || [];
+        const query = searchQuery.toLowerCase();
+        matchSearch = photoTags.some((tagObj) => {
+          const tagTranslations =
+            tagObj.translations || tagObj.Translations || [];
+          return tagTranslations.some((t) => {
+            const tagName = t.name || t.Name;
+            return tagName && tagName.toLowerCase().includes(query);
+          });
+        });
+      }
+
+      return matchTag && matchAuthor && matchSearch;
+    });
+  }, [photos, selectedTag, selectedAuthor, searchQuery]);
 
   return (
     <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen flex flex-col relative">

@@ -26,10 +26,13 @@ Write-Host $DbConnectionString
 
 $BackendLocalPath = "C:\Users\marti\source\repos\PhotoApp\PhotoAppApi\"
 $FrontendLocalPath = "C:\Users\marti\source\repos\PhotoApp\PhotoFrontend\"
+$ModerationLocalPath = "C:\Users\marti\source\repos\PhotoApp\moderation-service\"
 
 $BackendRemotePath = "/var/www/magalerie/api"  # Dossier de destination backend
 $FrontendRemotePath = "/var/www/magalerie/frontend" # Dossier de destination frontend
+$ModerationRemotePath = "/var/www/magalerie/moderation" # Dossier de destination modération
 $ServiceName = "magalerie-api.service"             # Nom du service systemd
+$ModerationServiceName = "magalerie-moderation.service" # Nom du service systemd modération
 
 
 $PublishDir = Join-Path $PSScriptRoot "publish_temp"
@@ -41,28 +44,28 @@ try {
     New-Item -ItemType Directory -Path $PublishDir | Out-Null
 
     # ==========================================
-# 1. Base de données (MariaDB)
-# ==========================================
-Write-Host "`n[1/5] Préparation de la migration MariaDB..." -ForegroundColor Cyan
-Push-Location $BackendLocalPath
+    # 1. Base de données (MariaDB)
+    # ==========================================
+    Write-Host "`n[1/5] Préparation de la migration MariaDB..." -ForegroundColor Cyan
+    Push-Location $BackendLocalPath
 
-# On force l'environnement Staging pour que les User Secrets soient chargés
-$env:ASPNETCORE_ENVIRONMENT = "Staging"
+    # On force l'environnement Staging pour que les User Secrets soient chargés
+    $env:ASPNETCORE_ENVIRONMENT = "Staging"
 
-dotnet ef migrations bundle `
-    --self-contained `
-    -r linux-x64 `
-    --force `
-    -o "$PublishDir\efbundle"
+    dotnet ef migrations bundle `
+        --self-contained `
+        -r linux-x64 `
+        --force `
+        -o "$PublishDir\efbundle"
 
-if ($LASTEXITCODE -ne 0) { 
-    throw "Échec de la création du bundle de migration de base de données." 
-}
+    if ($LASTEXITCODE -ne 0) { 
+        throw "Échec de la création du bundle de migration de base de données." 
+    }
 
-# On nettoie la variable
-$env:ASPNETCORE_ENVIRONMENT = $null
+    # On nettoie la variable
+    $env:ASPNETCORE_ENVIRONMENT = $null
 
-Pop-Location
+    Pop-Location
 
     # ==========================================
     # 2. Compilation Frontend (React)
@@ -85,6 +88,22 @@ Pop-Location
     dotnet publish $BackendLocalPath -c Release -r linux-x64 --self-contained false -o "$PublishDir\backend"
     if ($LASTEXITCODE -ne 0) { throw "Échec de la compilation 'dotnet publish' du backend." }
 
+    # --- NOUVELLE LOGIQUE DE CONFIGURATION ---
+    Write-Host "  -> Préparation de la configuration de Production..."
+    $AppsettingsJson = "$PublishDir\backend\appsettings.json"
+    $AppsettingsProd = "$PublishDir\backend\appsettings.Production.json"
+
+    if (Test-Path $AppsettingsProd) {
+        # On remplace le contenu de appsettings.json par celui de Production
+        Copy-Item -Path $AppsettingsProd -Destination $AppsettingsJson -Force
+        Write-Host "     [OK] appsettings.json mis à jour avec les paramètres de Production."
+    }
+
+    # On supprime TOUS les fichiers appsettings.*.json (dev, production, etc.) 
+    # pour ne laisser QUE le appsettings.json final dans le paquet.
+    Write-Host "  -> Nettoyage des fichiers de configuration secondaires..."
+    Get-ChildItem -Path "$PublishDir\backend\appsettings.*.json" | Remove-Item -Force
+    # ------------------------------------------
 
     # NOUVELLE LIGNE : On supprime les photos de test locales du paquet de déploiement
     Write-Host "  -> Nettoyage des données de test locales..."
@@ -100,7 +119,7 @@ Pop-Location
     # ==========================================
     Write-Host "`n[4/5] Transfert des fichiers vers le serveur Linux..." -ForegroundColor Cyan
     
-    ssh $ServerUserHost "mkdir -p $FrontendRemotePath $BackendRemotePath"
+    ssh $ServerUserHost "mkdir -p $FrontendRemotePath $BackendRemotePath $ModerationRemotePath"
     if ($LASTEXITCODE -ne 0) { throw "Impossible de créer les dossiers de destination sur le serveur." }
     
     Write-Host "  -> Envoi du Frontend..."
@@ -111,11 +130,19 @@ Pop-Location
     scp -r "$PublishDir\backend\*" "${ServerUserHost}:${BackendRemotePath}"
     if ($LASTEXITCODE -ne 0) { throw "Échec du transfert SCP pour le Backend (Vérifie les permissions sur le serveur)." }
 
+    Write-Host "  -> Envoi du service de Modération (Python)..."
+    scp "$ModerationLocalPath\main.py" "$ModerationLocalPath\requirements.txt" "${ServerUserHost}:${ModerationRemotePath}"
+    if ($LASTEXITCODE -ne 0) { throw "Échec du transfert SCP pour le service de modération." }
+
     # NOUVELLE LIGNE : On donne le droit de lecture à Apache, et on ignore les erreurs sur le dossier images
     Write-Host "  -> Ajustement des permissions pour Apache..."
-    ssh $ServerUserHost "chmod -R 755 $FrontendRemotePath $BackendRemotePath 2>/dev/null || true"
+    ssh $ServerUserHost "chmod -R 755 $FrontendRemotePath $BackendRemotePath $ModerationRemotePath 2>/dev/null || true"
     if ($LASTEXITCODE -ne 0) { throw "Échec du changement de permissions (chmod)." }
     
+    Write-Host "  -> Installation des dépendances Python (modération)..."
+    ssh $ServerUserHost "cd $ModerationRemotePath && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+    if ($LASTEXITCODE -ne 0) { throw "Échec de l'installation des dépendances Python." }
+
     Write-Host "  -> Envoi et exécution de la migration DB..."
     scp "$PublishDir\efbundle" "${ServerUserHost}:/tmp/efbundle"
     if ($LASTEXITCODE -ne 0) { throw "Échec du transfert du bundle de base de données." }
@@ -126,9 +153,12 @@ Pop-Location
     # ==========================================
     # 5. Redémarrage
     # ==========================================
-    Write-Host "`n[5/5] Redémarrage du service d'API..." -ForegroundColor Cyan
+    Write-Host "`n[5/5] Redémarrage des services..." -ForegroundColor Cyan
     ssh $ServerUserHost "sudo systemctl restart $ServiceName"
     if ($LASTEXITCODE -ne 0) { throw "Échec du redémarrage du service $ServiceName via systemctl." }
+
+    ssh $ServerUserHost "sudo systemctl restart $ModerationServiceName"
+    if ($LASTEXITCODE -ne 0) { throw "Échec du redémarrage du service $ModerationServiceName via systemctl." }
 
     Write-Host "`n✅ Déploiement terminé avec succès !" -ForegroundColor Green
 
