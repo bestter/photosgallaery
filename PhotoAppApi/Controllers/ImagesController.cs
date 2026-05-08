@@ -59,12 +59,12 @@ namespace PhotoAppApi.Controllers
                     if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
 
                     bool isAdmin = User.IsInRole("Admin");
-                    
+
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
                             .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
-                        
+
                         if (!isMember)
                         {
                             return Forbid(); // Interdit
@@ -117,7 +117,7 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, new { message = "Erreur lors de la récupération de l'image." });
             }
         }
-        
+
         [HttpGet("thumbnails/{fileName}")]
         public async Task<IActionResult> GetThumbnail(string fileName)
         {
@@ -145,12 +145,12 @@ namespace PhotoAppApi.Controllers
                     if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
 
                     bool isAdmin = User.IsInRole("Admin");
-                    
+
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
                             .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
-                        
+
                         if (!isMember) return Forbid();
                     }
                 }

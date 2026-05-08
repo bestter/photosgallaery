@@ -39,4 +39,4 @@ namespace PhotoAppApi.Models
         [System.Text.Json.Serialization.JsonIgnore]
         public Group? Group { get; set; }
     }
-}   
+}

@@ -67,7 +67,7 @@ namespace PhotoAppApi.Controllers
                 // Vérifier s'il a déjà été invité
                 var existingInvite = await _context.GroupInvitations
                     .FirstOrDefaultAsync(i => i.GroupId == dto.GroupId && i.Email == dto.Email && i.Status == "Pending");
-                
+
                 if (existingInvite != null)
                 {
                     return BadRequest(new { message = "Une invitation est déjà en attente pour cette adresse e-mail dans ce cercle." });

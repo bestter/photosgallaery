@@ -6,7 +6,7 @@ namespace PhotoAppApi.Models
     {
         public int TagId { get; set; }
 
-        [JsonIgnore] 
+        [JsonIgnore]
         public Tag Tag { get; set; } = null!;
 
         public Language Language { get; set; } = Language.Unspecified;

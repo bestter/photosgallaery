@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization; // N'oublie pas cet import pour le JsonIgnore
 
 namespace PhotoAppApi.Models
-{    
+{
     public class PhotoLike
     {
         public int Id { get; set; }

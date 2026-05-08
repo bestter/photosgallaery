@@ -6,10 +6,10 @@ namespace PhotoAppApi.Models
     {
         [Key]
         public Guid Id { get; set; } = Guid.CreateVersion7();
-        
+
         public Guid GroupId { get; set; }
         public Group? Group { get; set; }
-        
+
         public int InviterId { get; set; }
         public User? Inviter { get; set; }
 
@@ -19,10 +19,10 @@ namespace PhotoAppApi.Models
         public string? Message { get; set; }
 
         public Guid InviteToken { get; set; } = Guid.CreateVersion7();
-        
+
         // Pending, Accepted, Expired
-        public string Status { get; set; } = "Pending"; 
-        
+        public string Status { get; set; } = "Pending";
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
