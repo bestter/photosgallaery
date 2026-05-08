@@ -42,6 +42,18 @@ namespace PhotoAppApi.Tests.Controllers
             Assert.Equal("Votre message a été envoyé avec succès.", messageValue);
         }
 
+        [Fact]
+        public async Task SubmitContactForm_NullRequest_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.SubmitContactForm(null);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("La requête ne peut pas être nulle.", badRequestResult.Value);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
         [Theory]
         [InlineData("", "john@example.com", "Hello", "Test")]
         [InlineData("John", "", "Hello", "Test")]
@@ -51,6 +63,10 @@ namespace PhotoAppApi.Tests.Controllers
         [InlineData("John", null, "Hello", "Test")]
         [InlineData("John", "john@example.com", null, "Test")]
         [InlineData("John", "john@example.com", "Hello", null)]
+        [InlineData("   ", "john@example.com", "Hello", "Test")] // whitespace tests
+        [InlineData("John", "   ", "Hello", "Test")]
+        [InlineData("John", "john@example.com", "   ", "Test")]
+        [InlineData("John", "john@example.com", "Hello", "   ")]
         public async Task SubmitContactForm_MissingFields_ReturnsBadRequest(string name, string email, string subject, string message)
         {
             // Arrange

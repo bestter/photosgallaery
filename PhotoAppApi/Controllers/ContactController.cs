@@ -19,6 +19,11 @@ namespace PhotoAppApi.Controllers
         [HttpPost]
         public async Task<IActionResult> SubmitContactForm([FromBody] ContactRequestDto request)
         {
+            if (request == null)
+            {
+                return BadRequest("La requête ne peut pas être nulle.");
+            }
+
             if (string.IsNullOrWhiteSpace(request.Name) ||
                 string.IsNullOrWhiteSpace(request.Email) ||
                 string.IsNullOrWhiteSpace(request.Subject) ||
