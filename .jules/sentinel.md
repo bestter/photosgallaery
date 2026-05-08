@@ -86,3 +86,8 @@
 **Vulnerability:** Lack of test coverage for the ContactController endpoint.
 **Learning:** Implementing tests ensures the application correctly handles requests, validates input fields, correctly utilizes the mocked email service and returns the expected HTTP responses.
 **Prevention:** By verifying valid, missing fields, and error states, we ensure stability and protect against potential unhandled exceptions or regressions in external dependency calls.
+
+## 2024-05-08 - Added Rate Limiting to Registration Endpoint to Prevent CPU Exhaustion
+**Vulnerability:** Unauthenticated registration endpoint (`/api/auth/register`) performed expensive BCrypt hashing without rate limiting, exposing the application to Denial of Service (DoS) via CPU exhaustion.
+**Learning:** Endpoints that consume significant CPU resources (like password hashing) must be protected against abuse, especially when they are unauthenticated.
+**Prevention:** Apply a strict fixed-window rate limiter (e.g., 3 requests per 10 minutes per IP) using `[EnableRateLimiting]` on resource-intensive endpoints.
