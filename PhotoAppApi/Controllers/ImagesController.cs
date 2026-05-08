@@ -88,21 +88,6 @@ namespace PhotoAppApi.Controllers
                     return BadRequest("Invalid file path.");
                 }
 
-                string cacheKey = $"file_exists_{filePath}";
-                if (!_cache.TryGetValue(cacheKey, out bool fileExists))
-                {
-                    fileExists = System.IO.File.Exists(filePath);
-                    var cacheOptions = new MemoryCacheEntryOptions()
-                        .SetSlidingExpiration(TimeSpan.FromMinutes(10));
-                    _cache.Set(cacheKey, fileExists, cacheOptions);
-                }
-
-                if (!fileExists)
-                {
-                    return NotFound();
-                }
-
-                // Déterminer le content type
                 var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch
                 {
@@ -112,7 +97,19 @@ namespace PhotoAppApi.Controllers
                     _ => "image/jpeg"
                 };
 
-                return PhysicalFile(filePath, contentType);
+                try
+                {
+                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+                    return File(fileStream, contentType);
+                }
+                catch (FileNotFoundException)
+                {
+                    return NotFound();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return NotFound();
+                }
             }
             catch (Exception ex)
             {
@@ -173,17 +170,6 @@ namespace PhotoAppApi.Controllers
                     return BadRequest("Invalid file path.");
                 }
 
-                string cacheKey = $"file_exists_{filePath}";
-                if (!_cache.TryGetValue(cacheKey, out bool fileExists))
-                {
-                    fileExists = System.IO.File.Exists(filePath);
-                    var cacheOptions = new MemoryCacheEntryOptions()
-                        .SetSlidingExpiration(TimeSpan.FromMinutes(10));
-                    _cache.Set(cacheKey, fileExists, cacheOptions);
-                }
-
-                if (!fileExists) return NotFound();
-
                 var ext = Path.GetExtension(safeFileName).ToLowerInvariant();
                 var contentType = ext switch
                 {
@@ -193,7 +179,19 @@ namespace PhotoAppApi.Controllers
                     _ => "image/jpeg"
                 };
 
-                return PhysicalFile(filePath, contentType);
+                try
+                {
+                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+                    return File(fileStream, contentType);
+                }
+                catch (FileNotFoundException)
+                {
+                    return NotFound();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return NotFound();
+                }
             }
             catch (Exception ex)
             {

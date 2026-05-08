@@ -92,9 +92,9 @@ namespace PhotoAppApi.Tests.Controllers
             var result = await controller.GetImage("valid.jpg");
 
             // Assert
-            var physicalFileResult = Assert.IsType<PhysicalFileResult>(result);
-            Assert.Equal(filePath, physicalFileResult.FileName);
-            Assert.Equal("image/jpeg", physicalFileResult.ContentType);
+            var fileStreamResult = Assert.IsType<FileStreamResult>(result);
+            Assert.Equal("image/jpeg", fileStreamResult.ContentType);
+            // Optionally we can verify it has a valid stream, but simply being FileStreamResult implies we successfully opened it.
         }
 
         [Fact]
