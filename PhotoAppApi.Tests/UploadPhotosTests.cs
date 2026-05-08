@@ -162,6 +162,9 @@ namespace PhotoAppApi.Tests
             moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
 
+            storageMock.Setup(s => s.UploadImageAsync(It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("dummy_url");
+
             // Act
             var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false,TestContext.Current.CancellationToken);
 
@@ -215,7 +218,7 @@ namespace PhotoAppApi.Tests
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
 
             var moderationMock = new Mock<IModerationService>();
-            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>()))
+            moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ModerationResult { IsNsfw = true, NsfwScore = 0.95, SafeScore = 0.05, Label = "nsfw" });
 
             // Act

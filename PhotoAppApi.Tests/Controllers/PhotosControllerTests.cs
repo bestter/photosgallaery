@@ -84,5 +84,30 @@ namespace PhotoAppApi.Tests.Controllers
                 Directory.Delete(tempDir, true);
             }
         }
+
+        [Fact]
+        public async Task GetImageUrlAsync_ShouldCallStorageService()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            string objectKey = "gallery/photo1.jpg";
+            string expectedUrl = "https://s3.amazonaws.com/bucket/gallery/photo1.jpg?signature=xyz";
+
+            storageMock.Setup(s => s.GetPresignedUrlAsync(objectKey, It.IsAny<TimeSpan?>()))
+                       .ReturnsAsync(expectedUrl);
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Act
+            var result = await controller.GetImageUrlAsync(objectKey);
+
+            // Assert
+            Assert.Equal(expectedUrl, result);
+            storageMock.Verify(s => s.GetPresignedUrlAsync(objectKey, TimeSpan.FromHours(1)), Times.Once);
+        }
     }
 }
