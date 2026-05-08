@@ -1,0 +1,61 @@
+diff --git a/.jules/sentinel.md b/.jules/sentinel.md
+index dbbee74..c2f32be 100644
+--- a/.jules/sentinel.md
++++ b/.jules/sentinel.md
+@@ -95,3 +95,6 @@
+  **Vulnerability:** Path Traversal (CWE-22) in `ImagesController.cs` methods `GetImage` and `GetThumbnail` where the path was only sanitized using `Replace("\\", "/")` and `.Contains("..")`, missing other evasive techniques and edge cases across platforms.
+  **Learning:** Simple string replacement and `Contains("..")` are insufficient for robust path traversal prevention. CodeQL and secure coding guidelines recommend a consolidated validation utilizing `Path.GetFileName` to ensure the input resolves strictly to a simple filename, without any directories or invalid characters.
+  **Prevention:** Implement a consolidated guard clause: `if (string.IsNullOrEmpty(fileName) || fileName.Contains("..") || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName != Path.GetFileName(fileName.Replace("\\", "/"))) return BadRequest("Invalid file name.");`
++## 2024-05-18 - ContactControllerTests Missing Tests Fix
++ **Learning:** When adding tests for `null` requests or explicit whitespace string requests (`" "`), xUnit will issue warning `xUnit1012` if `null` is used for a string parameter via `[InlineData(null, ...)]` when `string` is non-nullable. It still compiles and tests pass, but generates warnings.
++ **Action:** Handled null requests separately using `SubmitContactForm_NullRequest_ReturnsBadRequest` without `InlineData` parameter injection, and passed explicit strings `" "` via `InlineData` for whitespace validation coverage.
+diff --git a/PhotoAppApi.Tests/Controllers/ContactControllerTests.cs b/PhotoAppApi.Tests/Controllers/ContactControllerTests.cs
+index 16cd2fa..ab98c55 100644
+--- a/PhotoAppApi.Tests/Controllers/ContactControllerTests.cs
++++ b/PhotoAppApi.Tests/Controllers/ContactControllerTests.cs
+@@ -51,6 +51,10 @@ namespace PhotoAppApi.Tests.Controllers
+         [InlineData("John", null, "Hello", "Test")]
+         [InlineData("John", "john@example.com", null, "Test")]
+         [InlineData("John", "john@example.com", "Hello", null)]
++        [InlineData(" ", "john@example.com", "Hello", "Test")]
++        [InlineData("John", " ", "Hello", "Test")]
++        [InlineData("John", "john@example.com", " ", "Test")]
++        [InlineData("John", "john@example.com", "Hello", " ")]
+         public async Task SubmitContactForm_MissingFields_ReturnsBadRequest(string name, string email, string subject, string message)
+         {
+             // Arrange
+@@ -71,6 +75,18 @@ namespace PhotoAppApi.Tests.Controllers
+             _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+         }
+
++        [Fact]
++        public async Task SubmitContactForm_NullRequest_ReturnsBadRequest()
++        {
++            // Act
++            var result = await _controller.SubmitContactForm(null);
++
++            // Assert
++            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
++            Assert.Equal("Requête invalide.", badRequestResult.Value);
++            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
++        }
++
+         [Fact]
+         public async Task SubmitContactForm_ServiceThrowsException_Returns500AndLogs()
+         {
+diff --git a/PhotoAppApi/Controllers/ContactController.cs b/PhotoAppApi/Controllers/ContactController.cs
+index 22e6076..fa8393a 100644
+--- a/PhotoAppApi/Controllers/ContactController.cs
++++ b/PhotoAppApi/Controllers/ContactController.cs
+@@ -19,6 +19,11 @@ namespace PhotoAppApi.Controllers
+         [HttpPost]
+         public async Task<IActionResult> SubmitContactForm([FromBody] ContactRequestDto request)
+         {
++            if (request == null)
++            {
++                return BadRequest("Requête invalide.");
++            }
++
+             if (string.IsNullOrWhiteSpace(request.Name) ||
+                 string.IsNullOrWhiteSpace(request.Email) ||
+                 string.IsNullOrWhiteSpace(request.Subject) ||
