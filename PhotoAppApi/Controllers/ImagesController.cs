@@ -32,14 +32,13 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            var invalidChars = Path.GetInvalidFileNameChars();
-            if (fileName.IndexOfAny(invalidChars) >= 0 || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
-            {
-                return BadRequest("Invalid file name.");
-            }
+            // Explicitly normalize path separators for cross-platform safety
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
 
-            string safeFileName = Path.GetFileName(fileName);
-            if (safeFileName != fileName)
+            // Prevent basic traversal attempts
+            if (fileName != safeFileName) return BadRequest("Invalid file name.");
+
+            if (safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || safeFileName.Contains(".."))
             {
                 return BadRequest("Invalid file name.");
             }
@@ -129,14 +128,13 @@ namespace PhotoAppApi.Controllers
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            var invalidChars = Path.GetInvalidFileNameChars();
-            if (fileName.IndexOfAny(invalidChars) >= 0 || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
-            {
-                return BadRequest("Invalid file name.");
-            }
+            // Explicitly normalize path separators for cross-platform safety
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
 
-            string safeFileName = Path.GetFileName(fileName);
-            if (safeFileName != fileName)
+            // Prevent basic traversal attempts
+            if (fileName != safeFileName) return BadRequest("Invalid file name.");
+
+            if (safeFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || safeFileName.Contains(".."))
             {
                 return BadRequest("Invalid file name.");
             }
