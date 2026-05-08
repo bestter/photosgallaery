@@ -143,12 +143,13 @@ namespace PhotoAppApi.Tests
 
             var photo = new Photo
             {
-                Id = 1,
+                Id = Guid.NewGuid(),
                 FileName = "test.jpg",
                 Url = "/test.jpg",
                 FileHash = "hash",
-                UploaderUsername = user.Username,
+                UserId = user.Id,
                 GroupId = group2.Id,
+                User = user,
                 Group = group2
             };
 

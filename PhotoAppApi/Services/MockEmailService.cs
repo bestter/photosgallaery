@@ -54,7 +54,7 @@ namespace PhotoAppApi.Services
             var sanitizedMessage = SanitizeForLog(message);
             var sanitizedInviteUrl = SanitizeForLog(inviteUrl);
 
-            _logger.LogInformation("========================================");
+            _logger.LogInformation  ("========================================");
             _logger.LogInformation($"[EMAIL SIMULATION] Sending invitation to {sanitizedEmail}");
             _logger.LogInformation($"Subject: {sanitizedInviterName} vous a invité à rejoindre le cercle {sanitizedGroupName} sur Vision");
             _logger.LogInformation($"\nBonjour {sanitizedFirstName} {sanitizedLastName},");

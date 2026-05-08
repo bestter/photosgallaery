@@ -132,7 +132,7 @@ export default function Dashboard() {
               <thead className="bg-surface-container/50 border-b border-outline-variant/40">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Nom d&apos;usager
+                    Nom d'usager
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                     Adresse courriel
@@ -314,15 +314,8 @@ export default function Dashboard() {
                                     ? "Réactiver ce compte"
                                     : "Bannir"
                               }
-                              aria-label={
-                                isCurrentUser
-                                  ? "Action non permise sur votre propre compte"
-                                  : role === "Forbidden"
-                                    ? "Réactiver ce compte"
-                                    : "Bannir"
-                              }
                             >
-                              <span className="material-symbols-outlined text-lg leading-none" aria-hidden="true">
+                              <span className="material-symbols-outlined text-lg leading-none">
                                 {role === "Forbidden" ? "lock_open" : "block"}
                               </span>
                             </button>
@@ -340,22 +333,22 @@ export default function Dashboard() {
               Affichage de {users.length} utilisateurs
             </p>
             <div className="flex gap-1">
-              <button aria-label="Page précédente" className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors">
+                <span className="material-symbols-outlined text-sm">
                   chevron_left
                 </span>
               </button>
-              <button aria-label="Aller à la page 1" aria-current="page" className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs">
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs">
                 1
               </button>
-              <button aria-label="Aller à la page 2" className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
                 2
               </button>
-              <button aria-label="Aller à la page 3" className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
                 3
               </button>
-              <button aria-label="Page suivante" className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors">
+                <span className="material-symbols-outlined text-sm">
                   chevron_right
                 </span>
               </button>

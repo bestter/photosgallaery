@@ -41,6 +41,3 @@
 **Learning:** Re-calculating expensive filter logic (like mapping over nested arrays for tagging/translations) on every render in React causes significant input lag when the user interacts with fast-updating states (like typing in a search bar).
 **Action:** Always wrap derived datasets like `filteredPhotos` in `useMemo` with their specific dependencies, preventing unrelated state changes from blocking the main thread.
 
-## 2024-05-18 - Optimize BackfillHashes Concurrent I/O
-**Learning:** Sequential processing of file streams (I/O bounds) can be vastly improved by running Tasks asynchronously and executing them concurrently with `Task.WhenAll`.
-**Action:** Replaced sequential `foreach` in `PhotosController.BackfillHashes` with concurrent `Task.Run` map yielding a ~3x-5x performance boost over batches.
