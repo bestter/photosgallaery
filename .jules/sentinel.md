@@ -98,3 +98,8 @@
 ## 2024-05-18 - ContactControllerTests Missing Tests Fix
  **Learning:** When adding tests for `null` requests or explicit whitespace string requests (`" "`), xUnit will issue warning `xUnit1012` if `null` is used for a string parameter via `[InlineData(null, ...)]` when `string` is non-nullable. It still compiles and tests pass, but generates warnings.
  **Action:** Handled null requests separately using `SubmitContactForm_NullRequest_ReturnsBadRequest` without `InlineData` parameter injection, and passed explicit strings `" "` via `InlineData` for whitespace validation coverage.
+
+## 2024-05-24 - [Rate Limiting Unauthenticated Endpoints]
+**Vulnerability:** The `/api/Contact` endpoint for submitting contact forms was completely unauthenticated and lacked any rate limiting. This allowed malicious actors to abuse the endpoint, leading to spam (triggering unbounded email dispatch) and potential Denial of Service (DoS) by exhausting third-party service quotas or CPU resources.
+**Learning:** Endpoints like login and registration were previously secured with ASP.NET Core's rate limiting, but peripheral unauthenticated endpoints (like a contact form) are easily missed during threat modeling, leaving the application open to resource exhaustion attacks.
+**Prevention:** Always enforce strict rate limiting policies (partitioned by IP) on ALL public-facing, unauthenticated endpoints that perform work (like database writes, email dispatches, or heavy computations). When adding new endpoints that don't require `[Authorize]`, mandate a rate limiting attribute (`[EnableRateLimiting("PolicyName")]`) by default.
