@@ -12,3 +12,7 @@
 ## 2024-05-18 - Dynamiser les textes statiques
 **Learning:** Hardcoded string literals in React components bypass internationalization setups (`react-i18next`) making the application inaccessible for non-native speakers, hindering i18n support.
 **Action:** Replaced hardcoded text in `Join.jsx`, `Register.jsx`, `AdminGroups.jsx`, `AdminGroupRequests.jsx`, and `UploadPhoto.jsx` with dynamic calls using the `useTranslation()` hook. Populated the `fr/translation.json` and `en/translation.json` localized dictionaries to include the newly identified strings.
+
+## 2025-05-09 - [Standardizing Screen Reader Experience on Icon Buttons]
+**Learning:** For apps using heavy icon-based navigation and actions (like material-symbols-outlined spans inside buttons in the Photo frontend), screen readers will often read out the raw icon text (e.g. "block" or "lock_open") confusingly unless `aria-hidden="true"` is added to the span AND a clear `aria-label` is provided on the parent button.
+**Action:** When adding or modifying icon buttons, always apply `aria-hidden="true"` to the `span` and `aria-label` on the parent `<button>` to ensure keyboard and screen reader accessibility, particularly in administrative views like the dashboard user list.

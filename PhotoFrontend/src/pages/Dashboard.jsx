@@ -53,7 +53,10 @@ export default function Dashboard() {
   const topActions = (
     <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto">
       <div className="relative w-full">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">
+        <span
+          className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl"
+          aria-hidden="true"
+        >
           search
         </span>
         <input
@@ -77,7 +80,10 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 shadow-md">
             <div className="flex items-center justify-between mb-4">
-              <span className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined">
+              <span
+                className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined"
+                aria-hidden="true"
+              >
                 person
               </span>
             </div>
@@ -90,7 +96,10 @@ export default function Dashboard() {
           </div>
           <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 shadow-md">
             <div className="flex items-center justify-between mb-4">
-              <span className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined">
+              <span
+                className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined"
+                aria-hidden="true"
+              >
                 camera
               </span>
             </div>
@@ -114,13 +123,19 @@ export default function Dashboard() {
             </h4>
             <div className="flex gap-2">
               <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface">
-                <span className="material-symbols-outlined text-sm">
+                <span
+                  className="material-symbols-outlined text-sm"
+                  aria-hidden="true"
+                >
                   filter_list
                 </span>{" "}
                 Filtrer
               </button>
               <button className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)]">
-                <span className="material-symbols-outlined text-sm">
+                <span
+                  className="material-symbols-outlined text-sm"
+                  aria-hidden="true"
+                >
                   person_add
                 </span>{" "}
                 Nouvel usager
@@ -132,7 +147,7 @@ export default function Dashboard() {
               <thead className="bg-surface-container/50 border-b border-outline-variant/40">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Nom d'usager
+                    Nom d&apos;usager
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                     Adresse courriel
@@ -314,8 +329,18 @@ export default function Dashboard() {
                                     ? "Réactiver ce compte"
                                     : "Bannir"
                               }
+                              aria-label={
+                                isCurrentUser
+                                  ? "Action non permise sur votre propre compte"
+                                  : role === "Forbidden"
+                                    ? "Réactiver ce compte"
+                                    : "Bannir ce compte"
+                              }
                             >
-                              <span className="material-symbols-outlined text-lg leading-none">
+                              <span
+                                className="material-symbols-outlined text-lg leading-none"
+                                aria-hidden="true"
+                              >
                                 {role === "Forbidden" ? "lock_open" : "block"}
                               </span>
                             </button>
@@ -333,22 +358,44 @@ export default function Dashboard() {
               Affichage de {users.length} utilisateurs
             </p>
             <div className="flex gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-sm">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors"
+                aria-label="Page précédente"
+              >
+                <span
+                  className="material-symbols-outlined text-sm"
+                  aria-hidden="true"
+                >
                   chevron_left
                 </span>
               </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs"
+                aria-current="page"
+                aria-label="Page 1"
+              >
                 1
               </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
+                aria-label="Aller à la page 2"
+              >
                 2
               </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
+                aria-label="Aller à la page 3"
+              >
                 3
               </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-sm">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors"
+                aria-label="Page suivante"
+              >
+                <span
+                  className="material-symbols-outlined text-sm"
+                  aria-hidden="true"
+                >
                   chevron_right
                 </span>
               </button>
