@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PhotoAppApi.Services;
 
 namespace PhotoAppApi.Controllers
@@ -17,6 +18,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("ContactLimiter")]
         public async Task<IActionResult> SubmitContactForm([FromBody] ContactRequestDto request)
         {
             if (request == null)
