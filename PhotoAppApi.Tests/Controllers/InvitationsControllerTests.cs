@@ -252,7 +252,7 @@ namespace PhotoAppApi.Tests.Controllers
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
             Assert.Equal($"Invitation envoyée avec succès à {dto.Email} !", message);
 
-            var invitation = await context.GroupInvitations.FirstOrDefaultAsync(i => i.Email == dto.Email);
+            var invitation = await context.GroupInvitations.FirstOrDefaultAsync(i => i.Email == dto.Email, TestContext.Current.CancellationToken);
             Assert.NotNull(invitation);
             Assert.Equal("Pending", invitation.Status);
             Assert.Equal(1, invitation.InviterId);

@@ -4,6 +4,6 @@ namespace PhotoAppApi.Services
 {
     public interface IModerationService
     {
-        Task<ModerationResult> CheckImageAsync(Stream imageStream, string fileName, string contentType);
+        Task<ModerationResult> CheckImageAsync(Stream imageStream, string fileName, string contentType, CancellationToken cancellation = default);
     }
 }

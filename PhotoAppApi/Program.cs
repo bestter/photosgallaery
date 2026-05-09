@@ -1,5 +1,7 @@
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -8,7 +10,6 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System.Security.Claims;
-using Microsoft.AspNetCore.RateLimiting;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.RateLimiting;
@@ -153,6 +154,30 @@ if (!string.IsNullOrWhiteSpace(moderationUrl))
     builder.Services.AddScoped<IModerationService, ModerationService>();
 }
 
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var config = new AmazonS3Config
+    {
+        ServiceURL = builder.Configuration["ObjectStorage:ServiceUrl"],
+        ForcePathStyle = true,           // Important pour R2, B2 et MinIO    
+        AuthenticationRegion = builder.Configuration["ObjectStorage:Region"] ?? "auto"
+    };
+
+    var accessKey = builder.Configuration["ObjectStorage:AccessKey"];
+    var secretKey = builder.Configuration["ObjectStorage:SecretKey"];
+
+    if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey))
+    {
+        return new AmazonS3Client(accessKey, secretKey, config);
+    }
+
+    return new AmazonS3Client(config);
+});
+
+builder.Services.Configure<ObjectStorageOptions>(
+    builder.Configuration.GetSection("ObjectStorage"));
+
+builder.Services.AddScoped<IObjectStorageService, ObjectStorageService>();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CanUpload", policy =>

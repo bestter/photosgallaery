@@ -4,7 +4,7 @@ namespace PhotoAppApi.Services
 {
     public interface IEmailService
     {
-        Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl);
-        Task SendContactEmailAsync(string name, string email, string subject, string message);
+        Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl, CancellationToken cancellationToken = default);
+        Task SendContactEmailAsync(string name, string email, string subject, string message, CancellationToken cancellationToken = default);
     }
 }

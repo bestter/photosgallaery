@@ -146,15 +146,17 @@ namespace PhotoAppApi.Tests
                 FileName = "test.jpg",
                 Url = "/test.jpg",
                 FileHash = "hash",
+                UploaderUsername = user.Username,
                 GroupId = group2.Id,
-                Group = group2
+                Group = group2,
+                ThumbnailUrl = string.Empty
             };
 
             context.Groups.AddRange(group1, group2);
             context.Users.Add(user);
             context.UserGroups.Add(userGroup);
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new GroupsController(context);
 

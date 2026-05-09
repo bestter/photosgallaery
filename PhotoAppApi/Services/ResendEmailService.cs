@@ -19,7 +19,7 @@ namespace PhotoAppApi.Services
 
         private string ResendKEy { get; set; }
 
-        public async Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl)
+        public async Task SendInvitationEmailAsync(string email, string firstName, string lastName, string inviterName, string groupName, string message, string inviteUrl, CancellationToken cancellationToken = default)
         {
             StringBuilder sb = new();
             sb.AppendLine("========================================");
@@ -36,10 +36,10 @@ namespace PhotoAppApi.Services
             sb.AppendLine($"URL : {inviteUrl}");
             sb.AppendLine("========================================");
 
-            await EnvoyerCourrielAsync(email, $"{inviterName} vous a invité à rejoindre le cercle {groupName} sur Vision", sb.ToString());
+            await EnvoyerCourrielAsync(email, $"{inviterName} vous a invité à rejoindre le cercle {groupName} sur Vision", sb.ToString(), cancellationToken);
         }
 
-        public async Task SendContactEmailAsync(string name, string email, string subject, string message)
+        public async Task SendContactEmailAsync(string name, string email, string subject, string message, CancellationToken cancellationToken = default)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<h2>Nouveau message de contact via PixelLyra</h2>");
@@ -48,10 +48,10 @@ namespace PhotoAppApi.Services
             sb.AppendLine($"<p><strong>Sujet :</strong> {subject}</p>");
             sb.AppendLine($"<p><strong>Message :</strong><br/>{message.Replace("\n", "<br/>")}</p>");
 
-            await EnvoyerCourrielAsync(fromEmail, $"Contact - {subject}", sb.ToString());
+            await EnvoyerCourrielAsync(fromEmail, $"Contact - {subject}", sb.ToString(), cancellationToken);
         }
 
-        private async Task EnvoyerCourrielAsync(string destinataire, string sujet, string contenuHtml)
+        private async Task EnvoyerCourrielAsync(string destinataire, string sujet, string contenuHtml, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(ResendKEy))
             {
@@ -71,7 +71,7 @@ namespace PhotoAppApi.Services
                     To = destinataire,
                     Subject = sujet,
                     HtmlBody = contenuHtml,
-                });
+                }, cancellationToken);
 
             }
             catch (Exception ex)

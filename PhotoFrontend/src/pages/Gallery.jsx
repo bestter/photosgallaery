@@ -113,10 +113,12 @@ export default function Gallery() {
   // Helper pour générer l'URL complète de l'image sécurisée
   const getImageUrl = (url) => {
     if (!url) return "";
+    debugger;
     let fullUrl = url;
     if (!url.startsWith("http")) {
       const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
       fullUrl = backendRoot + url;
+
     }
 
     // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
@@ -319,10 +321,10 @@ export default function Gallery() {
             <h1 className="text-[1.875rem] font-extrabold tracking-tight text-slate-100">
               {activeGroupId
                 ? userGroups.find((g) => (g.id || g.Id) === activeGroupId)
-                    ?.name ||
-                  userGroups.find((g) => (g.id || g.Id) === activeGroupId)
-                    ?.Name ||
-                  "Gallery"
+                  ?.name ||
+                userGroups.find((g) => (g.id || g.Id) === activeGroupId)
+                  ?.Name ||
+                "Gallery"
                 : "Gallery"}
             </h1>
           </div>
@@ -384,11 +386,7 @@ export default function Gallery() {
               const author =
                 photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
               const originalUrl = photo.url || photo.Url;
-              const thumbnailUrl = originalUrl
-                ? getImageUrl(
-                    originalUrl.replace("/images/", "/images/thumbnails/"),
-                  )
-                : "";
+              const thumbnailUrl = photo.thumbnailUrl || photo.ThumbnailUrl;
 
               // Get tags for display
               const photoTagsRaw = photo.tags || photo.Tags || [];
@@ -428,7 +426,7 @@ export default function Gallery() {
                     <img
                       alt={`Photo par ${author}`}
                       className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
-                      src={thumbnailUrl || getImageUrl(originalUrl)}
+                      src={thumbnailUrl || originalUrl}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90"></div>
                     <div className="absolute bottom-0 left-0 p-6 w-full">
@@ -479,7 +477,7 @@ export default function Gallery() {
                     <img
                       alt={`Photo par ${author}`}
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                      src={thumbnailUrl || getImageUrl(originalUrl)}
+                      src={thumbnailUrl || originalUrl}
                     />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
                       <button className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
@@ -527,7 +525,7 @@ export default function Gallery() {
                     <img
                       alt={`Photo par ${author}`}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      src={thumbnailUrl || getImageUrl(originalUrl)}
+                      src={thumbnailUrl || originalUrl}
                     />
                   </div>
                   <div className="p-4 bg-[#152b2b] shrink-0 border-t border-slate-800/60">
@@ -643,10 +641,9 @@ export default function Gallery() {
         <ImageModal
           photo={{
             ...filteredPhotos[selectedPhotoIndex],
-            fullUrl: getImageUrl(
-              filteredPhotos[selectedPhotoIndex].url ||
-                filteredPhotos[selectedPhotoIndex].Url,
-            ),
+            fullUrl: filteredPhotos[selectedPhotoIndex].url ||
+              filteredPhotos[selectedPhotoIndex].thumbnailUrl,
+
           }}
           onClose={() => setSelectedPhotoIndex(null)}
           onPrev={

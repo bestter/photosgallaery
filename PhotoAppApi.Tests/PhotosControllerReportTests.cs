@@ -30,8 +30,9 @@ namespace PhotoAppApi.Tests
         {
             var envMock = new Mock<IWebHostEnvironment>();
             var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
 
-            var controller = new PhotosController(context, envMock.Object, channelMock.Object)
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -57,9 +58,9 @@ namespace PhotoAppApi.Tests
             var options = CreateNewContextOptions();
             using var context = new AppDbContext(options);
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = null, UploaderUsername = "other_user" };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = null, UploaderUsername = "other_user", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var user = CreateUserPrincipal(1, "testuser");
             var controller = CreateController(context, user);
@@ -83,8 +84,7 @@ namespace PhotoAppApi.Tests
             var userGroup = new UserGroup { UserId = 1, GroupId = groupId, User = new User { Id = 1, Username = "testuser" }, Group = new Group { Id = groupId, Name = "test", ShortName = "test", Description = "test" } };
             context.Photos.Add(photo);
             context.UserGroups.Add(userGroup);
-            await context.SaveChangesAsync();
-
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var user = CreateUserPrincipal(1, "testuser");
             var controller = CreateController(context, user);
 
@@ -92,7 +92,7 @@ namespace PhotoAppApi.Tests
             var result = await controller.ReportPhoto(1, request);
 
             Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(1, await context.ImageReports.CountAsync());
+            Assert.Equal(1, await context.ImageReports.CountAsync(TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -102,9 +102,9 @@ namespace PhotoAppApi.Tests
             using var context = new AppDbContext(options);
             var groupId = Guid.NewGuid();
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user" };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var user = CreateUserPrincipal(1, "adminuser", "Admin");
             var controller = CreateController(context, user);
@@ -113,7 +113,7 @@ namespace PhotoAppApi.Tests
             var result = await controller.ReportPhoto(1, request);
 
             Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(1, await context.ImageReports.CountAsync());
+            Assert.Equal(1, await context.ImageReports.CountAsync(TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -137,9 +137,9 @@ namespace PhotoAppApi.Tests
             var options = CreateNewContextOptions();
             using var context = new AppDbContext(options);
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", UploaderUsername = "testuser" };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", UploaderUsername = "testuser", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var user = CreateUserPrincipal(1, "testuser");
             var controller = CreateController(context, user);
@@ -156,9 +156,9 @@ namespace PhotoAppApi.Tests
             var options = CreateNewContextOptions();
             using var context = new AppDbContext(options);
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", UploaderUsername = "other_user" };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", UploaderUsername = "other_user", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var user = CreateUserPrincipal(1, "testuser");
             var controller = CreateController(context, user);
@@ -176,9 +176,9 @@ namespace PhotoAppApi.Tests
             using var context = new AppDbContext(options);
             var groupId = Guid.NewGuid();
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user" };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var user = CreateUserPrincipal(1, "testuser");
             var controller = CreateController(context, user);
@@ -196,9 +196,9 @@ namespace PhotoAppApi.Tests
             using var context = new AppDbContext(options);
             var groupId = Guid.NewGuid();
 
-            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user" };
+            var photo = new Photo { Id = 1, FileName = "test.jpg", Url = "test.jpg", GroupId = groupId, UploaderUsername = "other_user", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             // Create a user without a NameIdentifier claim
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
