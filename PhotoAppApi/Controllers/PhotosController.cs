@@ -150,14 +150,21 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
-                foreach (var photo in photos)
+                // ⚡ Bolt: Execute GetImageUrlAsync concurrently for all photos and thumbnails to minimize sequential network latency
+                var urlTasks = photos.Select(async photo =>
                 {
-                    photo.Url = await GetImageUrlAsync(photo.Url);
-                    photo.ThumbnailUrl = await GetImageUrlAsync(photo.ThumbnailUrl);
+                    var urlTask = GetImageUrlAsync(photo.Url);
+                    var thumbnailUrlTask = GetImageUrlAsync(photo.ThumbnailUrl);
+
+                    await Task.WhenAll(urlTask, thumbnailUrlTask);
+
+                    photo.Url = await urlTask;
+                    photo.ThumbnailUrl = await thumbnailUrlTask;
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
-                }
+                });
+                await Task.WhenAll(urlTasks);
 
                 // On retourne tes photos enrichies !
                 return Ok(photos);
@@ -1157,14 +1164,21 @@ namespace PhotoAppApi.Controllers
                     currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
-                foreach (var photo in userPhotos)
+                // ⚡ Bolt: Execute GetImageUrlAsync concurrently for all photos and thumbnails to minimize sequential network latency
+                var urlTasks = userPhotos.Select(async photo =>
                 {
-                    photo.Url = await GetImageUrlAsync(photo.Url);
-                    photo.ThumbnailUrl = await GetImageUrlAsync(photo.ThumbnailUrl);
+                    var urlTask = GetImageUrlAsync(photo.Url);
+                    var thumbnailUrlTask = GetImageUrlAsync(photo.ThumbnailUrl);
+
+                    await Task.WhenAll(urlTask, thumbnailUrlTask);
+
+                    photo.Url = await urlTask;
+                    photo.ThumbnailUrl = await thumbnailUrlTask;
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
-                }
+                });
+                await Task.WhenAll(urlTasks);
 
                 return Ok(userPhotos);
             }
@@ -1244,13 +1258,20 @@ namespace PhotoAppApi.Controllers
                     currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                 }
 
-                foreach (var photo in photos)
+                // ⚡ Bolt: Execute GetImageUrlAsync concurrently for all photos and thumbnails to minimize sequential network latency
+                var urlTasks = photos.Select(async photo =>
                 {
-                    photo.Url  = await GetImageUrlAsync(photo.Url);
-                    photo.ThumbnailUrl = await GetImageUrlAsync(photo.ThumbnailUrl);
+                    var urlTask = GetImageUrlAsync(photo.Url);
+                    var thumbnailUrlTask = GetImageUrlAsync(photo.ThumbnailUrl);
+
+                    await Task.WhenAll(urlTask, thumbnailUrlTask);
+
+                    photo.Url = await urlTask;
+                    photo.ThumbnailUrl = await thumbnailUrlTask;
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
-                }
+                });
+                await Task.WhenAll(urlTasks);
 
                 return Ok(photos);
             }

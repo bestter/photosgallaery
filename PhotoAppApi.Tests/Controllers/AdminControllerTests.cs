@@ -251,7 +251,7 @@ namespace PhotoAppApi.Tests.Controllers
                 Id = 1,
                 FileName = "test.jpg",
                 Url = "/uploads/test.jpg",
-                UploaderUsername = "uploader1"
+                UploaderUsername = "uploader1", ThumbnailUrl = string.Empty
             };
 
             var report = new ImageReport

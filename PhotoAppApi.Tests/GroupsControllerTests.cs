@@ -136,7 +136,8 @@ namespace PhotoAppApi.Tests
             {
                 GroupId = group2.Id,
                 Group = group2,
-
+                UserId = user.Id,
+                User = user,
                 Role = GroupUserRole.Member
             };
 
