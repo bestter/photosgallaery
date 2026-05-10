@@ -16,3 +16,6 @@
 ## 2025-05-09 - [Standardizing Screen Reader Experience on Icon Buttons]
 **Learning:** For apps using heavy icon-based navigation and actions (like material-symbols-outlined spans inside buttons in the Photo frontend), screen readers will often read out the raw icon text (e.g. "block" or "lock_open") confusingly unless `aria-hidden="true"` is added to the span AND a clear `aria-label` is provided on the parent button.
 **Action:** When adding or modifying icon buttons, always apply `aria-hidden="true"` to the `span` and `aria-label` on the parent `<button>` to ensure keyboard and screen reader accessibility, particularly in administrative views like the dashboard user list.
+## 2024-05-10 - [Language Selector Accessibility]
+**Learning:** Select elements representing language dropdowns without explicit labels require `aria-label` attributes to inform screen reader users of their purpose. Furthermore, when using ligature-based icons (like Material Symbols) next to text or forms, it's critical to add `aria-hidden="true"` to prevent screen readers from reading out the ligature string (e.g. "language").
+**Action:** Always verify form controls like `select` and `input` have accessible names (via `label` or `aria-label`), and use `aria-hidden="true"` on decorative ligature icons adjacent to them.
