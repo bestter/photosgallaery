@@ -103,3 +103,8 @@
 **Vulnerability:** The `/api/Contact` endpoint for submitting contact forms was completely unauthenticated and lacked any rate limiting. This allowed malicious actors to abuse the endpoint, leading to spam (triggering unbounded email dispatch) and potential Denial of Service (DoS) by exhausting third-party service quotas or CPU resources.
 **Learning:** Endpoints like login and registration were previously secured with ASP.NET Core's rate limiting, but peripheral unauthenticated endpoints (like a contact form) are easily missed during threat modeling, leaving the application open to resource exhaustion attacks.
 **Prevention:** Always enforce strict rate limiting policies (partitioned by IP) on ALL public-facing, unauthenticated endpoints that perform work (like database writes, email dispatches, or heavy computations). When adding new endpoints that don't require `[Authorize]`, mandate a rate limiting attribute (`[EnableRateLimiting("PolicyName")]`) by default.
+
+## 2025-05-10 - [Defense in Depth via Security Headers]
+**Vulnerability:** Missing security headers like Content-Security-Policy (CSP), X-Content-Type-Options, Referrer-Policy and Permissions-Policy in the backend allowed potential risk of XSS and framing-related attacks.
+**Learning:** Adding defense-in-depth via HTTP security headers is a crucial measure even if the application logic itself relies on escaping in modern frameworks (e.g. React). Expanding the backend middleware inside Program.cs effectively mitigates content-based vulnerabilities at the delivery level.
+**Prevention:** Always verify that a comprehensive set of HTTP security headers (e.g., CSP, nosniff, referrer-policy) are configured by default in Program.cs.
