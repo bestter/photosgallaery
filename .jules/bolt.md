@@ -52,3 +52,6 @@
 ## 2026-05-08 - Batched fetching of presigned URLs
 **Learning:** Sequential `await` calls inside `foreach` loops for network/I/O bound operations (like fetching S3 pre-signed URLs via `GetImageUrlAsync`) create N+1 latency bottlenecks. Mock data in tests must fully implement `required` properties to avoid CS9035 compiler errors when testing these changes.
 **Action:** Use `Task.WhenAll` alongside LINQ `.Select(async ...)` to execute independent network requests concurrently. Always run `dotnet build` and `dotnet test` to catch any missing required properties in test mocks that may be introduced during refactoring.
+## $(date +%Y-%m-%d) - Remove unused GetUserLikes endpoint
+**Learning:** Sometimes the best performance improvement isn't optimizing a slow method, but deleting code that is completely unused. Maintaining dead code adds unnecessary bloat, compilation time, and cognitive load, and can sometimes conceal performance pitfalls. Always verify if a slow piece of code is actually in use before spending time optimizing it.
+**Action:** When evaluating methods for performance tuning, verify their usage across the codebase. If confirmed dead code, delete it rather than optimizing it to improve maintainability and slightly speed up compilation.
