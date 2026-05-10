@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
@@ -13,6 +15,31 @@ namespace PhotoAppApi.Tests.Controllers
 {
     public class AdminControllerTests
     {
+        [Fact]
+        public void GetAllUsers_HasAuthorizeAttribute_WithAdminRole()
+        {
+            // Arrange
+            var methodInfo = typeof(AdminController).GetMethod(nameof(AdminController.GetAllUsers));
+
+            // Act
+            var authorizeAttribute = methodInfo.GetCustomAttribute<AuthorizeAttribute>();
+
+            // Assert
+            // Checking if [Authorize(Roles = "Admin")] attribute is present on the method itself.
+            // If the method has no attribute, we check the class.
+            if (authorizeAttribute == null)
+            {
+                var classAuthorizeAttribute = typeof(AdminController).GetCustomAttribute<AuthorizeAttribute>();
+                Assert.NotNull(classAuthorizeAttribute);
+                Assert.Equal("Admin", classAuthorizeAttribute.Roles);
+            }
+            else
+            {
+                Assert.NotNull(authorizeAttribute);
+                Assert.Equal("Admin", authorizeAttribute.Roles);
+            }
+        }
+
         private AppDbContext GetDbContext()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
