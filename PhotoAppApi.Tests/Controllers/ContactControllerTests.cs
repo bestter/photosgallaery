@@ -88,6 +88,22 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public void SubmitContactForm_HasRequiredAttributes()
+        {
+            // Arrange
+            var methodInfo = typeof(ContactController).GetMethod(nameof(ContactController.SubmitContactForm));
+
+            // Act
+            var hasHttpPost = methodInfo.GetCustomAttributes(typeof(HttpPostAttribute), false).Any();
+            var hasRateLimiting = methodInfo.GetCustomAttributes(typeof(Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute), false).Any();
+
+            // Assert
+            Assert.NotNull(methodInfo);
+            Assert.True(hasHttpPost, "SubmitContactForm should have [HttpPost] attribute");
+            Assert.True(hasRateLimiting, "SubmitContactForm should have [EnableRateLimiting] attribute");
+        }
+
+        [Fact]
         public async Task SubmitContactForm_ServiceThrowsException_Returns500AndLogs()
         {
             // Arrange

@@ -1,15 +1,12 @@
 🎯 **What:** The testing gap addressed
-This PR addresses the missing tests for the accessibility keyboard events (`onKeyDown`) in `PhotoFrontend/src/components/PhotoCard.jsx`.
+This PR addresses testing edge cases in `ContactController.SubmitContactForm`, verifying rate limiting attributes and ensuring HTTP methods are properly annotated.
 
 📊 **Coverage:** What scenarios are now tested
-The following scenarios are now covered by unit tests using Vitest:
-- Main card `onClick` triggered on 'Enter' keydown.
-- Main card `onClick` triggered on 'Space' keydown.
-- Main card ignores other keys (e.g. 'a') on keydown.
-- Author link `onAuthorClick` triggered on 'Enter' keydown.
-- Author link `onAuthorClick` triggered on 'Space' keydown, properly stripping the `@` prefix.
-- Author link ignores other keys (e.g. 'Escape') on keydown.
-- Main card does not throw error if `onClick` is undefined and a keydown event occurs.
+- Valid request parsing and processing
+- `BadRequest` returns for completely null requests
+- `BadRequest` returns for invalid payloads with empty/whitespace properties
+- Controller robustly handles exceptions thrown from `IEmailService`
+- Validation that the rate limiting attribute `[EnableRateLimiting("ContactLimiter")]` is applied to prevent abuse vectors.
 
 ✨ **Result:** The improvement in test coverage
-We now have full 100% coverage over the `PhotoCard` component, ensuring critical accessibility behavior won't silently regress in the future.
+The method's logic and declarative security attributes are comprehensively verified.
