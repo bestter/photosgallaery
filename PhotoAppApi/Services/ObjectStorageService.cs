@@ -8,7 +8,7 @@ namespace PhotoAppApi.Services
 {
     public interface IObjectStorageService
     {
-        Task<string> UploadImageAsync(IFormFile file, string fileName, string? folder = "images", CancellationToken cancellationToken = default);
+        Task<string> UploadImageAsync(Stream fileStream, string contentType, string fileName, string? folder = "images", CancellationToken cancellationToken = default);
         Task<string> GetPresignedUrlAsync(string key, TimeSpan? expiration = null);
     }
 
@@ -23,19 +23,19 @@ namespace PhotoAppApi.Services
             _bucketName = options.Value.BucketName;
         }
 
-        public async Task<string> UploadImageAsync(IFormFile file, string fileName, string? folder = "images", CancellationToken cancellationToken = default)
+        public async Task<string> UploadImageAsync(Stream fileStream, string contentType, string fileName, string? folder = "images", CancellationToken cancellationToken = default)
         {
-            if (file.Length == 0) throw new ArgumentException("Fichier vide");
+            if (fileStream == null || fileStream.Length == 0) throw new ArgumentException("Stream vide");
 
-            var s3FileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var s3FileName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
             var key = string.IsNullOrEmpty(folder) ? s3FileName : $"{folder}/{s3FileName}";
 
             var request = new PutObjectRequest
             {
                 BucketName = _bucketName,
                 Key = key,
-                InputStream = file.OpenReadStream(),
-                ContentType = file.ContentType,
+                InputStream = fileStream,
+                ContentType = contentType,
                 DisablePayloadSigning = true,
                 Metadata =
             {
