@@ -1225,6 +1225,7 @@ namespace PhotoAppApi.Controllers
         // POST: api/photos/{id}/view
         [HttpPost("{id}/view")]
         [AllowAnonymous] // On permet aux anonymes d'incrémenter les vues
+        [EnableRateLimiting("ViewLimiter")]
         public async Task<IActionResult> RecordView(int id)
         {
             // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base 
