@@ -112,3 +112,8 @@
 **Vulnerability:** The `UploadPhotos` endpoint trusted the client-provided `IFormFile.ContentType` and file extension, and simply copied the stream to S3. This allowed attackers to upload polyglot files or files with dangerous EXIF payloads (webshells).
 **Learning:** Never trust client input for file uploads. File extensions and Content-Type headers can be trivially spoofed. Saving files directly without re-encoding preserves embedded metadata which can contain executable payloads or tracking information.
 **Prevention:** Implement Defense in Depth: 1. Validate "Magic Bytes" (file signatures) to confirm the actual file type. 2. Discard original filenames and use generated UUIDs. 3. Re-encode the image using a library like ImageSharp and explicitly strip all EXIF/IPTC/XMP metadata before saving.
+
+## 2024-05-24 - [Add Rate Limiting to Anonymous View Endpoint]
+**Vulnerability:** The unauthenticated endpoint `[HttpPost("{id}/view")]` was missing rate limiting. This could allow an attacker to flood the endpoint, causing excessive events to be written to the channel and potentially causing Denial of Service (DoS) by exhausting memory or CPU.
+**Learning:** Even fast, asynchronous endpoints that write to a channel need protection if they are publicly accessible, to prevent the channel from being overwhelmed or filled with spam.
+**Prevention:** Always enforce rate limiting (e.g., `[EnableRateLimiting("ViewLimiter")]`) on unauthenticated endpoints, and configure the limits appropriately in `Program.cs` based on IP partitions.
