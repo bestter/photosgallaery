@@ -1,15 +1,20 @@
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PhotoAppApi.Helpers;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Formats;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using SixLabors.ImageSharp.Processing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -268,7 +273,8 @@ namespace PhotoAppApi.Controllers
                 if (files == null || files.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (moderationService != null) {
+                if (moderationService != null)
+                {
                     foreach (var file in files)
                     {
                         await using var stream = file.OpenReadStream();
@@ -426,100 +432,132 @@ namespace PhotoAppApi.Controllers
                     }
                     seenInBatch.Add(fileHash);
 
-                    //// 4. Sauvegarde physique
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName.Replace("\\", "/"));
-                    //var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    // A. Validation des "Magic Bytes"
+                    using var fileStream = file.OpenReadStream();
+                    if (!FileSignatureValidator.IsValidImage(fileStream, out string validExtension))
+                    {
+                        errors.Add($"Le fichier '{file.FileName}' n'est pas une image valide ou son format n'est pas supporté (JPEG, PNG, WEBP, AVIF).");
+                        continue;
+                    }
 
-                    //// Création du sous-dossier pour les miniatures si nécessaire
-                    //var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
-                    //if (!Directory.Exists(thumbFolder))
-                    //{
-                    //    _logger.Info($"Le dossier '{thumbFolder}' n'existe pas. Création du dossier.");
-                    //    Directory.CreateDirectory(thumbFolder);
-                    //}
-                    //var thumbPath = Path.Combine("thumbFolder", uniqueFileName);
+                    // On utilise le GUID + l'extension validée, ignorant complètement le nom/extension d'origine
+                    var fileId = Guid.NewGuid().ToString();
+                    var uniqueFileName = fileId + validExtension;
 
-                    //// A. Sauvegarde de l'image originale (Haute résolution)
-                    //using (var stream = new FileStream(filePath, FileMode.Create))
-                    //{
-                    //    await file.CopyToAsync(stream);
-                    //}
-
-                    var key = await _storage.UploadImageAsync(file, uniqueFileName, "gallery", cancellationToken);
-
-                    // B. Création et sauvegarde de la miniature (Basse résolution)
-                    // On recharge l'image à partir du flux pour ImageSharp
                     int originalWidth = 0;
                     int originalHeight = 0;
+                    Photo? photo = null;
 
-                    using (var stream = file.OpenReadStream())
-                    using (var image = await Image.LoadAsync(stream, cancellationToken))
+                    // B. Chargement et Ré-encodage avec ImageSharp (Désarmer les payloads et supprimer les métadonnées)
+                    fileStream.Position = 0; // Important après la vérification des magic bytes
+
+                    try
                     {
-                        originalWidth = image.Width;
-                        originalHeight = image.Height;
-
-                        // 5. Préparation de l'objet Photo (On le crée plus tôt pour le passer à ExtractGpsDataSafely)
-                        var photo = new Photo
+                        using (var image = await Image.LoadAsync(fileStream, cancellationToken))
                         {
-                            FileName = uniqueFileName,
-                            Url = key,
-                            UploaderUsername = currentUsername ?? "Anonyme",
-                            FileHash = fileHash,
-                            Tags = tagsToAttach.ToList(),
-                            GroupId = groupId,
-                            FileSize = file.Length,
-                            ResolutionWidth = originalWidth,
-                            ResolutionHeight = originalHeight,
-                            ThumbnailUrl = string.Empty,
-                            // Les autres propriétés (GPS, date) seront remplies ci-dessous si elles existent
-                        };
+                            originalWidth = image.Width;
+                            originalHeight = image.Height;
 
-                        var exifProfile = image.Metadata.ExifProfile;
-                        if (exifProfile != null)
-                        {
-                            // A. Extraction de la Date
-                            var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
-                            if (dateTimeValue != null)
+                            photo = new Photo
                             {
-                                string? dtStr = dateTimeValue.GetValue()?.ToString();
-                                if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
+                                FileName = uniqueFileName,
+                                UploaderUsername = currentUsername ?? "Anonyme",
+                                FileHash = fileHash,
+                                Tags = tagsToAttach.ToList(),
+                                GroupId = groupId,
+                                FileSize = file.Length,
+                                ResolutionWidth = originalWidth,
+                                ResolutionHeight = originalHeight,
+                                ThumbnailUrl = string.Empty,
+                                Url = string.Empty
+                            };
+
+                            var exifProfile = image.Metadata.ExifProfile;
+                            if (exifProfile != null)
+                            {
+                                // Extraction sécurisée avant suppression
+                                var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
+                                if (dateTimeValue != null)
                                 {
-                                    photo.DateTaken = dt;
+                                    string? dtStr = dateTimeValue.GetValue()?.ToString();
+                                    if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
+                                    {
+                                        photo.DateTaken = dt;
+                                    }
+                                }
+
+                                var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
+                                if (modelValue != null)
+                                {
+                                    photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
+                                }
+
+                                if (includeGps)
+                                {
+                                    ExtractGpsDataSafely(exifProfile, photo);
                                 }
                             }
 
-                            // B. Extraction du Modèle d'appareil
-                            var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
-                            if (modelValue != null)
-                            {
-                                photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
-                            }
+                            // 🛑 SUPPRESSION OBLIGATOIRE DES METADONNEES POUR SECURITE (EXIF, IPTC, XMP) 🛑
+                            image.Metadata.ExifProfile = null;
+                            image.Metadata.IptcProfile = null;
+                            image.Metadata.XmpProfile = null;
 
-                            // C. Appel à notre super fonction sécurisée pour le GPS !
-                            if (includeGps)
+                            // Déterminer l'encodeur approprié
+                            IImageEncoder encoder = validExtension switch
                             {
-                                ExtractGpsDataSafely(exifProfile, photo);
-                            }
+                                ".png" => new PngEncoder(),
+                                ".webp" => new WebpEncoder(),
+                                ".avif" => new SixLabors.ImageSharp.Formats.Webp.WebpEncoder(), // Fallback AVIF as Webp if AVIF encoder missing or configure accordingly, ImageSharp 3 supports webp
+                                _ => new JpegEncoder()
+                            };
+
+                            string contentType = validExtension switch
+                            {
+                                ".png" => "image/png",
+                                ".webp" => "image/webp",
+                                ".avif" => "image/avif",
+                                _ => "image/jpeg"
+                            };
+
+                            // Encodage en mémoire de l'image originale "propre"
+                            using var cleanMemoryStream = new MemoryStream();
+                            await image.SaveAsync(cleanMemoryStream, encoder, cancellationToken);
+                            cleanMemoryStream.Position = 0;
+
+                            // 4. Sauvegarde directe dans S3 via Stream
+                            var key = await _storage.UploadImageAsync(cleanMemoryStream, contentType, uniqueFileName, "gallery", cancellationToken);
+                            photo.Url = key;
+
+                            // Création de la miniature
+                            image.Mutate(x => x.Resize(new ResizeOptions
+                            {
+                                Size = new Size(400, 400),
+                                Mode = ResizeMode.Max
+                            }));
+
+                            using var thumbMemoryStream = new MemoryStream();
+                            await image.SaveAsync(thumbMemoryStream, encoder, cancellationToken);
+                            thumbMemoryStream.Position = 0;
+
+                            var thumbnailsKey = await _storage.UploadImageAsync(thumbMemoryStream, contentType, uniqueFileName, "thumbnails", cancellationToken);
+                            photo.ThumbnailUrl = thumbnailsKey;
                         }
 
-                        // On redimensionne l'image pour la miniature
-                        image.Mutate(x => x.Resize(new ResizeOptions
+                        if (photo != null)
                         {
-                            Size = new Size(400, 400),
-                            Mode = ResizeMode.Max
-                        }));
-
-                        //await image.SaveAsync(thumbPath);
-                        var thumbnailsKey = await _storage.UploadImageAsync(file, uniqueFileName, "thumbnails", cancellationToken);
-                        photo.ThumbnailUrl = thumbnailsKey;
-
-                        // On ajoute la photo finalisée au contexte
-                        _context.Photos.Add(photo);
-                        uploadedPhotos.Add(photo);
+                            _context.Photos.Add(photo);
+                            uploadedPhotos.Add(photo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error($"Échec du traitement de l'image {file.FileName}: non reconnue comme image valide par ImageSharp.", ex);
+                        errors.Add($"Le fichier '{file.FileName}' est corrompu ou illisible.");
+                        continue;
                     }
                 }
 
-                // 6. Sauvegarder dans MariaDB s'il y a eu de nouvelles images
                 if (uploadedPhotos.Count != 0)
                 {
                     await _context.SaveChangesAsync(cancellationToken);
@@ -1198,7 +1236,8 @@ namespace PhotoAppApi.Controllers
             if (User.Identity?.IsAuthenticated == true)
             {
                 var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-                if (idClaim != null && int.TryParse(idClaim.Value, out var parsedId)) {
+                if (idClaim != null && int.TryParse(idClaim.Value, out var parsedId))
+                {
                     userId = parsedId;
                 }
             }

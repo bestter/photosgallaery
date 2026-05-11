@@ -61,8 +61,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Generate a dummy file
-            var fileContent = "dummy file content for testing duplicate prevention";
-            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+            var fileBytes = System.Convert.FromHexString("89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C63000100000500010D0A2DB40000000049454E44AE426082");
             using var sha512 = SHA512.Create();
             var hashBytes = sha512.ComputeHash(fileBytes);
             var fileHash = Convert.ToHexStringLower(hashBytes);
@@ -162,7 +161,7 @@ namespace PhotoAppApi.Tests
             moderationMock.Setup(m => m.CheckImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
 
-            storageMock.Setup(s => s.UploadImageAsync(It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            storageMock.Setup(s => s.UploadImageAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("dummy_url");
 
             // Act
@@ -206,8 +205,7 @@ namespace PhotoAppApi.Tests
                 }
             };
 
-            var fileContent = "dummy nsfw image content";
-            var fileBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+            var fileBytes = System.Convert.FromHexString("89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C63000100000500010D0A2DB40000000049454E44AE426082");
 
             var formFileMock = new Mock<IFormFile>();
             formFileMock.Setup(f => f.Length).Returns(fileBytes.Length);
