@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useDeferredValue } from "react";
 import {
   getUserRole,
   isTokenExpired,
@@ -10,7 +10,20 @@ import AdminLayout from "../components/AdminLayout";
 export default function Dashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const currentUsername = getUsernameFromToken(localStorage.getItem("token"));
+
+  // ⚡ Bolt: Use useDeferredValue and useMemo to prevent expensive filtering from blocking the main UI thread during typing
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      if (!deferredSearchTerm) return true;
+      const term = deferredSearchTerm.toLowerCase();
+      const username = u.username || u.Username || "";
+      const email = u.email || u.Email || "";
+      return username.toLowerCase().includes(term) || email.toLowerCase().includes(term);
+    });
+  }, [users, deferredSearchTerm]);
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
@@ -64,6 +77,8 @@ export default function Dashboard() {
           placeholder="Rechercher un utilisateur, un email..."
           type="text"
           aria-label="Rechercher un utilisateur, un email"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
     </div>
@@ -171,7 +186,7 @@ export default function Dashboard() {
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => {
+                  filteredUsers.map((user) => {
                     const userId = user.id || user.Id;
                     const username = user.username || user.Username;
                     const email = user.email || user.Email;
@@ -355,7 +370,7 @@ export default function Dashboard() {
           </div>
           <div className="px-6 py-4 bg-surface-container/30 border-t border-outline-variant/30 flex items-center justify-between">
             <p className="text-xs text-on-surface-variant font-medium tracking-wide">
-              Affichage de {users.length} utilisateurs
+              Affichage de {filteredUsers.length} utilisateurs
             </p>
             <div className="flex gap-1">
               <button

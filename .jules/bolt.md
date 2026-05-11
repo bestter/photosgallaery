@@ -55,3 +55,6 @@
 ## $(date +%Y-%m-%d) - Remove unused GetUserLikes endpoint
 **Learning:** Sometimes the best performance improvement isn't optimizing a slow method, but deleting code that is completely unused. Maintaining dead code adds unnecessary bloat, compilation time, and cognitive load, and can sometimes conceal performance pitfalls. Always verify if a slow piece of code is actually in use before spending time optimizing it.
 **Action:** When evaluating methods for performance tuning, verify their usage across the codebase. If confirmed dead code, delete it rather than optimizing it to improve maintainability and slightly speed up compilation.
+## 2026-05-11 - Prevent O(n) filter recalculation in Dashboard
+**Learning:** Re-calculating expensive string matching filter logic (like mapping over user arrays to check username or email against a search term) on every render in React causes significant input lag when the user interacts with fast-updating states (like typing in a search bar).
+**Action:** Wrapped derived dataset `filteredUsers` in `useMemo` and used `useDeferredValue` to defer the search term, preventing expensive filtering from blocking the main thread and making search input typing smooth.
