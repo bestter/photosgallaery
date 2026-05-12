@@ -6,8 +6,8 @@ const Footer = ({ className = "" }) => {
   const { t } = useTranslation();
 
   return (
-    <footer className={`flex flex-col md:flex-row justify-center md:justify-between items-center gap-6 py-6 px-8 w-full bg-slate-900/80 backdrop-blur-md border-t border-cyan-400/10 z-10 relative ${className}`}>
-      <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500">
+    <footer className={`flex flex-col md:flex-row justify-center md:justify-between items-center gap-6 pt-6 pb-28 md:pb-28 px-8 md:px-12 w-full bg-slate-900/80 backdrop-blur-md border-t border-cyan-400/10 z-10 relative ${className}`}>
+      <span className="text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-500 text-center md:text-left">
         {t("footer.copyright", "PixelLyra.com System v2.4.0 • Encrypted Connection")}
       </span>
       <div className="flex flex-wrap justify-center gap-4 md:gap-6 items-center">

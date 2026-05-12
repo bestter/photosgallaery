@@ -220,7 +220,7 @@ namespace PhotoAppApi.Tests
                 .ReturnsAsync(new ModerationResult { IsNsfw = true, NsfwScore = 0.95, SafeScore = 0.05, Label = "nsfw" });
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false);
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
