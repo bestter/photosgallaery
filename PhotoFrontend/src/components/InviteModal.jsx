@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 const InviteModal = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -23,7 +25,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                         setSelectedGroupId(response.data[0].id || response.data[0].Id);
                     }
                 } catch (error) {
-                    toast.error("Impossible de charger vos cercles pour l'invitation.");
+                    toast.error(t('components.invite_modal.error.load_groups'));
                 }
             };
             fetchGroups();
@@ -36,7 +38,7 @@ const InviteModal = ({ isOpen, onClose }) => {
         e.preventDefault();
         
         if (!selectedGroupId) {
-            toast.error("Vous devez sélectionner un cercle.");
+            toast.error(t('components.invite_modal.error.select_group'));
             return;
         }
 
@@ -49,7 +51,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                 email: email,
                 message: message
             });
-            toast.success("Invitation envoyée avec succès !");
+            toast.success(t('components.invite_modal.success'));
             
             // Clean up
             setFirstName('');
@@ -58,8 +60,8 @@ const InviteModal = ({ isOpen, onClose }) => {
             setMessage('');
             onClose();
         } catch (err) {
-            console.error("Erreur d'invitation:", err.response?.data || err);
-            let errorMessage = "Erreur lors de l'envoi de l'invitation.";
+            console.error("Invite error:", err.response?.data || err);
+            let errorMessage = t('components.invite_modal.error.send_failed');
             
             if (err.response?.data) {
                 if (err.response.data.message) {
@@ -88,12 +90,12 @@ const InviteModal = ({ isOpen, onClose }) => {
             <div className="w-full max-w-lg bg-surface border border-outline-variant/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
                 {/* Modal Header */}
                 <div className="px-8 pt-8 pb-4">
-                    <h2 className="text-[30px] font-black tracking-tight text-on-surface leading-none mb-1">Inviter dans un cercle</h2>
+                    <h2 className="text-[30px] font-black tracking-tight text-on-surface leading-none mb-1">{t('components.invite_modal.title')}</h2>
                     <div className="h-1 w-12 bg-primary rounded-full mb-6"></div>
                     
                     {/* Select Group */}
                     <div className="bg-surface-container-low rounded-lg p-4 mb-4 border-l-4 border-primary/50">
-                         <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1 block">Choisissez le cercle ciblé</label>
+                         <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1 block">{t('components.invite_modal.group_label')}</label>
                          <select
                             className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-2 pl-3 pr-4 text-[16px] font-bold text-primary transition-all outline-none"
                             value={selectedGroupId}
@@ -115,11 +117,11 @@ const InviteModal = ({ isOpen, onClose }) => {
                     <div className="grid grid-cols-2 gap-4">
                         {/* First Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="firstName">Prénom</label>
+                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="firstName">{t('components.invite_modal.first_name')}</label>
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 px-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="firstName" 
-                                placeholder="Jean" 
+                                placeholder={t('components.invite_modal.first_name_placeholder')} 
                                 type="text" 
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
@@ -129,11 +131,11 @@ const InviteModal = ({ isOpen, onClose }) => {
 
                         {/* Last Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="lastName">Nom</label>
+                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="lastName">{t('components.invite_modal.last_name')}</label>
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 px-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="lastName" 
-                                placeholder="Tremblay" 
+                                placeholder={t('components.invite_modal.last_name_placeholder')} 
                                 type="text" 
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
@@ -144,7 +146,7 @@ const InviteModal = ({ isOpen, onClose }) => {
 
                     {/* Input Group - Email */}
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="email">Adresse Courriel</label>
+                        <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="email">{t('components.invite_modal.email')}</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
                                 <span className="material-symbols-outlined text-lg">mail</span>
@@ -152,7 +154,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="email" 
-                                placeholder="collegue@exemple.com" 
+                                placeholder={t('components.invite_modal.email_placeholder')} 
                                 type="email" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -163,11 +165,11 @@ const InviteModal = ({ isOpen, onClose }) => {
 
                     {/* Textarea Group - Message */}
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="message">Message personnel (optionnel)</label>
+                        <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="message">{t('components.invite_modal.message')}</label>
                         <textarea
                             className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg p-4 text-on-surface placeholder:text-slate-600 transition-all outline-none resize-none"
                             id="message" 
-                            placeholder="Rejoins notre galerie privée..." 
+                            placeholder={t('components.invite_modal.message_placeholder')} 
                             rows="3"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
@@ -181,7 +183,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             type="submit"
                             disabled={isLoading}
                         >
-                            {isLoading ? 'Envoi...' : 'Envoyer l\'invitation'}
+                            {isLoading ? t('components.invite_modal.sending') : t('components.invite_modal.send')}
                             {!isLoading && <span className="material-symbols-outlined text-lg">send</span>}
                         </button>
                         <button
@@ -190,7 +192,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             onClick={onClose}
                             disabled={isLoading}
                         >
-                            Annuler
+                            {t('components.invite_modal.cancel')}
                         </button>
                     </div>
                 </form>
