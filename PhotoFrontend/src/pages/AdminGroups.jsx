@@ -46,6 +46,7 @@ export default function AdminGroups() {
                 if (queryGroupId) {
                     const groupToSelect = loadedGroups.find(g => (g.id || g.Id) === queryGroupId);
                     if (groupToSelect) {
+
                         handleManageMembers(groupToSelect, false);
                     }
                 }
@@ -62,6 +63,7 @@ export default function AdminGroups() {
         };
 
         fetchGroups();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleCreateGroup = async (e) => {
@@ -250,7 +252,7 @@ export default function AdminGroups() {
                                                         <td className="px-6 py-4 font-semibold text-on-surface group-hover:text-primary transition-colors">
                                                             {group.name || group.Name}
                                                             <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
-                                                                <span className="material-symbols-outlined text-[12px]">link</span>
+                                                                <span aria-hidden="true" className="material-symbols-outlined text-[12px]">link</span>
                                                                 <a href={`/group/${group.shortName || group.ShortName}`} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">
                                                                     Lien public du groupe
                                                                 </a>
@@ -269,8 +271,9 @@ export default function AdminGroups() {
                                                                 onClick={() => handleDeleteGroup(group.id || group.Id)}
                                                                 className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors align-middle"
                                                                 title="Supprimer ce groupe"
+                                                                aria-label={`Supprimer le groupe ${group.name || group.Name}`}
                                                             >
-                                                                <span className="material-symbols-outlined">delete</span>
+                                                                <span aria-hidden="true" className="material-symbols-outlined">delete</span>
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -363,6 +366,7 @@ export default function AdminGroups() {
                                                             <button
                                                                 onClick={() => handleRemoveMember(member.userId || member.UserId)}
                                                                 className="px-3 py-1.5 text-xs font-bold text-error border border-error/50 hover:bg-error/10 rounded-lg transition-colors"
+                                                                aria-label={`Retirer le membre ${member.username || member.Username || member.userId || member.UserId} du groupe`}
                                                             >
                                                                 Retirer
                                                             </button>

@@ -46,7 +46,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Report Content</p>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">close</span>
+                        <span aria-hidden="true" className="material-symbols-outlined">close</span>
                     </button>
                 </div>
 
@@ -82,7 +82,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
 
                         {/* Guidance Note */}
                         <div className="flex items-start space-x-2 text-slate-400">
-                            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+                            <span aria-hidden="true" className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
                             <p className="text-[11px] leading-relaxed">
                                 Reports are reviewed within 24 hours. Abuse of the reporting system may result in account restrictions.
                             </p>
@@ -99,7 +99,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
                             <span className="text-sm font-bold uppercase tracking-wider">
                                 {isSubmitting ? "Envoi..." : "Submit Report"}
                             </span>
-                            {!isSubmitting && <span className="material-symbols-outlined text-base">send</span>}
+                            {!isSubmitting && <span aria-hidden="true" className="material-symbols-outlined text-base">send</span>}
                         </button>
                         <button
                             onClick={onClose}

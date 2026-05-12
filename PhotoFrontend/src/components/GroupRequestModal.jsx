@@ -39,7 +39,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                 <div className="mb-8 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-slate-100 mb-2">Créer un nouveau groupe</h1>
-                        <p className="text-slate-400 text-sm">Démarrez une nouvelle communauté autour d'une thématique commune.</p>
+                        <p className="text-slate-400 text-sm">Démarrez une nouvelle communauté autour d&apos;une thématique commune.</p>
                     </div>
                     <img alt="Logo" className="h-12 w-12 object-contain opacity-80" src="/Byla3.jpg" />
                 </div>
@@ -72,7 +72,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                     {/* Initial Members */}
                     {/* <div className="pt-6 border-t border-slate-800/40">
                         <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-cyan-400" style={{fontVariationSettings: "'FILL' 1"}}>group_add</span>
+                            <span aria-hidden="true" className="material-symbols-outlined text-cyan-400" style={{fontVariationSettings: "'FILL' 1"}}>group_add</span>
                             Inviter les premiers membres
                         </h3>
                         <p className="text-sm text-slate-400 mb-4">Saisissez les adresses email des personnes que vous souhaitez inviter (séparées par des virgules).</p>
@@ -84,7 +84,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             onChange={(e) => setInviteEmails(e.target.value)}
                         />
                         <div className="mt-4 bg-cyan-400/10 border border-cyan-400/20 rounded-lg p-4 flex items-start gap-3">
-                            <span className="material-symbols-outlined text-cyan-400 mt-0.5" style={{fontVariationSettings: "'FILL' 1"}}>info</span>
+                            <span aria-hidden="true" className="material-symbols-outlined text-cyan-400 mt-0.5" style={{fontVariationSettings: "'FILL' 1"}}>info</span>
                             <p className="text-sm text-slate-400">Un email d'invitation sera automatiquement envoyé à ces adresses une fois le groupe créé.</p>
                         </div>
                     </div>

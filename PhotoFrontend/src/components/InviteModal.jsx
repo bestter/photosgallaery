@@ -147,7 +147,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                         <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="email">Adresse Courriel</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
-                                <span className="material-symbols-outlined text-lg">mail</span>
+                                <span aria-hidden="true" className="material-symbols-outlined text-lg">mail</span>
                             </div>
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
@@ -182,7 +182,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             disabled={isLoading}
                         >
                             {isLoading ? 'Envoi...' : 'Envoyer l\'invitation'}
-                            {!isLoading && <span className="material-symbols-outlined text-lg">send</span>}
+                            {!isLoading && <span aria-hidden="true" className="material-symbols-outlined text-lg">send</span>}
                         </button>
                         <button
                             className="flex-1 bg-slate-800 text-on-surface-variant font-semibold py-3 px-6 rounded-lg hover:bg-slate-700 active:scale-[0.98] transition-all"

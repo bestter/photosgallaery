@@ -25,7 +25,7 @@ export default function Join() {
     return (
         <div className="flex h-screen items-center justify-center bg-background text-on-surface font-body">
             <div className="text-center">
-                <span className="material-symbols-outlined animate-spin text-4xl text-primary block mb-4">sync</span>
+                <span aria-hidden="true" className="material-symbols-outlined animate-spin text-4xl text-primary block mb-4">sync</span>
                 <p className="text-on-surface-variant font-medium tracking-wide">{t("join.validating_invitation")}</p>
             </div>
         </div>

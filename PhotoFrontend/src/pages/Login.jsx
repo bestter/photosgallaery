@@ -103,7 +103,7 @@ const Login = () => {
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined" data-icon="lock">
+                  <span aria-hidden="true" className="material-symbols-outlined" data-icon="lock">
                     lock
                   </span>
                 </div>

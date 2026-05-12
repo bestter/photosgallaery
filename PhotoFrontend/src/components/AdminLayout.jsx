@@ -39,7 +39,7 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                                     ? "flex items-center gap-3 bg-cyan-400/20 text-cyan-400 border-l-4 border-cyan-400 px-4 py-3"
                                     : "flex items-center gap-3 text-slate-500 px-4 py-3 hover:bg-slate-800 hover:text-cyan-200 transition-all hover:translate-x-1 duration-200"}
                             >
-                                <span className="material-symbols-outlined text-lg" style={link.iconStyle}>{link.icon}</span>
+                                <span aria-hidden="true" className="material-symbols-outlined text-lg" style={link.iconStyle}>{link.icon}</span>
                                 {link.label}
                             </a>
                         );
@@ -47,7 +47,7 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                 </nav>
                 <div className="mt-auto border-t border-cyan-400/10 pt-4 space-y-1 font-['Inter'] text-sm font-medium tracking-wide bg-slate-900/40">
                     <button onClick={handleLogout} className="w-full flex items-center gap-3 text-slate-500 px-4 py-2 hover:bg-slate-800 hover:text-cyan-200 transition-all hover:translate-x-1 duration-200">
-                        <span className="material-symbols-outlined text-lg">logout</span>
+                        <span aria-hidden="true" className="material-symbols-outlined text-lg">logout</span>
                         Logout
                     </button>
                 </div>
@@ -70,7 +70,7 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                                 <div className="text-[10px] text-primary/70 uppercase tracking-widest">SysAdmin</div>
                             </div>
                             <div className="w-8 h-8 rounded border border-cyan-400/30 group-hover:border-cyan-400 transition-colors bg-slate-800 flex items-center justify-center">
-                                <span className="material-symbols-outlined text-slate-300 text-sm">person</span>
+                                <span aria-hidden="true" className="material-symbols-outlined text-slate-300 text-sm">person</span>
                             </div>
                         </div>
                     </div>
