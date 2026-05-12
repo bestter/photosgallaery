@@ -58,3 +58,6 @@
 ## 2026-05-11 - Prevent O(n) filter recalculation in Dashboard
 **Learning:** Re-calculating expensive string matching filter logic (like mapping over user arrays to check username or email against a search term) on every render in React causes significant input lag when the user interacts with fast-updating states (like typing in a search bar).
 **Action:** Wrapped derived dataset `filteredUsers` in `useMemo` and used `useDeferredValue` to defer the search term, preventing expensive filtering from blocking the main thread and making search input typing smooth.
+## 2024-05-12 - [Debounce Search Query Filtering in Gallery]
+**Learning:** Performing client-side string matching (e.g., `toLowerCase().includes(query)`) inside `useMemo` on every keystroke blocks the React main thread when the dataset (photos and tags) is large.
+**Action:** Always wrap high-frequency inputs (like text search) with a `useDebounce` hook before passing them as dependencies to expensive client-side filtering operations to prevent UI stuttering.
