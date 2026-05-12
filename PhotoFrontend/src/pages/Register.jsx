@@ -71,10 +71,10 @@ const Register = () => {
         {/* Brand Logo / Title */}
         <div className="mb-10 text-center">
           <h1 className="text-primary font-headline font-black text-4xl tracking-tighter uppercase mb-2">
-            PixelLyra.com
+            {t("auth.register.title")}
           </h1>
           <p className="text-on-surface-variant text-sm font-medium tracking-wide">
-            Créez votre compte pour commencer
+            {t("auth.register.subtitle")}
           </p>
         </div>
 
@@ -87,7 +87,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="full_name"
               >
-                Nom d&apos;utilisateur
+                {t("auth.register.username_label")}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -115,7 +115,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="email"
               >
-                Adresse Courriel
+                {t("auth.register.email_label")}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -142,7 +142,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="password"
               >
-                Mot de passe
+                {t("auth.register.password_label")}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -170,7 +170,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="confirm_password"
               >
-                Confirmer le mot de passe
+                {t("auth.register.confirm_password_label")}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -209,11 +209,11 @@ const Register = () => {
               >
                 {t("auth.register.accept_terms")}{" "}
                 <a className="text-primary hover:underline" href="#">
-                  Conditions d&apos;utilisation
+                  {t("auth.register.terms_of_use")}
                 </a>{" "}
-                et la{" "}
+                {t("auth.register.and")}{" "}
                 <a className="text-primary hover:underline" href="#">
-                  Politique de confidentialité
+                  {t("auth.register.privacy_policy")}
                 </a>
                 .
               </label>
@@ -239,7 +239,7 @@ const Register = () => {
                     : ""
               }
             >
-              {isLoading ? "INSCRIPTION EN COURS..." : "S'INSCRIRE"}
+              {isLoading ? t("auth.register.loading") : t("auth.register.submit")}
               {!isLoading && (
                 <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                   arrow_forward
@@ -252,12 +252,12 @@ const Register = () => {
         {/* Secondary Link */}
         <div className="mt-8 text-center">
           <p className="text-sm text-on-surface-variant">
-            Déjà un compte ?
+            {t("auth.register.already_have_account")}
             <a
               className="text-primary font-bold hover:underline transition-all ml-1 underline-offset-4"
               href="/login"
             >
-              Se connecter
+              {t("auth.register.login_link")}
             </a>
           </p>
         </div>

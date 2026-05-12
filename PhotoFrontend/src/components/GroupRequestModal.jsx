@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { useTranslation } from 'react-i18next';
 
 const GroupRequestModal = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const [groupName, setGroupName] = useState('');
     const [groupGoal, setGroupGoal] = useState('');
     const [inviteEmails, setInviteEmails] = useState('');
@@ -19,7 +21,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                 description: groupGoal
             });
 
-            toast.success("Demande de création de groupe envoyée avec succès !");
+            toast.success(t("components.group_request.success"));
 
             setGroupName('');
             setGroupGoal('');
@@ -27,7 +29,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
             onClose();
         } catch (err) {
             console.error("Group request error:", err);
-            toast.error(err.response?.data?.message || "Erreur lors de l'envoi de la demande.");
+            toast.error(err.response?.data?.message || t("components.group_request.error_send"));
         } finally {
             setIsLoading(false);
         }
@@ -38,8 +40,8 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
             <div className="w-full max-w-2xl bg-[#0f2323] border border-slate-800/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50 p-8">
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-slate-100 mb-2">Créer un nouveau groupe</h1>
-                        <p className="text-slate-400 text-sm">Démarrez une nouvelle communauté autour d&apos;une thématique commune.</p>
+                        <h1 className="text-3xl font-extrabold tracking-tight text-slate-100 mb-2">{t("components.group_request.title")}</h1>
+                        <p className="text-slate-400 text-sm">{t("components.group_request.subtitle")}</p>
                     </div>
                     <img alt="Logo" className="h-12 w-12 object-contain opacity-80" src="/Byla3.jpg" />
                 </div>
@@ -47,10 +49,10 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                 <form className="space-y-8" onSubmit={handleSubmit}>
                     {/* Group Name */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupName">Nom du groupe</label>
+                        <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupName">{t("components.group_request.group_name")}</label>
                         <input
                             className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-all outline-none"
-                            id="groupName" name="groupName" placeholder="Ex: Photographes Urbains Paris" required type="text"
+                            id="groupName" name="groupName" placeholder={t("components.group_request.group_name_placeholder")} required type="text"
                             value={groupName}
                             onChange={(e) => setGroupName(e.target.value)}
                         />
@@ -58,11 +60,11 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
 
                     {/* Goal Description */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupGoal">Description du but du groupe</label>
+                        <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupGoal">{t("components.group_request.description")}</label>
                         <textarea
                             className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-all resize-none outline-none"
                             id="groupGoal" name="groupGoal"
-                            placeholder="Décrivez l'objectif principal de ce groupe et ce que les membres y trouveront..."
+                            placeholder={t("components.group_request.description_placeholder")}
                             required rows="4"
                             value={groupGoal}
                             onChange={(e) => setGroupGoal(e.target.value)}
@@ -97,14 +99,14 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             onClick={onClose}
                             disabled={isLoading}
                         >
-                            Annuler
+                            {t("components.group_request.cancel")}
                         </button>
                         <button
                             className="px-6 py-2.5 rounded-lg text-sm font-semibold text-[#0f2323] bg-cyan-400 hover:brightness-110 transition-colors focus:ring-2 focus:ring-cyan-400 focus:outline-none shadow-[0_0_15px_rgba(0,206,209,0.3)] disabled:opacity-50"
                             type="submit"
                             disabled={isLoading}
                         >
-                            {isLoading ? 'Envoi...' : 'Envoyer la demande'}
+                            {isLoading ? t("components.group_request.sending") : t("components.group_request.send")}
                         </button>
                     </div>
                 </form>

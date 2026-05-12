@@ -200,7 +200,13 @@
     "workspace_gallery": "Workspace / Gallery",
     "gallery_title": "Gallery",
     "all_discoveries": "All Discoveries",
-    "tag": "Tag"
+    "tag": "Tag",
+    "no_images": "No image found",
+    "try_filters": "Try modifying your search filters to find what you are looking for.",
+    "empty_space": "This space is still empty. Be the first to fill it!",
+    "add_photo": "Add a photo",
+    "view_image": "View Image",
+    "without_categories": "Uncategorized"
   },
   "contact": {
     "title": "Get in Touch",
@@ -238,6 +244,49 @@
     },
     "group_selector": {
       "your_collectives": "Your Collectives"
+    },
+    "image_modal": {
+      "download": {
+        "preparing": "Preparing download...",
+        "success": "Download successful!",
+        "error": "Error during download."
+      },
+      "share": {
+        "success": "Shared successfully!",
+        "copied": "Image link copied to clipboard!",
+        "title": "Photo by {{author}} on PixelLyra.com",
+        "text": "Look at this amazing photo by {{author}}!"
+      },
+      "unknown_camera": "Unknown",
+      "unknown_author": "Anonymous",
+      "new_photo": "New",
+      "no_date": "N/A",
+      "photographer": "Photographer",
+      "cant_like_own": "You can't like your own photo",
+      "cant_report_own": "You can't report your own photo",
+      "already_reported": "Image already reported",
+      "report": "Report",
+      "reported": "Reported",
+      "added_on": "Added on",
+      "taken_on": "Taken on",
+      "views": "Views",
+      "camera_used": "Camera used",
+      "tags": "Tags",
+      "estimated_location": "Estimated location",
+      "view_map": "View Map"
+    },
+    "group_request": {
+      "success": "Group creation request sent successfully!",
+      "error_send": "Error sending the request.",
+      "title": "Create a new group",
+      "subtitle": "Start a new community around a common theme.",
+      "group_name": "Group Name",
+      "group_name_placeholder": "Ex: Paris Urban Photographers",
+      "description": "Description of the group's goal",
+      "description_placeholder": "Describe the main goal of this group and what members will find there...",
+      "cancel": "Cancel",
+      "send": "Send request",
+      "sending": "Sending..."
     },
     "report_modal": {
       "title": "Report Content",

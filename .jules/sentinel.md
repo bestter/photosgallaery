@@ -117,3 +117,8 @@
 **Vulnerability:** The unauthenticated endpoint `[HttpPost("{id}/view")]` was missing rate limiting. This could allow an attacker to flood the endpoint, causing excessive events to be written to the channel and potentially causing Denial of Service (DoS) by exhausting memory or CPU.
 **Learning:** Even fast, asynchronous endpoints that write to a channel need protection if they are publicly accessible, to prevent the channel from being overwhelmed or filled with spam.
 **Prevention:** Always enforce rate limiting (e.g., `[EnableRateLimiting("ViewLimiter")]`) on unauthenticated endpoints, and configure the limits appropriately in `Program.cs` based on IP partitions.
+
+## 2024-05-24 - [Rate Limiting and Input Bounding for Group Requests]
+**Vulnerability:** The unauthenticated (or broadly available) `SubmitGroupRequest` endpoint in `GroupRequestsController` lacked both rate limiting and input length validation on properties like `Name` and `Description`. This exposed the application to Denial of Service (DoS) and potential database/memory exhaustion from large payloads or rapid submission spam.
+**Learning:** Endpoints that allow users to submit unconstrained text into the database can be targeted to consume significant storage and network resources. Similarly, endpoints that write to the database require rate limiting to prevent spam and resource exhaustion.
+**Prevention:** Apply rate limiting (`[EnableRateLimiting]`) partitioned by IP and enforce sensible string length boundaries (e.g. `[StringLength(100)]`) on DTO properties that map to database columns.
