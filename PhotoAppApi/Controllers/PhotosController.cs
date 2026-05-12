@@ -54,13 +54,26 @@ namespace PhotoAppApi.Controllers
                 return string.Empty;
             }
 
-            //var request = new GetPreSignedUrlRequest
-            //{
-            //    BucketName = "nom-de-ton-bucket",
-            //    Key = objectKey, // Ex: "photos/mon-image.jpg" (Attention: pas de slash au début !)
-            //    Expires = DateTime.UtcNow.AddHours(1), // Durée de validité
-            //    Verb = HttpVerb.GET
-            //};
+            // Migration : si l'URL vient de l'ancienne version locale (/api/images/...)
+            if (objectKey.StartsWith("/api/images/"))
+            {
+                var fileName = Path.GetFileName(objectKey);
+                
+                if (objectKey.Contains("/thumbnails/"))
+                {
+                    // Ex: /api/images/thumbnails/image.png -> thumbnails/image.png
+                    objectKey = $"thumbnails/{fileName}";
+                }
+                else
+                {
+                    // Si vous avez uploadé le contenu de PrivateImages à la racine du bucket R2 :
+                    // Ex: /api/images/image.png -> image.png
+                    objectKey = fileName;
+                    
+                    // Note: Si vous les avez mis dans le dossier "gallery", utilisez plutôt :
+                    // objectKey = $"gallery/{fileName}";
+                }
+            }
 
             return await _storage.GetPresignedUrlAsync(objectKey, TimeSpan.FromHours(1));
         }
