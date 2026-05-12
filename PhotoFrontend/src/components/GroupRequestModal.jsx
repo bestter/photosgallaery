@@ -74,7 +74,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                     {/* Initial Members */}
                     {/* <div className="pt-6 border-t border-slate-800/40">
                         <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-cyan-400" style={{fontVariationSettings: "'FILL' 1"}}>group_add</span>
+                            <span aria-hidden="true" className="material-symbols-outlined text-cyan-400" style={{fontVariationSettings: "'FILL' 1"}}>group_add</span>
                             Inviter les premiers membres
                         </h3>
                         <p className="text-sm text-slate-400 mb-4">Saisissez les adresses email des personnes que vous souhaitez inviter (séparées par des virgules).</p>
@@ -86,7 +86,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             onChange={(e) => setInviteEmails(e.target.value)}
                         />
                         <div className="mt-4 bg-cyan-400/10 border border-cyan-400/20 rounded-lg p-4 flex items-start gap-3">
-                            <span className="material-symbols-outlined text-cyan-400 mt-0.5" style={{fontVariationSettings: "'FILL' 1"}}>info</span>
+                            <span aria-hidden="true" className="material-symbols-outlined text-cyan-400 mt-0.5" style={{fontVariationSettings: "'FILL' 1"}}>info</span>
                             <p className="text-sm text-slate-400">Un email d'invitation sera automatiquement envoyé à ces adresses une fois le groupe créé.</p>
                         </div>
                     </div>

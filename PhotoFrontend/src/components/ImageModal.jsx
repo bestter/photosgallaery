@@ -13,6 +13,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const [hasReported, setHasReported] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPhoto(initialPhoto);
         setHasReported(initialPhoto?.isReportedByCurrentUser || initialPhoto?.IsReportedByCurrentUser || false);
 
@@ -212,7 +213,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30 text-primary">
-                                <span className="material-symbols-outlined text-2xl">person</span>
+                                <span aria-hidden="true" className="material-symbols-outlined text-2xl">person</span>
                             </div>
                             <div>
                                 <h3
@@ -307,7 +308,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Camera Info */}
                     <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-800">
-                        <span className="material-symbols-outlined text-slate-400">photo_camera</span>
+                        <span aria-hidden="true" className="material-symbols-outlined text-slate-400">photo_camera</span>
                         <div className="text-xs">
                             <p className="text-slate-400">{t("components.image_modal.camera_used")}</p>
                             <p className="text-slate-100 font-semibold">{cameraModel}</p>

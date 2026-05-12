@@ -10,6 +10,7 @@ import ContactFab from './components/ContactFab';
 import Join from './pages/Join';
 import Contact from './pages/Contact';
 import { isTokenExpired } from './authHelper';
+import { useEffect } from 'react';
 
 function App() {
   const currentPath = window.location.pathname;
@@ -20,10 +21,15 @@ function App() {
 
   const isPublicRoute = currentPath === '/login' || currentPath === '/register' || currentPath.startsWith('/join') || currentPath === '/contact';
 
-  if (!isLoggedIn && !isPublicRoute) {
+  useEffect(() => {
+    if (!isLoggedIn && !isPublicRoute) {
       window.location.href = '/login';
-      return null;
-  }
+    }
+  }, [isLoggedIn, isPublicRoute]);
+
+  if (!isLoggedIn && !isPublicRoute) return null;
+
+
 
   // Routing basique
   let Component = Gallery;

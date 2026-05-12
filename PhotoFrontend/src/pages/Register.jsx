@@ -91,7 +91,7 @@ const Register = () => {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                     person
                   </span>
                 </div>
@@ -119,7 +119,7 @@ const Register = () => {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                     mail
                   </span>
                 </div>
@@ -146,7 +146,7 @@ const Register = () => {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                     lock
                   </span>
                 </div>
@@ -174,7 +174,7 @@ const Register = () => {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                     shield_lock
                   </span>
                 </div>
@@ -241,7 +241,7 @@ const Register = () => {
             >
               {isLoading ? t("auth.register.loading") : t("auth.register.submit")}
               {!isLoading && (
-                <span className="material-symbols-outlined text-[18px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
               )}

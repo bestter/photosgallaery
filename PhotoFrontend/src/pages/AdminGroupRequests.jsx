@@ -105,12 +105,14 @@ export default function AdminGroupRequests() {
                                         <button
                                             onClick={() => handleReject(req.id)}
                                             className="px-3 py-1.5 text-xs font-label font-bold text-error hover:bg-error/10 rounded transition-colors"
+                                            aria-label={`Rejeter la requête du groupe ${req.name}`}
                                         >
                                             Reject
                                         </button>
                                         <button
                                             onClick={() => handleAccept(req)}
                                             className="px-4 py-1.5 text-xs font-label font-bold bg-primary text-on-primary hover:bg-primary-fixed-dim rounded transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)]"
+                                            aria-label={`Accepter la requête du groupe ${req.name}`}
                                         >
                                             Accept
                                         </button>

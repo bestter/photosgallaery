@@ -119,8 +119,7 @@ export default function Gallery() {
   // Helper pour générer l'URL complète de l'image sécurisée
   const getImageUrl = (url) => {
     if (!url) return "";
-
-    let fullUrl = url;
+let fullUrl = url;
     if (!url.startsWith("http")) {
       const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
       fullUrl = backendRoot + url;
@@ -208,7 +207,7 @@ export default function Gallery() {
         {/* Search and Actions */}
         <div className="hidden md:flex items-center gap-6 flex-1 max-w-2xl px-8">
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">
+            <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">
               search
             </span>
             <input
@@ -303,7 +302,7 @@ export default function Gallery() {
       <main className="flex-grow pt-24 pb-12 px-4 md:px-6 max-w-[1600px] w-full mx-auto">
         {/* Search Bar for Mobile */}
         <div className="md:hidden relative w-full mb-6">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">
+          <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]">
             search
           </span>
           <input
@@ -341,7 +340,7 @@ export default function Gallery() {
               }}
               className={`flex items-center gap-2 px-3 py-1.5 rounded text-[12px] font-semibold transition-colors ${!selectedTag && !selectedAuthor ? "bg-cyan-400 text-[#0f2323]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              <span className="material-symbols-outlined text-[16px]">
+              <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
                 grid_view
               </span>
               {t("gallery.all_discoveries")}
@@ -351,7 +350,7 @@ export default function Gallery() {
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedTag(null)}
               >
-                <span className="material-symbols-outlined text-[16px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
                   label
                 </span>
                 {t("gallery.tag")}: {selectedTag}
@@ -365,11 +364,11 @@ export default function Gallery() {
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedAuthor(null)}
               >
-                <span className="material-symbols-outlined text-[16px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
                   person
                 </span>
                 {selectedAuthor}
-                <span className="material-symbols-outlined text-[14px] ml-1 hover:text-white">
+                <span aria-hidden="true" className="material-symbols-outlined text-[14px] ml-1 hover:text-white">
                   close
                 </span>
               </button>
@@ -380,7 +379,7 @@ export default function Gallery() {
         {/* Bento Grid */}
         {isLoading ? (
           <div className="flex justify-center items-center py-20 text-cyan-400">
-            <span className="material-symbols-outlined animate-spin text-4xl">
+            <span aria-hidden="true" className="material-symbols-outlined animate-spin text-4xl">
               sync
             </span>
           </div>
@@ -452,7 +451,7 @@ export default function Gallery() {
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
                         >
-                          <span className="material-symbols-outlined text-[18px]">
+                          <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                             person
                           </span>{" "}
                           @{author}
@@ -502,7 +501,7 @@ export default function Gallery() {
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                     >
-                      <span className="material-symbols-outlined text-[14px]">
+                      <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
                         person
                       </span>{" "}
                       {author}
@@ -538,7 +537,7 @@ export default function Gallery() {
                       <h3 className="text-sm font-bold text-slate-100 truncate pr-2">
                         {photo.title || `Photo by @${author}`}
                       </h3>
-                      <span className="material-symbols-outlined text-slate-500 text-[18px] hover:text-cyan-400 transition-colors shrink-0">
+                      <span aria-hidden="true" className="material-symbols-outlined text-slate-500 text-[18px] hover:text-cyan-400 transition-colors shrink-0">
                         visibility
                       </span>
                     </div>

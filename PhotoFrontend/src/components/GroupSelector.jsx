@@ -12,7 +12,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     if (groups.length === 1) {
         return (
             <div className="flex items-center gap-2 text-slate-400 font-medium py-1 cursor-default">
-                <span className="material-symbols-outlined text-[18px]">groups</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">groups</span>
                 <span>{activeGroup.name || activeGroup.Name}</span>
             </div>
         );
@@ -21,9 +21,9 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     return (
         <div className="relative group">
             <button className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200 py-1">
-                <span className="material-symbols-outlined text-[18px]">groups</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">groups</span>
                 <span>{activeGroup.name || activeGroup.Name}</span>
-                <span className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
             </button>
             {/* Dropdown Menu */}
             <div className="absolute left-0 top-full mt-2 w-56 bg-surface-container-high rounded-lg shadow-2xl border border-outline-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
@@ -45,7 +45,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                                     : 'text-slate-300 hover:bg-cyan-400/10 hover:text-cyan-400'
                             }`}
                         >
-                            <span 
+                            <span aria-hidden="true"
                                 className="material-symbols-outlined text-[18px]"
                                 style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
                             >

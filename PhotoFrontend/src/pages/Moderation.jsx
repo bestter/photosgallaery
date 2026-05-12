@@ -88,7 +88,7 @@ export default function Moderation() {
                 </p>
               </div>
               <div className="p-2 bg-primary/10 rounded-lg">
-                <span className="material-symbols-outlined text-primary">
+                <span aria-hidden="true" className="material-symbols-outlined text-primary">
                   flag
                 </span>
               </div>
@@ -113,7 +113,7 @@ export default function Moderation() {
                 </p>
               </div>
               <div className="p-2 bg-amber-500/10 rounded-lg">
-                <span className="material-symbols-outlined text-amber-500">
+                <span aria-hidden="true" className="material-symbols-outlined text-amber-500">
                   pending_actions
                 </span>
               </div>
@@ -136,7 +136,7 @@ export default function Moderation() {
                 </p>
               </div>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <span className="material-symbols-outlined text-emerald-500">
+                <span aria-hidden="true" className="material-symbols-outlined text-emerald-500">
                   check_circle
                 </span>
               </div>
@@ -159,7 +159,7 @@ export default function Moderation() {
             </h3>
             <div className="flex gap-3">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">
+                <span aria-hidden="true" className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">
                   search
                 </span>
                 <input
@@ -170,7 +170,7 @@ export default function Moderation() {
                 />
               </div>
               <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
-                <span className="material-symbols-outlined text-sm">
+                <span aria-hidden="true" className="material-symbols-outlined text-sm">
                   filter_list
                 </span>{" "}
                 Filtrer
@@ -185,7 +185,7 @@ export default function Moderation() {
                     Image
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Nom de l'image
+                    Nom de l&apos;image
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                     Utilisateur signalé
@@ -247,12 +247,13 @@ export default function Moderation() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
-                        <button className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide">
+                        <button className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide" aria-label={`Effacer la photo signalée`}>
                           Effacer
                         </button>
                         <button
                           onClick={() => handleDismiss(rId)}
                           className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide border border-outline-variant/30"
+                          aria-label={`Annuler le signalement`}
                         >
                           Annuler
                         </button>

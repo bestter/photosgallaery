@@ -250,7 +250,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             accept="image/png, image/jpeg"
           />
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-4xl">
+            <span aria-hidden="true" className="material-symbols-outlined text-4xl">
               cloud_upload
             </span>
           </div>
@@ -394,6 +394,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             <button
               type="submit"
               disabled={isUploading || files.length === 0}
+              aria-label={isUploading ? "Téléversement en cours" : "Publier la photo"}
               title={files.length === 0 ? t("components.upload.error.select_file") : ""}
               className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
             >
