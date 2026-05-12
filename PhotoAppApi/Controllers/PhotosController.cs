@@ -47,8 +47,13 @@ namespace PhotoAppApi.Controllers
             _viewChannelWriter = viewChannelWriter;
         }
 
-        public async Task<string> GetImageUrlAsync(string objectKey)
+        public async Task<string> GetImageUrlAsync(string? objectKey)
         {
+            if (string.IsNullOrEmpty(objectKey))
+            {
+                return string.Empty;
+            }
+
             //var request = new GetPreSignedUrlRequest
             //{
             //    BucketName = "nom-de-ton-bucket",
@@ -610,7 +615,7 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Construire le chemin physique vers le fichier sur le serveur
                 var rootPath = _env.ContentRootPath;
-                var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
+                var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                 var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
                 var thumbPath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
 
@@ -699,7 +704,7 @@ namespace PhotoAppApi.Controllers
                     // 2. Boucler sur chaque photo
                     foreach (var photo in photosSansHash)
                     {
-                        var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
+                        var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                         var filePath = Path.Combine(rootPath, "images", safeFileName);
 
                         // 3. Vérifier si le fichier physique existe toujours
@@ -825,7 +830,7 @@ namespace PhotoAppApi.Controllers
 
                 foreach (var photo in photos)
                 {
-                    var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
+                    var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                     var originalPath = Path.Combine(uploadsFolder, safeFileName);
                     var thumbPath = Path.Combine(thumbFolder, safeFileName);
 
@@ -925,13 +930,13 @@ namespace PhotoAppApi.Controllers
                 {
                     // Update DB info
                     if (!photo.GroupId.HasValue) photo.GroupId = defaultGroup.Id;
-                    if (photo.Url.StartsWith("/images/"))
+                    if (photo.Url != null && photo.Url.StartsWith("/images/"))
                     {
                         photo.Url = photo.Url.Replace("/images/", "/api/images/");
                     }
 
                     // Move original file
-                    var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
+                    var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                     var oldFilePath = Path.Combine(oldRootPath, safeFileName);
                     var newFilePath = Path.Combine(newRootPath, safeFileName);
 
