@@ -121,7 +121,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 px-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="firstName" 
-                                placeholder={t('components.invite_modal.first_name_placeholder')}
+                                placeholder="Jean" 
                                 type="text" 
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
@@ -135,7 +135,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 px-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="lastName" 
-                                placeholder={t('components.invite_modal.last_name_placeholder')}
+                                placeholder="Tremblay" 
                                 type="text" 
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
@@ -154,7 +154,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="email" 
-                                placeholder={t('components.invite_modal.email_placeholder')}
+                                placeholder="collegue@exemple.com" 
                                 type="email" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -169,7 +169,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                         <textarea
                             className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg p-4 text-on-surface placeholder:text-slate-600 transition-all outline-none resize-none"
                             id="message" 
-                            placeholder={t('components.invite_modal.message_placeholder')}
+                            placeholder="Rejoins notre galerie privée..." 
                             rows="3"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}

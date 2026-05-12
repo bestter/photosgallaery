@@ -326,10 +326,10 @@ export default function Gallery() {
             <h1 className="text-[1.875rem] font-extrabold tracking-tight text-slate-100">
               {activeGroupId
                 ? userGroups.find((g) => (g.id || g.Id) === activeGroupId)
-                    ?.name ||
-                  userGroups.find((g) => (g.id || g.Id) === activeGroupId)
-                    ?.Name ||
-                  t("gallery.gallery_title")
+                  ?.name ||
+                userGroups.find((g) => (g.id || g.Id) === activeGroupId)
+                  ?.Name ||
+                t("gallery.gallery_title")
                 : t("gallery.gallery_title")}
             </h1>
           </div>
