@@ -236,7 +236,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             aria-label="Télécharger l'image"
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity">
                             <span className="material-symbols-outlined" aria-hidden="true">download</span>
-                            <span className="text-[10px] font-bold uppercase">Download</span>
+                            <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
                         </button>
 
                         <button
@@ -252,7 +252,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
                             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                             <span className="text-[10px] font-bold uppercase">
-                                {likesCount} Likes
+                                {t("components.image_modal.button_likes", { count: likesCount })}
                             </span>
                         </button>
 
@@ -261,7 +261,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             aria-label="Partager l'image"
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors">
                             <span className="material-symbols-outlined" aria-hidden="true">share</span>
-                            <span className="text-[10px] font-bold uppercase">Share</span>
+                            <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
                         </button>
 
                         {hasReported ? (

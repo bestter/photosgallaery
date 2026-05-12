@@ -259,6 +259,9 @@
       },
       "unknown_camera": "Unknown",
       "unknown_author": "Anonymous",
+      "button_download": "Download",
+      "button_share": "Share",
+      "button_likes": "{{count}} Likes",
       "new_photo": "New",
       "no_date": "N/A",
       "photographer": "Photographer",
@@ -319,31 +322,6 @@
       "error": {
         "send_failed": "Error sending request."
       }
-    },
-    "image_modal": {
-      "not_available": "N/A",
-      "new": "New",
-      "unknown_camera": "Unknown",
-      "anonymous": "Anonymous",
-      "preparing_download": "Preparing download...",
-      "download_success": "Download successful!",
-      "download_error": "Error during download.",
-      "share_title": "Photo by {{author}} on PixelLyra.com",
-      "share_text": "Look at this beautiful photo by {{author}}!",
-      "share_success_native": "Shared successfully!",
-      "share_success_clipboard": "Image link copied to clipboard!",
-      "share_error": "Error sharing.",
-      "photographer": "Photographer",
-      "download": "Download",
-      "cannot_like_own": "You cannot like your own photo",
-      "likes": "Likes",
-      "share": "Share",
-      "reported": "Reported",
-      "cannot_report_own": "You cannot report your own photo",
-      "report": "Report",
-      "added_on": "Added on",
-      "taken_on": "Taken on",
-      "views": "Views"
     },
     "invite_modal": {
       "error": {
