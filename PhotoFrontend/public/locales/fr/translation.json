@@ -49,11 +49,11 @@
     }
   },
   "footer": {
-    "copyright": "© 2026 PixelLyra.com App. All rights reserved.",
-    "privacy_policy": "Privacy Policy",
-    "terms_of_service": "Terms of Service",
-    "contact_support": "Contact Support",
-    "system_info": "PixelLyra.com System v2.4.0 • Encrypted Connection"
+    "copyright": "© 2026 PixelLyra.com App. Tous droits réservés.",
+    "privacy_policy": "Politique de confidentialité",
+    "terms_of_service": "Conditions d'utilisation",
+    "contact_support": "Contact",
+    "system_info": "PixelLyra.com System v2.4.0 • Connexion chiffrée"
   },
   "admin": {
     "dashboard": {
@@ -188,19 +188,25 @@
     }
   },
   "gallery": {
-    "search_placeholder": "Search inspirations, tags, authors...",
+    "search_placeholder": "Rechercher des inspirations, tags, auteurs...",
     "create_group": "Créer un groupe",
-    "upload": "Upload",
-    "dashboard_tooltip": "Dashboard",
+    "upload": "Téléverser",
+    "dashboard_tooltip": "Tableau de bord",
     "invite_tooltip": "Inviter",
-    "login": "Login",
+    "login": "Connexion",
     "subscribe": "S'abonner",
     "logout_tooltip": "Déconnexion",
-    "search_mobile_placeholder": "Search inspirations...",
-    "workspace_gallery": "Workspace / Gallery",
-    "gallery_title": "Gallery",
-    "all_discoveries": "All Discoveries",
-    "tag": "Tag"
+    "search_mobile_placeholder": "Rechercher...",
+    "workspace_gallery": "Espace de travail / Galerie",
+    "gallery_title": "Galerie",
+    "all_discoveries": "Toutes les découvertes",
+    "tag": "Tag",
+    "no_images": "Aucune image trouvée",
+    "try_filters": "Essayez de modifier vos filtres de recherche pour trouver ce que vous cherchez.",
+    "empty_space": "Cet espace est encore vide. Soyez le premier à le remplir !",
+    "add_photo": "Ajouter une photo",
+    "view_image": "Voir l'image",
+    "without_categories": "Sans catégories"
   },
   "contact": {
     "title": "Contactez-nous",
@@ -237,7 +243,50 @@
       "logout": "Déconnexion"
     },
     "group_selector": {
-      "your_collectives": "Your Collectives"
+      "your_collectives": "Vos Collectifs"
+    },
+    "image_modal": {
+      "download": {
+        "preparing": "Préparation du téléchargement...",
+        "success": "Téléchargement réussi !",
+        "error": "Erreur lors du téléchargement."
+      },
+      "share": {
+        "success": "Partagé avec succès !",
+        "copied": "Lien de l'image copié dans le presse-papier !",
+        "title": "Photo par {{author}} sur PixelLyra.com",
+        "text": "Regarde cette magnifique photo de {{author}} !"
+      },
+      "unknown_camera": "Inconnu",
+      "unknown_author": "Anonyme",
+      "new_photo": "Nouvelle",
+      "no_date": "N/D",
+      "photographer": "Photographe",
+      "cant_like_own": "Vous ne pouvez pas aimer votre propre photo",
+      "cant_report_own": "Vous ne pouvez pas signaler votre propre photo",
+      "already_reported": "Image déjà signalée",
+      "report": "Signaler",
+      "reported": "Signalée",
+      "added_on": "Ajoutée le",
+      "taken_on": "Prise le",
+      "views": "Vues",
+      "camera_used": "Appareil utilisé",
+      "tags": "Tags",
+      "estimated_location": "Localisation estimée",
+      "view_map": "Voir Carte"
+    },
+    "group_request": {
+      "success": "Demande de création de groupe envoyée avec succès !",
+      "error_send": "Erreur lors de l'envoi de la demande.",
+      "title": "Créer un nouveau groupe",
+      "subtitle": "Démarrez une nouvelle communauté autour d'une thématique commune.",
+      "group_name": "Nom du groupe",
+      "group_name_placeholder": "Ex: Photographes Urbains Paris",
+      "description": "Description du but du groupe",
+      "description_placeholder": "Décrivez l'objectif principal de ce groupe et ce que les membres y trouveront...",
+      "cancel": "Annuler",
+      "send": "Envoyer la demande",
+      "sending": "Envoi..."
     },
     "report_modal": {
       "title": "Report Content",

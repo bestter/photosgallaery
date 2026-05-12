@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
+    const { t } = useTranslation();
     if (!groups || groups.length === 0) {
         return null; // Pas de groupe disponible
     }
@@ -26,7 +28,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
             {/* Dropdown Menu */}
             <div className="absolute left-0 top-full mt-2 w-56 bg-surface-container-high rounded-lg shadow-2xl border border-outline-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-surface-container-highest/50">
-                    Your Collectives
+                    {t("components.group_selector.your_collectives")}
                 </div>
                 {groups.map((group) => {
                     const groupId = group.id || group.Id;

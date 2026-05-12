@@ -3,8 +3,10 @@ import api from '../api';
 import toast from 'react-hot-toast';
 import ReportModal from './ReportModal';
 import { getUsernameFromToken } from '../authHelper';
+import { useTranslation } from 'react-i18next';
 
 export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNext, onTagClick, onAuthorClick }) {
+    const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
     const [isLiking, setIsLiking] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
@@ -51,14 +53,14 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     if (!photo) return null;
 
     // Formatting date safely
-    const dateTaken = photo.dateTaken || photo.DateTaken ? new Date(photo.dateTaken || photo.DateTaken).toLocaleDateString() : 'N/D';
-    const uploadedAt = photo.uploadedAt || photo.UploadedAt ? new Date(photo.uploadedAt || photo.UploadedAt).toLocaleDateString() : 'Nouvelle';
+    const dateTaken = photo.dateTaken || photo.DateTaken ? new Date(photo.dateTaken || photo.DateTaken).toLocaleDateString() : t("components.image_modal.no_date");
+    const uploadedAt = photo.uploadedAt || photo.UploadedAt ? new Date(photo.uploadedAt || photo.UploadedAt).toLocaleDateString() : t("components.image_modal.new_photo");
 
     // Metadata
-    const cameraModel = photo.cameraModel || photo.CameraModel || 'Inconnu';
+    const cameraModel = photo.cameraModel || photo.CameraModel || t("components.image_modal.unknown_camera");
     const latitude = photo.latitude ?? photo.Latitude;
     const longitude = photo.longitude ?? photo.Longitude;
-    const author = photo.uploaderUsername || photo.UploaderUsername || 'Anonyme';
+    const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
     const tags = photo.tags || photo.Tags || [];
 
     const token = localStorage.getItem('token');
@@ -79,7 +81,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     // HANDLERS DES BOUTONS --------------------------
     const handleDownload = async () => {
         try {
-            toast.loading("Préparation du téléchargement...", { id: "download" });
+            toast.loading(t("components.image_modal.download.preparing"), { id: "download" });
             const response = await fetch(imgSrc);
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
@@ -92,26 +94,26 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
 
-            toast.success("Téléchargement réussi !", { id: "download" });
+            toast.success(t("components.image_modal.download.success"), { id: "download" });
         } catch (err) {
-            toast.error("Erreur lors du téléchargement.", { id: "download" });
+            toast.error(t("components.image_modal.download.error"), { id: "download" });
         }
     };
 
     const handleShare = async () => {
         const shareData = {
-            title: `Photo par ${author} sur PixelLyra.com`,
-            text: `Regarde cette magnifique photo de ${author} !`,
+            title: t("components.image_modal.share.title", { author }),
+            text: t("components.image_modal.share.text", { author }),
             url: window.location.origin
         };
 
         try {
             if (navigator.share) {
                 await navigator.share(shareData);
-                toast.success("Partagé avec succès !");
+                toast.success(t("components.image_modal.share.success"));
             } else {
                 await navigator.clipboard.writeText(imgSrc);
-                toast.success("Lien de l'image copié dans le presse-papier !");
+                toast.success(t("components.image_modal.share.copied"));
             }
         } catch (err) {
             console.error("Partage annulé", err);
@@ -219,7 +221,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 >
                                     {author}
                                 </h3>
-                                <p className="text-primary text-xs uppercase tracking-wider font-semibold">Photographe</p>
+                                <p className="text-primary text-xs uppercase tracking-wider font-semibold">{t("components.image_modal.photographer")}</p>
                             </div>
                         </div>
                     </div>
@@ -244,7 +246,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
                                 } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
                             disabled={isLiking || isMyPhoto}
-                            title={isMyPhoto ? "Vous ne pouvez pas aimer votre propre photo" : ""}
+                            title={isMyPhoto ? t("components.image_modal.cant_like_own") : ""}
                         >
                             {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
                             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
@@ -267,20 +269,20 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 aria-label="Image déjà signalée"
                                 className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed">
                                 <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
-                                <span className="text-[10px] font-bold uppercase">Reported</span>
+                                <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
                             </button>
                         ) : (
                             <button
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
                                 aria-label="Signaler l'image"
-                                title={isMyPhoto ? "Vous ne pouvez pas signaler votre propre photo" : ""}
+                                title={isMyPhoto ? t("components.image_modal.cant_report_own") : ""}
                                 className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors ${isMyPhoto
                                     ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
                                     : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
                                     }`}>
                                 <span className="material-symbols-outlined" aria-hidden="true">flag</span>
-                                <span className="text-[10px] font-bold uppercase">Report</span>
+                                <span className="text-[10px] font-bold uppercase">{t("components.image_modal.report")}</span>
                             </button>
                         )}
                     </div>
@@ -288,16 +290,16 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     {/* Info Table */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-400">Ajoutée le</span>
+                            <span className="text-slate-400">{t("components.image_modal.added_on")}</span>
                             <span className="text-slate-100 font-medium">{uploadedAt}</span>
                         </div>
                         <div className="bg-slate-800/40 rounded-xl p-4 grid grid-cols-2 gap-2 border border-slate-700/50">
                             <div className="text-center">
-                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Prise le</p>
+                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t("components.image_modal.taken_on")}</p>
                                 <p className="text-primary font-mono font-bold text-xs">{dateTaken}</p>
                             </div>
                             <div className="text-center border-l border-slate-700/50">
-                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Vues</p>
+                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t("components.image_modal.views")}</p>
                                 <p className="text-primary font-mono font-bold text-xs">{viewsCount}</p>
                             </div>
                         </div>
@@ -307,7 +309,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-800">
                         <span className="material-symbols-outlined text-slate-400">photo_camera</span>
                         <div className="text-xs">
-                            <p className="text-slate-400">Appareil utilisé</p>
+                            <p className="text-slate-400">{t("components.image_modal.camera_used")}</p>
                             <p className="text-slate-100 font-semibold">{cameraModel}</p>
                         </div>
                     </div>
@@ -315,7 +317,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     {/* Tags */}
                     {tags && tags.length > 0 && (
                         <div className="space-y-3">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tags</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
                             <div className="flex flex-wrap gap-2">
                                 {tags.map((tagObj, idx) => {
                                     const tagTranslations = tagObj.translations || tagObj.Translations || [];
@@ -342,7 +344,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             <div className="flex items-center gap-2">
                                 <span className="material-symbols-outlined text-primary text-sm" aria-hidden="true">location_on</span>
                                 <span className="text-xs text-slate-400">
-                                    Localisation estimée
+                                    {t("components.image_modal.estimated_location")}
                                 </span>
                             </div>
                             <button
@@ -350,7 +352,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 className="text-xs font-bold text-primary hover:underline"
                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
                             >
-                                Voir Carte
+                                {t("components.image_modal.view_map")}
                             </button>
                         </div>
                     )}

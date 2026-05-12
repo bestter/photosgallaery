@@ -142,7 +142,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
 
   const handleUpload = async () => {
     if (!isSessionValid()) {
-      toast.error("Votre session a expiré. Veuillez vous reconnecter.", {
+      toast.error(t("components.upload.error.session_expired"), {
         icon: "🔒",
       });
       if (setToken) setToken(null);
@@ -184,7 +184,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
       formData.append("groupId", selectedGroupId);
     } else {
       return toast.error(
-        "Veuillez sélectionner un cercle pour cette publication.",
+        t("components.upload.error.select_group"),
       );
     }
 
@@ -192,10 +192,10 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
 
     toast
       .promise(api.post("/photos/upload", formData), {
-        loading: "Téléversement de vos images...",
+        loading: t("components.upload.loading"),
         success: (response) => {
           if (response.data.erreurs && response.data.erreurs.length > 0) {
-            toast(`Certains doublons ont été ignorés.`, {
+            toast(t("components.upload.duplicates_ignored"), {
               icon: "⚠️",
               duration: 4000,
             });
@@ -204,14 +204,14 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
           handleClearSelection();
           setTags([]);
           if (onUploadSuccess) onUploadSuccess();
-          return response.data.message || "Images ajoutées !";
+          return response.data.message || t("components.upload.success", { count: files.length });
         },
         error: (error) => {
           if (error.response?.status === 401)
-            return "Session expirée. Reconnectez-vous.";
+            return t("components.upload.error.session_expired");
           if (error.response?.status === 403)
-            return "Vous n'avez pas l'autorisation de faire cela.";
-          return error.response?.data?.message || "Erreur lors de l'envoi.";
+            return t("components.upload.error.unauthorized");
+          return error.response?.data?.message || t("components.upload.error.failed");
         },
       })
       .finally(() => {
@@ -234,10 +234,10 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         {/* En-tête de la section */}
         <div className="flex flex-col gap-2">
           <h1 className="text-slate-900 dark:text-slate-100 text-4xl font-black tracking-tight">
-            Ajouter une photo
+            {t("components.upload.title")}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Partagez vos moments avec la communauté PixelLyra.com.
+            {t("components.upload.subtitle")}
           </p>
         </div>
 
@@ -258,17 +258,17 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             <p className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">
               {selectedFile
                 ? selectedFile.name
-                : "Glissez-déposez votre photo ici"}
+                : t("components.upload.drag_drop")}
             </p>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
               {selectedFile
                 ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
-                : "ou cliquez pour parcourir vos fichiers (JPG, PNG, max 20 Mo)"}
+                : t("components.upload.browse_files")}
             </p>
           </div>
           {!selectedFile && (
             <div className="flex items-center justify-center rounded-lg h-12 px-8 bg-primary text-background-dark font-bold text-base shadow-lg shadow-primary/20 pointer-events-none">
-              Sélectionner un fichier
+              {t("components.upload.select_file_btn")}
             </div>
           )}
         </label>
@@ -288,12 +288,12 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 htmlFor="photo-title"
                 className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
               >
-                Titre de la photo
+                {t("components.upload.photo_title")}
               </label>
               <input
                 id="photo-title"
                 className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
-                placeholder="Entrez un titre accrocheur"
+                placeholder={t("components.upload.photo_title_placeholder")}
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -307,12 +307,12 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 htmlFor="photo-description"
                 className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
               >
-                Description
+                {t("components.upload.description")}
               </label>
               <textarea
                 id="photo-description"
                 className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
-                placeholder="Racontez l'histoire derrière ce cliché..."
+                placeholder={t("components.upload.description_placeholder")}
                 rows="4"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -325,12 +325,12 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 htmlFor="photo-tags"
                 className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
               >
-                Tags
+                {t("components.upload.tags")}
               </label>
               <input
                 id="photo-tags"
                 className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
-                placeholder="Ajoutez des tags séparés par des virgules (ex: nature, voyage)"
+                placeholder={t("components.upload.tags_placeholder")}
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
@@ -343,7 +343,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 htmlFor="photo-group"
                 className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
               >
-                Visibilité (Cercle)
+                {t("components.upload.visibility")}
               </label>
               <select
                 id="photo-group"
@@ -376,7 +376,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 className="text-slate-900 dark:text-slate-100 text-sm font-medium cursor-pointer select-none"
                 htmlFor="geo-location"
               >
-                Ajouter les coordonnées de géolocalisation
+                {t("components.upload.extract_gps")}
               </label>
             </div>
           </div>
@@ -389,7 +389,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
               className="px-6 py-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isUploading}
             >
-              Annuler
+              {t("components.upload.cancel")}
             </button>
             <button
               type="submit"
@@ -402,10 +402,10 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                   <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
                     sync
                   </span>
-                  Téléversement...
+                  {t("components.upload.uploading")}
                 </>
               ) : (
-                "Publier la photo"
+                t("components.upload.publish_btn")
               )}
             </button>
           </div>

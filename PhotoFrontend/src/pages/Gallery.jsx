@@ -8,8 +8,10 @@ import { useDebounce } from "../hooks/useDebounce";
 import { getUserRole, isTokenExpired } from "../authHelper";
 import api from "../api";
 import Footer from "../components/Footer";
+import { useTranslation } from "react-i18next";
 
 export default function Gallery() {
+  const { t } = useTranslation();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isGroupRequestOpen, setIsGroupRequestOpen] = useState(false);
@@ -212,8 +214,8 @@ export default function Gallery() {
             <input
               className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500"
               name="search"
-              aria-label="Search inspirations, tags, authors"
-              placeholder="Search inspirations, tags, authors..."
+              aria-label={t("gallery.search_placeholder")}
+              placeholder={t("gallery.search_placeholder")}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -227,7 +229,7 @@ export default function Gallery() {
               onClick={() => setIsGroupRequestOpen(true)}
               className="hidden md:block border border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-colors"
             >
-              Créer un groupe
+              {t("gallery.create_group")}
             </button>
           )}
           {canUpload && (
@@ -235,7 +237,7 @@ export default function Gallery() {
               onClick={() => setIsUploadOpen(true)}
               className="hidden md:block bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110"
             >
-              Upload
+              {t("gallery.upload")}
             </button>
           )}
           <div className="flex items-center gap-1 md:gap-3">
@@ -243,8 +245,8 @@ export default function Gallery() {
               <button
                 onClick={() => (window.location.href = "/dashboard")}
                 className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors"
-                aria-label="Aller au Dashboard"
-                title="Dashboard"
+                aria-label={t("gallery.dashboard_tooltip")}
+                title={t("gallery.dashboard_tooltip")}
               >
                 <span className="material-symbols-outlined" aria-hidden="true">
                   dashboard
@@ -255,8 +257,8 @@ export default function Gallery() {
               <button
                 onClick={() => setIsInviteOpen(true)}
                 className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors relative"
-                aria-label="Inviter un utilisateur"
-                title="Inviter"
+                aria-label={t("gallery.invite_tooltip")}
+                title={t("gallery.invite_tooltip")}
               >
                 <span className="material-symbols-outlined" aria-hidden="true">
                   group_add
@@ -269,13 +271,13 @@ export default function Gallery() {
                   onClick={() => (window.location.href = "/login")}
                   className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 px-3 py-1.5 rounded font-bold text-sm transition-colors"
                 >
-                  Login
+                  {t("gallery.login")}
                 </button>
                 <button
                   onClick={() => (window.location.href = "/register")}
                   className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110"
                 >
-                  S&apos;abonner
+                  {t("gallery.subscribe")}
                 </button>
               </>
             )}
@@ -286,8 +288,8 @@ export default function Gallery() {
                   window.location.reload();
                 }}
                 className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors"
-                aria-label="Déconnexion"
-                title="Déconnexion"
+                aria-label={t("gallery.logout_tooltip")}
+                title={t("gallery.logout_tooltip")}
               >
                 <span className="material-symbols-outlined" aria-hidden="true">
                   logout
@@ -307,8 +309,8 @@ export default function Gallery() {
           <input
             className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
-            aria-label="Search inspirations"
-            placeholder="Search inspirations..."
+            aria-label={t("gallery.search_mobile_placeholder")}
+            placeholder={t("gallery.search_mobile_placeholder")}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -319,7 +321,7 @@ export default function Gallery() {
         <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400 mb-2">
-              Workspace / Gallery
+              {t("gallery.workspace_gallery")}
             </div>
             <h1 className="text-[1.875rem] font-extrabold tracking-tight text-slate-100">
               {activeGroupId
@@ -327,8 +329,8 @@ export default function Gallery() {
                     ?.name ||
                   userGroups.find((g) => (g.id || g.Id) === activeGroupId)
                     ?.Name ||
-                  "Gallery"
-                : "Gallery"}
+                  t("gallery.gallery_title")
+                : t("gallery.gallery_title")}
             </h1>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -342,7 +344,7 @@ export default function Gallery() {
               <span className="material-symbols-outlined text-[16px]">
                 grid_view
               </span>
-              All Discoveries
+              {t("gallery.all_discoveries")}
             </button>
             {selectedTag && (
               <button
@@ -352,7 +354,7 @@ export default function Gallery() {
                 <span className="material-symbols-outlined text-[16px]">
                   label
                 </span>
-                Tag: {selectedTag}
+                {t("gallery.tag")}: {selectedTag}
                 <span className="material-symbols-outlined text-[14px] ml-1 hover:text-white">
                   close
                 </span>
@@ -484,12 +486,12 @@ export default function Gallery() {
                     />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
                       <button className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        View Image
+                        {t("gallery.view_image")}
                       </button>
                     </div>
                     <div className="absolute top-4 left-4">
                       <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold text-cyan-400 uppercase tracking-widest border border-cyan-400/20">
-                        {photoTags[0] || "Sans catégories"}
+                        {photoTags[0] || t("gallery.without_categories")}
                       </div>
                     </div>
                     <div
@@ -564,12 +566,12 @@ export default function Gallery() {
                   image_not_supported
                 </span>
                 <h3 className="text-xl font-bold text-slate-300 mb-2">
-                  Aucune image trouvée
+                  {t("gallery.no_images")}
                 </h3>
                 <p className="text-sm mb-6 max-w-md text-center">
                   {searchQuery || selectedTag || selectedAuthor
-                    ? "Essayez de modifier vos filtres de recherche pour trouver ce que vous cherchez."
-                    : "Cet espace est encore vide. Soyez le premier à le remplir !"}
+                    ? t("gallery.try_filters")
+                    : t("gallery.empty_space")}
                 </p>
                 {canUpload &&
                   !searchQuery &&
@@ -585,7 +587,7 @@ export default function Gallery() {
                       >
                         add_photo_alternate
                       </span>
-                      Ajouter une photo
+                      {t("gallery.add_photo")}
                     </button>
                   )}
               </div>

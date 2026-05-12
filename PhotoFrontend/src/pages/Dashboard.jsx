@@ -5,9 +5,11 @@ import {
   getUsernameFromToken,
 } from "../authHelper";
 import api from "../api";
+import { useTranslation } from "react-i18next";
 import AdminLayout from "../components/AdminLayout";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,7 +40,7 @@ export default function Dashboard() {
         const response = await api.get("/admin/users");
         setUsers(response.data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des usagers:", error);
+        console.error("Error fetching users:", error);
       } finally {
         setLoading(false);
       }
@@ -58,8 +60,8 @@ export default function Dashboard() {
         ),
       );
     } catch (error) {
-      console.error(`Erreur lors de la promotion en ${newRole}:`, error);
-      alert(`Erreur lors de la modification du rôle.`);
+      console.error(`Error updating role to ${newRole}:`, error);
+      alert(t("admin.dashboard.role_update_error"));
     }
   };
 
@@ -74,9 +76,9 @@ export default function Dashboard() {
         </span>
         <input
           className="w-full pl-11 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all text-on-surface placeholder:text-on-surface-variant"
-          placeholder="Rechercher un utilisateur, un email..."
+          placeholder={t("admin.dashboard.search_placeholder")}
           type="text"
-          aria-label="Rechercher un utilisateur, un email"
+          aria-label={t("admin.dashboard.search_placeholder")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -86,8 +88,8 @@ export default function Dashboard() {
 
   return (
     <AdminLayout
-      title="Gestion des usagers"
-      subtitle="Gérez les rôles, les permissions et la sécurité des comptes utilisateurs."
+      title={t("admin.dashboard.title")}
+      subtitle={t("admin.dashboard.subtitle_extended")}
       topActions={topActions}
     >
       <div className="space-y-8">
@@ -103,7 +105,7 @@ export default function Dashboard() {
               </span>
             </div>
             <p className="text-on-surface-variant text-sm font-medium">
-              Utilisateurs Totaux
+              {t("admin.dashboard.total_users")}
             </p>
             <h3 className="text-3xl font-bold mt-1 text-on-surface">
               {loading ? "-" : users.length}
@@ -119,7 +121,7 @@ export default function Dashboard() {
               </span>
             </div>
             <p className="text-on-surface-variant text-sm font-medium">
-              Créateurs Actifs
+              {t("admin.dashboard.active_creators")}
             </p>
             <h3 className="text-3xl font-bold mt-1 text-on-surface">
               {loading
@@ -134,7 +136,7 @@ export default function Dashboard() {
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/30 overflow-hidden shadow-md">
           <div className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between">
             <h4 className="font-bold text-lg text-on-surface">
-              Liste des utilisateurs
+              {t("admin.dashboard.user_list")}
             </h4>
             <div className="flex gap-2">
               <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface">
@@ -144,7 +146,7 @@ export default function Dashboard() {
                 >
                   filter_list
                 </span>{" "}
-                Filtrer
+                {t("admin.dashboard.filter")}
               </button>
               <button className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)]">
                 <span
@@ -153,7 +155,7 @@ export default function Dashboard() {
                 >
                   person_add
                 </span>{" "}
-                Nouvel usager
+                {t("admin.dashboard.new_user")}
               </button>
             </div>
           </div>
@@ -162,19 +164,19 @@ export default function Dashboard() {
               <thead className="bg-surface-container/50 border-b border-outline-variant/40">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Nom d&apos;usager
+                    {t("admin.dashboard.table.username")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Adresse courriel
+                    {t("admin.dashboard.table.email")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Groupes
+                    {t("admin.dashboard.table.groups")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Rôle actuel
+                    {t("admin.dashboard.table.role")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">
-                    Actions
+                    {t("admin.dashboard.table.actions")}
                   </th>
                 </tr>
               </thead>
@@ -248,30 +250,30 @@ export default function Dashboard() {
                             )
                           ) : (
                             <span className="text-xs text-on-surface-variant/70 italic">
-                              Aucun
+                              {t("admin.dashboard.table.none")}
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           {role === "Admin" && (
                             <span className="px-2.5 py-1 text-xs font-bold bg-tertiary/20 text-tertiary rounded-full border border-tertiary/30">
-                              Admin
+                              {t("admin.dashboard.role.admin")}
                             </span>
                           )}
                           {role === "Creator" && (
                             <span className="px-2.5 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full border border-primary/30">
-                              Créateur
+                              {t("admin.dashboard.role.creator")}
                             </span>
                           )}
                           {(role === "User" ||
                             (!role && role !== "Forbidden")) && (
                             <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30">
-                              Utilisateur
+                              {t("admin.dashboard.role.user")}
                             </span>
                           )}
                           {role === "Forbidden" && (
                             <span className="px-2.5 py-1 text-xs font-bold bg-error/20 text-error rounded-full border border-error/30">
-                              Banni
+                              {t("admin.dashboard.role.banned")}
                             </span>
                           )}
                         </td>
@@ -285,7 +287,7 @@ export default function Dashboard() {
                                   }
                                   className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors"
                                 >
-                                  Rétrograder créateur
+                                  {t("admin.dashboard.action.demote_creator")}
                                 </button>
                               ) : (
                                 <button
@@ -294,7 +296,7 @@ export default function Dashboard() {
                                   }
                                   className="px-3 py-1.5 text-xs font-bold text-primary border border-primary/50 hover:bg-primary/10 rounded-lg transition-colors"
                                 >
-                                  Promouvoir créateur
+                                  {t("admin.dashboard.action.promote_creator")}
                                 </button>
                               ))}
                             {role === "Admin" ? (
@@ -302,9 +304,9 @@ export default function Dashboard() {
                                 <button
                                   disabled
                                   className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50"
-                                  title="Action non permise sur votre propre compte"
+                                  title={t("admin.dashboard.action.self_action_tooltip")}
                                 >
-                                  Admin actuel
+                                  {t("admin.dashboard.action.current_admin")}
                                 </button>
                               ) : (
                                 <button
@@ -313,7 +315,7 @@ export default function Dashboard() {
                                   }
                                   className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors"
                                 >
-                                  Rétrograder admin
+                                  {t("admin.dashboard.action.demote_admin")}
                                 </button>
                               )
                             ) : (
@@ -323,7 +325,7 @@ export default function Dashboard() {
                                 }
                                 className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary/90 rounded-lg transition-colors"
                               >
-                                Promouvoir admin
+                                {t("admin.dashboard.action.promote_admin")}
                               </button>
                             )}
                             <button
@@ -339,17 +341,17 @@ export default function Dashboard() {
                               className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? "text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50" : role === "Forbidden" ? "text-tertiary hover:bg-tertiary/10" : "text-error hover:bg-error/10"}`}
                               title={
                                 isCurrentUser
-                                  ? "Action non permise sur votre propre compte"
+                                  ? t("admin.dashboard.action.self_action_tooltip")
                                   : role === "Forbidden"
-                                    ? "Réactiver ce compte"
-                                    : "Bannir"
+                                    ? t("admin.dashboard.action.unban")
+                                    : t("admin.dashboard.action.ban")
                               }
                               aria-label={
                                 isCurrentUser
-                                  ? "Action non permise sur votre propre compte"
+                                  ? t("admin.dashboard.action.self_action_tooltip")
                                   : role === "Forbidden"
-                                    ? "Réactiver ce compte"
-                                    : "Bannir ce compte"
+                                    ? t("admin.dashboard.action.unban")
+                                    : t("admin.dashboard.action.ban")
                               }
                             >
                               <span
@@ -370,7 +372,7 @@ export default function Dashboard() {
           </div>
           <div className="px-6 py-4 bg-surface-container/30 border-t border-outline-variant/30 flex items-center justify-between">
             <p className="text-xs text-on-surface-variant font-medium tracking-wide">
-              Affichage de {filteredUsers.length} utilisateurs
+              {t("admin.dashboard.showing_users", { count: filteredUsers.length })}
             </p>
             <div className="flex gap-1">
               <button
