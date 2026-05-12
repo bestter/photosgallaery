@@ -6,6 +6,7 @@ using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace PhotoAppApi.Controllers
 {
@@ -85,6 +86,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("GroupRequestLimiter")]
         public async Task<IActionResult> SubmitGroupRequest([FromBody] SubmitGroupRequestDto request)
         {
             _logger.Debug($"In {nameof(SubmitGroupRequest)} for group: {request.Name}");
@@ -126,9 +128,11 @@ namespace PhotoAppApi.Controllers
     public class SubmitGroupRequestDto
     {
         [Required]
+        [StringLength(100, ErrorMessage = "Le nom du groupe ne peut pas dépasser 100 caractères.")]
         public string Name { get; set; } = string.Empty;
 
         [Required]
+        [StringLength(500, ErrorMessage = "La description ne peut pas dépasser 500 caractères.")]
         public string Description { get; set; } = string.Empty;
     }
 }
