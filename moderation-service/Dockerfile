@@ -31,4 +31,4 @@ COPY . .
 EXPOSE 8080
 
 # Démarrer l'application avec un seul "worker" pour limiter la RAM
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+CMD ["uvicorn", "main:app", "--host", "::", "--port", "8080", "--workers", "1"]", "--workers", "1"]
