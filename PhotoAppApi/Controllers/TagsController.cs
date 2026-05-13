@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
@@ -20,6 +21,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/tags/search?q=nat
         [HttpGet("search")]
+        [EnableRateLimiting("TagsLimiter")]
         public async Task<IActionResult> SearchTags([FromQuery] string? q)
         {
             _logger.Debug($"In {nameof(SearchTags)} with q: {q}");
@@ -27,6 +29,9 @@ namespace PhotoAppApi.Controllers
             {
                 if (string.IsNullOrWhiteSpace(q))
                     return Ok(new List<string>());
+
+                if (q.Length > 50)
+                    return BadRequest(new { message = "La recherche ne peut pas dépasser 50 caractères." });
 
                 var query = q.ToLower();
 
