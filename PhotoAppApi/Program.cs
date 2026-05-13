@@ -1,7 +1,8 @@
 using Amazon.S3;
+using AspNetCore.DataProtection.Aws.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -173,6 +174,16 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 
     return new AmazonS3Client(config);
 });
+
+// 2. On ajoute DataProtection juste en dessous pour utiliser R2
+builder.Services.AddDataProtection()
+    // Identifiant unique pour l'application, pratique pour isoler les clés
+    .SetApplicationName("PixelLyra")
+    .PersistKeysToAwsS3(new S3XmlRepositoryConfig(builder.Configuration["ObjectStorage:BucketName"] ?? "PixelLyra")
+    {
+        // On range les clés proprement dans un sous-dossier virtuel
+        KeyPrefix = "dataprotection-keys/"
+    });
 
 builder.Services.Configure<ObjectStorageOptions>(
     builder.Configuration.GetSection("ObjectStorage"));
