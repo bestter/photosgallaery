@@ -9,12 +9,13 @@ namespace PhotoAppApi.Services
     public class ResendEmailService: IEmailService
     {
 
-        private string fromEmail;
+        private string toEmail;
         public ResendEmailService(IConfiguration configuration)
         {
             var _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             ResendKEy = _configuration["Resend:Key"] ?? throw new ArgumentNullException("Resend:Key");
-            fromEmail = _configuration["Resend:FromEmail"] ?? throw new ArgumentNullException("Resend:FromEmail");
+            //fromEmail = _configuration["Resend:FromEmail"] ?? throw new ArgumentNullException("Resend:FromEmail");
+            toEmail = _configuration["Resend:ToEmail"] ?? throw new ArgumentNullException("Resend:ToEmail");
         }
 
         private string ResendKEy { get; set; }
@@ -51,18 +52,18 @@ namespace PhotoAppApi.Services
             await EnvoyerCourrielAsync(email, $"Contact - {subject}", sb.ToString(), cancellationToken);
         }
 
-        private async Task EnvoyerCourrielAsync(string destinataire, string sujet, string contenuHtml, CancellationToken cancellationToken = default)
+        private async Task EnvoyerCourrielAsync(string from, string sujet, string contenuHtml, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(ResendKEy))
             {
                 throw new NotSupportedException("La clé API pour Resend n'est pas définie !");
             }
-            ArgumentException.ThrowIfNullOrWhiteSpace(destinataire);
+            ArgumentException.ThrowIfNullOrWhiteSpace(from);
             ArgumentException.ThrowIfNullOrWhiteSpace(sujet);
             ArgumentException.ThrowIfNullOrWhiteSpace(contenuHtml);
             try
             {
-                if (string.Equals(fromEmail, destinataire, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(toEmail, from, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new NotSupportedException("L'adresse e-mail de destination ne peut pas être la même que l'adresse e-mail d'expédition.");
                 }
@@ -70,8 +71,8 @@ namespace PhotoAppApi.Services
 
                 var resp = await resend.EmailSendAsync(new EmailMessage()
                 {
-                    From = fromEmail,
-                    To = destinataire,
+                    From = from,
+                    To = toEmail,
                     Subject = sujet,
                     HtmlBody = contenuHtml,
                 }, cancellationToken);
