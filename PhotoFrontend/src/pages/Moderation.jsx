@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useDeferredValue } from "react";
 import { getUserRole, isTokenExpired } from "../authHelper";
 import api from "../api";
 import AdminLayout from "../components/AdminLayout";
@@ -35,12 +35,34 @@ export default function Moderation() {
   ).length;
   const pendingReports = totalReports - processedReports;
 
-  const pendingReportsList = reports.filter(
-    (r) =>
-      r.status === "Pending" ||
-      r.Status === "Pending" ||
-      (!r.status && !r.Status),
-  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
+  // ⚡ Bolt: Use useDeferredValue and useMemo to prevent expensive filtering from blocking the main UI thread during typing
+  const filteredReportsList = useMemo(() => {
+    if (!deferredSearchTerm) {
+      return reports.filter(
+        (r) =>
+          r.status === "Pending" ||
+          r.Status === "Pending" ||
+          (!r.status && !r.Status),
+      );
+    }
+    const term = deferredSearchTerm.toLowerCase();
+    return reports.filter((r) => {
+      const isPending =
+        r.status === "Pending" ||
+        r.Status === "Pending" ||
+        (!r.status && !r.Status);
+      if (!isPending) return false;
+      const uploader = r.uploader || r.Uploader || "";
+      const reason = r.reason || r.Reason || "";
+      return (
+        uploader.toLowerCase().includes(term) ||
+        reason.toLowerCase().includes(term)
+      );
+    });
+  }, [reports, deferredSearchTerm]);
 
   const handleDismiss = async (reportId) => {
     try {
@@ -88,7 +110,10 @@ export default function Moderation() {
                 </p>
               </div>
               <div className="p-2 bg-primary/10 rounded-lg">
-                <span aria-hidden="true" className="material-symbols-outlined text-primary">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-primary"
+                >
                   flag
                 </span>
               </div>
@@ -113,7 +138,10 @@ export default function Moderation() {
                 </p>
               </div>
               <div className="p-2 bg-amber-500/10 rounded-lg">
-                <span aria-hidden="true" className="material-symbols-outlined text-amber-500">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-amber-500"
+                >
                   pending_actions
                 </span>
               </div>
@@ -136,7 +164,10 @@ export default function Moderation() {
                 </p>
               </div>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <span aria-hidden="true" className="material-symbols-outlined text-emerald-500">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-emerald-500"
+                >
                   check_circle
                 </span>
               </div>
@@ -159,7 +190,10 @@ export default function Moderation() {
             </h3>
             <div className="flex gap-3">
               <div className="relative">
-                <span aria-hidden="true" className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"
+                >
                   search
                 </span>
                 <input
@@ -167,10 +201,15 @@ export default function Moderation() {
                   placeholder="Rechercher..."
                   type="text"
                   aria-label="Rechercher"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
-                <span aria-hidden="true" className="material-symbols-outlined text-sm">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-sm"
+                >
                   filter_list
                 </span>{" "}
                 Filtrer
@@ -199,7 +238,7 @@ export default function Moderation() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {pendingReportsList.map((report) => {
+                {filteredReportsList.map((report) => {
                   const rId = report.reportId || report.ReportId;
                   const pUrl = report.photoUrl || report.PhotoUrl;
                   const uploader = report.uploader || report.Uploader;
@@ -247,7 +286,10 @@ export default function Moderation() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
-                        <button className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide" aria-label={`Effacer la photo signalée`}>
+                        <button
+                          className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide"
+                          aria-label={`Effacer la photo signalée`}
+                        >
                           Effacer
                         </button>
                         <button
@@ -261,7 +303,7 @@ export default function Moderation() {
                     </tr>
                   );
                 })}
-                {pendingReportsList.length === 0 && (
+                {filteredReportsList.length === 0 && (
                   <tr>
                     <td
                       colSpan="5"
