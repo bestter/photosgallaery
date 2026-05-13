@@ -122,7 +122,7 @@ export default function Contact() {
         </div>
 
         {/* Contact Info & Socials */}
-        <div className="w-full md:w-1/3 flex flex-col gap-8">
+        {/* <div className="w-full md:w-1/3 flex flex-col gap-8">
           <div className="bg-[#152b2b]/50 border border-cyan-400/10 rounded-xl p-6 shadow-lg">
             <h3 className="text-xs font-bold tracking-[0.1em] uppercase text-cyan-400 mb-4">{t('contact.connect')}</h3>
             <div className="flex flex-col gap-3">
@@ -140,7 +140,7 @@ export default function Contact() {
               </a>
             </div>
           </div>
-        </div>
+        </div> */}
       </main>
 
       <Footer className="mt-auto" />
