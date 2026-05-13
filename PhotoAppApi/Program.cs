@@ -1,9 +1,10 @@
 using Amazon.S3;
-using AspNetCore.DataProtection.Aws.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using PhotoAppApi;
@@ -175,15 +176,21 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
     return new AmazonS3Client(config);
 });
 
-// 2. On ajoute DataProtection juste en dessous pour utiliser R2
 builder.Services.AddDataProtection()
-    // Identifiant unique pour l'application, pratique pour isoler les clés
-    .SetApplicationName("PixelLyra")
-    .PersistKeysToAwsS3(new S3XmlRepositoryConfig(builder.Configuration["ObjectStorage:BucketName"] ?? "PixelLyra")
+    .SetApplicationName("PiXelLyra");
+
+// 2. On ajoute DataProtection juste en dessous pour utiliser R2
+// On dit à ASP.NET d'utiliser ta nouvelle classe personnalisée
+builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
+{
+    return new ConfigureOptions<KeyManagementOptions>(options =>
     {
-        // On range les clés proprement dans un sous-dossier virtuel
-        KeyPrefix = "dataprotection-keys/"
+        var s3Client = sp.GetRequiredService<IAmazonS3>();
+        var bucketName = builder.Configuration["ObjectStorage:BucketName"] ?? "pixellyra";
+
+        options.XmlRepository = new CloudflareR2XmlRepository(s3Client, bucketName);
     });
+});
 
 builder.Services.Configure<ObjectStorageOptions>(
     builder.Configuration.GetSection("ObjectStorage"));
@@ -312,6 +319,27 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+
+var keyManager = app.Services.GetService<IKeyManager>();
+
+if (keyManager is IDeletableKeyManager deletableKeyManager)
+{
+    var utcNow = DateTimeOffset.UtcNow;
+    var yearAgo = utcNow.AddYears(-1);
+
+    if (!deletableKeyManager.DeleteKeys(key => key.ExpirationDate < yearAgo))
+    {
+        Console.WriteLine("Failed to delete keys.");
+    }
+    else
+    {
+        Console.WriteLine("Old keys deleted successfully.");
+    }
+}
+else
+{
+    Console.WriteLine("Key manager does not support deletion.");
+}
 
 // Middleware de sécurité pour ajouter l'en-tête X-Frame-Options et autres headers de sécurité
 app.Use(async (context, next) =>

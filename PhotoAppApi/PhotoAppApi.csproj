@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.DataProtection.Aws.S3" Version="2.2.0" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.37" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.23" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
@@ -22,7 +21,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
-    <PackageReference Include="Resend" Version="0.5.0" />
+    <PackageReference Include="Resend" Version="0.5.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="4.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
