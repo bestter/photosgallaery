@@ -35,12 +35,12 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost("login")]
         [EnableRateLimiting("LoginLimiter")]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto request)
+        public async Task<IActionResult> Login([FromBody] UserLoginDto request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(Login)} for user: {request.Username}");
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username, cancellationToken);
 
                 // 🛡️ Sentinel: Mitigate User Enumeration Timing Attacks
                 // Always verify the password against a hash so the execution time remains constant regardless of whether the user exists or not.
@@ -105,13 +105,13 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost("register")]
         [EnableRateLimiting("RegisterLimiter")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(Register)} for user: {request.Username}");
             try
             {
                 // 1. Vérifier si l'utilisateur existe déjà
-                if (_context.Users.Any(u => u.Username == request.Username))
+                if (await _context.Users.AnyAsync(u => u.Username == request.Username, cancellationToken))
                 {
                     // C'est ici la clé : on renvoie un objet avec la propriété "message"
                     return BadRequest(new { message = "Cet usager existe déjà. Veuillez vous connecter ou utiliser un autre nom de compte." });
@@ -140,26 +140,26 @@ namespace PhotoAppApi.Controllers
                 };
 
                 // 4. Sauvegarder dans MariaDB
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                await _context.Users.AddAsync(user, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
 
                 // 5. Associer au groupe si une invitation valide est présente
                 if (inviteGuid.HasValue)
                 {
                     // 1. Chercher une invitation personnelle d'abord
-                    var personalInvite = await _context.GroupInvitations.FirstOrDefaultAsync(i => i.InviteToken == inviteGuid.Value && i.Status == "Pending");
+                    var personalInvite = await _context.GroupInvitations.FirstOrDefaultAsync(i => i.InviteToken == inviteGuid.Value && i.Status == "Pending", cancellationToken);
                     if (personalInvite != null)
                     {
                         var userGroup = new UserGroup { UserId = user.Id, GroupId = personalInvite.GroupId };
                         _context.UserGroups.Add(userGroup);
                         personalInvite.Status = "Accepted"; // Marquer comme acceptée
-                        await _context.SaveChangesAsync();
+                        await _context.SaveChangesAsync(cancellationToken);
                         _logger.Info($"Usager {user.Username} ajouté au groupe {personalInvite.GroupId} via INVITATION PERSONNELLE.");
                     }
                     else
                     {
                         // 2. Sinon, chercher si c'est un lien d'invitation de groupe général
-                        var group = await _context.Groups.FirstOrDefaultAsync(g => g.InviteToken == inviteGuid.Value);
+                        var group = await _context.Groups.FirstOrDefaultAsync(g => g.InviteToken == inviteGuid.Value, cancellationToken);
                         if (group != null)
                         {
                             var userGroup = new UserGroup
@@ -168,7 +168,7 @@ namespace PhotoAppApi.Controllers
                                 GroupId = group.Id
                             };
                             _context.UserGroups.Add(userGroup);
-                            await _context.SaveChangesAsync();
+                            await _context.SaveChangesAsync(cancellationToken);
                             _logger.Info($"Usager {user.Username} ajouté au groupe {group.Name} via invitation générale.");
                         }
                     }

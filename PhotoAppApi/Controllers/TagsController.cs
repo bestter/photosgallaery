@@ -22,7 +22,7 @@ namespace PhotoAppApi.Controllers
         // GET: api/tags/search?q=nat
         [HttpGet("search")]
         [EnableRateLimiting("TagsLimiter")]
-        public async Task<IActionResult> SearchTags([FromQuery] string? q)
+        public async Task<IActionResult> SearchTags([FromQuery] string? q, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(SearchTags)} with q: {q}");
             try
@@ -44,7 +44,7 @@ namespace PhotoAppApi.Controllers
                     .Distinct()
                     .OrderBy(name => name) // Tri alphabétique
                     .Take(10) // On limite à 10 pour la performance                    
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return Ok(suggestions);
             }

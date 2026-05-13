@@ -30,7 +30,7 @@ namespace PhotoAppApi.Tests
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("");
+            var result = await controller.SearchTags("", TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -46,7 +46,7 @@ namespace PhotoAppApi.Tests
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags(null);
+            var result = await controller.SearchTags(null, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -62,7 +62,7 @@ namespace PhotoAppApi.Tests
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("   ");
+            var result = await controller.SearchTags("   ", TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -80,12 +80,12 @@ namespace PhotoAppApi.Tests
             context.Tags.AddRange(tag1, tag2);
             context.TagTranslations.Add(new TagTranslation { TagId = 1, Tag = tag1, Language = Language.FR, Name = "Nature" });
             context.TagTranslations.Add(new TagTranslation { TagId = 2, Tag = tag2, Language = Language.FR, Name = "Voiture" });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("nat");
+            var result = await controller.SearchTags("nat", TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -105,12 +105,12 @@ namespace PhotoAppApi.Tests
             var tag2 = new Tag { Id = 2 };
             context.Tags.Add(tag2);
             context.TagTranslations.Add(new TagTranslation { TagId = 2, Tag = tag2, Language = Language.ES, Name = "Naturaleza" });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("nat");
+            var result = await controller.SearchTags("nat", TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -138,12 +138,12 @@ namespace PhotoAppApi.Tests
             context.TagTranslations.Add(new TagTranslation { TagId = 101, Tag = duplicateTag1, Language = Language.FR, Name = "TagNat0" });
             context.TagTranslations.Add(new TagTranslation { TagId = 102, Tag = duplicateTag2, Language = Language.FR, Name = "TagNat0" });
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("nat");
+            var result = await controller.SearchTags("nat", TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -162,12 +162,12 @@ namespace PhotoAppApi.Tests
             var tag1 = new Tag { Id = 1 };
             context.Tags.Add(tag1);
             context.TagTranslations.Add(new TagTranslation { TagId = 1, Tag = tag1, Language = Language.FR, Name = "NATURE" });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("nat");
+            var result = await controller.SearchTags("nat", TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -189,7 +189,7 @@ namespace PhotoAppApi.Tests
             var controller = new TagsController(context);
 
             // Act
-            var result = await controller.SearchTags("test");
+            var result = await controller.SearchTags("test", TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);

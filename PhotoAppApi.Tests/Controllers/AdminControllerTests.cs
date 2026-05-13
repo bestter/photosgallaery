@@ -64,21 +64,21 @@ namespace PhotoAppApi.Tests.Controllers
                 Role = UserRole.User
             };
             context.Users.Add(user);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new AdminController(context);
 
             var invalidRoleRequest = new RoleUpdateDto { Role = "InvalidRoleName" };
 
             // Act
-            var result = await controller.UpdateUserRole(1, invalidRoleRequest);
+            var result = await controller.UpdateUserRole(1, invalidRoleRequest, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Le rôle spécifié n'est pas valide.", badRequestResult.Value);
 
             // Verify role was not changed in DB
-            var dbUser = await context.Users.FindAsync(1);
+            var dbUser = await context.Users.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
             Assert.Equal(UserRole.User, dbUser.Role);
         }
 
@@ -97,20 +97,20 @@ namespace PhotoAppApi.Tests.Controllers
                 Role = UserRole.User
             };
             context.Users.Add(user);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new AdminController(context);
 
             var validRoleRequest = new RoleUpdateDto { Role = "Admin" };
 
             // Act
-            var result = await controller.UpdateUserRole(1, validRoleRequest);
+            var result = await controller.UpdateUserRole(1, validRoleRequest, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
 
             // Verify role was changed in DB
-            var dbUser = await context.Users.FindAsync(1);
+            var dbUser = await context.Users.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
             Assert.Equal(UserRole.Admin, dbUser.Role);
         }
 
@@ -125,7 +125,7 @@ namespace PhotoAppApi.Tests.Controllers
             var roleRequest = new RoleUpdateDto { Role = "Admin" };
 
             // Act
-            var result = await controller.UpdateUserRole(999, roleRequest);
+            var result = await controller.UpdateUserRole(999, roleRequest, TestContext.Current.CancellationToken);
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -140,7 +140,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetAllUsers();
+            var result = await controller.GetAllUsers(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -192,12 +192,12 @@ namespace PhotoAppApi.Tests.Controllers
             };
             context.UserGroups.Add(userGroup);
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetAllUsers();
+            var result = await controller.GetAllUsers(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -240,7 +240,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetAllUsers();
+            var result = await controller.GetAllUsers(TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -259,7 +259,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetReports();
+            var result = await controller.GetReports(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -292,12 +292,12 @@ namespace PhotoAppApi.Tests.Controllers
 
             context.Photos.Add(photo);
             context.ImageReports.Add(report);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetReports();
+            var result = await controller.GetReports(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -331,7 +331,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetReports();
+            var result = await controller.GetReports(TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -357,12 +357,12 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             context.ImageReports.Add(report);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.DeleteReport(1);
+            var result = await controller.DeleteReport(1, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -372,7 +372,7 @@ namespace PhotoAppApi.Tests.Controllers
             Assert.Equal("Le signalement a été marqué comme traité.", message);
 
             // Verify status was updated
-            var dbReport = await context.ImageReports.FindAsync(1);
+            var dbReport = await context.ImageReports.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
             Assert.Equal("Processed", dbReport.Status);
         }
 
@@ -384,7 +384,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.DeleteReport(999);
+            var result = await controller.DeleteReport(999, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<NotFoundResult>(result);
@@ -404,7 +404,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.DeleteReport(1);
+            var result = await controller.DeleteReport(1, TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);

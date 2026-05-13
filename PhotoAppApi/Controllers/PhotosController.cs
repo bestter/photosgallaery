@@ -602,14 +602,14 @@ namespace PhotoAppApi.Controllers
         // DELETE: api/photos/{id} (Privé: connectés seulement)
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePhoto(int id)
+        public async Task<IActionResult> DeletePhoto(int id, CancellationToken cancellationToken = default)
         {
             try
             {
                 _logger.Debug($"In {nameof(DeletePhoto)} with id: {id}");
 
                 // 1. Chercher la photo dans la base de données MariaDB
-                var photo = await _context.Photos.FindAsync(id);
+                var photo = await _context.Photos.FindAsync(new object[] { id }, cancellationToken);
                 if (photo == null)
                 {
                     return NotFound();
@@ -652,14 +652,14 @@ namespace PhotoAppApi.Controllers
                         System.IO.File.Delete(thumbPath);
                         _logger.Debug($"Fichier miniature supprimé: {thumbPath}");
                     }
-                });
+                }, cancellationToken);
 
                 // --- NOUVEAU CODE ICI 👇 ---
                 // 3.5 Chercher et supprimer tous les signalements associés à cette photo
                 // (Assure-toi que "_context.ImageReports" correspond bien au nom de ton DbSet dans ton DbContext)
                 var associatedReports = await _context.ImageReports
                                                       .Where(r => r.PhotoId == id)
-                                                      .ToListAsync();
+                                                      .ToListAsync(cancellationToken);
 
                 if (associatedReports.Count != 0)
                 {
@@ -670,7 +670,7 @@ namespace PhotoAppApi.Controllers
 
                 // 4. Supprimer l'enregistrement de la base de données
                 _context.Photos.Remove(photo);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 // Wait for file deletion to complete before returning
                 await fileDeletionTask;
@@ -759,7 +759,7 @@ namespace PhotoAppApi.Controllers
         // POST: api/photos/{id}/report (Public: Visiteurs)
         [HttpPost("{id}/report")]
         [Authorize] // 🔒 LE CADENAS EST ICI !
-        public async Task<IActionResult> ReportPhoto(int id, [FromBody] ReportDto request)
+        public async Task<IActionResult> ReportPhoto(int id, [FromBody] ReportDto request, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -782,7 +782,7 @@ namespace PhotoAppApi.Controllers
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
 
                         if (!isMember) return Forbid();
                     }
@@ -808,7 +808,7 @@ namespace PhotoAppApi.Controllers
                 };
 
                 _context.ImageReports.Add(report);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Signalement enregistré avec succès. Un administrateur a été notifié." });
             }

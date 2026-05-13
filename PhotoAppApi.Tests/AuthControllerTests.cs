@@ -49,13 +49,13 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Register(request);
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal("Compte créé avec succès !", okResult.Value);
 
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Username == "newuser");
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Username == "newuser", TestContext.Current.CancellationToken);
             Assert.NotNull(user);
             Assert.Equal("newuser@example.com", user.Email);
         }
@@ -66,7 +66,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             context.Users.Add(new User { Username = "existinguser", Email = "old@example.com", PasswordHash = "hash" });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
@@ -78,7 +78,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Register(request);
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -103,7 +103,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Register(request);
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -128,7 +128,7 @@ namespace PhotoAppApi.Tests
                 Status = "Pending",
                 Email = "user@example.com"
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
@@ -141,17 +141,17 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Register(request);
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
 
-            var user = await context.Users.Include(u => u.UserGroups).FirstOrDefaultAsync(u => u.Username == "user");
+            var user = await context.Users.Include(u => u.UserGroups).FirstOrDefaultAsync(u => u.Username == "user", TestContext.Current.CancellationToken);
             Assert.NotNull(user);
             Assert.Single(user.UserGroups);
             Assert.Equal(groupId, user.UserGroups.First().GroupId);
 
-            var invite = await context.GroupInvitations.FirstOrDefaultAsync(i => i.InviteToken == inviteToken);
+            var invite = await context.GroupInvitations.FirstOrDefaultAsync(i => i.InviteToken == inviteToken, TestContext.Current.CancellationToken);
             Assert.Equal("Accepted", invite.Status);
         }
 
@@ -171,7 +171,7 @@ namespace PhotoAppApi.Tests
                 Description = "desc",
                 InviteToken = inviteToken
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
@@ -184,12 +184,12 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Register(request);
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
 
-            var user = await context.Users.Include(u => u.UserGroups).FirstOrDefaultAsync(u => u.Username == "user");
+            var user = await context.Users.Include(u => u.UserGroups).FirstOrDefaultAsync(u => u.Username == "user", TestContext.Current.CancellationToken);
             Assert.NotNull(user);
             Assert.Single(user.UserGroups);
             Assert.Equal(groupId, user.UserGroups.First().GroupId);
@@ -215,7 +215,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Register(request);
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -242,14 +242,14 @@ namespace PhotoAppApi.Tests
                 PasswordHash = hashedPassword,
                 Role = UserRole.User
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
 
             // Set controller context so we don't throw exception on some internal components if it attempts to resolve context, etc.
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -258,7 +258,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             if (result is ObjectResult objRes && objRes.StatusCode == 500)
             {
@@ -282,7 +282,7 @@ namespace PhotoAppApi.Tests
             var controller = new AuthController(context, config);
 
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -291,7 +291,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             // Assert
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -315,13 +315,13 @@ namespace PhotoAppApi.Tests
                 PasswordHash = hashedPassword,
                 Role = UserRole.User
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
 
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -330,7 +330,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             // Assert
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -354,13 +354,13 @@ namespace PhotoAppApi.Tests
                 PasswordHash = hashedPassword,
                 Role = UserRole.Forbidden
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
 
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -369,7 +369,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -394,7 +394,7 @@ namespace PhotoAppApi.Tests
             var controller = new AuthController(context, config);
 
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -403,7 +403,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -429,13 +429,13 @@ namespace PhotoAppApi.Tests
                 PasswordHash = hashedPassword,
                 Role = UserRole.Admin
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
 
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -444,7 +444,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -476,13 +476,13 @@ namespace PhotoAppApi.Tests
                 PasswordHash = hashedPassword,
                 Role = UserRole.Creator
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var config = GetConfiguration();
             var controller = new AuthController(context, config);
 
             var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = httpContext };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var request = new UserLoginDto
             {
@@ -491,7 +491,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.Login(request);
+            var result = await controller.Login(request, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);

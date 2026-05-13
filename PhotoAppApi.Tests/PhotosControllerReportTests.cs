@@ -66,10 +66,10 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Inappropriate content" };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var reportCount = await context.ImageReports.CountAsync();
+            var reportCount = await context.ImageReports.CountAsync(TestContext.Current.CancellationToken);
             Assert.Equal(1, reportCount);
         }
 
@@ -89,7 +89,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Spam" };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<OkObjectResult>(result);
             Assert.Equal(1, await context.ImageReports.CountAsync(TestContext.Current.CancellationToken));
@@ -110,7 +110,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Violence" };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<OkObjectResult>(result);
             Assert.Equal(1, await context.ImageReports.CountAsync(TestContext.Current.CancellationToken));
@@ -126,7 +126,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Spam" };
-            var result = await controller.ReportPhoto(999, request);
+            var result = await controller.ReportPhoto(999, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<NotFoundObjectResult>(result);
         }
@@ -145,7 +145,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Spam" };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<BadRequestObjectResult>(result);
         }
@@ -164,7 +164,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = " " };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<BadRequestObjectResult>(result);
         }
@@ -184,7 +184,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Spam" };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<ForbidResult>(result);
         }
@@ -209,7 +209,7 @@ namespace PhotoAppApi.Tests
             var controller = CreateController(context, user);
 
             var request = new ReportDto { Reason = "Spam" };
-            var result = await controller.ReportPhoto(1, request);
+            var result = await controller.ReportPhoto(1, request, TestContext.Current.CancellationToken);
 
             Assert.IsType<UnauthorizedResult>(result);
         }

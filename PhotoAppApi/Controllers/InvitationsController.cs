@@ -24,7 +24,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> CreateInvitation([FromBody] CreateInvitationDto dto)
+        public async Task<IActionResult> CreateInvitation([FromBody] CreateInvitationDto dto, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(CreateInvitation)} for email: {dto.Email} in group: {dto.GroupId}");
             try
@@ -35,21 +35,21 @@ namespace PhotoAppApi.Controllers
                 if (!int.TryParse(inviterIdString, out int inviterId) || string.IsNullOrEmpty(inviterUsername)) return Unauthorized();
 
                 // Validation : L'inviteur fait-il partie du groupe ?
-                var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == dto.GroupId);
+                var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == dto.GroupId, cancellationToken);
                 if (group == null) return NotFound(new { message = "Cercle introuvable." });
 
-                bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == inviterId && ug.GroupId == group.Id);
+                bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == inviterId && ug.GroupId == group.Id, cancellationToken);
                 if (!isMember && !User.IsInRole("Admin"))
                 {
                     return Forbid();
                 }
 
                 // --- AJOUT : Vérifier si l'utilisateur existe déjà
-                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
                 if (existingUser != null)
                 {
                     // L'utilisateur a déjà un compte. Vérifions s'il est déjà dans le groupe.
-                    bool alreadyInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == existingUser.Id && ug.GroupId == group.Id);
+                    bool alreadyInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == existingUser.Id && ug.GroupId == group.Id, cancellationToken);
                     if (alreadyInGroup)
                     {
                         return BadRequest(new { message = "Cet utilisateur fait déjà partie du cercle." });
@@ -58,7 +58,7 @@ namespace PhotoAppApi.Controllers
                     {
                         // L'ajouter directement au groupe sans envoyer d'invitation avec token
                         _context.UserGroups.Add(new UserGroup { UserId = existingUser.Id, GroupId = group.Id });
-                        await _context.SaveChangesAsync();
+                        await _context.SaveChangesAsync(cancellationToken);
                         return Ok(new { message = $"L'utilisateur existant a été ajouté automatiquement au cercle !" });
                     }
                 }
@@ -66,7 +66,7 @@ namespace PhotoAppApi.Controllers
 
                 // Vérifier s'il a déjà été invité
                 var existingInvite = await _context.GroupInvitations
-                    .FirstOrDefaultAsync(i => i.GroupId == dto.GroupId && i.Email == dto.Email && i.Status == "Pending");
+                    .FirstOrDefaultAsync(i => i.GroupId == dto.GroupId && i.Email == dto.Email && i.Status == "Pending", cancellationToken);
 
                 if (existingInvite != null)
                 {
@@ -84,7 +84,7 @@ namespace PhotoAppApi.Controllers
                 };
 
                 _context.GroupInvitations.Add(invitation);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 // L'URL pointe vers le Frontend (React) avec le token généré
                 var frontendUrl = "http://localhost:5173"; // On pourrait l'injecter depuis appsettings
@@ -97,7 +97,8 @@ namespace PhotoAppApi.Controllers
                     inviterName: inviterUsername,
                     groupName: group.Name,
                     message: invitation.Message ?? "",
-                    inviteUrl: inviteUrl
+                    inviteUrl: inviteUrl, 
+                    cancellationToken
                 );
 
                 return Ok(new { message = $"Invitation envoyée avec succès à {invitation.Email} !" });

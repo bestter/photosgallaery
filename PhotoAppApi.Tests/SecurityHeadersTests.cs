@@ -33,7 +33,7 @@ namespace PhotoAppApi.Tests
                 {
                     // Remove the existing DbContext configuration
                     var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(Microsoft.EntityFrameworkCore.DbContextOptions<PhotoAppApi.Data.AppDbContext>));
+                        d => d.ServiceType == typeof(DbContextOptions<Data.AppDbContext>));
 
                     if (descriptor != null)
                     {
@@ -41,7 +41,7 @@ namespace PhotoAppApi.Tests
                     }
 
                     // Add in-memory database
-                    services.AddDbContext<PhotoAppApi.Data.AppDbContext>(options =>
+                    services.AddDbContext<Data.AppDbContext>(options =>
                     {
                         options.UseInMemoryDatabase("InMemoryDbForTesting");
                     });
@@ -56,7 +56,7 @@ namespace PhotoAppApi.Tests
             var client = _factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync("/"); // Will hit fallback to index.html or 404, but middleware still applies
+            var response = await client.GetAsync("/", TestContext.Current.CancellationToken); // Will hit fallback to index.html or 404, but middleware still applies
 
             // Assert
             Assert.True(response.Headers.Contains("Content-Security-Policy"), "L'en-tête Content-Security-Policy est manquant.");

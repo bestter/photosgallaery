@@ -57,12 +57,12 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             context.GroupRequests.AddRange(request1, request2);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new GroupRequestsController(context);
 
             // Act
-            var result = await controller.GetAllGroupRequests();
+            var result = await controller.GetAllGroupRequests(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -99,7 +99,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new GroupRequestsController(context);
 
             // Act
-            var result = await controller.GetAllGroupRequests();
+            var result = await controller.GetAllGroupRequests(TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);

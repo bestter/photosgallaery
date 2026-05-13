@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
-using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace PhotoAppApi.Controllers
 {
@@ -26,7 +25,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllGroupRequests()
+        public async Task<IActionResult> GetAllGroupRequests(CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(GetAllGroupRequests)}");
             try
@@ -49,7 +48,7 @@ namespace PhotoAppApi.Controllers
                             r.Requester.Email
                         }
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return Ok(requests);
             }
@@ -62,19 +61,19 @@ namespace PhotoAppApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteGroupRequest(Guid id)
+        public async Task<IActionResult> DeleteGroupRequest(Guid id, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(DeleteGroupRequest)} with id: {id}");
             try
             {
-                var request = await _context.GroupRequests.FindAsync(id);
+                var request = await _context.GroupRequests.FindAsync(new object[] { id }, cancellationToken);
                 if (request == null)
                 {
                     return NotFound(new { message = "Demande non trouvée." });
                 }
 
                 _context.GroupRequests.Remove(request);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Demande supprimée avec succès." });
             }
@@ -87,7 +86,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost]
         [EnableRateLimiting("GroupRequestLimiter")]
-        public async Task<IActionResult> SubmitGroupRequest([FromBody] SubmitGroupRequestDto request)
+        public async Task<IActionResult> SubmitGroupRequest([FromBody] SubmitGroupRequestDto request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(SubmitGroupRequest)} for group: {request.Name}");
             try
@@ -98,7 +97,7 @@ namespace PhotoAppApi.Controllers
                     return Unauthorized(new { message = "Utilisateur non trouvé dans le token." });
                 }
 
-                var user = await _context.Users.FindAsync(userId);
+                var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
                 if (user == null)
                 {
                     return Unauthorized(new { message = "Utilisateur non trouvé." });
@@ -113,7 +112,7 @@ namespace PhotoAppApi.Controllers
                 };
 
                 _context.GroupRequests.Add(groupRequest);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Demande de création de groupe envoyée avec succès.", id = groupRequest.Id });
             }

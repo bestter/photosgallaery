@@ -24,7 +24,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/groups
         [HttpGet]
-        public async Task<IActionResult> GetAllGroups()
+        public async Task<IActionResult> GetAllGroups(CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(GetAllGroups)}");
             try
@@ -43,7 +43,7 @@ namespace PhotoAppApi.Controllers
                         UserCount = g.UserGroups.Count(),
                         PhotoCount = g.Photos.Count()
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return Ok(groups);
             }
@@ -56,7 +56,7 @@ namespace PhotoAppApi.Controllers
 
         // POST: api/admin/groups
         [HttpPost]
-        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
+        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(CreateGroup)} with name: {request.Name}");
             try
@@ -68,7 +68,7 @@ namespace PhotoAppApi.Controllers
 
                 //CREATE UNIQUE SHORTNAME
                 var groupsService = new GroupService(_context);
-                var shortName = await groupsService.GenerateUniqueSlugAsync(request.Name);
+                var shortName = await groupsService.GenerateUniqueSlugAsync(request.Name, cancellationToken);
 
                 var group = new Group
                 {
@@ -77,7 +77,7 @@ namespace PhotoAppApi.Controllers
                     Description = request.Description
                 };
 
-                await _context.Groups.AddAsync(group);
+                await _context.Groups.AddAsync(group, cancellationToken);
 
                 if (request.RequesterId.HasValue)
                 {
@@ -87,19 +87,19 @@ namespace PhotoAppApi.Controllers
                         UserId = request.RequesterId.Value,
                         Role = GroupUserRole.Admin
                     };
-                    await _context.UserGroups.AddAsync(userGroup);
+                    await _context.UserGroups.AddAsync(userGroup, cancellationToken);
                 }
 
                 if (request.RequestId.HasValue)
                 {
-                    var groupRequest = await _context.GroupRequests.FindAsync(request.RequestId.Value);
+                    var groupRequest = await _context.GroupRequests.FindAsync(request.RequestId.Value, cancellationToken);
                     if (groupRequest != null)
                     {
                         _context.GroupRequests.Remove(groupRequest);
                     }
                 }
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new
                 {
@@ -120,19 +120,19 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGroup(Guid id)
+        public async Task<IActionResult> DeleteGroup(Guid id, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(DeleteGroup)} with id: {id}");
             try
             {
-                var group = await _context.Groups.FindAsync(id);
+                var group = await _context.Groups.FindAsync(new object[] { id }, cancellationToken);
                 if (group == null)
                 {
                     return NotFound(new { message = "Groupe non trouvé." });
                 }
 
                 _context.Groups.Remove(group);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Groupe supprimé avec succès." });
             }
@@ -145,7 +145,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/groups/{id}/members
         [HttpGet("{id}/members")]
-        public async Task<IActionResult> GetGroupMembers(Guid id)
+        public async Task<IActionResult> GetGroupMembers(Guid id, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(GetGroupMembers)} with id: {id}");
             try
@@ -162,7 +162,7 @@ namespace PhotoAppApi.Controllers
                         ug.Role,
                         ug.JoinedAt
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return Ok(members);
             }
@@ -175,18 +175,18 @@ namespace PhotoAppApi.Controllers
 
         // POST: api/admin/groups/{id}/members
         [HttpPost("{id}/members")]
-        public async Task<IActionResult> AddMember(Guid id, [FromBody] AddMemberRequest request)
+        public async Task<IActionResult> AddMember(Guid id, [FromBody] AddMemberRequest request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(AddMember)} with groupId: {id}, userId: {request.UserId}");
             try
             {
-                var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
+                var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
                 if (!userExists) return NotFound(new { message = "Utilisateur non trouvé." });
 
-                var groupExists = await _context.Groups.AnyAsync(g => g.Id == id);
+                var groupExists = await _context.Groups.AnyAsync(g => g.Id == id, cancellationToken);
                 if (!groupExists) return NotFound(new { message = "Groupe non trouvé." });
 
-                var alreadyInGroup = await _context.UserGroups.AnyAsync(ug => ug.GroupId == id && ug.UserId == request.UserId);
+                var alreadyInGroup = await _context.UserGroups.AnyAsync(ug => ug.GroupId == id && ug.UserId == request.UserId, cancellationToken);
                 if (alreadyInGroup) return BadRequest(new { message = "Cet utilisateur est déjà dans le groupe." });
 
                 var userGroup = new UserGroup
@@ -196,8 +196,8 @@ namespace PhotoAppApi.Controllers
                     Role = request.Role,
                 };
 
-                await _context.UserGroups.AddAsync(userGroup);
-                await _context.SaveChangesAsync();
+                await _context.UserGroups.AddAsync(userGroup, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Membre ajouté avec succès." });
             }
@@ -210,17 +210,16 @@ namespace PhotoAppApi.Controllers
 
         // DELETE: api/admin/groups/{id}/members/{userId}
         [HttpDelete("{id}/members/{userId}")]
-        public async Task<IActionResult> RemoveMember(Guid id, int userId)
+        public async Task<IActionResult> RemoveMember(Guid id, int userId, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(RemoveMember)} with groupId: {id}, userId: {userId}");
             try
             {
-                var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId);
+                var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId, cancellationToken);
                 if (userGroup == null) return NotFound(new { message = "Membre non trouvé dans ce groupe." });
 
                 _context.UserGroups.Remove(userGroup);
-                await _context.SaveChangesAsync();
-
+                await _context.SaveChangesAsync(cancellationToken);
                 return Ok(new { message = "Membre retiré du groupe." });
             }
             catch (Exception ex)
@@ -231,17 +230,16 @@ namespace PhotoAppApi.Controllers
         }
         // PUT: api/admin/groups/{id}/members/{userId}/role
         [HttpPut("{id}/members/{userId}/role")]
-        public async Task<IActionResult> UpdateMemberRole(Guid id, int userId, [FromBody] UpdateMemberRoleRequest request)
+        public async Task<IActionResult> UpdateMemberRole(Guid id, int userId, [FromBody] UpdateMemberRoleRequest request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(UpdateMemberRole)} with groupId: {id}, userId: {userId}, role: {request.Role}");
             try
             {
-                var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId);
+                var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId, cancellationToken);
                 if (userGroup == null) return NotFound(new { message = "Membre non trouvé dans ce groupe." });
 
                 userGroup.Role = request.Role;
-                await _context.SaveChangesAsync();
-
+                await _context.SaveChangesAsync(cancellationToken);
                 return Ok(new { message = "Rôle mis à jour avec succès." });
             }
             catch (Exception ex)

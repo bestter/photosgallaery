@@ -32,7 +32,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.CreateGroup(request);
+            var result = await controller.CreateGroup(request, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -54,7 +54,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.CreateGroup(request);
+            var result = await controller.CreateGroup(request, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -76,7 +76,7 @@ namespace PhotoAppApi.Tests
             };
 
             // Act
-            var result = await controller.CreateGroup(request);
+            var result = await controller.CreateGroup(request, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -94,7 +94,7 @@ namespace PhotoAppApi.Tests
             var nonExistentId = Guid.NewGuid();
 
             // Act
-            var result = await controller.DeleteGroup(nonExistentId);
+            var result = await controller.DeleteGroup(nonExistentId, TestContext.Current.CancellationToken);
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -162,7 +162,7 @@ namespace PhotoAppApi.Tests
             var controller = new GroupsController(context);
 
             // Act
-            var result = await controller.GetAllGroups();
+            var result = await controller.GetAllGroups(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -208,7 +208,7 @@ namespace PhotoAppApi.Tests
             var controller = new GroupsController(context);
 
             // Act
-            var result = await controller.GetAllGroups();
+            var result = await controller.GetAllGroups(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -240,15 +240,15 @@ namespace PhotoAppApi.Tests
                 Description = "A test group"
             };
             context.Groups.Add(group);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var controller = new GroupsController(context);
 
             // Act
-            var result = await controller.DeleteGroup(group.Id);
+            var result = await controller.DeleteGroup(group.Id, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
-            var deletedGroup = await context.Groups.FindAsync(group.Id);
+            var deletedGroup = await context.Groups.FindAsync(new object[] { group.Id }, TestContext.Current.CancellationToken);
             Assert.Null(deletedGroup);
         }
     }

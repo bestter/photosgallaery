@@ -14,7 +14,7 @@ namespace PhotoAppApi.Services
             _context = context;
         }
 
-        public async Task<string> GenerateUniqueSlugAsync(string groupName)
+        public async Task<string> GenerateUniqueSlugAsync(string groupName, CancellationToken cancellationToken = default)
         {
             // On génère le slug de base
             string baseSlug = SlugGenerator.GenerateSlug(groupName);
@@ -28,7 +28,7 @@ namespace PhotoAppApi.Services
             string uniqueSlug = baseSlug;
 
             // On vérifie dans la base de données si le slug existe déjà
-            while (await _context.Groups.AnyAsync(g => g.ShortName == uniqueSlug))
+            while (await _context.Groups.AnyAsync(g => g.ShortName == uniqueSlug, cancellationToken))
             {
                 // S'il y a une collision, on ajoute un petit ID de 5 caractères
                 string shortId = Guid.NewGuid().ToString("N").Substring(0, 5);

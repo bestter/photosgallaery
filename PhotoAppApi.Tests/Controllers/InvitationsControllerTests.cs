@@ -8,6 +8,7 @@ using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -77,7 +78,7 @@ namespace PhotoAppApi.Tests.Controllers
             var dto = new CreateInvitationDto { GroupId = Guid.NewGuid(), Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<UnauthorizedResult>(result);
@@ -94,7 +95,7 @@ namespace PhotoAppApi.Tests.Controllers
             var dto = new CreateInvitationDto { GroupId = Guid.NewGuid(), Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -111,7 +112,7 @@ namespace PhotoAppApi.Tests.Controllers
 
             var group = new Group { Id = Guid.NewGuid(), Name = "Test Group", ShortName = "TG", Description = "Test" };
             context.Groups.Add(group);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var emailServiceMock = new Mock<IEmailService>();
             var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "inviter", role: "User"); // Not admin, not member
@@ -119,7 +120,7 @@ namespace PhotoAppApi.Tests.Controllers
             var dto = new CreateInvitationDto { GroupId = group.Id, Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<ForbidResult>(result);
@@ -136,7 +137,7 @@ namespace PhotoAppApi.Tests.Controllers
             context.Groups.Add(group);
             context.Users.Add(existingUser);
             context.UserGroups.Add(new UserGroup { UserId = 2, GroupId = group.Id }); // User is already in the group
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var emailServiceMock = new Mock<IEmailService>();
             var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "admin", role: "Admin"); // Admin can invite anyone
@@ -144,7 +145,7 @@ namespace PhotoAppApi.Tests.Controllers
             var dto = new CreateInvitationDto { GroupId = group.Id, Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -163,7 +164,7 @@ namespace PhotoAppApi.Tests.Controllers
             var existingUser = new User { Id = 2, Username = "existing", Email = "test@example.com" };
             context.Groups.Add(group);
             context.Users.Add(existingUser);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var emailServiceMock = new Mock<IEmailService>();
             var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "admin", role: "Admin");
@@ -171,7 +172,7 @@ namespace PhotoAppApi.Tests.Controllers
             var dto = new CreateInvitationDto { GroupId = group.Id, Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -179,11 +180,19 @@ namespace PhotoAppApi.Tests.Controllers
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
             Assert.Equal("L'utilisateur existant a été ajouté automatiquement au cercle !", message);
 
-            var isMember = await context.UserGroups.AnyAsync(ug => ug.UserId == 2 && ug.GroupId == group.Id);
+            var isMember = await context.UserGroups.AnyAsync(ug => ug.UserId == 2 && ug.GroupId == group.Id, TestContext.Current.CancellationToken);
             Assert.True(isMember);
 
             // Verify email was NOT sent
-            emailServiceMock.Verify(x => x.SendInvitationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            emailServiceMock.Verify(x => x.SendInvitationEmailAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()), Times.Never());
         }
 
         [Fact]
@@ -204,7 +213,7 @@ namespace PhotoAppApi.Tests.Controllers
                 InviteToken = Guid.NewGuid()
             };
             context.GroupInvitations.Add(existingInvite);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var emailServiceMock = new Mock<IEmailService>();
             var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "admin", role: "Admin");
@@ -212,7 +221,7 @@ namespace PhotoAppApi.Tests.Controllers
             var dto = new CreateInvitationDto { GroupId = group.Id, Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -229,7 +238,7 @@ namespace PhotoAppApi.Tests.Controllers
 
             var group = new Group { Id = Guid.NewGuid(), Name = "Test Group", ShortName = "TG", Description = "Test" };
             context.Groups.Add(group);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var emailServiceMock = new Mock<IEmailService>();
             var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "admin", role: "Admin");
@@ -244,7 +253,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -265,8 +274,9 @@ namespace PhotoAppApi.Tests.Controllers
                 "admin",
                 "Test Group",
                 dto.Message,
-                It.Is<string>(url => url.Contains(invitation.InviteToken.ToString()))
-            ), Times.Once);
+                It.Is<string>(url => url.Contains(invitation.InviteToken.ToString())),
+                It.IsAny<CancellationToken>()
+            ), Times.Once());
         }
 
         [Fact]
@@ -281,12 +291,12 @@ namespace PhotoAppApi.Tests.Controllers
             context.Dispose(); // Force ObjectDisposedException
 
             var emailServiceMock = new Mock<IEmailService>();
-            var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "admin", role: "Admin");
+            var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "a dmin", role: "Admin");
 
             var dto = new CreateInvitationDto { GroupId = Guid.NewGuid(), Email = "test@example.com" };
 
             // Act
-            var result = await controller.CreateInvitation(dto);
+            var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);

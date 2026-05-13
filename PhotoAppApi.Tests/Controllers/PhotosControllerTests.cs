@@ -68,14 +68,14 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.DeletePhoto(1);
+            var result = await controller.DeletePhoto(1, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
             Assert.False(File.Exists(filePath), "File should be deleted");
             Assert.False(File.Exists(thumbPath), "Thumbnail should be deleted");
 
-            var dbPhoto = await context.Photos.FindAsync(1);
+            var dbPhoto = await context.Photos.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
             Assert.Null(dbPhoto);
 
             // Cleanup

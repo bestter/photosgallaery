@@ -27,7 +27,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpGet("{fileName}")]
-        public async Task<IActionResult> GetImage(string fileName)
+        public async Task<IActionResult> GetImage(string fileName, CancellationToken cancellationToken = default)
         {
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName.Contains("..")) return BadRequest("Invalid file name.");
@@ -43,7 +43,7 @@ namespace PhotoAppApi.Controllers
             {
                 // Trouver la photo en base de données pour vérifier les droits
                 // ⚡ Bolt: Optimizing photo query to only fetch the necessary GroupId, drastically reducing data transfer and avoiding change tracking overhead.
-                var photo = await _context.Photos.Where(p => p.FileName == safeFileName).Select(p => new { p.GroupId }).FirstOrDefaultAsync();
+                var photo = await _context.Photos.Where(p => p.FileName == safeFileName).Select(p => new { p.GroupId }).FirstOrDefaultAsync(cancellationToken);
 
                 if (photo == null)
                 {
@@ -62,7 +62,7 @@ namespace PhotoAppApi.Controllers
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
 
                         if (!isMember)
                         {
@@ -118,7 +118,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpGet("thumbnails/{fileName}")]
-        public async Task<IActionResult> GetThumbnail(string fileName)
+        public async Task<IActionResult> GetThumbnail(string fileName, CancellationToken cancellationToken = default)
         {
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
             if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName.Contains("..")) return BadRequest("Invalid file name.");
@@ -134,7 +134,7 @@ namespace PhotoAppApi.Controllers
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
                 // ⚡ Bolt: Optimizing photo query to only fetch the necessary GroupId, drastically reducing data transfer and avoiding change tracking overhead.
-                var photo = await _context.Photos.Where(p => p.FileName == safeFileName).Select(p => new { p.GroupId }).FirstOrDefaultAsync();
+                var photo = await _context.Photos.Where(p => p.FileName == safeFileName).Select(p => new { p.GroupId }).FirstOrDefaultAsync(cancellationToken);
 
                 if (photo == null) return NotFound();
 
@@ -149,7 +149,7 @@ namespace PhotoAppApi.Controllers
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
 
                         if (!isMember) return Forbid();
                     }

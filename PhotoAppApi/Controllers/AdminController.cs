@@ -23,7 +23,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/users
         [HttpGet("users")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(GetAllUsers)}");
             try
@@ -40,7 +40,7 @@ namespace PhotoAppApi.Controllers
                         Role = u.Role.ToString(),
                         Groups = u.UserGroups.Select(ug => ug.Group.Name).ToList()
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return Ok(users);
             }
@@ -53,11 +53,11 @@ namespace PhotoAppApi.Controllers
 
         // On modifie la route pour correspondre à React : /api/admin/users/5/role
         [HttpPut("users/{id}/role")]
-        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateDto request)
+        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateDto request, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(UpdateUserRole)} with id: {id}");
             // 1. Trouver l'utilisateur
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(new object[] { id }, cancellationToken);
             if (user == null)
             {
                 return NotFound("Utilisateur introuvable.");
@@ -67,7 +67,7 @@ namespace PhotoAppApi.Controllers
             if (Enum.TryParse<UserRole>(request.Role, true, out var newRoleEnum))
             {
                 user.Role = newRoleEnum;
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
                 return Ok(new { message = $"Le rôle de {user.Username} est maintenant {user.Role}." });
             }
 
@@ -76,7 +76,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/reports
         [HttpGet("reports")]
-        public async Task<IActionResult> GetReports()
+        public async Task<IActionResult> GetReports(CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(GetReports)}");
             try
@@ -98,7 +98,7 @@ namespace PhotoAppApi.Controllers
                               report.ReportedAt
                           })
                     .OrderByDescending(r => r.ReportedAt)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return Ok(reports);
             }
@@ -112,19 +112,19 @@ namespace PhotoAppApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("reports/{id}")]
-        public async Task<IActionResult> DeleteReport(int id)
+        public async Task<IActionResult> DeleteReport(int id, CancellationToken cancellationToken = default)
         {
             _logger.Debug($"In {nameof(DeleteReport)} with id: {id}");
             try
             {
-                var report = await _context.ImageReports.FindAsync(id);
+                var report = await _context.ImageReports.FindAsync(new object[] { id }, cancellationToken);
                 if (report == null)
                 {
                     return NotFound();
                 }
 
                 report.Status = "Processed";
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Le signalement a été marqué comme traité." });
             }

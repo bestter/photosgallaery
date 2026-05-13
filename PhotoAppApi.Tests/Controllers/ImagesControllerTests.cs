@@ -63,10 +63,10 @@ namespace PhotoAppApi.Tests.Controllers
             // Mock a photo in the DB
             var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             // Act
-            var result = await controller.GetImage("valid.jpg");
+            var result = await controller.GetImage("valid.jpg", TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<NotFoundResult>(result);
@@ -82,14 +82,14 @@ namespace PhotoAppApi.Tests.Controllers
             // Mock a photo in the DB
             var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg", ThumbnailUrl = string.Empty };
             context.Photos.Add(photo);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             // Create a dummy file
             var filePath = Path.Combine(_privateImagesDir, "valid.jpg");
             await File.WriteAllTextAsync(filePath, "dummy content", TestContext.Current.CancellationToken);
 
             // Act
-            var result = await controller.GetImage("valid.jpg");
+            var result = await controller.GetImage("valid.jpg", TestContext.Current.CancellationToken);
 
             // Assert
             var fileStreamResult = Assert.IsType<FileStreamResult>(result);
@@ -113,7 +113,7 @@ namespace PhotoAppApi.Tests.Controllers
             string traversalPayload = @"..\..\etc\passwd";
 
             // Act
-            var result = await controller.GetImage(traversalPayload);
+            var result = await controller.GetImage(traversalPayload, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.True(result is BadRequestObjectResult || result is NotFoundResult, "Should return BadRequest or NotFound");
@@ -135,7 +135,7 @@ namespace PhotoAppApi.Tests.Controllers
             string traversalPayload = @"..\..\etc\passwd";
 
             // Act
-            var result = await controller.GetThumbnail(traversalPayload);
+            var result = await controller.GetThumbnail(traversalPayload, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.True(result is BadRequestObjectResult || result is NotFoundResult, "Should return BadRequest or NotFound");
