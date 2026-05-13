@@ -41,14 +41,14 @@ namespace PhotoAppApi.Services
 
         public async Task SendContactEmailAsync(string name, string email, string subject, string message, CancellationToken cancellationToken = default)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.AppendLine("<h2>Nouveau message de contact via PixelLyra</h2>");
             sb.AppendLine($"<p><strong>Nom :</strong> {name}</p>");
             sb.AppendLine($"<p><strong>Courriel :</strong> {email}</p>");
             sb.AppendLine($"<p><strong>Sujet :</strong> {subject}</p>");
             sb.AppendLine($"<p><strong>Message :</strong><br/>{message.Replace("\n", "<br/>")}</p>");
 
-            await EnvoyerCourrielAsync(fromEmail, $"Contact - {subject}", sb.ToString(), cancellationToken);
+            await EnvoyerCourrielAsync(email, $"Contact - {subject}", sb.ToString(), cancellationToken);
         }
 
         private async Task EnvoyerCourrielAsync(string destinataire, string sujet, string contenuHtml, CancellationToken cancellationToken = default)
@@ -62,7 +62,10 @@ namespace PhotoAppApi.Services
             ArgumentException.ThrowIfNullOrWhiteSpace(contenuHtml);
             try
             {
-
+                if (string.Equals(fromEmail, destinataire, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new NotSupportedException("L'adresse e-mail de destination ne peut pas être la même que l'adresse e-mail d'expédition.");
+                }
                 IResend resend = ResendClient.Create(ResendKEy);
 
                 var resp = await resend.EmailSendAsync(new EmailMessage()
