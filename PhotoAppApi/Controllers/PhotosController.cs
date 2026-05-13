@@ -333,7 +333,7 @@ namespace PhotoAppApi.Controllers
                     .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
                 // Pour gérer les tags créés au cours de cette boucle (si doublons dans tagNames)
-                var newlyCreatedTags = new Dictionary<string, Models.Tag>(StringComparer.OrdinalIgnoreCase);
+                var newlyCreatedTags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var name in trimmedNames)
                 {
@@ -526,7 +526,7 @@ namespace PhotoAppApi.Controllers
                             {
                                 ".png" => new PngEncoder(),
                                 ".webp" => new WebpEncoder(),
-                                ".avif" => new SixLabors.ImageSharp.Formats.Webp.WebpEncoder(), // Fallback AVIF as Webp if AVIF encoder missing or configure accordingly, ImageSharp 3 supports webp
+                                ".avif" => new WebpEncoder(), // Fallback AVIF as Webp if AVIF encoder missing or configure accordingly, ImageSharp 3 supports webp
                                 _ => new JpegEncoder()
                             };
 
