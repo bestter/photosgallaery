@@ -8,12 +8,14 @@ public class CloudflareR2XmlRepository : IXmlRepository
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
     private readonly string _prefix;
+    private readonly ILogger<CloudflareR2XmlRepository> _logger;
 
     public CloudflareR2XmlRepository(IAmazonS3 s3Client, string bucketName, string prefix = "dataprotection-keys/")
     {
         _s3Client = s3Client;
         _bucketName = bucketName;
         _prefix = prefix;
+           _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<CloudflareR2XmlRepository>();
     }
 
     // Méthode 1 : Lire les clés au démarrage
@@ -30,26 +32,43 @@ public class CloudflareR2XmlRepository : IXmlRepository
         }
     }
 
-    private async Task<IReadOnlyCollection<XElement>> GetAllElementsAsync(CancellationToken cancellationToken = default)
+    private async Task<IReadOnlyCollection<XElement>> GetAllElementsAsync(CancellationToken ct = default)
     {
         var elements = new List<XElement>();
-        var request = new ListObjectsV2Request { BucketName = _bucketName, Prefix = _prefix };
+        string? continuationToken = null;
 
-        var response = await _s3Client.ListObjectsV2Async(request, cancellationToken);
-
-        // FIX : On s'assure que S3Objects n'est pas null avant de boucler.
-        // L'opérateur de fusion null (??) renvoie une liste vide si Cloudflare omet la propriété.
-        var s3Objects = response?.S3Objects ?? new List<S3Object>();
-
-        foreach (var s3Object in s3Objects)
+        do
         {
-            var getRequest = new GetObjectRequest { BucketName = _bucketName, Key = s3Object.Key };
-            using var getResponse = await _s3Client.GetObjectAsync(getRequest, cancellationToken);
-            using var streamReader = new StreamReader(getResponse.ResponseStream);
+            var request = new ListObjectsV2Request { BucketName = _bucketName, Prefix = _prefix, ContinuationToken = continuationToken };
+            var response = await _s3Client.ListObjectsV2Async(request, ct);
 
-            // On parse le fichier S3 en XML
-            elements.Add(await XElement.LoadAsync(streamReader, LoadOptions.None, cancellationToken));
-        }
+            var getTasks = response.S3Objects
+                .Where(o => o?.Key?.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) == true)
+                .Select(async obj =>
+                {
+                    try
+                    {   
+                            var getRequest = new GetObjectRequest { BucketName = _bucketName, Key = obj.Key };
+                            using var getResponse = await _s3Client.GetObjectAsync(getRequest, ct);
+                            using var streamReader = new StreamReader(getResponse.ResponseStream);
+
+                        // On parse le fichier S3 en XML
+                        return await XElement.LoadAsync(streamReader, LoadOptions.None, ct);
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error occurred while processing object: {obj?.Key}");
+                        // log + return null (on ignore les clés corrompues)
+                        return null;
+                    }
+                });
+
+            var results = await Task.WhenAll(getTasks);
+            elements.AddRange(results.Where(x => x != null)!);
+
+            continuationToken = response.NextContinuationToken;
+        } while (!string.IsNullOrEmpty(continuationToken));
 
         return elements.AsReadOnly();
     }
@@ -57,16 +76,24 @@ public class CloudflareR2XmlRepository : IXmlRepository
     // Méthode 2 : Sauvegarder une nouvelle clé
     public void StoreElement(XElement element, string friendlyName)
     {
-        using (var tokenSource2 = new CancellationTokenSource())
+        try
         {
-            CancellationToken ct = tokenSource2.Token;
-            Task.Run(async () =>
+            using (var tokenSource2 = new CancellationTokenSource())
             {
-                // Were we already canceled?
-                ct.ThrowIfCancellationRequested();
-                await StoreElementAsync(element, friendlyName, ct);
+                CancellationToken ct = tokenSource2.Token;
+                Task.Run(async () =>
+                {
+                    // Were we already canceled?
+                    ct.ThrowIfCancellationRequested();
+                    await StoreElementAsync(element, friendlyName, ct);
 
-            }).GetAwaiter().GetResult();
+                }).GetAwaiter().GetResult();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error occurred while storing element with friendly name: {friendlyName}");
+            throw; // On rethrow pour que l'appelant puisse gérer l'erreur
         }
     }
 
@@ -84,7 +111,9 @@ public class CloudflareR2XmlRepository : IXmlRepository
             Key = key,
             InputStream = memoryStream,
             ContentType = "application/xml",
-            DisablePayloadSigning = true
+            DisablePayloadSigning = true,
+            DisableDefaultChecksumValidation = true,   // ← à ajouter                                                       
+            ServerSideEncryptionMethod = ServerSideEncryptionMethod.AES256  // optionnel mais recommandé
         };
 
         await _s3Client.PutObjectAsync(putRequest, cancellationToken);
