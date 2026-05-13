@@ -39,6 +39,8 @@ Thumbs.db
 appsettings.Production.json
 appsettings.Staging.json
 
+sixlabors.lic
+
 publish_temp/
 
 deploy-settings.json
