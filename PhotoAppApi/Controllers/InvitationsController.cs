@@ -7,6 +7,8 @@ using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
 using log4net;
 
+using Microsoft.AspNetCore.RateLimiting;
+
 namespace PhotoAppApi.Controllers
 {
     [Route("api/[controller]")]
@@ -27,6 +29,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost]
         [Authorize]
+        [EnableRateLimiting("InviteLimiter")]
         public async Task<IActionResult> CreateInvitation([FromBody] CreateInvitationDto dto, CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(CreateInvitation)} for email: {dto.Email} in group: {dto.GroupId}");
