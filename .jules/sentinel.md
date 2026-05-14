@@ -127,3 +127,8 @@
 **Vulnerability:** Unauthenticated or broadly available database search queries, like auto-completing tags, were exposed without rate limiting or input bounds. This could allow attackers to send a massive volume of requests or send very long string lengths that cause complex, resource-heavy SQL `LIKE` query evaluations, creating a risk for Denial of Service (DoS) and database exhaustion.
 **Learning:** Database operations on search endpoints are computationally expensive. Leaving them unrestricted invites abuse that can slow down or crash the backend database, impacting availability.
 **Prevention:** Apply specific rate limiting policies (e.g. `[EnableRateLimiting("TagsLimiter")]`) to constrain the maximum number of requests a single user can make. Additionally, strictly bound the input query length (e.g. `if (q.Length > 50)`) before querying the database to limit computation intensity.
+
+## 2024-10-24 - [Rate Limiting and Input Bounding for Invitations]
+**Vulnerability:** The `CreateInvitation` endpoint was protected by `[Authorize]` but lacked rate limiting. It triggered external action (`_emailService.SendInvitationEmailAsync`), which could be abused by an authenticated user to perform spamming or Denial of Service by exhausting email quota.
+**Learning:** Endpoints that trigger external services or consume significant resources should have explicit rate limit policies, even if they are authenticated.
+**Prevention:** Always add rate limiting using the `[EnableRateLimiting("InviteLimiter")]` attribute for endpoints performing resource-intensive operations, such as sending emails, and define policies mapped to IP addresses in `Program.cs`.
