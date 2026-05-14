@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -12,20 +13,20 @@ namespace PhotoAppApi.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private Logger _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(AdminController));
 
+                private readonly AppDbContext _context;
         public AdminController(AppDbContext context)
         {
             _context = context;
-            _logger = new();
+
         }
 
         // GET: api/admin/users
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(GetAllUsers)}");
+            log.Debug($"In {nameof(GetAllUsers)}");
             try
             {
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
@@ -46,7 +47,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetAllUsers)}", ex);
+                log.Error($"An error occured in {nameof(GetAllUsers)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des utilisateurs." });
             }
         }
@@ -55,7 +56,7 @@ namespace PhotoAppApi.Controllers
         [HttpPut("users/{id}/role")]
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateDto request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(UpdateUserRole)} with id: {id}");
+            log.Debug($"In {nameof(UpdateUserRole)} with id: {id}");
             // 1. Trouver l'utilisateur
             var user = await _context.Users.FindAsync(new object[] { id }, cancellationToken);
             if (user == null)
@@ -78,7 +79,7 @@ namespace PhotoAppApi.Controllers
         [HttpGet("reports")]
         public async Task<IActionResult> GetReports(CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(GetReports)}");
+            log.Debug($"In {nameof(GetReports)}");
             try
             {
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
@@ -104,7 +105,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetReports)}", ex);
+                log.Error($"An error occured in {nameof(GetReports)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des signalements." });
             }
         }
@@ -114,7 +115,7 @@ namespace PhotoAppApi.Controllers
         [HttpDelete("reports/{id}")]
         public async Task<IActionResult> DeleteReport(int id, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(DeleteReport)} with id: {id}");
+            log.Debug($"In {nameof(DeleteReport)} with id: {id}");
             try
             {
                 var report = await _context.ImageReports.FindAsync(new object[] { id }, cancellationToken);
@@ -130,7 +131,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"Erreur dans {nameof(DeleteReport)}", e);
+                log.Error($"Erreur dans {nameof(DeleteReport)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de l'effacement du signalement." });
             }
         }

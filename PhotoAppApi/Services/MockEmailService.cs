@@ -1,17 +1,18 @@
+using log4net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net;
+
 
 namespace PhotoAppApi.Services
 {
     public class MockEmailService : IEmailService
     {
-        private readonly ILogger<MockEmailService> _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(MockEmailService));
 
-        public MockEmailService(ILogger<MockEmailService> logger)
+                public MockEmailService()
         {
-            _logger = logger;
-        }
+            }
 
         private static string SanitizeForLog(string input)
         {
@@ -34,13 +35,13 @@ namespace PhotoAppApi.Services
                 .Replace("\n", "<br/>")
                 .Replace("\r", "<br/>");
 
-            _logger.LogInformation("========================================");
-            _logger.LogInformation("[EMAIL SIMULATION] <h2>Nouveau message de contact via PixelLyra</h2>");
-            _logger.LogInformation($"<p><strong>Nom :</strong> {sanitizedName}</p>");
-            _logger.LogInformation($"<p><strong>Courriel :</strong> {sanitizedEmail}</p>");
-            _logger.LogInformation($"<p><strong>Sujet :</strong> {sanitizedSubject}</p>");
-            _logger.LogInformation($"<p><strong>Message :</strong><br/>{sanitizedMessage}</p>");
-            _logger.LogInformation("========================================");
+            log.Info("========================================");
+            log.Info("[EMAIL SIMULATION] <h2>Nouveau message de contact via PixelLyra</h2>");
+            log.Info("<p><strong>Nom :</strong> {sanitizedName}</p>");
+            log.Info("<p><strong>Courriel :</strong> {sanitizedEmail}</p>");
+            log.Info("<p><strong>Sujet :</strong> {sanitizedSubject}</p>");
+            log.Info("<p><strong>Message :</strong><br/>{sanitizedMessage}</p>");
+            log.Info("========================================");
             return Task.CompletedTask;
         }
 
@@ -54,20 +55,20 @@ namespace PhotoAppApi.Services
             var sanitizedMessage = SanitizeForLog(message);
             var sanitizedInviteUrl = SanitizeForLog(inviteUrl);
 
-            _logger.LogInformation  ("========================================");
-            _logger.LogInformation($"[EMAIL SIMULATION] Sending invitation to {sanitizedEmail}");
-            _logger.LogInformation($"Subject: {sanitizedInviterName} vous a invité à rejoindre le cercle {sanitizedGroupName} sur Vision");
-            _logger.LogInformation($"\nBonjour {sanitizedFirstName} {sanitizedLastName},");
-            _logger.LogInformation($"\nVous avez été invité par {sanitizedInviterName} à rejoindre notre galerie privée.");
+            log.Info  ("========================================");
+            log.Info("[EMAIL SIMULATION] Sending invitation to {sanitizedEmail}");
+            log.Info("Subject: {sanitizedInviterName} vous a invité à rejoindre le cercle {sanitizedGroupName} sur Vision");
+            log.Info("\nBonjour {sanitizedFirstName} {sanitizedLastName},");
+            log.Info("\nVous avez été invité par {sanitizedInviterName} à rejoindre notre galerie privée.");
 
             if (!string.IsNullOrWhiteSpace(message))
             {
-                _logger.LogInformation($"\nMessage personnel : \"{sanitizedMessage}\"");
+                log.Info($"\nMessage personnel : \"{sanitizedMessage}\"");
             }
 
-            _logger.LogInformation($"\nPour accepter l'invitation et créer votre compte, veuillez cliquer sur ce lien exclusif :");
-            _logger.LogInformation($"URL : {sanitizedInviteUrl}");
-            _logger.LogInformation("========================================");
+            log.Info("\nPour accepter l'invitation et créer votre compte, veuillez cliquer sur ce lien exclusif :");
+            log.Info("URL : {sanitizedInviteUrl}");
+            log.Info("========================================");
 
             return Task.CompletedTask;
         }

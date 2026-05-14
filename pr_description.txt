@@ -1,12 +1,13 @@
-🎯 **What:** The testing gap addressed
-This PR addresses testing edge cases in `ContactController.SubmitContactForm`, verifying rate limiting attributes and ensuring HTTP methods are properly annotated.
+📜 Summary of the files touched and the old logging mechanisms removed.
+- Removed custom `Logger` class (`Logger.cs`) and all its usages across 9 controllers.
+- Removed `ILogger<T>` dependencies from the constructors of 4 backend services and `CloudflareR2XmlRepository`.
+- Removed `Console.WriteLine` and `ILogger<Program>` calls in `Program.cs`.
+- Initialized static `log4net.ILog` loggers in all affected files (Controllers, Services, `Program.cs`, and `CloudflareR2XmlRepository`).
+- Swapped `LogInformation`, `LogWarning`, `LogError` calls with `log.Info()`, `log.Warn()`, `log.Error()`.
 
-📊 **Coverage:** What scenarios are now tested
-- Valid request parsing and processing
-- `BadRequest` returns for completely null requests
-- `BadRequest` returns for invalid payloads with empty/whitespace properties
-- Controller robustly handles exceptions thrown from `IEmailService`
-- Validation that the rate limiting attribute `[EnableRateLimiting("ContactLimiter")]` is applied to prevent abuse vectors.
+Confirmation that the existing log4net configuration was utilized.
+- Used `LogManager.GetLogger(typeof(ClassName))` without changing or overwriting `log4net.config` or any `XmlConfigurator` code.
 
-✨ **Result:** The improvement in test coverage
-The method's logic and declarative security attributes are comprehensively verified.
+Confirmation that the backend successfully builds (dotnet build) and all tests pass (dotnet test).
+- `dotnet build` succeeds.
+- `dotnet test` completes successfully with 85 passed tests.

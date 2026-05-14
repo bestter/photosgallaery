@@ -5,6 +5,7 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -12,9 +13,11 @@ namespace PhotoAppApi.Controllers
     [ApiController]
     public class InvitationsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private static readonly ILog log = LogManager.GetLogger(typeof(InvitationsController));
+
+                private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
-        private readonly Logger _logger = new();
+
 
         public InvitationsController(AppDbContext context, IEmailService emailService)
         {
@@ -26,7 +29,7 @@ namespace PhotoAppApi.Controllers
         [Authorize]
         public async Task<IActionResult> CreateInvitation([FromBody] CreateInvitationDto dto, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(CreateInvitation)} for email: {dto.Email} in group: {dto.GroupId}");
+            log.Debug($"In {nameof(CreateInvitation)} for email: {dto.Email} in group: {dto.GroupId}");
             try
             {
                 // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId and Username directly from JWT claims.
@@ -105,7 +108,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("Erreur lors de la création de l'invitation", ex);
+                log.Error("Erreur lors de la création de l'invitation", ex);
                 return StatusCode(500, new { message = "Erreur interne lors de l'envoi de l'invitation." });
             }
         }

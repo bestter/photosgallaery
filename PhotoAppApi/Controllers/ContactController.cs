@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PhotoAppApi.Services;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -8,13 +9,13 @@ namespace PhotoAppApi.Controllers
     [Route("api/[controller]")]
     public class ContactController : ControllerBase
     {
-        private readonly IEmailService _emailService;
-        private readonly Logger _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(ContactController));
 
+                private readonly IEmailService _emailService;
         public ContactController(IEmailService emailService)
         {
             _emailService = emailService;
-            _logger = new Logger();
+
         }
 
         [HttpPost]
@@ -41,7 +42,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occurred in {nameof(SubmitContactForm)}", ex);
+                log.Error($"An error occurred in {nameof(SubmitContactForm)}", ex);
                 // Ne pas exposer d'informations sensibles
                 return StatusCode(500, "Une erreur s'est produite lors de l'envoi du message.");
             }

@@ -6,6 +6,7 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -14,20 +15,20 @@ namespace PhotoAppApi.Controllers
     [Authorize]
     public class GroupRequestsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly Logger _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(GroupRequestsController));
 
+                private readonly AppDbContext _context;
         public GroupRequestsController(AppDbContext context)
         {
             _context = context;
-            _logger = new Logger();
+
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllGroupRequests(CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(GetAllGroupRequests)}");
+            log.Debug($"In {nameof(GetAllGroupRequests)}");
             try
             {
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
@@ -54,7 +55,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetAllGroupRequests)}", ex);
+                log.Error($"An error occured in {nameof(GetAllGroupRequests)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des demandes." });
             }
         }
@@ -63,7 +64,7 @@ namespace PhotoAppApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGroupRequest(Guid id, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(DeleteGroupRequest)} with id: {id}");
+            log.Debug($"In {nameof(DeleteGroupRequest)} with id: {id}");
             try
             {
                 var request = await _context.GroupRequests.FindAsync(new object[] { id }, cancellationToken);
@@ -79,7 +80,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(DeleteGroupRequest)}", ex);
+                log.Error($"An error occured in {nameof(DeleteGroupRequest)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la suppression de la demande." });
             }
         }
@@ -88,7 +89,7 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("GroupRequestLimiter")]
         public async Task<IActionResult> SubmitGroupRequest([FromBody] SubmitGroupRequestDto request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(SubmitGroupRequest)} for group: {request.Name}");
+            log.Debug($"In {nameof(SubmitGroupRequest)} for group: {request.Name}");
             try
             {
                 var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -118,7 +119,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(SubmitGroupRequest)}", ex);
+                log.Error($"An error occured in {nameof(SubmitGroupRequest)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la création de la demande de groupe." });
             }
         }

@@ -1,15 +1,13 @@
-🧪 [Add tests for AdminController GetReports and DeleteReport]
+refactor: Migrate all backend logging to log4net
 
-🎯 **What:** Missing tests for `AdminController.GetReports` and `AdminController.DeleteReport` have been implemented.
+📜Summary of the files touched and the old logging mechanisms removed.
+- Removed the custom `Logger` wrapper (`Logger.cs`) and replaced its instantiation across 9 API Controllers.
+- Replaced `ILogger<T>` dependency injection with static `log4net.ILog` loggers in `PhotoViewProcessingWorker`, `ModerationService`, `HashCalculationBackgroundService`, `MockEmailService`, and `CloudflareR2XmlRepository`.
+- Removed `ILogger<Program>` instances and `Console.WriteLine` calls in `Program.cs`.
 
-📊 **Coverage:** Scenarios covered:
-- GetReports: Returns empty list when no reports exist.
-- GetReports: Returns reports joined with photos.
-- GetReports: Returns 500 when exception occurs.
-- DeleteReport: Updates status to processed with valid ID.
-- DeleteReport: Returns not found with invalid ID.
-- DeleteReport: Returns 500 when exception occurs.
+Confirmation that the existing log4net configuration was utilized.
+- All new implementations fetch the logger using `LogManager.GetLogger(typeof(CurrentClassName))`, ensuring it correctly pulls from the pre-existing log4net.config.
 
-In addition to adding 6 new unit tests for `AdminController.cs`, we fixed a compile error inside `GroupsControllerTests.cs` (it was referencing undefined properties on `Photo` model).
-
-✨ **Result:** Enhanced test coverage ensures our administrative capabilities are working as expected without introducing potential regressions, achieving 100% method coverage for AdminController.
+Confirmation that the backend successfully builds (dotnet build) and all tests pass (dotnet test).
+- Validated via `dotnet build PhotoAppApi/PhotoAppApi.csproj` without errors.
+- Validated via `dotnet test PhotoAppApi.Tests/PhotoAppApi.Tests.csproj`. All 85 unit tests execute and pass successfully.

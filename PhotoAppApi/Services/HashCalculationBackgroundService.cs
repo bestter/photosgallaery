@@ -1,3 +1,4 @@
+using log4net;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
@@ -6,18 +7,17 @@ namespace PhotoAppApi.Services;
 
 public class HashCalculationBackgroundService : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<HashCalculationBackgroundService> _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(HashCalculationBackgroundService));
 
-    public HashCalculationBackgroundService(IServiceProvider serviceProvider, ILogger<HashCalculationBackgroundService> logger)
+    private readonly IServiceProvider _serviceProvider;
+    public HashCalculationBackgroundService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
+        }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("HashCalculationBackgroundService is starting.");
+        log.Info("HashCalculationBackgroundService is starting.");
 
         try
         {
@@ -36,7 +36,7 @@ public class HashCalculationBackgroundService : BackgroundService
 
                     if (photosWithoutHash.Count > 0)
                     {
-                        _logger.LogInformation($"Found {photosWithoutHash.Count} photos without hash. Processing...");
+                        log.Info("Found {photosWithoutHash.Count} photos without hash. Processing...");
 
                         var rootContentPath = env.ContentRootPath;
                         var privateImagesFolder = Path.Combine(rootContentPath, "PrivateImages");
@@ -58,18 +58,19 @@ public class HashCalculationBackgroundService : BackgroundService
                             if (filePath != null)
                             {
                                 using var stream = File.OpenRead(filePath);
+
                                 var hashBytes = await sha512.ComputeHashAsync(stream, stoppingToken);
                                 photo.FileHash = Convert.ToHexStringLower(hashBytes);
                             }
                             else
                             {
-                                _logger.LogWarning($"File not found for photo {photo.Id}: {photo.FileName}");
+                                log.Warn($"File not found for photo {photo.Id}: {photo.FileName}");
                                 photo.FileHash = "FILE_MISSING";
                             }
                         }
 
                         await dbContext.SaveChangesAsync(stoppingToken);
-                        _logger.LogInformation($"Processed {photosWithoutHash.Count} photos.");
+                        log.Info("Processed {photosWithoutHash.Count} photos.");
                     }
                     else
                     {
@@ -84,7 +85,7 @@ public class HashCalculationBackgroundService : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred executing HashCalculationBackgroundService.");
+                    log.Error("Error occurred executing HashCalculationBackgroundService.", ex);
                 }
 
                 // Small delay to prevent tight loop if there are many photos to process or an error occurs
@@ -94,7 +95,7 @@ public class HashCalculationBackgroundService : BackgroundService
         catch (OperationCanceledException)
         {
             // Task was canceled, exit gracefully
-            _logger.LogInformation("HashCalculationBackgroundService is stopping cleanly.");
+            log.Info("HashCalculationBackgroundService is stopping cleanly.");
         }
     }
 }

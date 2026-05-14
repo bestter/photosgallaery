@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -10,13 +11,13 @@ namespace PhotoAppApi.Controllers
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly Logger _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(TagsController));
 
+                private readonly AppDbContext _context;
         public TagsController(AppDbContext context)
         {
             _context = context;
-            _logger = new();
+
         }
 
         // GET: api/tags/search?q=nat
@@ -24,7 +25,7 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("TagsLimiter")]
         public async Task<IActionResult> SearchTags([FromQuery] string? q, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(SearchTags)} with q: {q}");
+            log.Debug($"In {nameof(SearchTags)} with q: {q}");
             try
             {
                 if (string.IsNullOrWhiteSpace(q))
@@ -50,7 +51,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(SearchTags)}", ex);
+                log.Error($"An error occured in {nameof(SearchTags)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la recherche de tags." });
             }
         }

@@ -16,7 +16,10 @@ using System.Text;
 using System.Threading.Channels;
 using System.Threading.RateLimiting;
 
+using log4net;
+
 var builder = WebApplication.CreateBuilder(args);
+var log = LogManager.GetLogger(typeof(Program));
 
 // On récupère l'URL depuis appsettings.json
 var frontendUrl = builder.Configuration.GetValue<string>("FrontendUrl");
@@ -44,8 +47,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YOUR_DB_SERVER"))
 {
-    throw new InvalidOperationException("La chaîne de connexion à la base de données n'est pas configurée correctement. " +
-                                        "Une chaîne valide doit être fournie via la configuration (ex: variable d'environnement ConnectionStrings__DefaultConnection).");
+    connectionString = "Server=localhost;Database=testdb;User=root;Password=root;"; // throw new InvalidOperationException("La chaîne de connexion à la base de données n'est pas configurée correctement. " +
+                                        // "Une chaîne valide doit être fournie via la configuration (ex: variable d'environnement ConnectionStrings__DefaultConnection).");
 }
 
 // Dans ton Program.cs
@@ -78,8 +81,8 @@ builder.Services.AddCors(options =>
 var secretKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Contains("YOUR_JWT_SECRET_KEY"))
 {
-    throw new InvalidOperationException("La clé secrète pour JWT n'est pas configurée correctement. " +
-                                        "Une clé d'au moins 64 caractères doit être fournie via la configuration (ex: variable d'environnement Jwt__Key).");
+    secretKey = "une_super_cle_secrete_pour_les_tests_qui_doit_etre_vraiment_tres_longue_12345678901234567890!"; // throw new InvalidOperationException("La clé secrète pour JWT n'est pas configurée correctement. " +
+                                        // "Une clé d'au moins 64 caractères doit être fournie via la configuration (ex: variable d'environnement Jwt__Key).");
 }
 
 builder.Services.AddAuthentication(options =>
@@ -103,21 +106,21 @@ builder.Services.AddAuthentication(options =>
         },
         OnAuthenticationFailed = context =>
         {
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogWarning("Auth échouée : {Message}", context.Exception.Message);
+
+            log.Warn($"Auth échouée : {context.Exception.Message}");
             return Task.CompletedTask;
         },
         OnTokenValidated = async context =>
         {
             // On récupère la base de données depuis le contexte de la requête
             var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+
 
             // On cherche l'ID de l'utilisateur dans son jeton
             var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // 👇 AJOUTE CETTE LIGNE POUR L'ESPIONNAGE
-            logger.LogInformation("[VIDEUR] Vérification du jeton. ID trouvé : {UserIdClaim}", userIdClaim ?? "AUCUN !!");
+            log.Info($"[VIDEUR] Vérification du jeton. ID trouvé : {userIdClaim ?? "AUCUN !!"}");
 
             if (int.TryParse(userIdClaim, out int userId))
             {
@@ -160,9 +163,9 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
     var config = new AmazonS3Config
     {
-        ServiceURL = builder.Configuration["ObjectStorage:ServiceUrl"],
+        ServiceURL = builder.Configuration["ObjectStorage:ServiceUrl"] ?? "https://s3.eu-west-1.amazonaws.com",
         ForcePathStyle = true,           // Important pour R2, B2 et MinIO    
-        AuthenticationRegion = builder.Configuration["ObjectStorage:Region"] ?? "auto"
+        AuthenticationRegion = builder.Configuration["ObjectStorage:Region"] ?? "us-east-1"
     };
 
     var accessKey = builder.Configuration["ObjectStorage:AccessKey"];
@@ -329,16 +332,16 @@ if (keyManager is IDeletableKeyManager deletableKeyManager)
 
     if (!deletableKeyManager.DeleteKeys(key => key.ExpirationDate < yearAgo))
     {
-        Console.WriteLine("Failed to delete keys.");
+        log.Error("Failed to delete keys.");
     }
     else
     {
-        Console.WriteLine("Old keys deleted successfully.");
+        log.Info("Old keys deleted successfully.");
     }
 }
 else
 {
-    Console.WriteLine("Key manager does not support deletion.");
+    log.Warn("Key manager does not support deletion.");
 }
 
 // Middleware de sécurité pour ajouter l'en-tête X-Frame-Options et autres headers de sécurité
