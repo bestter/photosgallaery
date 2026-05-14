@@ -1,16 +1,16 @@
+using log4net;
 using PhotoAppApi.Models;
 
 namespace PhotoAppApi.Services
 {
     public class ModerationService : IModerationService
     {
-        private readonly ILogger<ModerationService> _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(ModerationService));
 
         private readonly HttpClient _httpClient;
 
-        public ModerationService(IHttpClientFactory httpClientFactory, ILogger<ModerationService> logger)
+        public ModerationService(IHttpClientFactory httpClientFactory)
         {
-            _logger = logger;
             _httpClient = httpClientFactory.CreateClient("ModerationClient");
         }
 
@@ -19,6 +19,7 @@ namespace PhotoAppApi.Services
             try
             {
                 using var content = new MultipartFormDataContent();
+
                 var streamContent = new StreamContent(imageStream);
                 streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
                 content.Add(streamContent, "file", fileName);
@@ -31,7 +32,7 @@ namespace PhotoAppApi.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while checking image moderation");
+                log.Error("Error while checking image moderation", ex);
                 return new ModerationResult { IsNsfw = true }; // Default to NSFW if there's an error
             }
         }

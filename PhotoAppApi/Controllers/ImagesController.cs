@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -13,17 +14,17 @@ namespace PhotoAppApi.Controllers
     [Authorize]
     public class ImagesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private static readonly ILog log = LogManager.GetLogger(typeof(ImagesController));
+
+                private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IMemoryCache _cache;
-        private readonly Logger _logger;
-
         public ImagesController(AppDbContext context, IWebHostEnvironment env, IMemoryCache cache)
         {
             _context = context;
             _env = env;
             _cache = cache;
-            _logger = new();
+
         }
 
         [HttpGet("{fileName}")]
@@ -38,7 +39,7 @@ namespace PhotoAppApi.Controllers
 
 
 
-            _logger.Debug($"In {nameof(GetImage)} for file: {safeFileName}");
+            log.Debug($"In {nameof(GetImage)} for file: {safeFileName}");
             try
             {
                 // Trouver la photo en base de données pour vérifier les droits
@@ -112,7 +113,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetImage)} for file: {safeFileName}", ex);
+                log.Error($"An error occured in {nameof(GetImage)} for file: {safeFileName}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération de l'image." });
             }
         }
@@ -129,7 +130,7 @@ namespace PhotoAppApi.Controllers
 
 
 
-            _logger.Debug($"In {nameof(GetThumbnail)} for file: {safeFileName}");
+            log.Debug($"In {nameof(GetThumbnail)} for file: {safeFileName}");
             try
             {
                 // Même logique de sécurité que pour l'image pleine grandeur
@@ -195,7 +196,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetThumbnail)} for file: {safeFileName}", ex);
+                log.Error($"An error occured in {nameof(GetThumbnail)} for file: {safeFileName}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération de la miniature." });
             }
         }

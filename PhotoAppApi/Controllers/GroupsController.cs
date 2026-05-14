@@ -5,6 +5,7 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -13,20 +14,20 @@ namespace PhotoAppApi.Controllers
     [Authorize(Roles = "Admin")]
     public class GroupsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly Logger _logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(GroupsController));
 
+                private readonly AppDbContext _context;
         public GroupsController(AppDbContext context)
         {
             _context = context;
-            _logger = new();
+
         }
 
         // GET: api/admin/groups
         [HttpGet]
         public async Task<IActionResult> GetAllGroups(CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(GetAllGroups)}");
+            log.Debug($"In {nameof(GetAllGroups)}");
             try
             {
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
@@ -49,7 +50,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetAllGroups)}", ex);
+                log.Error($"An error occured in {nameof(GetAllGroups)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des groupes." });
             }
         }
@@ -58,7 +59,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(CreateGroup)} with name: {request.Name}");
+            log.Debug($"In {nameof(CreateGroup)} with name: {request.Name}");
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Name))
@@ -114,7 +115,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(CreateGroup)}", ex);
+                log.Error($"An error occured in {nameof(CreateGroup)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la création du groupe." });
             }
         }
@@ -122,7 +123,7 @@ namespace PhotoAppApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGroup(Guid id, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(DeleteGroup)} with id: {id}");
+            log.Debug($"In {nameof(DeleteGroup)} with id: {id}");
             try
             {
                 var group = await _context.Groups.FindAsync(new object[] { id }, cancellationToken);
@@ -138,7 +139,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(DeleteGroup)}", ex);
+                log.Error($"An error occured in {nameof(DeleteGroup)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la suppression du groupe." });
             }
         }
@@ -147,7 +148,7 @@ namespace PhotoAppApi.Controllers
         [HttpGet("{id}/members")]
         public async Task<IActionResult> GetGroupMembers(Guid id, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(GetGroupMembers)} with id: {id}");
+            log.Debug($"In {nameof(GetGroupMembers)} with id: {id}");
             try
             {
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
@@ -168,7 +169,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(GetGroupMembers)}", ex);
+                log.Error($"An error occured in {nameof(GetGroupMembers)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la récupération des membres." });
             }
         }
@@ -177,7 +178,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("{id}/members")]
         public async Task<IActionResult> AddMember(Guid id, [FromBody] AddMemberRequest request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(AddMember)} with groupId: {id}, userId: {request.UserId}");
+            log.Debug($"In {nameof(AddMember)} with groupId: {id}, userId: {request.UserId}");
             try
             {
                 var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
@@ -203,7 +204,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(AddMember)}", ex);
+                log.Error($"An error occured in {nameof(AddMember)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de l'ajout du membre." });
             }
         }
@@ -212,7 +213,7 @@ namespace PhotoAppApi.Controllers
         [HttpDelete("{id}/members/{userId}")]
         public async Task<IActionResult> RemoveMember(Guid id, int userId, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(RemoveMember)} with groupId: {id}, userId: {userId}");
+            log.Debug($"In {nameof(RemoveMember)} with groupId: {id}, userId: {userId}");
             try
             {
                 var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId, cancellationToken);
@@ -224,7 +225,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(RemoveMember)}", ex);
+                log.Error($"An error occured in {nameof(RemoveMember)}", ex);
                 return StatusCode(500, new { message = "Erreur lors du retrait du membre." });
             }
         }
@@ -232,7 +233,7 @@ namespace PhotoAppApi.Controllers
         [HttpPut("{id}/members/{userId}/role")]
         public async Task<IActionResult> UpdateMemberRole(Guid id, int userId, [FromBody] UpdateMemberRoleRequest request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(UpdateMemberRole)} with groupId: {id}, userId: {userId}, role: {request.Role}");
+            log.Debug($"In {nameof(UpdateMemberRole)} with groupId: {id}, userId: {userId}, role: {request.Role}");
             try
             {
                 var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId, cancellationToken);
@@ -244,7 +245,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error($"An error occured in {nameof(UpdateMemberRole)}", ex);
+                log.Error($"An error occured in {nameof(UpdateMemberRole)}", ex);
                 return StatusCode(500, new { message = "Erreur lors de la mise à jour du rôle." });
             }
         }

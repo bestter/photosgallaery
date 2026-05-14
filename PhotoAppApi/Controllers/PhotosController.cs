@@ -1,3 +1,4 @@
+using log4net;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
@@ -31,16 +32,17 @@ namespace PhotoAppApi.Controllers
     [ApiController]
     public class PhotosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private static readonly ILog log = LogManager.GetLogger(typeof(PhotosController));
+
+                private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
-        private readonly Logger _logger;
         private readonly IObjectStorageService _storage;
 
         private readonly ChannelWriter<PhotoViewEvent> _viewChannelWriter;
 
         public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter)
         {
-            _logger = new();
+
             _context = context;
             _env = env;
             _storage = storage;
@@ -86,7 +88,7 @@ namespace PhotoAppApi.Controllers
             [FromQuery] Language lang = Language.FR,
             [FromQuery] Guid? groupId = null, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(GetPhotos)}");
+            log.Debug($"In {nameof(GetPhotos)}");
             try
             {
                 // --- 1. TA LOGIQUE EXISTANTE (Intacte) ---
@@ -194,7 +196,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"An error occured in {nameof(GetPhotos)}", e);
+                log.Error($"An error occured in {nameof(GetPhotos)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléchargement." });
             }
         }
@@ -239,7 +241,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);
+                log.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);
             }
         }
 
@@ -286,7 +288,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(UploadPhotos)}");
+                log.Debug($"In {nameof(UploadPhotos)}");
 
                 if (files == null || files.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
@@ -304,7 +306,7 @@ namespace PhotoAppApi.Controllers
                 }
                 else
                 {
-                    _logger.Warn("ModerationService non configuré. Le téléversement se poursuit sans modération.");
+                    log.Warn("ModerationService non configuré. Le téléversement se poursuit sans modération.");
                 }
 
 
@@ -315,7 +317,7 @@ namespace PhotoAppApi.Controllers
                 // Validation : entre 1 et 12 tags
                 if (tagNames.Count < 1 || tagNames.Count > 12)
                 {
-                    _logger.Warn($"Validation des tags échouée : {tagNames.Count} tags reçus. Tags: {string.Join(", ", tagNames)}");
+                    log.Warn($"Validation des tags échouée : {tagNames.Count} tags reçus. Tags: {string.Join(", ", tagNames)}");
                     return BadRequest(new { message = "Vous devez sélectionner entre 1 et 12 tags." });
                 }
 
@@ -378,7 +380,7 @@ namespace PhotoAppApi.Controllers
                 long totalSize = files.Sum(f => f.Length);
                 if (totalSize > 52428800)
                 {
-                    _logger.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
+                    log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
                     return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });
                 }
 
@@ -394,7 +396,7 @@ namespace PhotoAppApi.Controllers
                     bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
-                        _logger.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
+                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
                         return Forbid();
                     }
                 }
@@ -404,7 +406,7 @@ namespace PhotoAppApi.Controllers
 
                 //if (!Directory.Exists(uploadsFolder))
                 //{
-                //    _logger.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
+                //    log.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
                 //    Directory.CreateDirectory(uploadsFolder);
                 //}
 
@@ -570,7 +572,7 @@ namespace PhotoAppApi.Controllers
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error($"Échec du traitement de l'image {file.FileName}: non reconnue comme image valide par ImageSharp.", ex);
+                        log.Error($"Échec du traitement de l'image {file.FileName}: non reconnue comme image valide par ImageSharp.", ex);
                         errors.Add($"Le fichier '{file.FileName}' est corrompu ou illisible.");
                         continue;
                     }
@@ -591,7 +593,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"An error occured in {nameof(UploadPhotos)}", e);
+                log.Error($"An error occured in {nameof(UploadPhotos)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléversement." });
             }
         }
@@ -606,7 +608,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(DeletePhoto)} with id: {id}");
+                log.Debug($"In {nameof(DeletePhoto)} with id: {id}");
 
                 // 1. Chercher la photo dans la base de données MariaDB
                 var photo = await _context.Photos.FindAsync(new object[] { id }, cancellationToken);
@@ -639,18 +641,18 @@ namespace PhotoAppApi.Controllers
                     if (System.IO.File.Exists(filePath))
                     {
                         System.IO.File.Delete(filePath);
-                        _logger.Debug($"Fichier physique supprimé: {filePath}");
+                        log.Debug($"Fichier physique supprimé: {filePath}");
                     }
                     else
                     {
-                        _logger.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
+                        log.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
                     }
 
                     // Supprimer également la miniature si elle existe
                     if (System.IO.File.Exists(thumbPath))
                     {
                         System.IO.File.Delete(thumbPath);
-                        _logger.Debug($"Fichier miniature supprimé: {thumbPath}");
+                        log.Debug($"Fichier miniature supprimé: {thumbPath}");
                     }
                 }, cancellationToken);
 
@@ -664,7 +666,7 @@ namespace PhotoAppApi.Controllers
                 if (associatedReports.Count != 0)
                 {
                     _context.ImageReports.RemoveRange(associatedReports);
-                    _logger.Debug($"{associatedReports.Count} signalement(s) supprimé(s) pour la photo ID: {id}");
+                    log.Debug($"{associatedReports.Count} signalement(s) supprimé(s) pour la photo ID: {id}");
                 }
                 // --- FIN DU NOUVEAU CODE 👆 ---
 
@@ -675,14 +677,14 @@ namespace PhotoAppApi.Controllers
                 // Wait for file deletion to complete before returning
                 await fileDeletionTask;
 
-                _logger.Debug($"Enregistrement DB et fichiers physiques supprimés avec succès pour l'ID: {id}");
+                log.Debug($"Enregistrement DB et fichiers physiques supprimés avec succès pour l'ID: {id}");
 
                 // On retourne un code 200 (Ok) pour confirmer au frontend (React) que tout s'est bien passé
                 return Ok(new { message = "Photo et ses signalements supprimés avec succès." });
             }
             catch (Exception e)
             {
-                _logger.Error($"An error occured in {nameof(DeletePhoto)}", e);
+                log.Error($"An error occured in {nameof(DeletePhoto)}", e);
                 // Il est préférable de renvoyer un code 500 (Erreur Serveur) plutôt que de juste faire un "throw" brut
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de la suppression." });
             }
@@ -696,7 +698,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(BackfillHashes)}");
+                log.Debug($"In {nameof(BackfillHashes)}");
 
                 // 1. Récupérer toutes les photos qui n'ont pas encore de Hash
                 var photosSansHash = await _context.Photos
@@ -734,7 +736,7 @@ namespace PhotoAppApi.Controllers
                         else
                         {
                             missingFilesCount++;
-                            _logger.Warn($"Fichier introuvable pour la photo ID {photo.Id} : {filePath}");
+                            log.Warn($"Fichier introuvable pour la photo ID {photo.Id} : {filePath}");
                         }
                     }
                 }
@@ -751,7 +753,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"Erreur dans {nameof(BackfillHashes)}", e);
+                log.Error($"Erreur dans {nameof(BackfillHashes)}", e);
                 return StatusCode(500, "Erreur interne lors de la mise à jour des empreintes.");
             }
         }
@@ -763,7 +765,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(ReportPhoto)} for photo ID: {id}");
+                log.Debug($"In {nameof(ReportPhoto)} for photo ID: {id}");
 
                 // 1. Vérifier si l'image existe toujours
                 var photo = await _context.Photos.FindAsync(id);
@@ -814,7 +816,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"Erreur dans {nameof(ReportPhoto)}", e);
+                log.Error($"Erreur dans {nameof(ReportPhoto)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du signalement." });
             }
         }
@@ -827,7 +829,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(GenerateMissingThumbnails)}");
+                log.Debug($"In {nameof(GenerateMissingThumbnails)}");
 
                 // On récupère toutes les photos de MariaDB
                 var photos = await _context.Photos.ToListAsync();
@@ -859,6 +861,7 @@ namespace PhotoAppApi.Controllers
 
                     // 3. La magie d'ImageSharp : on charge, on compresse, on sauvegarde
                     using (var image = await Image.LoadAsync(originalPath))
+
                     {
                         image.Mutate(x => x.Resize(new ResizeOptions
                         {
@@ -879,7 +882,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error("Erreur lors de la génération massive des miniatures", e);
+                log.Error("Erreur lors de la génération massive des miniatures", e);
                 return StatusCode(500, "Erreur interne lors de la compression des images.");
             }
         }
@@ -893,7 +896,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(MigrateClosedLoop)}");
+                log.Debug($"In {nameof(MigrateClosedLoop)}");
 
                 // 1. Créer ou récupérer le Groupe par Défaut
                 var defaultGroup = await _context.Groups.FirstOrDefaultAsync(g => g.Name == "Cercle Initial");
@@ -974,7 +977,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("Erreur lors de la migration Closed Loop", ex);
+                log.Error("Erreur lors de la migration Closed Loop", ex);
                 return StatusCode(500, "Erreur interne lors de la migration.");
             }
         }
@@ -1043,7 +1046,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"Erreur dans {nameof(ToggleLike)}", e);
+                log.Error($"Erreur dans {nameof(ToggleLike)}", e);
                 return StatusCode(500, new { message = "Une erreur est survenue avec le like." });
             }
         }
@@ -1142,7 +1145,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"Erreur dans {nameof(GetUserPhotos)}", e);
+                log.Error($"Erreur dans {nameof(GetUserPhotos)}", e);
                 return StatusCode(500, new { message = "Erreur de récupération." });
             }
         }
@@ -1155,7 +1158,7 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
-                _logger.Debug($"In {nameof(GetMostViewedPhotos)} with count: {count}");
+                log.Debug($"In {nameof(GetMostViewedPhotos)} with count: {count}");
 
                 // 1. On récupère les N photos les plus vues (> 0 vues)
                 var currentUserIdStringForAccess = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -1235,7 +1238,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"Erreur dans {nameof(GetMostViewedPhotos)}", e);
+                log.Error($"Erreur dans {nameof(GetMostViewedPhotos)}", e);
                 return StatusCode(500, new { message = "Erreur de récupération des photos les plus vues." });
             }
         }

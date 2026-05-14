@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -16,19 +17,19 @@ namespace PhotoAppApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private static readonly ILog log = LogManager.GetLogger(typeof(AuthController));
+
+                private readonly AppDbContext _context;
 
         // 1. On déclare une variable pour stocker la configuration
         private readonly IConfiguration _configuration;
-
-        private readonly Logger _logger;
 
         // 🛡️ Sentinel: Dummy hash to equalize response times and prevent username enumeration via timing attacks
         private static readonly string _dummyHash = BCrypt.Net.BCrypt.HashPassword("dummy_password_for_timing_attack_mitigation");
 
         public AuthController(AppDbContext context, IConfiguration configuration)
         {
-            _logger = new();
+
             _context = context;
             _configuration = configuration;
         }
@@ -37,7 +38,7 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("LoginLimiter")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(Login)} for user: {request.Username}");
+            log.Debug($"In {nameof(Login)} for user: {request.Username}");
             try
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username, cancellationToken);
@@ -66,8 +67,8 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                // Note: Assure-toi que _logger utilise bien .LogError() si tu utilises le logger par défaut de Microsoft
-                _logger.Error($"An error occured in {nameof(Login)}", e);
+                // Note: Assure-toi que log utilise bien .LogError() si tu utilises le logger par défaut de Microsoft
+                log.Error($"An error occured in {nameof(Login)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de la connexion." });
             }
         }
@@ -107,7 +108,7 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("RegisterLimiter")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
-            _logger.Debug($"In {nameof(Register)} for user: {request.Username}");
+            log.Debug($"In {nameof(Register)} for user: {request.Username}");
             try
             {
                 // 1. Vérifier si l'utilisateur existe déjà
@@ -154,7 +155,7 @@ namespace PhotoAppApi.Controllers
                         _context.UserGroups.Add(userGroup);
                         personalInvite.Status = "Accepted"; // Marquer comme acceptée
                         await _context.SaveChangesAsync(cancellationToken);
-                        _logger.Info($"Usager {user.Username} ajouté au groupe {personalInvite.GroupId} via INVITATION PERSONNELLE.");
+                        log.Info($"Usager {user.Username} ajouté au groupe {personalInvite.GroupId} via INVITATION PERSONNELLE.");
                     }
                     else
                     {
@@ -169,7 +170,7 @@ namespace PhotoAppApi.Controllers
                             };
                             _context.UserGroups.Add(userGroup);
                             await _context.SaveChangesAsync(cancellationToken);
-                            _logger.Info($"Usager {user.Username} ajouté au groupe {group.Name} via invitation générale.");
+                            log.Info($"Usager {user.Username} ajouté au groupe {group.Name} via invitation générale.");
                         }
                     }
                 }
@@ -178,7 +179,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception e)
             {
-                _logger.Error($"An error occured in {nameof(Register)}", e);
+                log.Error($"An error occured in {nameof(Register)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de l'enregistrement." });
             }
         }
@@ -187,7 +188,7 @@ namespace PhotoAppApi.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> GetUserGroups()
         {
-            _logger.Debug($"In {nameof(GetUserGroups)}");
+            log.Debug($"In {nameof(GetUserGroups)}");
             try
             {
                 // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
@@ -228,7 +229,7 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("Erreur GetUserGroups", ex);
+                log.Error("Erreur GetUserGroups", ex);
                 return StatusCode(500, "Erreur lors de la récupération des groupes");
             }
         }

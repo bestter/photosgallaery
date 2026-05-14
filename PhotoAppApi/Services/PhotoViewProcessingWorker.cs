@@ -1,3 +1,4 @@
+using log4net;
 using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
@@ -7,25 +8,24 @@ namespace PhotoAppApi.Services
 {
     public class PhotoViewProcessingWorker : BackgroundService
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(PhotoViewProcessingWorker));
+
         private readonly ChannelReader<PhotoViewEvent> _channelReader;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<PhotoViewProcessingWorker> _logger;
         private readonly int _batchSize = 100; // Limite du lot
         private readonly TimeSpan _maxWaitTime = TimeSpan.FromSeconds(30); // Délai max avant le flush
 
         public PhotoViewProcessingWorker(
             ChannelReader<PhotoViewEvent> channelReader,
-            IServiceProvider serviceProvider,
-            ILogger<PhotoViewProcessingWorker> logger)
+            IServiceProvider serviceProvider)
         {
             _channelReader = channelReader;
             _serviceProvider = serviceProvider;
-            _logger = logger;
-        }
+            }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("🚀 Le Worker de traitement des vues est démarré.");
+            log.Info("🚀 Le Worker de traitement des vues est démarré.");
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -86,6 +86,7 @@ namespace PhotoAppApi.Services
                 {
                     using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
+
                     // A. INSERT de masse avec Bulk (.AddRangeAsync est performant géré par EF Core 8)
                     await dbContext.PhotoViews.AddRangeAsync(viewLogs, stoppingToken);
                     await dbContext.SaveChangesAsync(stoppingToken);
@@ -102,15 +103,15 @@ namespace PhotoAppApi.Services
                     await transaction.CommitAsync(stoppingToken);
                 });
 
-                _logger.LogInformation($"✅ Lot de {batch.Count} vues traité et enregistré en DB.");
+                log.Info("✅ Lot de {batch.Count} vues traité et enregistré en DB.");
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("⚠️ Traitement du lot de vues annulé en raison de l'arrêt du service.");
+                log.Warn("⚠️ Traitement du lot de vues annulé en raison de l'arrêt du service.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Erreur critique lors de la transaction du lot de vues.");
+                log.Error("❌ Erreur critique lors de la transaction du lot de vues.", ex);
             }
         }
     }
