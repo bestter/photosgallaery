@@ -64,3 +64,7 @@
 ## 2024-05-13 - [Optimize React List Filtering with useMemo and useDeferredValue]
 **Learning:** In frontend React applications with search functionalities mapping over large arrays (like reports or users), synchronous `filter` operations on every keystroke can cause noticeable input lag. `Moderation.jsx` had a search input that was not properly debounced or memoized, meaning typing in the search bar would trigger a full re-render and re-filtering of all reports on every keystroke, potentially blocking the main thread.
 **Action:** Always wrap computationally expensive derived state calculations (e.g., filtering large arrays by text) in a `useMemo` hook. Furthermore, for text inputs driving these filters, using `useDeferredValue` for the search term ensures that typing remains responsive (high priority) while the expensive filtering is deferred (low priority), providing a smoother user experience without needing manual debounce implementations.
+
+## 2024-05-13 - [Add Native Image Lazy Loading in Gallery]
+**Learning:** Rendering many large image elements (e.g., `<img />`) synchronously during component mount can severely impact the Initial Load time, block the main thread with rendering operations, and fetch unnecessary bytes for images that are below the fold (off-screen).
+**Action:** Always add the `loading="lazy"` attribute to `<img>` tags inside lists or grids that render many items, enabling the browser's native intersection observer to defer image decoding and fetching until the user scrolls them into view.
