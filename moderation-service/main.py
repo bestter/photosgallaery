@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from PIL import Image
 import io
+import asyncio
 from transformers import pipeline
 import torch
 
@@ -26,7 +27,7 @@ async def moderate_image(file: UploadFile = File(...)):
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
         # Prédiction
-        results = classifier(image)
+        results = await asyncio.to_thread(classifier, image)
         
         # === LOG IMPORTANT pour debug ===
         print("=== RAW MODEL OUTPUT ===")
