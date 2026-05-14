@@ -1,207 +1,207 @@
-using log4net;
-﻿using System.Xml.Linq;
 using Amazon.S3;
 using Amazon.S3.Model;
+using log4net;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using PhotoAppApi.Controllers;
 using System.Xml.Linq;
 
-public class CloudflareR2XmlRepository : IDeletableXmlRepository
+namespace PhotoAppApi.Helpers
 {
-        private static readonly ILog log = LogManager.GetLogger(typeof(CloudflareR2XmlRepository));
-
-            private readonly IAmazonS3 _s3Client;
-    private readonly string _bucketName;
-    private readonly string _prefix;
-    private readonly ILogger<CloudflareR2XmlRepository> _logger;
-
-    public CloudflareR2XmlRepository(
-        IAmazonS3 s3Client,
-        string bucketName,
-        ILogger<CloudflareR2XmlRepository> logger,
-        string prefix = "dataprotection-keys/")
+    public class CloudflareR2XmlRepository : IDeletableXmlRepository
     {
-        _s3Client = s3Client ?? throw new ArgumentNullException(nameof(s3Client));
-        _bucketName = !string.IsNullOrWhiteSpace(bucketName)
-            ? bucketName
-            : throw new ArgumentException("Bucket name cannot be null or empty.", nameof(bucketName));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _prefix = prefix ?? "dataprotection-keys/";
-    }
 
-    private class DeletableElement : IDeletableElement
-    {
-        public XElement Element { get; }
-        public bool ShouldDelete { get; set; }
-        public int? DeletionOrder { get; set; }   // ← auto-property correcte
+        private readonly IAmazonS3 _s3Client;
+        private readonly string _bucketName;
+        private readonly string _prefix;
+        private static readonly ILog log = LogManager.GetLogger(typeof(AuthController));
 
-        public DeletableElement(XElement element, int? deletionOrder = null)
+        public CloudflareR2XmlRepository(
+            IAmazonS3 s3Client,
+            string bucketName,
+            string prefix = "dataprotection-keys/")
         {
-            Element = element ?? throw new ArgumentNullException(nameof(element));
-            DeletionOrder = deletionOrder;
-            ShouldDelete = false;   // ← important : le framework décide
+            _s3Client = s3Client ?? throw new ArgumentNullException(nameof(s3Client));
+            _bucketName = !string.IsNullOrWhiteSpace(bucketName)
+                ? bucketName
+                : throw new ArgumentException("Bucket name cannot be null or empty.", nameof(bucketName));
+            _prefix = prefix ?? "dataprotection-keys/";
         }
-    }
 
-    public IReadOnlyCollection<XElement> GetAllElements()
-    {
-        return Task.Run(() => GetAllElementsAsync()).GetAwaiter().GetResult();
-    }
-
-    private async Task<IReadOnlyCollection<XElement>> GetAllElementsAsync(CancellationToken ct = default)
-    {
-        var elements = new List<XElement>();
-        string? continuationToken = null;
-
-        do
+        private class DeletableElement : IDeletableElement
         {
-            var request = new ListObjectsV2Request
+            public XElement Element { get; }
+            public bool ShouldDelete { get; set; }
+            public int? DeletionOrder { get; set; }   // ← auto-property correcte
+
+            public DeletableElement(XElement element, int? deletionOrder = null)
             {
-                BucketName = _bucketName,
-                Prefix = _prefix,
-                ContinuationToken = continuationToken
-            };
-
-            var response = await _s3Client.ListObjectsV2Async(request, ct);
-
-            
-            var getTasks = response.S3Objects
-                .Where(o => o?.Key?.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) == true)
-                .Select(async obj =>
-                {
-                    try
-                    {
-                        var getRequest = new GetObjectRequest { BucketName = _bucketName, Key = obj.Key };
-                        using var getResponse = await _s3Client.GetObjectAsync(getRequest, ct);
-                        using var streamReader = new StreamReader(getResponse.ResponseStream);
-
-                        return await XElement.LoadAsync(streamReader, LoadOptions.None, ct);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error loading Data Protection key from R2: {Key}", obj?.Key);
-                        return null;
-                    }
-                });
-
-            var results = await Task.WhenAll(getTasks);
-            elements.AddRange(results.Where(x => x != null)!);
-
-            continuationToken = response.NextContinuationToken;
+                Element = element ?? throw new ArgumentNullException(nameof(element));
+                DeletionOrder = deletionOrder;
+                ShouldDelete = false;   // ← important : le framework décide
+            }
         }
-        while (!string.IsNullOrEmpty(continuationToken));
 
-        return elements.AsReadOnly();
-    }
-
-    public void StoreElement(XElement element, string friendlyName)
-    {
-        try
+        public IReadOnlyCollection<XElement> GetAllElements()
         {
-            Task.Run(() => StoreElementAsync(element, friendlyName)).GetAwaiter().GetResult();
+            return Task.Run(() => GetAllElementsAsync()).GetAwaiter().GetResult();
         }
-        catch (Exception ex)
+
+        private async Task<IReadOnlyCollection<XElement>> GetAllElementsAsync(CancellationToken ct = default)
         {
-            _logger.LogError(ex, "Error storing Data Protection element {FriendlyName}", friendlyName);
-            throw;
-        }
-    }
+            var elements = new List<XElement>();
+            string? continuationToken = null;
 
-    private async Task StoreElementAsync(XElement element, string friendlyName, CancellationToken cancellationToken = default)
-    {
-        if (element == null) throw new ArgumentNullException(nameof(element));
-        if (string.IsNullOrWhiteSpace(friendlyName)) throw new ArgumentException("Friendly name cannot be null or empty.", nameof(friendlyName));
-
-        var key = $"{_prefix}{friendlyName}.xml";
-
-        using var memoryStream = new MemoryStream();
-
-        await element.SaveAsync(memoryStream, SaveOptions.DisableFormatting, cancellationToken);
-        memoryStream.Position = 0;
-
-        var putRequest = new PutObjectRequest
-        {
-            BucketName = _bucketName,
-            Key = key,
-            InputStream = memoryStream,
-            ContentType = "application/xml",
-            DisablePayloadSigning = true,
-            DisableDefaultChecksumValidation = true,
-            ServerSideEncryptionMethod = ServerSideEncryptionMethod.AES256
-        };
-
-        var response = await _s3Client.PutObjectAsync(putRequest, cancellationToken);
-
-        if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
-        {
-            _logger.LogError("Failed to store element {FriendlyName}. Status: {StatusCode}", friendlyName, response.HttpStatusCode);
-            throw new InvalidOperationException($"Failed to store element. HTTP {response.HttpStatusCode}");
-        }
-    }
-
-    public bool DeleteElements(Action<IReadOnlyCollection<IDeletableElement>> chooseElements)
-    {
-        try
-        {
-            return Task.Run(() => DeleteElementsAsync(chooseElements)).GetAwaiter().GetResult();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during DeleteElements operation");
-            throw;
-        }
-    }
-
-    private async Task<bool> DeleteElementsAsync(Action<IReadOnlyCollection<IDeletableElement>> chooseElements, CancellationToken cancellationToken = default)
-    {
-        if (chooseElements == null) throw new ArgumentNullException(nameof(chooseElements));
-
-        var allElements = await GetAllElementsAsync(cancellationToken);
-
-        // Création simple et efficace
-        var deletableList = allElements
-            .Select((e, i) => new DeletableElement(e, i))
-            .ToList();
-
-        // Le système Data Protection va remplir ShouldDelete + DeletionOrder
-        chooseElements(deletableList.AsReadOnly());
-
-        bool success = true;
-
-        foreach (var deletable in deletableList.Where(d => d.ShouldDelete))
-        {
-            var friendlyName = deletable.Element.Attribute("friendlyName")?.Value;
-            if (string.IsNullOrEmpty(friendlyName))
-                continue;
-
-            var key = $"{_prefix}{friendlyName}.xml";
-
-            try
+            do
             {
-                var deleteRequest = new DeleteObjectRequest
+                var request = new ListObjectsV2Request
                 {
                     BucketName = _bucketName,
-                    Key = key
+                    Prefix = _prefix,
+                    ContinuationToken = continuationToken
                 };
 
-                var response = await _s3Client.DeleteObjectAsync(deleteRequest, cancellationToken);
+                var response = await _s3Client.ListObjectsV2Async(request, ct);
 
-                if (response.HttpStatusCode != System.Net.HttpStatusCode.NoContent)
-                {
-                    _logger.LogWarning("Failed to delete key {Key}. Status: {StatusCode}", key, response.HttpStatusCode);
-                    success = false;
-                }
-                else
-                {
-                    _logger.LogInformation("Successfully deleted old Data Protection key: {Key}", key);
-                }
+
+                var getTasks = response.S3Objects
+                    .Where(o => o?.Key?.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) == true)
+                    .Select(async obj =>
+                    {
+                        try
+                        {
+                            var getRequest = new GetObjectRequest { BucketName = _bucketName, Key = obj.Key };
+                            using var getResponse = await _s3Client.GetObjectAsync(getRequest, ct);
+                            using var streamReader = new StreamReader(getResponse.ResponseStream);
+
+                            return await XElement.LoadAsync(streamReader, LoadOptions.None, ct);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Error loading Data Protection key from R2: {obj?.Key}", ex);
+                            return null;
+                        }
+                    });
+
+                var results = await Task.WhenAll(getTasks);
+                elements.AddRange(results.Where(x => x != null)!);
+
+                continuationToken = response.NextContinuationToken;
+            }
+            while (!string.IsNullOrEmpty(continuationToken));
+
+            return elements.AsReadOnly();
+        }
+
+        public void StoreElement(XElement element, string friendlyName)
+        {
+            try
+            {
+                Task.Run(() => StoreElementAsync(element, friendlyName)).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception while deleting key {Key}", key);
-                success = false;
+                log.Error( $"Error storing Data Protection element {friendlyName}", ex);
+                throw;
             }
         }
 
-        return success;
+        private async Task StoreElementAsync(XElement element, string friendlyName, CancellationToken cancellationToken = default)
+        {
+            if (element == null) throw new ArgumentNullException(nameof(element));
+            if (string.IsNullOrWhiteSpace(friendlyName)) throw new ArgumentException("Friendly name cannot be null or empty.", nameof(friendlyName));
+
+            var key = $"{_prefix}{friendlyName}.xml";
+
+            using var memoryStream = new MemoryStream();
+
+            await element.SaveAsync(memoryStream, SaveOptions.DisableFormatting, cancellationToken);
+            memoryStream.Position = 0;
+
+            var putRequest = new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = key,
+                InputStream = memoryStream,
+                ContentType = "application/xml",
+                DisablePayloadSigning = true,
+                DisableDefaultChecksumValidation = true,
+                ServerSideEncryptionMethod = ServerSideEncryptionMethod.AES256
+            };
+
+            var response = await _s3Client.PutObjectAsync(putRequest, cancellationToken);
+
+            if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+            {
+                log.Error($"Failed to store element {friendlyName}. Status: {response.HttpStatusCode}");
+                throw new InvalidOperationException($"Failed to store element. HTTP {response.HttpStatusCode}");
+            }
+        }
+
+        public bool DeleteElements(Action<IReadOnlyCollection<IDeletableElement>> chooseElements)
+        {
+            try
+            {
+                return Task.Run(() => DeleteElementsAsync(chooseElements)).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error during DeleteElements operation", ex);
+                throw;
+            }
+        }
+
+        private async Task<bool> DeleteElementsAsync(Action<IReadOnlyCollection<IDeletableElement>> chooseElements, CancellationToken cancellationToken = default)
+        {
+            if (chooseElements == null) throw new ArgumentNullException(nameof(chooseElements));
+
+            var allElements = await GetAllElementsAsync(cancellationToken);
+
+            // Création simple et efficace
+            var deletableList = allElements
+                .Select((e, i) => new DeletableElement(e, i))
+                .ToList();
+
+            // Le système Data Protection va remplir ShouldDelete + DeletionOrder
+            chooseElements(deletableList.AsReadOnly());
+
+            bool success = true;
+
+            foreach (var deletable in deletableList.Where(d => d.ShouldDelete))
+            {
+                var friendlyName = deletable.Element.Attribute("friendlyName")?.Value;
+                if (string.IsNullOrEmpty(friendlyName))
+                    continue;
+
+                var key = $"{_prefix}{friendlyName}.xml";
+
+                try
+                {
+                    var deleteRequest = new DeleteObjectRequest
+                    {
+                        BucketName = _bucketName,
+                        Key = key
+                    };
+
+                    var response = await _s3Client.DeleteObjectAsync(deleteRequest, cancellationToken);
+
+                    if (response.HttpStatusCode != System.Net.HttpStatusCode.NoContent)
+                    {
+                        log.Warn($"Failed to delete key {key}. Status: {response.HttpStatusCode}");
+                        success = false;
+                    }
+                    else
+                    {
+                        log.Info($"Successfully deleted old Data Protection key: {key}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while deleting key {key}", ex);
+                    success = false;
+                }
+            }
+
+            return success;
+        }
     }
 }

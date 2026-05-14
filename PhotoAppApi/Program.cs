@@ -18,6 +18,7 @@ using System.Threading.Channels;
 using System.Threading.RateLimiting;
 
 using log4net;
+using PhotoAppApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 var log = LogManager.GetLogger(typeof(Program));
@@ -192,7 +193,7 @@ builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
         var s3Client = sp.GetRequiredService<IAmazonS3>();
         var bucketName = builder.Configuration["ObjectStorage:BucketName"] ?? "pixellyra";
 
-        options.XmlRepository = new CloudflareR2XmlRepository(s3Client, bucketName, sp.GetRequiredService<ILogger<CloudflareR2XmlRepository>>());
+        options.XmlRepository = new CloudflareR2XmlRepository(s3Client, bucketName);
     });
 });
 
