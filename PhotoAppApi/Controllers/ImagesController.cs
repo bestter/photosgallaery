@@ -30,15 +30,17 @@ namespace PhotoAppApi.Controllers
         [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImage(string fileName, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+                fileName != Path.GetFileName(fileName.Replace("\\", "/")))
+            {
+                return BadRequest("Invalid file name.");
+            }
 
-            // To satisfy CodeQL, explicitly extract just the filename from the path before further validation.
-            fileName = Path.GetFileName(fileName.Replace("\\", "/"));
-
-            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
-            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName.Contains("..")) return BadRequest("Invalid file name.");
-
-            var safeFileName = fileName;
+            // CodeQL recognizes Path.GetFileName() as a taint sanitizer.
+            // Since we've already validated the input above, this explicitly clears the taint.
+            var safeFileName = Path.GetFileName(fileName);
 
 
 
@@ -124,15 +126,17 @@ namespace PhotoAppApi.Controllers
         [HttpGet("thumbnails/{fileName}")]
         public async Task<IActionResult> GetThumbnail(string fileName, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+                fileName != Path.GetFileName(fileName.Replace("\\", "/")))
+            {
+                return BadRequest("Invalid file name.");
+            }
 
-            // To satisfy CodeQL, explicitly extract just the filename from the path before further validation.
-            fileName = Path.GetFileName(fileName.Replace("\\", "/"));
-
-            // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
-            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName.Contains("..")) return BadRequest("Invalid file name.");
-
-            var safeFileName = fileName;
+            // CodeQL recognizes Path.GetFileName() as a taint sanitizer.
+            // Since we've already validated the input above, this explicitly clears the taint.
+            var safeFileName = Path.GetFileName(fileName);
 
 
 

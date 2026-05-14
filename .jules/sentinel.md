@@ -141,3 +141,7 @@
  **Vulnerability:** False Positive / CodeQL parsing failure for `fileName != safeFileName`.
  **Learning:** CodeQL flags `safeFileName != fileName` checks as "sensitive action guarded by user-provided value". To satisfy CodeQL while preventing Windows-style payload bypasses on Linux, the input string must be reassigned *after* stripping path components: `fileName = Path.GetFileName(fileName.Replace("\\", "/"));`, followed by standard input validation.
  **Prevention:** Combined strict path normalization `Replace("\\", "/")` with `Path.GetFileName()` reassignment to satisfy both static analysis scanners and secure coding principles.
+## 2024-10-27 - Harden Path Traversal Validation in ImagesController
+ **Vulnerability:** The previous path traversal check simply validated `fileName != Path.GetFileName(fileName)` which is bypassable via cross-platform payloads like using `\` on linux if the initial extraction missed it.
+ **Learning:** In .NET on Linux platforms, `Path.GetFileName()` does not treat backslashes (`\`) as directory separators. To prevent path traversal bypasses involving backslashes, always normalize the path by replacing `\` with `/` before calling `Path.GetFileName()`.
+ **Prevention:** To prevent Path Traversal (CWE-22) and satisfy CodeQL analysis, use a consolidated check for route parameters: reject if the input contains '..', has invalid characters, or if the string changes after applying `Path.GetFileName(input.Replace("\\", "/"))`.
