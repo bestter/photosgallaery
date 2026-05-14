@@ -598,8 +598,6 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        // N'oublie pas de t'assurer que tu as bien ce "using" en haut de ton fichier pour utiliser .Where() et .ToListAsync()
-        // using Microsoft.EntityFrameworkCore;
 
         // DELETE: api/photos/{id} (Privé: connectés seulement)
         [Authorize]
