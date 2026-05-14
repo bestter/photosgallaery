@@ -136,3 +136,8 @@
  **Vulnerability:** Path Traversal (CWE-22) in `ImagesController.GetImage` and `ImagesController.GetThumbnail`.
  **Learning:** The previous path validation (`fileName.Contains("..")`) and CodeQL fix `Path.GetFileName(fileName)` were insufficient because `.NET` on Linux doesn't treat backslashes as path separators, allowing traversal bypasses. Also, simple truncation without validation (`fileName = Path.GetFileName(fileName)`) implicitly trusts invalid inputs.
  **Prevention:** Replaced implicit truncation with strict validation. Replaced `\` with `/` to ensure cross-platform safety, extracted the pure file name, and explicitly rejected the request if the extracted name doesn't match the input exactly (`safeFileName != fileName`). Added redundant checks for `..` and invalid characters for defense-in-depth.
+
+## 2024-05-24 - Fix CodeQL Path Traversal Parsing
+ **Vulnerability:** False Positive / CodeQL parsing failure for `fileName != safeFileName`.
+ **Learning:** CodeQL flags `safeFileName != fileName` checks as "sensitive action guarded by user-provided value". To satisfy CodeQL while preventing Windows-style payload bypasses on Linux, the input string must be reassigned *after* stripping path components: `fileName = Path.GetFileName(fileName.Replace("\\", "/"));`, followed by standard input validation.
+ **Prevention:** Combined strict path normalization `Replace("\\", "/")` with `Path.GetFileName()` reassignment to satisfy both static analysis scanners and secure coding principles.
