@@ -1,13 +1,1 @@
-📜 Summary of the files touched and the old logging mechanisms removed.
-- Removed custom `Logger` class (`Logger.cs`) and all its usages across 9 controllers.
-- Removed `ILogger<T>` dependencies from the constructors of 4 backend services and `CloudflareR2XmlRepository`.
-- Removed `Console.WriteLine` and `ILogger<Program>` calls in `Program.cs`.
-- Initialized static `log4net.ILog` loggers in all affected files (Controllers, Services, `Program.cs`, and `CloudflareR2XmlRepository`).
-- Swapped `LogInformation`, `LogWarning`, `LogError` calls with `log.Info()`, `log.Warn()`, `log.Error()`.
-
-Confirmation that the existing log4net configuration was utilized.
-- Used `LogManager.GetLogger(typeof(ClassName))` without changing or overwriting `log4net.config` or any `XmlConfigurator` code.
-
-Confirmation that the backend successfully builds (dotnet build) and all tests pass (dotnet test).
-- `dotnet build` succeeds.
-- `dotnet test` completes successfully with 85 passed tests.
+Removed unused dependencies from both backend (PhotoAppApi.csproj) and frontend (PhotoFrontend/package.json), and fully tested.

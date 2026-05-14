@@ -1,13 +1,1 @@
-refactor: Migrate all backend logging to log4net
-
-📜Summary of the files touched and the old logging mechanisms removed.
-- Removed the custom `Logger` wrapper (`Logger.cs`) and replaced its instantiation across 9 API Controllers.
-- Replaced `ILogger<T>` dependency injection with static `log4net.ILog` loggers in `PhotoViewProcessingWorker`, `ModerationService`, `HashCalculationBackgroundService`, `MockEmailService`, and `CloudflareR2XmlRepository`.
-- Removed `ILogger<Program>` instances and `Console.WriteLine` calls in `Program.cs`.
-
-Confirmation that the existing log4net configuration was utilized.
-- All new implementations fetch the logger using `LogManager.GetLogger(typeof(CurrentClassName))`, ensuring it correctly pulls from the pre-existing log4net.config.
-
-Confirmation that the backend successfully builds (dotnet build) and all tests pass (dotnet test).
-- Validated via `dotnet build PhotoAppApi/PhotoAppApi.csproj` without errors.
-- Validated via `dotnet test PhotoAppApi.Tests/PhotoAppApi.Tests.csproj`. All 85 unit tests execute and pass successfully.
+Removed unused dependencies from both backend (PhotoAppApi.csproj) and frontend (PhotoFrontend/package.json), and fully tested.

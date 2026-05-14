@@ -1,1 +1,1 @@
-refactor: Migrate all backend logging to log4net
+chore: Clean up unused dependencies (Frontend & Backend) 📦
