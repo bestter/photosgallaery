@@ -8,7 +8,6 @@
     <File Path="Scripts/DeploiementGalerie.ps1" />
     <File Path="Scripts/deploy-settings.json" />
   </Folder>
-  <Project Path="Benchmark/Benchmark.csproj" />
   <Project Path="PhotoAppApi.Tests/PhotoAppApi.Tests.csproj" />
   <Project Path="PhotoAppApi/PhotoAppApi.csproj" />
   <Project Path="PhotoFrontend/" Type="Website" DisplayName="PhotoFrontend">
