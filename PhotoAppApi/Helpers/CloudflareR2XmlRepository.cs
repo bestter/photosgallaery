@@ -2,7 +2,6 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using log4net;
 using Microsoft.AspNetCore.DataProtection.Repositories;
-using PhotoAppApi.Controllers;
 using System.Xml.Linq;
 
 namespace PhotoAppApi.Helpers
@@ -13,7 +12,7 @@ namespace PhotoAppApi.Helpers
         private readonly IAmazonS3 _s3Client;
         private readonly string _bucketName;
         private readonly string _prefix;
-        private static readonly ILog log = LogManager.GetLogger(typeof(AuthController));
+        private static readonly ILog log = LogManager.GetLogger(typeof(CloudflareR2XmlRepository));
 
         public CloudflareR2XmlRepository(
             IAmazonS3 s3Client,
@@ -63,7 +62,7 @@ namespace PhotoAppApi.Helpers
                 var response = await _s3Client.ListObjectsV2Async(request, ct);
 
 
-                var getTasks = response.S3Objects
+                var getTasks = (response?.S3Objects ?? Enumerable.Empty<S3Object>())
                     .Where(o => o?.Key?.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) == true)
                     .Select(async obj =>
                     {
