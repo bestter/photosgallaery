@@ -406,15 +406,6 @@ namespace PhotoAppApi.Controllers
                     }
                 }
 
-                var rootPath = _env.ContentRootPath;
-                var uploadsFolder = Path.Combine(rootPath, "PrivateImages");
-
-                //if (!Directory.Exists(uploadsFolder))
-                //{
-                //    log.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
-                //    Directory.CreateDirectory(uploadsFolder);
-                //}
-
                 var uploadedPhotos = new List<Photo>();
                 var errors = new List<string>();
 
@@ -603,8 +594,6 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        // N'oublie pas de t'assurer que tu as bien ce "using" en haut de ton fichier pour utiliser .Where() et .ToListAsync()
-        // using Microsoft.EntityFrameworkCore;
 
         // DELETE: api/photos/{id} (Privé: connectés seulement)
         [Authorize]
