@@ -1,0 +1,8 @@
+🎯 What:
+Fixed a Path Traversal vulnerability (CWE-22) in `ImagesController.cs` `GetImage` and `GetThumbnail` methods. The previous validation merely checked `fileName != Path.GetFileName(fileName)`.
+
+⚠️ Risk:
+Because .NET on Linux does not inherently treat the backslash (`\`) as a directory separator, `Path.GetFileName("..\\..\\etc\\passwd")` would return `"..\\..\\etc\\passwd"`, completely bypassing the previous check and allowing malicious actors to traverse directories and read arbitrary files on the filesystem.
+
+🛡️ Solution:
+Implemented a hardened path traversal guard clause: `var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));` followed by checking if `safeFileName != fileName`, `safeFileName.Contains("..")`, or if it contains invalid characters. This comprehensively prevents directory traversal, satisfying CodeQL security analysis.
