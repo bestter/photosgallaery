@@ -942,14 +942,9 @@ namespace PhotoAppApi.Controllers
                 var allPhotos = await _context.Photos.ToListAsync();
                 int migratedImages = 0;
 
-                foreach (var photo in allPhotos)
+                var tasks = allPhotos.Select(photo => Task.Run(() =>
                 {
-                    // Update DB info
-                    if (!photo.GroupId.HasValue) photo.GroupId = defaultGroup.Id;
-                    if (photo.Url != null && photo.Url.StartsWith("/images/"))
-                    {
-                        photo.Url = photo.Url.Replace("/images/", "/api/images/");
-                    }
+                    int localMigratedImages = 0;
 
                     // Move original file
                     var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
@@ -959,7 +954,7 @@ namespace PhotoAppApi.Controllers
                     if (System.IO.File.Exists(oldFilePath) && !System.IO.File.Exists(newFilePath))
                     {
                         System.IO.File.Move(oldFilePath, newFilePath);
-                        migratedImages++;
+                        localMigratedImages++;
                     }
 
                     // Move thumbnail file
@@ -969,6 +964,22 @@ namespace PhotoAppApi.Controllers
                     {
                         System.IO.File.Move(oldThumbFile, newThumbFile);
                     }
+
+                    return (photo, localMigratedImages);
+                }));
+
+                var results = await Task.WhenAll(tasks);
+
+                foreach (var (photo, localMigratedImages) in results)
+                {
+                    // Update DB info (must be done on the main thread since DbContext is not thread-safe)
+                    if (!photo.GroupId.HasValue) photo.GroupId = defaultGroup.Id;
+                    if (photo.Url != null && photo.Url.StartsWith("/images/"))
+                    {
+                        photo.Url = photo.Url.Replace("/images/", "/api/images/");
+                    }
+
+                    migratedImages += localMigratedImages;
                 }
 
                 await _context.SaveChangesAsync();
