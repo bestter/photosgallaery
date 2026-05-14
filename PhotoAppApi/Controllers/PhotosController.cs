@@ -401,15 +401,6 @@ namespace PhotoAppApi.Controllers
                     }
                 }
 
-                var rootPath = _env.ContentRootPath;
-                var uploadsFolder = Path.Combine(rootPath, "PrivateImages");
-
-                //if (!Directory.Exists(uploadsFolder))
-                //{
-                //    log.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
-                //    Directory.CreateDirectory(uploadsFolder);
-                //}
-
                 var uploadedPhotos = new List<Photo>();
                 var errors = new List<string>();
 
