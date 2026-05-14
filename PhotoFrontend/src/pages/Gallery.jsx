@@ -214,7 +214,7 @@ export default function Gallery() {
               search
             </span>
             <input
-              className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500"
+              className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500"
               name="search"
               aria-label={t("gallery.search_placeholder")}
               placeholder={t("gallery.search_placeholder")}
@@ -222,6 +222,17 @@ export default function Gallery() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-full"
+                onClick={() => setSearchQuery("")}
+                aria-label={t("gallery.clear_search", "Effacer la recherche")}
+                title={t("gallery.clear_search", "Effacer la recherche")}
+              >
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -312,7 +323,7 @@ export default function Gallery() {
             search
           </span>
           <input
-            className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500 shadow-lg"
+            className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
             aria-label={t("gallery.search_mobile_placeholder")}
             placeholder={t("gallery.search_mobile_placeholder")}
@@ -320,6 +331,17 @@ export default function Gallery() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-full"
+              onClick={() => setSearchQuery("")}
+              aria-label={t("gallery.clear_search", "Effacer la recherche")}
+              title={t("gallery.clear_search", "Effacer la recherche")}
+            >
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+            </button>
+          )}
         </div>
 
         {/* Dashboard Header */}
