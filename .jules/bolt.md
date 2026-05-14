@@ -68,3 +68,7 @@
 ## 2024-05-13 - [Add Native Image Lazy Loading in Gallery]
 **Learning:** Rendering many large image elements (e.g., `<img />`) synchronously during component mount can severely impact the Initial Load time, block the main thread with rendering operations, and fetch unnecessary bytes for images that are below the fold (off-screen).
 **Action:** Always add the `loading="lazy"` attribute to `<img>` tags inside lists or grids that render many items, enabling the browser's native intersection observer to defer image decoding and fetching until the user scrolls them into view.
+
+## 2026-05-14 - [FastAPI] Async offloading for ML models
+ **Learning:** In FastAPI 'async def' endpoints, synchronous CPU-intensive calls like 'transformers' pipeline inference block the main event loop, preventing concurrent request handling.
+ **Action:** Wrapped the 'classifier(image)' call in 'await asyncio.to_thread(classifier, image)' to offload the work to a separate thread, keeping the event loop responsive.
