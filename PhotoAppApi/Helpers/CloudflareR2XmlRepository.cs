@@ -1,9 +1,10 @@
-﻿using System.Xml.Linq;
-using Amazon.S3;
+﻿using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Xml.Linq;
 
-public class CloudflareR2XmlRepository : IXmlRepository
+public class CloudflareR2XmlRepository : IDeletableXmlRepository
 {
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
@@ -116,6 +117,64 @@ public class CloudflareR2XmlRepository : IXmlRepository
             ServerSideEncryptionMethod = ServerSideEncryptionMethod.AES256  // optionnel mais recommandé
         };
 
-        await _s3Client.PutObjectAsync(putRequest, cancellationToken);
+        var response = await _s3Client.PutObjectAsync(putRequest, cancellationToken);
+        if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+        {
+            _logger.LogError($"Failed to store element with friendly name: {friendlyName}. S3 responded with status code: {response.HttpStatusCode}");
+            throw new InvalidOperationException("Failed to store element");
+        }
+    }
+
+    public bool DeleteElements(Action<IReadOnlyCollection<IDeletableElement>> chooseElements)
+    {
+        try
+        {
+            using (var tokenSource2 = new CancellationTokenSource())
+            {
+                CancellationToken ct = tokenSource2.Token;
+                return Task<bool>.Run(async () =>
+                {
+                    // Were we already canceled?
+                    ct.ThrowIfCancellationRequested();
+                    return await DeleteElementsAsync(chooseElements, ct);
+
+                }).GetAwaiter().GetResult();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error occurred while deleting elements");
+            throw; // On rethrow pour que l'appelant puisse gérer l'erreur
+        }
+    }
+
+    public async Task<bool> DeleteElementsAsync(Action<IReadOnlyCollection<IDeletableElement>> chooseElements, CancellationToken cancellationToken = default)
+    {
+        var succceded = true;
+        foreach (var element in GetAllElements())
+        {
+            var friendlyName = element.Attribute("friendlyName")?.Value;
+            if (string.IsNullOrEmpty(friendlyName))
+                continue; // On ignore les éléments sans nom
+            var key = $"{_prefix}{friendlyName}.xml";
+            using var memoryStream = new MemoryStream();
+            await element.SaveAsync(memoryStream, SaveOptions.DisableFormatting, cancellationToken);
+            memoryStream.Position = 0; // On remet le curseur au début pour la lecture
+
+            var putRequest = new DeleteObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = key
+
+            };
+
+            var response = await _s3Client.DeleteObjectAsync(putRequest, cancellationToken);
+            if (response.HttpStatusCode != System.Net.HttpStatusCode.NoContent)
+            {
+                _logger.LogError($"Failed to delete element with friendly name: {friendlyName}. S3 responded with status code: {response.HttpStatusCode}");
+                succceded = false; // On continue à essayer de supprimer les autres éléments, mais on marque l'opération comme ayant échoué
+            }
+        }
+        return succceded;
     }
 }
