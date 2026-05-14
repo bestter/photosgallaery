@@ -72,3 +72,6 @@
 ## 2024-05-18 - [FastAPI] Async offloading for ML models
 **Learning:** In FastAPI 'async def' endpoints, synchronous CPU-intensive calls like 'transformers' pipeline inference block the main event loop, preventing concurrent request handling.
 **Action:** Wrapped the 'classifier(image)' call in 'await asyncio.to_thread(classifier, image)' to offload the work to a separate thread, keeping the event loop responsive.
+## 2026-05-14 - [FastAPI] Async offloading for ML models
+ **Learning:** In FastAPI 'async def' endpoints, synchronous CPU-intensive calls like 'transformers' pipeline inference block the main event loop, preventing concurrent request handling.
+ **Action:** Wrapped the 'classifier(image)' call in 'await asyncio.to_thread(classifier, image)' to offload the work to a separate thread, keeping the event loop responsive.
