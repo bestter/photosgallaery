@@ -26,12 +26,14 @@ permissions:
   security-events: write
   # Read commit contents
   contents: read
+  # Autorisation requise par les versions récentes pour lire les infos du workflow
+  actions: read
 
 jobs:
   scan-scheduled:
     if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
-    # Mise à jour : utilisation du tag @v1 au lieu d'un vieux commit (v1.7.1)
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1.9.2"
+    # Utilisation de "main" pour avoir toujours la dernière version
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@main"
     with:
       # Example of specifying custom arguments
       scan-args: |-
@@ -40,8 +42,8 @@ jobs:
         ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
-    # Mise à jour : utilisation du tag @v1 au lieu d'un vieux commit (v1.7.1)
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v1.9.2"
+    # Utilisation de "main" pour avoir toujours la dernière version
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@main"
     with:
       # Example of specifying custom arguments
       scan-args: |-
