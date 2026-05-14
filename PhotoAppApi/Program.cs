@@ -11,6 +11,7 @@ using PhotoAppApi;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
+using Resend;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Channels;
@@ -191,7 +192,7 @@ builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
         var s3Client = sp.GetRequiredService<IAmazonS3>();
         var bucketName = builder.Configuration["ObjectStorage:BucketName"] ?? "pixellyra";
 
-        options.XmlRepository = new CloudflareR2XmlRepository(s3Client, bucketName);
+        options.XmlRepository = new CloudflareR2XmlRepository(s3Client, bucketName, sp.GetRequiredService<ILogger<CloudflareR2XmlRepository>>());
     });
 });
 
