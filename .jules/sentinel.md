@@ -132,3 +132,7 @@
 **Vulnerability:** The `CreateInvitation` endpoint was protected by `[Authorize]` but lacked rate limiting. It triggered external action (`_emailService.SendInvitationEmailAsync`), which could be abused by an authenticated user to perform spamming or Denial of Service by exhausting email quota.
 **Learning:** Endpoints that trigger external services or consume significant resources should have explicit rate limit policies, even if they are authenticated.
 **Prevention:** Always add rate limiting using the `[EnableRateLimiting("InviteLimiter")]` attribute for endpoints performing resource-intensive operations, such as sending emails, and define policies mapped to IP addresses in `Program.cs`.
+## 2024-05-24 - Fix Path Traversal in ImagesController
+ **Vulnerability:** Path Traversal (CWE-22) in `ImagesController.GetImage` and `ImagesController.GetThumbnail`.
+ **Learning:** The previous path validation (`fileName.Contains("..")`) and CodeQL fix `Path.GetFileName(fileName)` were insufficient because `.NET` on Linux doesn't treat backslashes as path separators, allowing traversal bypasses. Also, simple truncation without validation (`fileName = Path.GetFileName(fileName)`) implicitly trusts invalid inputs.
+ **Prevention:** Replaced implicit truncation with strict validation. Replaced `\` with `/` to ensure cross-platform safety, extracted the pure file name, and explicitly rejected the request if the extracted name doesn't match the input exactly (`safeFileName != fileName`). Added redundant checks for `..` and invalid characters for defense-in-depth.

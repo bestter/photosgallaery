@@ -32,13 +32,10 @@ namespace PhotoAppApi.Controllers
         {
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            // To satisfy CodeQL, explicitly extract just the filename from the path before further validation.
-            fileName = Path.GetFileName(fileName);
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
 
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
-            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName.Contains("..")) return BadRequest("Invalid file name.");
-
-            var safeFileName = fileName;
+            if (safeFileName != fileName || safeFileName.Contains("..") || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
 
 
 
@@ -126,13 +123,10 @@ namespace PhotoAppApi.Controllers
         {
             if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid file name.");
 
-            // To satisfy CodeQL, explicitly extract just the filename from the path before further validation.
-            fileName = Path.GetFileName(fileName);
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
 
             // 🛡️ Sentinel: Strictly validate the fileName to prevent Path Traversal (CWE-22)
-            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || fileName.Contains("..")) return BadRequest("Invalid file name.");
-
-            var safeFileName = fileName;
+            if (safeFileName != fileName || safeFileName.Contains("..") || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest("Invalid file name.");
 
 
 
