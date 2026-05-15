@@ -1,3 +1,3 @@
-## 2024-05-14 - Add clear search button to Gallery
-**Learning:** In the gallery page, users who enter a search term might struggle to clear the search without a dedicated clear button. This is especially true on mobile devices where the "all discoveries" button might be further down or less visible. Adding an inline clear button (`x`) within the search input greatly improves the user experience by making the action immediate and contextual.
-**Action:** Always provide an inline clear button (`x`) for search inputs, ensuring it's accessible via keyboard and screen readers (with an `aria-label`).
+## 2024-05-15 - [Gallery UI Accessibility and ARIA Attributes]
+**Learning:** Adding an `aria-label` to an interactive element that already contains visible text replaces the visible text completely for screen readers, violating WCAG 2.5.3 (Label in Name).
+**Action:** When adding an `aria-label` to clarify an action, ensure the visually-presented text is included or seamlessly integrated into the `aria-label` value. Also, if a nested interactive visual button element is used, ensuring it has `tabIndex={-1}` and `aria-hidden="true"` effectively removes redundant elements.
