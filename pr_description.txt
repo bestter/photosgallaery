@@ -1,1 +1,5 @@
-Removed unused dependencies from both backend (PhotoAppApi.csproj) and frontend (PhotoFrontend/package.json), and fully tested.
+🚨 Severity: MEDIUM
+💡 Vulnerability: The Python moderation service lacked file size limits, allowing memory exhaustion via large uploads (DoS). Furthermore, its global exception handler returned raw exception details (`detail=str(e)`), risking Information Leakage of internal paths, library versions, or ML model errors.
+🎯 Impact: An attacker could upload a massive file and exhaust the service's memory, leading to a Denial of Service. Additionally, raw exception details could aid attackers in reconnaissance.
+🔧 Fix: Added an explicit 50MB file size validation check before and during reading the file. Changed the exception handling to log the real error internally and return a safe, generic error message (`"Internal server error during moderation"`).
+✅ Verification: Ran Python compiler check (`python -m py_compile main.py`) in `moderation-service` and ran the `.NET` test suite to verify no regressions were introduced.
