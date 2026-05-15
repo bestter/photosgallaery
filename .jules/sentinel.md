@@ -145,3 +145,8 @@
  **Vulnerability:** The previous path traversal check simply validated `fileName != Path.GetFileName(fileName)` which is bypassable via cross-platform payloads like using `\` on linux if the initial extraction missed it.
  **Learning:** In .NET on Linux platforms, `Path.GetFileName()` does not treat backslashes (`\`) as directory separators. To prevent path traversal bypasses involving backslashes, always normalize the path by replacing `\` with `/` before calling `Path.GetFileName()`.
  **Prevention:** To prevent Path Traversal (CWE-22) and satisfy CodeQL analysis, use a consolidated check for route parameters: reject if the input contains '..', has invalid characters, or if the string changes after applying `Path.GetFileName(input.Replace("\\", "/"))`.
+
+## 2024-05-24 - [Fix Information Leakage and DoS Risk in Moderation Service]
+**Vulnerability:** The Python moderation service lacked file size limits, allowing memory exhaustion via large uploads (DoS). Furthermore, its global exception handler returned raw exception details (`detail=str(e)`), risking Information Leakage of internal paths, library versions, or ML model errors.
+**Learning:** Python microservices, especially ML inferencing services, are vulnerable to DoS if they read unbounded streams into memory (`await file.read()`). Additionally, propagating raw exception strings to the client violates the "Fail securely" principle and aids attackers in reconnaissance.
+**Prevention:** Always enforce strict file size bounds (e.g. 50MB) before or during file reads in FastAPI. Implement robust exception handling that logs the detailed error internally but returns a safe, generic `HTTPException` message to the client.
