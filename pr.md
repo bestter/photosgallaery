@@ -1,11 +1,14 @@
-⚡ [Performance Optimization] Parallel Image Moderation Check
+🎯 What
+Optimized the tag filtering rendering overhead in `Gallery.jsx`.
 
-💡 **What:** Replaced the sequential `foreach` loop that processes file moderation (`moderationService.CheckImageAsync`) inside the `UploadPhotos` controller with a concurrent parallelized execution approach utilizing LINQ `Select` to create tasks and `Task.WhenAll` to await them in unison.
+💡 Why
+During the render phase, string representations of tags (`photoTags`) were computed dynamically for each photo on every re-render by iterating over `photo.tags` arrays, checking translations, mapping, and filtering. This caused significant O(n*m) blocking overhead on the React main thread when typing in the search box, even though the main array `filteredPhotos` was memoized using `useMemo`.
 
-🎯 **Why:** Previously, the iteration of images would process files one by one. By iterating asynchronously and sequentially over a collection of IO/Network-bound tasks (especially calling out to an external moderation API), the overall time to process scales linearly with the number of images uploaded (i.e. O(n)). By awaiting them all concurrently, the performance bottleneck changes from the sum of all tasks to the longest individual task.
+✅ Verification
+- Ensured the `Gallery.jsx` filters and search still work.
+- Ran `vitest` in the `PhotoFrontend` directory which confirmed `PhotoCard.test.jsx` still passes.
+- Linting checks passed via `pnpm lint`.
+- Safe extraction of string formatting logic out of the JSX render iteration mapping.
 
-📊 **Measured Improvement:**
-During testing:
-- **Baseline:** Moderating 10 dummy files with an artificial 100ms moderation delay resulted in an execution time of **~1185 ms**.
-- **After Improvement:** Moderating the same 10 files using `Task.WhenAll` resulted in an execution time of **~276 ms**.
-- **Change:** Over a 75%+ reduction in latency on large batches, allowing requests to complete and free thread pool threads more rapidly.
+✨ Result
+Display tag calculations (`_displayTags`) are now computed once during the `useMemo` block execution, removing O(N) mapping loops from the rendering phase and reducing blocking time on the UI thread when search inputs trigger rendering.

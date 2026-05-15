@@ -136,46 +136,66 @@ export default function Gallery() {
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
   const filteredPhotos = useMemo(() => {
-    return photos.filter((photo) => {
-      let matchTag = true;
-      if (selectedTag) {
-        const photoTags = photo.tags || photo.Tags || [];
-        matchTag = photoTags.some((tagObj) => {
-          const tagTranslations =
-            tagObj.translations || tagObj.Translations || [];
-          const frTranslation =
-            tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
-            tagTranslations[0];
-          const tagName = frTranslation
-            ? frTranslation.name || frTranslation.Name
-            : "Tag";
-          return tagName === selectedTag;
-        });
-      }
-
-      let matchAuthor = true;
-      if (selectedAuthor) {
-        const author =
-          photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
-        matchAuthor = author === selectedAuthor;
-      }
-
-      let matchSearch = true;
-      if (debouncedSearchQuery) {
-        const photoTags = photo.tags || photo.Tags || [];
-        const query = debouncedSearchQuery.toLowerCase();
-        matchSearch = photoTags.some((tagObj) => {
-          const tagTranslations =
-            tagObj.translations || tagObj.Translations || [];
-          return tagTranslations.some((t) => {
-            const tagName = t.name || t.Name;
-            return tagName && tagName.toLowerCase().includes(query);
+    return photos
+      .filter((photo) => {
+        let matchTag = true;
+        if (selectedTag) {
+          const photoTags = photo.tags || photo.Tags || [];
+          matchTag = photoTags.some((tagObj) => {
+            const tagTranslations =
+              tagObj.translations || tagObj.Translations || [];
+            const frTranslation =
+              tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
+              tagTranslations[0];
+            const tagName = frTranslation
+              ? frTranslation.name || frTranslation.Name
+              : "Tag";
+            return tagName === selectedTag;
           });
-        });
-      }
+        }
 
-      return matchTag && matchAuthor && matchSearch;
-    });
+        let matchAuthor = true;
+        if (selectedAuthor) {
+          const author =
+            photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
+          matchAuthor = author === selectedAuthor;
+        }
+
+        let matchSearch = true;
+        if (debouncedSearchQuery) {
+          const photoTags = photo.tags || photo.Tags || [];
+          const query = debouncedSearchQuery.toLowerCase();
+          matchSearch = photoTags.some((tagObj) => {
+            const tagTranslations =
+              tagObj.translations || tagObj.Translations || [];
+            return tagTranslations.some((t) => {
+              const tagName = t.name || t.Name;
+              return tagName && tagName.toLowerCase().includes(query);
+            });
+          });
+        }
+
+        return matchTag && matchAuthor && matchSearch;
+      })
+      .map((photo) => {
+        // ⚡ Bolt: Compute display tags once during filtering rather than on every render
+        const photoTagsRaw = photo.tags || photo.Tags || [];
+        const _displayTags = photoTagsRaw
+          .map((tagObj) => {
+            const tagTranslations =
+              tagObj.translations || tagObj.Translations || [];
+            const frTranslation =
+              tagTranslations.find(
+                (t) => t.language === 0 || t.Language === 0,
+              ) || tagTranslations[0];
+            return frTranslation
+              ? frTranslation.name || frTranslation.Name
+              : "Tag";
+          })
+          .filter(Boolean);
+
+        return { ...photo, _displayTags };
+      });
   }, [photos, selectedTag, selectedAuthor, debouncedSearchQuery]);
 
   return (
@@ -435,21 +455,8 @@ export default function Gallery() {
               const originalUrl = photo.url || photo.Url;
               const thumbnailUrl = photo.thumbnailUrl || photo.ThumbnailUrl;
 
-              // Get tags for display
-              const photoTagsRaw = photo.tags || photo.Tags || [];
-              const photoTags = photoTagsRaw
-                .map((tagObj) => {
-                  const tagTranslations =
-                    tagObj.translations || tagObj.Translations || [];
-                  const frTranslation =
-                    tagTranslations.find(
-                      (t) => t.language === 0 || t.Language === 0,
-                    ) || tagTranslations[0];
-                  return frTranslation
-                    ? frTranslation.name || frTranslation.Name
-                    : "Tag";
-                })
-                .filter(Boolean);
+              // Use pre-computed tags to prevent O(N) recalculations on every render
+              const photoTags = photo._displayTags || [];
 
               const isLarge = index % 4 === 0;
               const isWide = index % 4 === 3;
