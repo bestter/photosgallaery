@@ -22,8 +22,13 @@ async def moderate_image(file: UploadFile = File(...)):
     if file.content_type is None or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
+    if file.size and file.size > 52428800:
+        raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
+
     try:
         contents = await file.read()
+        if len(contents) > 52428800:
+            raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
         # Prédiction
@@ -47,4 +52,5 @@ async def moderate_image(file: UploadFile = File(...)):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error during moderation: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during moderation")

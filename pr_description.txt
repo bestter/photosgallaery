@@ -1,5 +1,5 @@
-💡 **What:** The optimization replaces the sequential `foreach` loop inside `PhotosController.MigrateClosedLoop` with a concurrent projection using LINQ `Select` to create `Task` objects that wrap the synchronous `System.IO.File.Exists` and `System.IO.File.Move` logic in `Task.Run()`. We then await all tasks concurrently with `Task.WhenAll`. The DbContext operations were intentionally pulled out of `Task.Run()` to avoid concurrency issues since EF Core `DbContext` is not thread-safe.
-
-🎯 **Why:** The migration previously executed file I/O operations sequentially. Moving a large number of original files and thumbnails blocks the current thread and creates significant N+1 latency, increasing overall migration execution time. Concurrently offloading these operations to thread-pool threads significantly reduces the processing time.
-
-📊 **Measured Improvement:** We created a benchmark script mimicking the file migration structure (simulating `File.Exists` and `File.Move` sequentially vs. concurrently). Over 10,000 dummy files, the execution time was roughly halved (e.g., from 525ms to 263ms).
+🚨 Severity: MEDIUM
+💡 Vulnerability: The Python moderation service lacked file size limits, allowing memory exhaustion via large uploads (DoS). Furthermore, its global exception handler returned raw exception details (`detail=str(e)`), risking Information Leakage of internal paths, library versions, or ML model errors.
+🎯 Impact: An attacker could upload a massive file and exhaust the service's memory, leading to a Denial of Service. Additionally, raw exception details could aid attackers in reconnaissance.
+🔧 Fix: Added an explicit 50MB file size validation check before and during reading the file. Changed the exception handling to log the real error internally and return a safe, generic error message (`"Internal server error during moderation"`).
+✅ Verification: Ran Python compiler check (`python -m py_compile main.py`) in `moderation-service` and ran the `.NET` test suite to verify no regressions were introduced.
