@@ -1,0 +1,30 @@
+# Enforce LF line endings for all text files (as per .editorconfig)
+* text=auto eol=lf
+
+# Explicitly mark binary files to prevent corruption
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.dll binary
+*.exe binary
+*.heapsnapshot binary
+
+# Ensure shell scripts always use LF
+*.sh text eol=lf
+
+# Windows-specific scripts can keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

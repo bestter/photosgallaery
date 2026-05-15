@@ -1,0 +1,8 @@
+# Critical configuration files
+.editorconfig @bestter
+AGENTS.md @bestter
+DESIGN.md @bestter
+ANTIGRAVITY.md @bestter
+
+# Optionally protect entire directories
+src/critical/ @bestter
