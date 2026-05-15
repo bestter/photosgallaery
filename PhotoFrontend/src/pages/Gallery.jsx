@@ -400,6 +400,7 @@ export default function Gallery() {
               <button
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedTag(null)}
+                aria-label={t("gallery.clear_search", "Effacer la recherche") + ` ${t("gallery.tag")}: ${selectedTag}`}
               >
                 <span
                   aria-hidden="true"
@@ -408,7 +409,10 @@ export default function Gallery() {
                   label
                 </span>
                 {t("gallery.tag")}: {selectedTag}
-                <span className="material-symbols-outlined text-[14px] ml-1 hover:text-white">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-[14px] ml-1 hover:text-white"
+                >
                   close
                 </span>
               </button>
@@ -417,6 +421,7 @@ export default function Gallery() {
               <button
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedAuthor(null)}
+                aria-label={t("gallery.clear_search", "Effacer la recherche") + ` ${selectedAuthor}`}
               >
                 <span
                   aria-hidden="true"
@@ -539,7 +544,11 @@ export default function Gallery() {
                       src={thumbnailUrl || originalUrl}
                     />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-                      <button className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <button
+                        className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      >
                         {t("gallery.view_image")}
                       </button>
                     </div>
