@@ -34,7 +34,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(PhotosController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IObjectStorageService _storage;
 
@@ -60,7 +60,7 @@ namespace PhotoAppApi.Controllers
             if (objectKey.StartsWith("/api/images/"))
             {
                 var fileName = Path.GetFileName(objectKey);
-                
+
                 if (objectKey.Contains("/thumbnails/"))
                 {
                     // Ex: /api/images/thumbnails/image.png -> thumbnails/image.png
@@ -71,7 +71,7 @@ namespace PhotoAppApi.Controllers
                     // Si vous avez uploadé le contenu de PrivateImages à la racine du bucket R2 :
                     // Ex: /api/images/image.png -> image.png
                     objectKey = fileName;
-                    
+
                     // Note: Si vous les avez mis dans le dossier "gallery", utilisez plutôt :
                     // objectKey = $"gallery/{fileName}";
                 }
@@ -295,13 +295,18 @@ namespace PhotoAppApi.Controllers
 
                 if (moderationService != null)
                 {
-                    foreach (var file in files)
+                    var moderationTasks = files.Select(async file =>
                     {
                         await using var stream = file.OpenReadStream();
-                        var result = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, cancellationToken);
+                        return await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, cancellationToken);
+                    });
 
-                        if (result.IsNsfw)
-                            return BadRequest(new { message = "Image contains inappropriate content", score = result.NsfwScore });
+                    var moderationResults = await Task.WhenAll(moderationTasks);
+
+                    var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
+                    if (nsfwResult != null)
+                    {
+                        return BadRequest(new { message = "Image contains inappropriate content", score = nsfwResult.NsfwScore });
                     }
                 }
                 else
@@ -400,15 +405,6 @@ namespace PhotoAppApi.Controllers
                         return Forbid();
                     }
                 }
-
-                var rootPath = _env.ContentRootPath;
-                var uploadsFolder = Path.Combine(rootPath, "PrivateImages");
-
-                //if (!Directory.Exists(uploadsFolder))
-                //{
-                //    log.Info($"Le dossier '{uploadsFolder}' n'existe pas. Création du dossier.");
-                //    Directory.CreateDirectory(uploadsFolder);
-                //}
 
                 var uploadedPhotos = new List<Photo>();
                 var errors = new List<string>();
@@ -598,8 +594,6 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        // N'oublie pas de t'assurer que tu as bien ce "using" en haut de ton fichier pour utiliser .Where() et .ToListAsync()
-        // using Microsoft.EntityFrameworkCore;
 
         // DELETE: api/photos/{id} (Privé: connectés seulement)
         [Authorize]

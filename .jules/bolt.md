@@ -52,7 +52,7 @@
 ## 2026-05-08 - Batched fetching of presigned URLs
 **Learning:** Sequential `await` calls inside `foreach` loops for network/I/O bound operations (like fetching S3 pre-signed URLs via `GetImageUrlAsync`) create N+1 latency bottlenecks. Mock data in tests must fully implement `required` properties to avoid CS9035 compiler errors when testing these changes.
 **Action:** Use `Task.WhenAll` alongside LINQ `.Select(async ...)` to execute independent network requests concurrently. Always run `dotnet build` and `dotnet test` to catch any missing required properties in test mocks that may be introduced during refactoring.
-## 2026-05-14 - Remove unused GetUserLikes endpoint
+## 2026-05-15 - Remove unused GetUserLikes endpoint
 **Learning:** Sometimes the best performance improvement isn't optimizing a slow method, but deleting code that is completely unused. Maintaining dead code adds unnecessary bloat, compilation time, and cognitive load, and can sometimes conceal performance pitfalls. Always verify if a slow piece of code is actually in use before spending time optimizing it.
 **Action:** When evaluating methods for performance tuning, verify their usage across the codebase. If confirmed dead code, delete it rather than optimizing it to improve maintainability and slightly speed up compilation.
 ## 2026-05-11 - Prevent O(n) filter recalculation in Dashboard
@@ -69,9 +69,19 @@
 **Learning:** Rendering many large image elements (e.g., `<img />`) synchronously during component mount can severely impact the Initial Load time, block the main thread with rendering operations, and fetch unnecessary bytes for images that are below the fold (off-screen).
 **Action:** Always add the `loading="lazy"` attribute to `<img>` tags inside lists or grids that render many items, enabling the browser's native intersection observer to defer image decoding and fetching until the user scrolls them into view.
 
+## 2024-05-18 - [FastAPI] Async offloading for ML models
+**Learning:** In FastAPI 'async def' endpoints, synchronous CPU-intensive calls like 'transformers' pipeline inference block the main event loop, preventing concurrent request handling.
+**Action:** Wrapped the 'classifier(image)' call in 'await asyncio.to_thread(classifier, image)' to offload the work to a separate thread, keeping the event loop responsive.
 ## 2026-05-14 - [FastAPI] Async offloading for ML models
  **Learning:** In FastAPI 'async def' endpoints, synchronous CPU-intensive calls like 'transformers' pipeline inference block the main event loop, preventing concurrent request handling.
  **Action:** Wrapped the 'classifier(image)' call in 'await asyncio.to_thread(classifier, image)' to offload the work to a separate thread, keeping the event loop responsive.
+## 2024-05-18 - PhotosController Upload Moderation
+**Learning:** Sequential async operations within a foreach loop, like awaiting an external moderation service for multiple images one-by-one, can severely bottleneck throughput as execution times stack additively.
+**Action:** Transformed the synchronous `foreach` with embedded `await` calls into a concurrent execution model using LINQ `Select` to build a list of tasks and `Task.WhenAll()` to execute them in parallel, reducing overall wait time significantly.
+
+## 2026-05-15 - Optimize Tag Filtering Render overhead in Gallery.jsx
+**Learning:** Computing derived state (like mapping/filtering arrays of tags inside another array loop) directly within a component's render loop (e.g. inside `filteredPhotos.map(...)`) causes heavy O(N*M) calculation overhead on *every* render. Even if the array of photos is memoized, calculating the strings within the `.map` blocks the main thread when a high frequency of renders occurs (e.g., fast typing in search or hover effects).
+**Action:** When memoizing the main array filtering with `useMemo`, also map over the resulting filtered array *inside* the `useMemo` block to pre-compute the display values (like translating and formatting tags) and attach them to the object (e.g., `_displayTags`). The UI render loop then just accesses `item._displayTags`, reducing overhead to O(1) per item during renders.
 ## 2026-05-14 - Optimize Migration I/O with Concurrency
 **Learning:** Performing synchronous `System.IO.File.Exists` and `System.IO.File.Move` operations sequentially in a `foreach` loop over a large list of entities (like photos during a migration) significantly delays execution by blocking the current thread pool thread. This creates N+1 latency for I/O operations.
 **Action:** Replaced the sequential `foreach` loop inside `PhotosController.MigrateClosedLoop` with a concurrent projection using LINQ `Select` to create `Task` objects that wrap the I/O logic in `Task.Run()`, offloading these blocking operations to the thread pool, and subsequently awaiting all tasks concurrently with `Task.WhenAll`. Reduced processing time by approx. 50% according to our local benchmarking proxy!
