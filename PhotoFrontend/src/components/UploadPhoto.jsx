@@ -162,7 +162,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         : tags;
 
     if (tagsList.length < 1 || tagsList.length > 12) {
-      alert(t("components.upload.error.tag_limit"));
+      toast.error(t("components.upload.error.tag_limit"));
       setIsUploading(false);
       return;
     }
