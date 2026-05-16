@@ -959,18 +959,25 @@ namespace PhotoAppApi.Controllers
                         System.IO.File.Move(oldThumbFile, newThumbFile);
                     }
 
-                    return (photo, localMigratedImages);
+                    // ⚡ Bolt: Compute CPU-intensive string replacements concurrently
+                    string? newUrl = null;
+                    if (photo.Url != null && photo.Url.StartsWith("/images/"))
+                    {
+                        newUrl = photo.Url.Replace("/images/", "/api/images/");
+                    }
+
+                    return (photo, localMigratedImages, newUrl);
                 }));
 
                 var results = await Task.WhenAll(tasks);
 
-                foreach (var (photo, localMigratedImages) in results)
+                foreach (var (photo, localMigratedImages, newUrl) in results)
                 {
                     // Update DB info (must be done on the main thread since DbContext is not thread-safe)
                     if (!photo.GroupId.HasValue) photo.GroupId = defaultGroup.Id;
-                    if (photo.Url != null && photo.Url.StartsWith("/images/"))
+                    if (newUrl != null)
                     {
-                        photo.Url = photo.Url.Replace("/images/", "/api/images/");
+                        photo.Url = newUrl;
                     }
 
                     migratedImages += localMigratedImages;
