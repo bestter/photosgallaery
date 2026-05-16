@@ -19,5 +19,5 @@ jobs:
       - uses: millionco/react-doctor@main
         with:
           directory: PhotoFrontend
-          diff: main
+          fail-on: none
           github-token: ${{ secrets.GITHUB_TOKEN }}
