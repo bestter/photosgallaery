@@ -7,6 +7,7 @@ import {
 import api from "../api";
 import { useTranslation } from "react-i18next";
 import AdminLayout from "../components/AdminLayout";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -61,7 +62,7 @@ export default function Dashboard() {
       );
     } catch (error) {
       console.error(`Error updating role to ${newRole}:`, error);
-      alert(t("admin.dashboard.role_update_error"));
+      toast.error(t("admin.dashboard.role_update_error"));
     }
   };
 

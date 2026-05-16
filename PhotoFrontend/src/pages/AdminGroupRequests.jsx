@@ -3,6 +3,7 @@ import { getUserRole, isTokenExpired } from '../authHelper';
 import api from '../api';
 import AdminLayout from '../components/AdminLayout';
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 
 export default function AdminGroupRequests() {
     const { t } = useTranslation();
@@ -37,7 +38,7 @@ export default function AdminGroupRequests() {
             setRequests(requests.filter(r => r.id !== id));
         } catch (error) {
             console.error("Erreur lors de la suppression:", error);
-            alert("Erreur lors de la suppression.");
+            toast.error("Erreur lors de la suppression.");
         }
     };
 
