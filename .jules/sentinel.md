@@ -150,3 +150,8 @@
 **Vulnerability:** The Python moderation service lacked file size limits, allowing memory exhaustion via large uploads (DoS). Furthermore, its global exception handler returned raw exception details (`detail=str(e)`), risking Information Leakage of internal paths, library versions, or ML model errors.
 **Learning:** Python microservices, especially ML inferencing services, are vulnerable to DoS if they read unbounded streams into memory (`await file.read()`). Additionally, propagating raw exception strings to the client violates the "Fail securely" principle and aids attackers in reconnaissance.
 **Prevention:** Always enforce strict file size bounds (e.g. 50MB) before or during file reads in FastAPI. Implement robust exception handling that logs the detailed error internally but returns a safe, generic `HTTPException` message to the client.
+
+## 2024-05-16 - Add StringLength Bounds to DTOs
+**Vulnerability:** Found DTOs like ContactRequestDto and ReportDto missing string length bounds. This can lead to a Denial of Service (DoS) attack if large payloads are submitted to fields without length restrictions.
+**Learning:** Even simple DTOs need explicit validation using DataAnnotations, such as [StringLength(X)] to prevent malicious actors from sending excessively large strings that consume memory and CPU resources.
+**Prevention:** Always add [Required] and [StringLength] data annotations to DTO properties when handling user input.

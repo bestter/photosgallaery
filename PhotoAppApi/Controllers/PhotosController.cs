@@ -19,6 +19,7 @@ using PhotoAppApi.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -1293,6 +1294,8 @@ namespace PhotoAppApi.Controllers
 
     public class ReportDto
     {
+        [Required]
+        [StringLength(500)]
         public string Reason { get; set; } = string.Empty;
     }
 }
