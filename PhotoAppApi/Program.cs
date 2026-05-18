@@ -49,15 +49,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YOUR_DB_SERVER"))
 {
-    connectionString = "Server=localhost;Database=testdb;User=root;Password=root;"; // throw new InvalidOperationException("La chaîne de connexion à la base de données n'est pas configurée correctement. " +
-                                        // "Une chaîne valide doit être fournie via la configuration (ex: variable d'environnement ConnectionStrings__DefaultConnection).");
+    throw new InvalidOperationException("La chaîne de connexion à la base de données n'est pas configurée correctement. " +
+                                        "Une chaîne valide doit être fournie via la configuration (ex: variable d'environnement ConnectionStrings__DefaultConnection).");
 }
 
 // Dans ton Program.cs
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")),
+        connectionString,
+        ServerVersion.AutoDetect(connectionString),
         mySqlOptions =>
         {
             // C'est ici qu'on ajoute la résilience suggérée par l'erreur !
@@ -83,8 +83,8 @@ builder.Services.AddCors(options =>
 var secretKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Contains("YOUR_JWT_SECRET_KEY"))
 {
-    secretKey = "une_super_cle_secrete_pour_les_tests_qui_doit_etre_vraiment_tres_longue_12345678901234567890!"; // throw new InvalidOperationException("La clé secrète pour JWT n'est pas configurée correctement. " +
-                                        // "Une clé d'au moins 64 caractères doit être fournie via la configuration (ex: variable d'environnement Jwt__Key).");
+    throw new InvalidOperationException("La clé secrète pour JWT n'est pas configurée correctement. " +
+                                        "Une clé d'au moins 64 caractères doit être fournie via la configuration (ex: variable d'environnement Jwt__Key).");
 }
 
 builder.Services.AddAuthentication(options =>
