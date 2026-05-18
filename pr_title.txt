@@ -1,1 +1,1 @@
-⚡ Optimize Migration I/O with Concurrency
+⚡ Bolt: Implement Server-Side Pagination for Photo Queries

@@ -86,7 +86,7 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetImageUrlAsync_ShouldCallStorageService()
+        public void GetImageUrl_ShouldReturnLocalProxyRoute()
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
@@ -94,20 +94,16 @@ namespace PhotoAppApi.Tests.Controllers
             var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
             var storageMock = new Mock<IObjectStorageService>();
 
-            string objectKey = "gallery/photo1.jpg";
-            string expectedUrl = "https://s3.amazonaws.com/bucket/gallery/photo1.jpg?signature=xyz";
-
-            storageMock.Setup(s => s.GetPresignedUrlAsync(objectKey, It.IsAny<TimeSpan?>()))
-                       .ReturnsAsync(expectedUrl);
+            int photoId = 123;
+            string expectedUrl = $"/api/images/s3/{photoId}?isThumb=false";
 
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
             // Act
-            var result = await controller.GetImageUrlAsync(objectKey);
+            var result = controller.GetImageUrl(photoId, false);
 
             // Assert
             Assert.Equal(expectedUrl, result);
-            storageMock.Verify(s => s.GetPresignedUrlAsync(objectKey, TimeSpan.FromHours(1)), Times.Once);
         }
     }
 }

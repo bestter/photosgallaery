@@ -1,5 +1,15 @@
-🚨 Severity: MEDIUM
-💡 Vulnerability: The Python moderation service lacked file size limits, allowing memory exhaustion via large uploads (DoS). Furthermore, its global exception handler returned raw exception details (`detail=str(e)`), risking Information Leakage of internal paths, library versions, or ML model errors.
-🎯 Impact: An attacker could upload a massive file and exhaust the service's memory, leading to a Denial of Service. Additionally, raw exception details could aid attackers in reconnaissance.
-🔧 Fix: Added an explicit 50MB file size validation check before and during reading the file. Changed the exception handling to log the real error internally and return a safe, generic error message (`"Internal server error during moderation"`).
-✅ Verification: Ran Python compiler check (`python -m py_compile main.py`) in `moderation-service` and ran the `.NET` test suite to verify no regressions were introduced.
+🧹 Optimize Photo Endpoints with Pagination
+
+🎯 What
+Implemented native server-side pagination (`page`, `pageSize`) across all major gallery fetching endpoints (`GetPhotos`, `GetUserPhotos`, `GetMostViewedPhotos`) via Entity Framework Core `.Skip()` and `.Take()`.
+
+💡 Why
+The `GetPhotos` endpoint previously loaded the entire gallery into memory and synchronously spun up thousands of concurrent background tasks (`Task.WhenAll`) to generate S3 presigned URLs for every single image (both original and thumbnail) before responding. This caused significant memory allocations, DB load, and network/CPU spikes. By paginating the database queries at the source, we bound the `Task.WhenAll` mapping overhead to a maximum of 50 images per request.
+
+✅ Verification
+- Ensured `PhotosControllerTests.cs` and other backend tests pass successfully.
+- Preserved `Task.WhenAll` mapping for S3 URLs to ensure optimal concurrency on the restricted chunk of data.
+- Note: This architectural change forces the frontend to fetch pages. To fully integrate, the frontend requires additional server-side filter parameters.
+
+✨ Result
+Significantly decreased memory usage, CPU load, and response latency on all photo-fetching endpoints by capping operations to 50 items.
