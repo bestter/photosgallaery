@@ -1,3 +1,3 @@
-## 2024-05-15 - [Gallery UI Accessibility and ARIA Attributes]
-**Learning:** Adding an `aria-label` to an interactive element that already contains visible text replaces the visible text completely for screen readers, violating WCAG 2.5.3 (Label in Name).
-**Action:** When adding an `aria-label` to clarify an action, ensure the visually-presented text is included or seamlessly integrated into the `aria-label` value. Also, if a nested interactive visual button element is used, ensuring it has `tabIndex={-1}` and `aria-hidden="true"` effectively removes redundant elements.
+## 2024-05-18 - Hardcoded ARIA labels vs Translatable text
+**Learning:** Hardcoded `aria-label` attributes on buttons that already contain visible text violate WCAG 2.5.3 (Label in Name), especially in a multi-language app (react-i18next). If a user switches to English but the `aria-label` remains "Télécharger l'image" (French), screen readers will announce the French text instead of the visible English text, causing severe confusion.
+**Action:** Never use `aria-label` on buttons that have visible, descriptive text content unless you are specifically appending context that is visually hidden. If you must use `aria-label` to override or add to text, it must contain the visible text, and it must be translated using the `t()` function.
