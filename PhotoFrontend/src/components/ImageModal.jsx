@@ -233,7 +233,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="grid grid-cols-4 gap-3">
                         <button
                             onClick={handleDownload}
-                            aria-label="Télécharger l'image"
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity">
                             <span className="material-symbols-outlined" aria-hidden="true">download</span>
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
@@ -241,7 +240,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                         <button
                             onClick={handleLike}
-                            aria-label={isLiked ? "Retirer le like de la photo" : "Aimer la photo"}
+                            aria-pressed={isLiked}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors ${isLiked
                                 ? "bg-primary text-background-dark border-primary hover:opacity-90"
                                 : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
@@ -258,7 +257,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                         <button
                             onClick={handleShare}
-                            aria-label="Partager l'image"
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors">
                             <span className="material-symbols-outlined" aria-hidden="true">share</span>
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
@@ -267,7 +265,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         {hasReported ? (
                             <button
                                 disabled
-                                aria-label="Image déjà signalée"
                                 className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed">
                                 <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
                                 <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
@@ -276,7 +273,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             <button
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
-                                aria-label="Signaler l'image"
                                 title={isMyPhoto ? t("components.image_modal.cant_report_own") : ""}
                                 className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors ${isMyPhoto
                                     ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
@@ -349,7 +345,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 </span>
                             </div>
                             <button
-                                aria-label="Voir la localisation sur la carte"
                                 className="text-xs font-bold text-primary hover:underline"
                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
                             >

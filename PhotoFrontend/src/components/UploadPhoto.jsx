@@ -242,7 +242,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         </div>
 
         {/* Zone de Drag & Drop (Glisser-déposer) */}
-        <label className="flex flex-col bg-slate-100/50 dark:bg-primary/5 rounded-xl border-2 border-dashed border-primary/30 p-8 lg:p-14 text-center items-center gap-6 group hover:border-primary transition-all cursor-pointer relative">
+        <label className="flex flex-col bg-slate-100/50 dark:bg-primary/5 rounded-xl border-2 border-dashed border-primary/30 p-8 lg:p-14 text-center items-center gap-6 group hover:border-primary focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-all cursor-pointer relative">
           <input
             type="file"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -394,7 +394,6 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
             <button
               type="submit"
               disabled={isUploading || files.length === 0}
-              aria-label={isUploading ? "Téléversement en cours" : "Publier la photo"}
               title={files.length === 0 ? t("components.upload.error.select_file") : ""}
               className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
             >
