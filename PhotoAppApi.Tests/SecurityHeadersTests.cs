@@ -19,15 +19,22 @@ namespace PhotoAppApi.Tests
             // Configure factory to avoid startup crashes due to missing appsettings
             _factory = factory.WithWebHostBuilder(builder =>
             {
+                builder.UseSetting("FrontendUrl", "http://localhost:3000");
+                builder.UseSetting("ConnectionStrings:DefaultConnection", "Server=localhost;Database=testdb;User=root;Password=root;");
+                builder.UseSetting("Jwt:Key", "une_super_cle_secrete_pour_les_tests_qui_doit_etre_vraiment_tres_longue_12345678901234567890!");
+                builder.UseSetting("ObjectStorage:Region", "eu-west-1");
+                builder.UseSetting("ObjectStorage:AccessKey", "test");
+                builder.UseSetting("ObjectStorage:SecretKey", "test");
+
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
-                    config.AddInMemoryCollection(new Dictionary<string, string>
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         {"ObjectStorage:Region", "eu-west-1"},
                         {"ObjectStorage:AccessKey", "test"},
                         {"ObjectStorage:SecretKey", "test"},
                         { "FrontendUrl", "http://localhost:3000" },
-                        { "DefaultConnection", "Server=localhost;Database=testdb;User=root;Password=root;" },
+                        { "ConnectionStrings:DefaultConnection", "Server=localhost;Database=testdb;User=root;Password=root;" },
                         { "Jwt:Key", "une_super_cle_secrete_pour_les_tests_qui_doit_etre_vraiment_tres_longue_12345678901234567890!" }
                     });
                 });
