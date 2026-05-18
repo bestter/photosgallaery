@@ -210,5 +210,45 @@ namespace PhotoAppApi.Controllers
                 return StatusCode(500, new { message = "Erreur lors de la récupération de la miniature." });
             }
         }
+
+        [HttpGet("s3/{photoId}")]
+        public async Task<IActionResult> GetS3Image(int photoId, [FromQuery] bool isThumb = false, [FromServices] PhotoAppApi.Services.IObjectStorageService _storage = null!, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var photo = await _context.Photos.Select(p => new { p.Id, p.GroupId, p.Url, p.ThumbnailUrl }).FirstOrDefaultAsync(p => p.Id == photoId, cancellationToken);
+                if (photo == null) return NotFound();
+
+                if (photo.GroupId.HasValue)
+                {
+                    var currentUserIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
+
+                    if (!User.IsInRole("Admin"))
+                    {
+                        bool isMember = await _context.UserGroups.AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
+                        if (!isMember) return Forbid();
+                    }
+                }
+
+                string? objectKey = isThumb ? photo.ThumbnailUrl : photo.Url;
+                if (string.IsNullOrEmpty(objectKey)) return NotFound();
+
+                if (objectKey.StartsWith("/api/images/"))
+                {
+                    var fileName = System.IO.Path.GetFileName(objectKey);
+                    objectKey = objectKey.Contains("/thumbnails/") ? $"thumbnails/{fileName}" : fileName;
+                }
+
+                var url = await _storage.GetPresignedUrlAsync(objectKey, TimeSpan.FromHours(1));
+                return Redirect(url);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Error generating presigned URL for photoId: {photoId}", ex);
+                return StatusCode(500, new { message = "Error generating image URL." });
+            }
+        }
+
     }
 }

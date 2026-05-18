@@ -50,35 +50,9 @@ namespace PhotoAppApi.Controllers
             _viewChannelWriter = viewChannelWriter;
         }
 
-        public async Task<string> GetImageUrlAsync(string? objectKey)
+        public string GetImageUrl(int photoId, bool isThumb)
         {
-            if (string.IsNullOrEmpty(objectKey))
-            {
-                return string.Empty;
-            }
-
-            // Migration : si l'URL vient de l'ancienne version locale (/api/images/...)
-            if (objectKey.StartsWith("/api/images/"))
-            {
-                var fileName = Path.GetFileName(objectKey);
-
-                if (objectKey.Contains("/thumbnails/"))
-                {
-                    // Ex: /api/images/thumbnails/image.png -> thumbnails/image.png
-                    objectKey = $"thumbnails/{fileName}";
-                }
-                else
-                {
-                    // Si vous avez uploadé le contenu de PrivateImages à la racine du bucket R2 :
-                    // Ex: /api/images/image.png -> image.png
-                    objectKey = fileName;
-
-                    // Note: Si vous les avez mis dans le dossier "gallery", utilisez plutôt :
-                    // objectKey = $"gallery/{fileName}";
-                }
-            }
-
-            return await _storage.GetPresignedUrlAsync(objectKey, TimeSpan.FromHours(1));
+            return $"/api/images/s3/{photoId}?isThumb={isThumb.ToString().ToLower()}";
         }
 
         // GET: api/photos (Sécurisé pour récupérer selon les groupes)
@@ -176,21 +150,15 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
-                // ⚡ Bolt: Execute GetImageUrlAsync concurrently for all photos and thumbnails to minimize sequential network latency
-                var urlTasks = photos.Select(async photo =>
+                // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
+                foreach (var photo in photos)
                 {
-                    var urlTask = GetImageUrlAsync(photo.Url);
-                    var thumbnailUrlTask = GetImageUrlAsync(photo.ThumbnailUrl);
-
-                    await Task.WhenAll(urlTask, thumbnailUrlTask);
-
-                    photo.Url = await urlTask;
-                    photo.ThumbnailUrl = await thumbnailUrlTask;
+                    photo.Url = GetImageUrl(photo.Id, false);
+                    photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
-                });
-                await Task.WhenAll(urlTasks);
+                }
 
                 // On retourne tes photos enrichies !
                 return Ok(photos);
@@ -1138,21 +1106,15 @@ namespace PhotoAppApi.Controllers
                     currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
-                // ⚡ Bolt: Execute GetImageUrlAsync concurrently for all photos and thumbnails to minimize sequential network latency
-                var urlTasks = userPhotos.Select(async photo =>
+                // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
+                foreach (var photo in userPhotos)
                 {
-                    var urlTask = GetImageUrlAsync(photo.Url);
-                    var thumbnailUrlTask = GetImageUrlAsync(photo.ThumbnailUrl);
-
-                    await Task.WhenAll(urlTask, thumbnailUrlTask);
-
-                    photo.Url = await urlTask;
-                    photo.ThumbnailUrl = await thumbnailUrlTask;
+                    photo.Url = GetImageUrl(photo.Id, false);
+                    photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
-                });
-                await Task.WhenAll(urlTasks);
+                }
 
                 return Ok(userPhotos);
             }
@@ -1232,20 +1194,14 @@ namespace PhotoAppApi.Controllers
                     currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                 }
 
-                // ⚡ Bolt: Execute GetImageUrlAsync concurrently for all photos and thumbnails to minimize sequential network latency
-                var urlTasks = photos.Select(async photo =>
+                // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
+                foreach (var photo in photos)
                 {
-                    var urlTask = GetImageUrlAsync(photo.Url);
-                    var thumbnailUrlTask = GetImageUrlAsync(photo.ThumbnailUrl);
-
-                    await Task.WhenAll(urlTask, thumbnailUrlTask);
-
-                    photo.Url = await urlTask;
-                    photo.ThumbnailUrl = await thumbnailUrlTask;
+                    photo.Url = GetImageUrl(photo.Id, false);
+                    photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
                     photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
-                });
-                await Task.WhenAll(urlTasks);
+                }
 
                 return Ok(photos);
             }
