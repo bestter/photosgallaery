@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http.Features; // <-- NOUVEL IMPORT REQUIS
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -114,10 +115,6 @@ builder.Services.AddAuthentication(options =>
         },
         OnTokenValidated = async context =>
         {
-            // On récupère la base de données depuis le contexte de la requête
-            var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-
-
             // On cherche l'ID de l'utilisateur dans son jeton
             var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -126,10 +123,22 @@ builder.Services.AddAuthentication(options =>
 
             if (int.TryParse(userIdClaim, out int userId))
             {
-                // On vérifie en direct s'il a été banni depuis sa dernière connexion
-                var user = await dbContext.Users.FindAsync(userId);
+                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                string cacheKey = $"UserValid_{userId}";
 
-                if (user == null || user.Role == UserRole.Forbidden)
+                if (!memoryCache.TryGetValue(cacheKey, out bool isForbidden))
+                {
+                    var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                    // On vérifie en direct s'il a été banni depuis sa dernière connexion
+                    var user = await dbContext.Users.FindAsync(userId);
+                    isForbidden = (user == null || user.Role == UserRole.Forbidden);
+
+                    // On garde le résultat en cache pour 5 minutes
+                    var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+                    memoryCache.Set(cacheKey, isForbidden, cacheEntryOptions);
+                }
+
+                if (isForbidden)
                 {
                     // Boum ! On invalide son bracelet JWT immédiatement.
                     // Cela va retourner une erreur 401 Unauthorized à React.
