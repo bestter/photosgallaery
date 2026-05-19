@@ -123,15 +123,19 @@ namespace PhotoAppApi.Controllers
         public Guid GroupId { get; set; }
 
         [Required(ErrorMessage = "Le prénom est requis.")]
+        [StringLength(50)]
         public string FirstName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Le nom est requis.")]
+        [StringLength(50)]
         public string LastName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "L'adresse e-mail est requise.")]
         [EmailAddress(ErrorMessage = "L'adresse e-mail n'est pas valide.")]
+        [StringLength(100)]
         public string Email { get; set; } = string.Empty;
 
+        [StringLength(500)]
         public string? Message { get; set; }
     }
 }

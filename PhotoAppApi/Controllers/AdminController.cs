@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using System.ComponentModel.DataAnnotations;
 using log4net;
 
 namespace PhotoAppApi.Controllers
@@ -142,6 +143,7 @@ namespace PhotoAppApi.Controllers
     // Le DTO est parfait ici !
     public class RoleUpdateDto
     {
+        [StringLength(50)]
         public string Role { get; set; } = string.Empty;
     }
 }

@@ -160,3 +160,7 @@
 **Vulnerability:** The application fell back to hardcoded secrets for `Jwt:Key` and the database `connectionString` if they were missing from the configuration. This could lead to production environments running with known, insecure defaults, allowing for token forgery and potential database compromise.
 **Learning:** Providing "helpful" defaults for sensitive configuration variables in code creates a critical risk if a deployment misses a configuration step, as the application will start without errors but with compromised security.
 **Prevention:** Fail fast and securely. Always throw configuration exceptions at startup if critical secrets or connection strings are missing, rather than falling back to hardcoded values. In tests, use explicit setting injection via WebApplicationFactory so the secrets are not mistakenly added to base JSON configs.
+## 2024-05-18 - [Add StringLength Bounds to DTOs]
+**Vulnerability:** Found DTOs like `UserRegisterDto`, `UserLoginDto`, `CreateGroupRequest`, `CreateInvitationDto`, and `RoleUpdateDto` missing string length bounds. This can lead to a Denial of Service (DoS) attack if large payloads are submitted to fields without length restrictions.
+**Learning:** Even simple DTOs need explicit validation using DataAnnotations, such as `[StringLength(X)]` to prevent malicious actors from sending excessively large strings that consume memory and CPU resources.
+**Prevention:** Always add `[Required]` and `[StringLength]` data annotations to DTO properties when handling user input.
