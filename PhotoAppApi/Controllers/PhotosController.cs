@@ -108,6 +108,10 @@ namespace PhotoAppApi.Controllers
 
                     query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
                 }
+                else if (!isAdmin && !currentUserId.HasValue)
+                {
+                    query = query.Where(p => !p.GroupId.HasValue);
+                }
 
                 // On exécute la requête pour obtenir la liste des photos
                 var photos = await query.ToListAsync(cancellationToken);

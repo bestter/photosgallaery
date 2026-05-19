@@ -67,6 +67,7 @@ const Login = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
                   <span
                     className="material-symbols-outlined"
+                    aria-hidden="true"
                     data-icon="person"
                   >
                     person

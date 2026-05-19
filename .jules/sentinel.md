@@ -1,16 +1,12 @@
-## 2025-04-26 - [Defense in Depth: Protecting Against Poisoned Database Records]
-**Vulnerability:** Path Traversal via database-sourced fields (CWE-22). The application correctly sanitized user-uploaded filenames but failed to re-sanitize those filenames when reading them back from the database (e.g., in `photo.FileName`) before using them in file operations like `Path.Combine()`.Collapse commentComment on line L2bestter commented on Apr 30, 2026 bestteron Apr 30, 2026OwnerAuthorMore actionsPut back all sentinel documentation!ReactWrite a replyResolve comment
-**Learning:** Even if data is sanitized upon input (e.g., file upload), you cannot implicitly trust data coming from the database. A malicious actor with direct DB access or who exploits another vulnerability (like SQLi) could poison the `FileName` column (e.g., `../../../etc/passwd`), leading to arbitrary file read/write/delete during maintenance or deletion tasks.
-**Prevention:** Implement Defense in Depth. Always re-sanitize fields that dictate file paths using functions like `Path.GetFileName()` right before they are used in file system APIs (`System.IO.File.Delete`, `System.IO.File.Move`, `System.IO.File.OpenRead`), regardless of their origin.
-## 2026-04-27 - [Defense in Depth: Protecting Against Poisoned Database Records]
-**Vulnerability:** Path Traversal via database-sourced fields (CWE-22) in Background Service. The application correctly sanitized user-uploaded filenames but failed to re-sanitize those filenames when reading them back from the database (e.g., in `photo.FileName`) before using them in file operations like `Path.Combine()` in `HashCalculationBackgroundService.cs`.
-**Learning:** Even if data is sanitized upon input (e.g., file upload), you cannot implicitly trust data coming from the database. A malicious actor with direct DB access or who exploits another vulnerability (like SQLi) could poison the `FileName` column (e.g., `../../../etc/passwd`), leading to arbitrary file read/write during background processing tasks.
-**Prevention:** Implement Defense in Depth. Always re-sanitize fields that dictate file paths using functions like `Path.GetFileName()` right before they are used in file system APIs, regardless of their origin.
-## 2024-05-24 - [Username Enumeration via Login Error Messages]
-**Vulnerability:** Username Enumeration. The login endpoint (`/api/auth/login`) returned different HTTP status codes and error messages depending on whether the username was found (`401 Unauthorized("Identifiants incorrects.")`) or the password was incorrect (`400 BadRequest({ message: "Mot de passe incorrect." })`).
-**Learning:** Returning specific error messages during authentication allows an attacker to enumerate valid usernames. If an attacker knows a username is valid, they can focus their brute-force or credential stuffing attacks on that specific account.
-**Prevention:** Always return a generic error message (e.g., "Identifiants incorrects.") and the same HTTP status code (e.g., `401 Unauthorized`) for all authentication failures (invalid username, invalid password) to prevent information leakage.
+## YYYY-MM-DD - [Title]
+**Vulnerability:** ...
+**Learning:** ...
+**Prevention:** ...
 
+## 2024-05-18 - Missing IDOR Check Fallback in GetPhotos
+**Vulnerability:** The `GetPhotos` endpoint skipped the group access filter entirely if an authenticated user was missing a user ID claim or unauthenticated but somehow bypassed the `[Authorize]` attribute.
+**Learning:** Even with an `[Authorize]` attribute, always provide a "fail closed" fallback block (e.g., `else if (!currentUserId.HasValue)`) to explicitly deny access to sensitive associated objects (like group-restricted photos) when expected identity claims are missing.
+**Prevention:** Implement explicit `else` or default blocks for identity verification to enforce defense-in-depth authorization.
 ## 2024-05-27 - [Failed Data Deletion: Hardcoded Public Path on Delete]
 **Vulnerability:** Failed Data Deletion (Orphaned Files). The `DeletePhoto` method in `PhotosController.cs` was using a hardcoded `wwwroot/images` path to delete photos and didn't attempt to delete thumbnails, while uploads and other features used the `PrivateImages` directory.
 **Learning:** If file storage paths are updated for features like uploads or viewing (e.g., migrating from public `wwwroot` to a private `PrivateImages` folder), all related operations like deletions must also be updated. Otherwise, sensitive data will be left orphaned on the filesystem, accessible if the directory is ever exposed, and causing resource exhaustion.
