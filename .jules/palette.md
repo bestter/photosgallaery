@@ -5,3 +5,7 @@
 ## 2025-02-12 - Material Symbols Font Ligature Accessibility
 **Learning:** In the `PhotoFrontend` app, Material Symbols are implemented as a ligature font (e.g. `<span>person</span>`). If these spans lack `aria-hidden="true"`, screen readers announce the literal text "person", leading to confusing and redundant readouts, especially when placed near text inputs or other interactive elements.
 **Action:** Always verify that `aria-hidden="true"` is applied to icon spans using ligature fonts (e.g. `className="material-symbols-outlined"`), and ensure that interactive elements have descriptive accessible names (like `aria-label`).
+## 2024-05-20 - Add Clear Search Button
+
+**Learning:** When adding a clear search button absolutely positioned within a search input in Tailwind CSS, ensure you update the input's padding (e.g., `pr-10`) to prevent text overlap.
+**Action:** Always check input padding when overlaying buttons. Ensure all icon-only buttons receive `aria-label`s localized to the project's setup (e.g., using `t()`).

@@ -76,13 +76,24 @@ export default function Dashboard() {
           search
         </span>
         <input
-          className="w-full pl-11 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all text-on-surface placeholder:text-on-surface-variant"
+          className="w-full pl-11 pr-10 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all text-on-surface placeholder:text-on-surface-variant"
           placeholder={t("admin.dashboard.search_placeholder")}
           type="text"
           aria-label={t("admin.dashboard.search_placeholder")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        {searchTerm && (
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+            onClick={() => setSearchTerm("")}
+            aria-label={t("gallery.clear_search", "Effacer la recherche")}
+            title={t("gallery.clear_search", "Effacer la recherche")}
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+          </button>
+        )}
       </div>
     </div>
   );
