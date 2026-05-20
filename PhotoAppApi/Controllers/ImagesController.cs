@@ -1,3 +1,4 @@
+using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -5,7 +6,6 @@ using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -16,7 +16,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(ImagesController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IMemoryCache _cache;
         public ImagesController(AppDbContext context, IWebHostEnvironment env, IMemoryCache cache)
@@ -32,15 +32,18 @@ namespace PhotoAppApi.Controllers
         {
             if (string.IsNullOrEmpty(fileName) ||
                 fileName.Contains("..") ||
-                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
-                fileName != Path.GetFileName(fileName.Replace("\\", "/")))
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
                 return BadRequest("Invalid file name.");
             }
 
-            // CodeQL recognizes Path.GetFileName() as a taint sanitizer.
-            // Since we've already validated the input above, this explicitly clears the taint.
-            var safeFileName = Path.GetFileName(fileName);
+            // Extract pure file name and implicitly clear CodeQL taint.
+            // Validating after extracting ensures no cross-platform bypasses occur.
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            if (fileName != safeFileName)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
 
 
@@ -128,15 +131,18 @@ namespace PhotoAppApi.Controllers
         {
             if (string.IsNullOrEmpty(fileName) ||
                 fileName.Contains("..") ||
-                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
-                fileName != Path.GetFileName(fileName.Replace("\\", "/")))
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
                 return BadRequest("Invalid file name.");
             }
 
-            // CodeQL recognizes Path.GetFileName() as a taint sanitizer.
-            // Since we've already validated the input above, this explicitly clears the taint.
-            var safeFileName = Path.GetFileName(fileName);
+            // Extract pure file name and implicitly clear CodeQL taint.
+            // Validating after extracting ensures no cross-platform bypasses occur.
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            if (fileName != safeFileName)
+            {
+                return BadRequest("Invalid file name.");
+            }
 
 
 
