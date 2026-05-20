@@ -681,30 +681,40 @@ namespace PhotoAppApi.Controllers
                 int updatedCount = 0;
                 int missingFilesCount = 0;
 
-                using (var sha512 = SHA512.Create())
-                {
-                    // 2. Boucler sur chaque photo
-                    foreach (var photo in photosSansHash)
-                    {
-                        var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
-                        var filePath = Path.Combine(rootPath, "images", safeFileName);
+                // 2. Boucler sur chaque photo
+                // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) with truly async file streams to prevent I/O exhaustion and safely speed up hashing.
+                var maxDegrees = Environment.ProcessorCount;
+                var hashResults = new System.Collections.Concurrent.ConcurrentBag<(Photo Photo, string? Hash, bool Exists, string FilePath)>();
 
-                        // 3. Vérifier si le fichier physique existe toujours
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            // Calculer le hash
-                            using (var stream = System.IO.File.OpenRead(filePath))
-                            {
-                                var hashBytes = await sha512.ComputeHashAsync(stream);
-                                photo.FileHash = Convert.ToHexStringLower(hashBytes);
-                            }
-                            updatedCount++;
-                        }
-                        else
-                        {
-                            missingFilesCount++;
-                            log.Warn($"Fichier introuvable pour la photo ID {photo.Id} : {filePath}");
-                        }
+                await Parallel.ForEachAsync(photosSansHash, new ParallelOptions { MaxDegreeOfParallelism = maxDegrees }, async (photo, ct) =>
+                {
+                    var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
+                    var filePath = Path.Combine(rootPath, "images", safeFileName);
+
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+                        using var sha512 = SHA512.Create();
+                        var hashBytes = await sha512.ComputeHashAsync(stream, ct);
+                        hashResults.Add((Photo: photo, Hash: Convert.ToHexStringLower(hashBytes), Exists: true, FilePath: filePath));
+                    }
+                    else
+                    {
+                        hashResults.Add((Photo: photo, Hash: null, Exists: false, FilePath: filePath));
+                    }
+                });
+
+                foreach (var result in hashResults)
+                {
+                    if (result.Exists)
+                    {
+                        result.Photo.FileHash = result.Hash;
+                        updatedCount++;
+                    }
+                    else
+                    {
+                        missingFilesCount++;
+                        log.Warn($"Fichier introuvable pour la photo ID {result.Photo.Id} : {result.FilePath}");
                     }
                 }
 

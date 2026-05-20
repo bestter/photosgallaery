@@ -1,3 +1,3 @@
-## 2024-05-19 - Cache Auth Status in OnTokenValidated
-**Learning:** Checking the database inside the JWT `OnTokenValidated` handler creates an N+1 performance bottleneck because this code runs synchronously on *every single* authenticated API request. Furthermore, using `SetSlidingExpiration` for authorization caching creates a security vulnerability where a user making constant requests can bypass a ban indefinitely by sliding the TTL window.
-**Action:** Use `IMemoryCache` with `SetAbsoluteExpiration` to cache authorization flags. This protects the DB from excessive load while guaranteeing that bans take effect within a defined timeframe regardless of user request frequency.
+## 2024-05-23 - Safe Concurrency for File Hashes
+**Learning:** Offloading sequential file I/O operations (like computing SHA-512 hashes) to unbounded `Task.Run` + `Task.WhenAll` can crash the application by causing File Descriptor Exhaustion (too many open files) and thread pool starvation. It also creates synchronous blocking reads if `FileStream` is instantiated synchronously.
+**Action:** Use bounded concurrency with `Parallel.ForEachAsync(..., new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, ...)` and ensure the stream uses `useAsync: true` alongside thread-safe collections like `ConcurrentBag` when doing file I/O over collections.
