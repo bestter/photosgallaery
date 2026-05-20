@@ -738,6 +738,7 @@ namespace PhotoAppApi.Controllers
         // POST: api/photos/{id}/report (Public: Visiteurs)
         [HttpPost("{id}/report")]
         [Authorize] // 🔒 LE CADENAS EST ICI !
+        [EnableRateLimiting("ReportLimiter")] // 🛡️ Sentinel: Enforce rate limiting to prevent DoS via spam reporting
         public async Task<IActionResult> ReportPhoto(int id, [FromBody] ReportDto request, CancellationToken cancellationToken = default)
         {
             try

@@ -56,3 +56,7 @@
 **Vulnerability:** Found DTOs like `UserRegisterDto`, `UserLoginDto`, `CreateGroupRequest`, `CreateInvitationDto`, and `RoleUpdateDto` missing string length bounds. This can lead to a Denial of Service (DoS) attack if large payloads are submitted to fields without length restrictions.
 **Learning:** Even simple DTOs need explicit validation using DataAnnotations, such as `[StringLength(X)]` to prevent malicious actors from sending excessively large strings that consume memory and CPU resources.
 **Prevention:** Always add `[Required]` and `[StringLength]` data annotations to DTO properties when handling user input.
+## 2024-05-20 - Add Rate Limiting for Report Endpoint
+**Vulnerability:** The `/api/photos/{id}/report` endpoint was missing rate limiting, making it vulnerable to Denial of Service (DoS) attacks and spam reporting.
+**Learning:** Endpoints that trigger database writes and external notifications must be protected with rate limiting to prevent abuse.
+**Prevention:** Always add `[EnableRateLimiting]` to endpoints handling user-submitted content or actions like reporting, and ensure the rate limit policy is defined in `Program.cs`. When configuring rate limits for authenticated endpoints, partition by the user's ID rather than their IP address to avoid penalizing users behind the same NAT.
