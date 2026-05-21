@@ -23,6 +23,7 @@
 ---
 
 ## 1. Stack Technologique Principal
+
 * **Frontend :** React / Vite
 * **Backend :** C# / ASP.NET Core
 * **Base de données :** MariaDB
@@ -32,10 +33,12 @@
 ## 2. Conventions de Développement
 
 ### Frontend (React & Vite)
+
 * Utiliser exclusivement des composants fonctionnels et des Hooks.
 * Les mises à jour de l'interface liées aux interactions (ex: compteurs de likes, ajout de tags) doivent être optimistes pour garantir la fluidité.
 
 ### Backend (C# .NET Core)
+
 * Garder les contrôleurs légers. La logique métier doit être extraite dans des services indépendants et injectables, notamment pour :
   * Le téléversement sécurisé des images (secure uploads).
   * Le traitement et la gestion du système de balises/tags d'images.
@@ -44,10 +47,12 @@
 * Utiliser des standards cryptographiques robustes (ex: SHA512) pour les opérations de hachage.
 
 ## 3. Directives de Déploiement et d'Infrastructure
+
 * Les services sont déployés sur Fly.io via des conteneurs.
 * Toute modification impliquant de nouvelles dépendances système, des changements de ports, ou l'ajout de variables d'environnement (spécialement celles préfixées par `VITE_` pour le frontend) doit être impérativement reflétée dans les `Dockerfile` correspondants.
 
 ## 4. Tests et Validation
+
 * **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C#, **Vitest** pour le frontend React). Si la logique d'affaire change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
 * **Couverture des nouveautés :** Toute nouvelle fonctionnalité ou modification touchant à l'accès aux données doit être accompagnée de nouveaux tests appropriés utilisant le framework correspondant.
 * **Validation stricte :** S'assurer que l'ensemble de la suite de tests passe avec succès avant de soumettre un Pull Request ou de finaliser un *diff*.
