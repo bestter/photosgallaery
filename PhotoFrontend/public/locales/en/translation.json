@@ -1,4 +1,11 @@
 {
+  "common": {
+    "select_language": "Select Language",
+    "upload_photo": "Upload a photo",
+    "close": "Close",
+    "previous_image": "Previous image",
+    "next_image": "Next image"
+  },
   "auth": {
     "login": {
       "success": "Login successful!",

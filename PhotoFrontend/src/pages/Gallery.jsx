@@ -671,8 +671,8 @@ export default function Gallery() {
         <button
           onClick={() => setIsUploadOpen(true)}
           className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40"
-          aria-label="Upload a photo"
-          title="Upload a photo"
+          aria-label={t("common.upload_photo", "Upload a photo")}
+          title={t("common.upload_photo", "Upload a photo")}
         >
           <span
             className="material-symbols-outlined text-[28px]"
@@ -690,8 +690,8 @@ export default function Gallery() {
             <button
               onClick={() => setIsUploadOpen(false)}
               className="absolute top-4 right-4 z-10 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-              aria-label="Fermer la modal d'upload"
-              title="Fermer"
+              aria-label={t("common.close", "Close")}
+              title={t("common.close", "Close")}
             >
               <span className="material-symbols-outlined" aria-hidden="true">
                 close

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function ReportModal({ photo, onClose, onReportSuccess }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,7 +56,8 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close", "Close")}
+            title={t("common.close", "Close")}
             className="text-slate-400 hover:text-primary transition-colors"
           >
             <span aria-hidden="true" className="material-symbols-outlined">

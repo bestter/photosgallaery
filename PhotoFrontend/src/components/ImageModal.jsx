@@ -179,8 +179,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 {/* Close Button (Top Right) */}
                 <button
                     onClick={onClose}
-                    aria-label="Close"
-                    title="Close"
+                    aria-label={t("common.close", "Close")}
+                    title={t("common.close", "Close")}
                     className="absolute top-4 right-4 z-20 p-2 rounded-full bg-background-dark/50 text-slate-100 hover:bg-primary/20 transition-colors"
                 >
                     <span className="material-symbols-outlined" aria-hidden="true">close</span>
@@ -195,12 +195,12 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Navigation Arrows */}
                     {onPrev && (
-                        <button onClick={onPrev} aria-label="Previous image (Left Arrow)" title="Previous image (Left Arrow)" className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                        <button onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                         </button>
                     )}
                     {onNext && (
-                        <button onClick={onNext} aria-label="Next image (Right Arrow)" title="Next image (Right Arrow)" className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                        <button onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
