@@ -24,13 +24,13 @@ using PhotoAppApi.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 var log = LogManager.GetLogger(typeof(Program));
 
-// On récupère l'URL depuis appsettings.json
+// Retrieve the URL from appsettings.json
 var frontendUrl = builder.Configuration.GetValue<string>("FrontendUrl");
 
-// Petite sécurité au démarrage pour éviter de chercher le bug pendant des heures
-if (string.IsNullOrEmpty(frontendUrl))
+// Startup security check to avoid spending hours debugging missing configuration
+if (string.IsNullOrWhiteSpace(frontendUrl))
 {
-    throw new InvalidOperationException("La configuration 'FrontendUrl' est introuvable dans appsettings.json.");
+    throw new InvalidOperationException("The 'FrontendUrl' configuration is missing in appsettings.json.");
 }
 
 // --- NOUVEAU : Configuration de la limite à 50 Mo (52 428 800 octets) ---
