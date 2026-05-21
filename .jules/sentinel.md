@@ -60,3 +60,8 @@
 **Vulnerability:** The `/api/photos/{id}/report` endpoint was missing rate limiting, making it vulnerable to Denial of Service (DoS) attacks and spam reporting.
 **Learning:** Endpoints that trigger database writes and external notifications must be protected with rate limiting to prevent abuse.
 **Prevention:** Always add `[EnableRateLimiting]` to endpoints handling user-submitted content or actions like reporting, and ensure the rate limit policy is defined in `Program.cs`. When configuring rate limits for authenticated endpoints, partition by the user's ID rather than their IP address to avoid penalizing users behind the same NAT.
+
+## 2024-05-21 - Rate Limiting Bypass via IP Rotation on Authenticated Endpoints
+**Vulnerability:** Rate limiters for authenticated endpoints (UploadLimiter, InviteLimiter, GroupRequestLimiter, ViewLimiter, TagsLimiter) were using IP addresses as the primary partition key.
+**Learning:** This allows authenticated attackers to bypass rate limits by rotating their IP addresses, potentially leading to DoS or spamming (e.g. sending massive amounts of invites).
+**Prevention:** Always prioritize the authenticated user's ID (`context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value`) over the IP address when configuring partition keys for rate limiting on authenticated routes. Fallback to IP only if the user ID is missing.
