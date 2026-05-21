@@ -384,14 +384,20 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
                 // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
-                var hashTasks = files.Where(file => file.Length > 0).Select(file => Task.Run(async () =>
+                // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) with a pre-sized array to safely process files without exhausting File Descriptors and preserve file order.
+                var validFiles = files.Where(file => file.Length > 0).ToList();
+                var fileHashesArray = new (IFormFile File, string Hash)[validFiles.Count];
+                var maxDegrees = Environment.ProcessorCount;
+
+                await Parallel.ForEachAsync(Enumerable.Range(0, validFiles.Count), new ParallelOptions { MaxDegreeOfParallelism = maxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
                 {
-                    using var stream = file.OpenReadStream();
+                    var file = validFiles[i];
+                    await using var stream = file.OpenReadStream();
                     using var sha512 = SHA512.Create();
-                    var hashBytes = await sha512.ComputeHashAsync(stream, cancellationToken);
-                    return (File: file, Hash: Convert.ToHexStringLower(hashBytes));
-                }));
-                var fileHashes = (await Task.WhenAll(hashTasks)).ToList();
+                    var hashBytes = await sha512.ComputeHashAsync(stream, ct);
+                    fileHashesArray[i] = (File: file, Hash: Convert.ToHexStringLower(hashBytes));
+                });
+                var fileHashes = fileHashesArray.ToList();
 
                 var distinctHashes = fileHashes.Select(fh => fh.Hash).Distinct().ToList();
                 var existingHashes = await _context.Photos
