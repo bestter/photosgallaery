@@ -13,7 +13,7 @@ const LanguageSelector = () => {
       <select
         value={i18n.resolvedLanguage || i18n.language}
         onChange={changeLanguage}
-        aria-label="Select Language"
+        aria-label={t("common.select_language", "Select Language")}
         className="appearance-none bg-surface-variant/30 border border-cyan-400/10 rounded px-3 py-1.5 pr-8 text-[10px] font-bold uppercase tracking-widest font-['Inter'] text-slate-400 hover:text-cyan-300 hover:border-cyan-400/30 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-variant cursor-pointer transition-all shadow-sm"
       >
         <option
