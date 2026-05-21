@@ -93,32 +93,39 @@ spacing:
   header-height: 4rem
 ---
 
+# Cyanide Glass Design System
+
 ## Brand & Style
-The brand identity is a fusion of **Cyberpunk Minimalism** and **Glassmorphism**. It evokes a high-stakes, technical atmosphere suitable for administrative control systems and network moderation. The aesthetic is "Electronic Noir"—dark, moody, and sharp, utilizing high-contrast accents against deep slate and teal foundations. 
+
+The brand identity is a fusion of **Cyberpunk Minimalism** and **Glassmorphism**. It evokes a high-stakes, technical atmosphere suitable for administrative control systems and network moderation. The aesthetic is "Electronic Noir"—dark, moody, and sharp, utilizing high-contrast accents against deep slate and teal foundations.
 
 Visual signals should communicate precision, authority, and real-time activity. The style employs translucent layers, subtle neon glows (cyanide), and crisp typography to create a sophisticated, data-driven environment that feels both futuristic and functionally rigorous.
 
 ## Colors
-The palette is dominated by "Deep Ocean" neutrals and "Electric Cyan" accents. 
+
+The palette is dominated by "Deep Ocean" neutrals and "Electric Cyan" accents.
 
 - **Primary (#00ced1):** Used for critical actions, active states, and high-priority indicators. It should often be accompanied by a soft outer glow or high-saturation text shadows.
 - **Surface Strategy:** Layers are built using varying depths of teal-tinted blacks and slate. The sidebar uses a true dark slate-950 (#020617) to provide a structural anchor, while main content areas use a slightly lighter teal-black (#0f2323).
 - **Semantic Accents:** Tertiary green is used for production-related indicators, while a bright vibrant red is reserved strictly for destructive "Reject" or "Error" states.
 
 ## Typography
-The system relies exclusively on **Inter** to maintain a systematic, utilitarian feel. 
+
+The system relies exclusively on **Inter** to maintain a systematic, utilitarian feel.
 
 Hierarchy is established through extreme variations in weight (from 400 to 900) and letter spacing rather than large scale changes. Brand elements and technical labels utilize heavy tracking (letter-spacing) and uppercase transformations to mimic terminal displays. Headlines should feel compressed and "heavy" (extra-bold/black), while body text remains clean and legible with standard spacing.
 
 ## Layout & Spacing
-The layout uses a **Fixed Sidebar / Fluid Content** model. 
+
+The layout uses a **Fixed Sidebar / Fluid Content** model.
 
 - **Sidebar:** A narrow 64 unit (16rem) column that remains locked to the left.
-- **Navigation:** Vertical rhythm is tight, using 4px (1 unit) increments. 
+- **Navigation:** Vertical rhythm is tight, using 4px (1 unit) increments.
 - **Main Canvas:** Content is centered within a max-width container (7xl) with generous outer padding (32px) to prevent cognitive overload.
 - **Data Grids:** Tables use comfortable horizontal padding (px-6) but tight vertical padding (py-4) to maximize information density.
 
 ## Elevation & Depth
+
 Depth is achieved through **Luminescence** and **Translucency** rather than traditional physical shadows.
 
 - **The Glass Effect:** The Top Navigation bar uses a backdrop blur (blur-md) and 50% opacity slate background to suggest a semi-transparent layer floating above the content.
@@ -127,11 +134,13 @@ Depth is achieved through **Luminescence** and **Translucency** rather than trad
 - **Shadows:** Only high-level containers (like the main data table) use a `shadow-2xl` with high opacity black to separate them from the base background.
 
 ## Shapes
-The shape language is **Technical and Precise**. 
+
+The shape language is **Technical and Precise**.
 
 A base roundedness of 4px (0.25rem) is used for most UI elements like buttons, input fields, and small cards, giving them a slightly softened but still industrial feel. User avatars are the primary exception, utilizing full circles (pill-shaped) to provide a organic contrast to the rigid grid. Table containers and large modules use an 8px (0.5rem) radius for structural stability.
 
 ## Components
+
 - **Primary Buttons:** High-contrast background (#00ced1) with dark text. Must feature a subtle cyan glow. Transitions should include a slight brightness increase on hover.
 - **Ghost/Secondary Buttons:** Border-only or transparent background with muted text. Use a background tint (e.g., `primary/10`) on hover.
 - **Navigation Links:** Active state is marked by a 4px left-border and a semi-transparent background fill of the primary color. Non-active states should be muted slate.
