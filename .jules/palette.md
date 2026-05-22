@@ -12,3 +12,7 @@
 ## 2024-05-21 - Hardcoded English ARIA labels in UI components
 **Learning:** Found several generic UI buttons (like modal close buttons, carousel navigation arrows, and language selectors) that had hardcoded English `aria-label`s (e.g., "Close", "Upload a photo"). This violates the localization requirement and WCAG 2.5.3 when used by non-English users, as the screen reader text will mismatch the visual context or site language.
 **Action:** Replaced hardcoded `aria-label` values with their localized equivalents using `t()` from `react-i18next`, adding translation keys to `common` scope for reuse across different components.
+
+## 2026-05-22 - Add Loading Spinners to Form Submissions
+**Learning:** In `PhotoFrontend`, providing clear visual feedback during asynchronous operations (like form submissions) improves user experience. Tailwind's `animate-spin` utility combined with the `sync` icon from Material Symbols is an effective and consistent pattern for this across the application.
+**Action:** When adding asynchronous actions to buttons, implement a loading state that displays the `sync` icon with `animate-spin` and ensure it aligns nicely with text using flexbox (`flex items-center justify-center gap-2`).

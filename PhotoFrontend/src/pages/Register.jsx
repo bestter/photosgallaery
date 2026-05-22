@@ -239,11 +239,18 @@ const Register = () => {
                     : ""
               }
             >
-              {isLoading ? t("auth.register.loading") : t("auth.register.submit")}
-              {!isLoading && (
-                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
-                  arrow_forward
-                </span>
+              {isLoading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                  {t("auth.register.loading")}
+                </>
+              ) : (
+                <>
+                  {t("auth.register.submit")}
+                  <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                    arrow_forward
+                  </span>
+                </>
               )}
             </button>
           </form>
