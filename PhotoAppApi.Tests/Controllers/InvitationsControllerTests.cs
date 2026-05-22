@@ -10,6 +10,7 @@ using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace PhotoAppApi.Tests.Controllers
@@ -27,7 +28,11 @@ namespace PhotoAppApi.Tests.Controllers
 
         private InvitationsController CreateController(AppDbContext context, IEmailService emailService, int? userId = null, string? username = null, string? role = null)
         {
-            var controller = new InvitationsController(context, emailService);
+            var configuration = new ConfigurationBuilder()
+                .AddJsonStream(new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes("{\"FrontendUrl\": \"http://localhost:5173\"}")))
+                .Build();
+
+            var controller = new InvitationsController(context, emailService, configuration);
 
             if (userId.HasValue || username != null || role != null)
             {

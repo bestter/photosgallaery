@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using log4net;
 
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Configuration;
 
 namespace PhotoAppApi.Controllers
 {
@@ -19,12 +20,14 @@ namespace PhotoAppApi.Controllers
 
                 private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
 
-        public InvitationsController(AppDbContext context, IEmailService emailService)
+        public InvitationsController(AppDbContext context, IEmailService emailService, IConfiguration configuration)
         {
             _context = context;
             _emailService = emailService;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -93,7 +96,7 @@ namespace PhotoAppApi.Controllers
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // L'URL pointe vers le Frontend (React) avec le token généré
-                var frontendUrl = "http://localhost:5173"; // On pourrait l'injecter depuis appsettings
+                var frontendUrl = _configuration.GetValue<string>("FrontendUrl"); // On pourrait l'injecter depuis appsettings
                 var inviteUrl = $"{frontendUrl}/join/{invitation.InviteToken}";
 
                 await _emailService.SendInvitationEmailAsync(
