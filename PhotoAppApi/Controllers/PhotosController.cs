@@ -926,8 +926,14 @@ namespace PhotoAppApi.Controllers
                 var allPhotos = await _context.Photos.ToListAsync();
                 int migratedImages = 0;
 
-                var tasks = allPhotos.Select(photo => Task.Run(() =>
+                // ⚡ Bolt: Replace unbounded Task.Run with Parallel.ForEachAsync for bounded concurrency,
+                // preventing thread pool starvation and file descriptor exhaustion.
+                var results = new (Photo photo, int localMigratedImages, string? newUrl)[allPhotos.Count];
+                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+
+                await Parallel.ForEachAsync(Enumerable.Range(0, allPhotos.Count), options, async (i, ct) =>
                 {
+                    var photo = allPhotos[i];
                     int localMigratedImages = 0;
 
                     // Move original file
@@ -956,10 +962,9 @@ namespace PhotoAppApi.Controllers
                         newUrl = photo.Url.Replace("/images/", "/api/images/");
                     }
 
-                    return (photo, localMigratedImages, newUrl);
-                }));
-
-                var results = await Task.WhenAll(tasks);
+                    results[i] = (photo, localMigratedImages, newUrl);
+                    await Task.CompletedTask; // Since we removed Task.Run but are using ForEachAsync
+                });
 
                 foreach (var (photo, localMigratedImages, newUrl) in results)
                 {
