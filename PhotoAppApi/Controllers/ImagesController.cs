@@ -85,7 +85,7 @@ namespace PhotoAppApi.Controllers
 
                 var fullRootPath = Path.GetFullPath(Path.Combine(rootPath, "PrivateImages"));
                 var fullFilePath = Path.GetFullPath(filePath);
-                if (!fullFilePath.StartsWith(fullRootPath + Path.DirectorySeparatorChar))
+                if (!string.Equals(Path.GetDirectoryName(fullFilePath), fullRootPath, StringComparison.OrdinalIgnoreCase))
                 {
                     return BadRequest("Invalid file path.");
                 }
@@ -107,7 +107,7 @@ namespace PhotoAppApi.Controllers
 
                 try
                 {
-                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+                    var fileStream = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
                     return File(fileStream, contentType);
                 }
                 catch (FileNotFoundException)
@@ -177,7 +177,7 @@ namespace PhotoAppApi.Controllers
 
                 var fullRootPath = Path.GetFullPath(Path.Combine(rootPath, "PrivateImages", "thumbnails"));
                 var fullFilePath = Path.GetFullPath(filePath);
-                if (!fullFilePath.StartsWith(fullRootPath + Path.DirectorySeparatorChar))
+                if (!string.Equals(Path.GetDirectoryName(fullFilePath), fullRootPath, StringComparison.OrdinalIgnoreCase))
                 {
                     return BadRequest("Invalid file path.");
                 }
@@ -198,7 +198,7 @@ namespace PhotoAppApi.Controllers
 
                 try
                 {
-                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+                    var fileStream = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
                     return File(fileStream, contentType);
                 }
                 catch (FileNotFoundException)
