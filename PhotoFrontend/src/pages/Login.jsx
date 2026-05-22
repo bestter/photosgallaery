@@ -123,14 +123,21 @@ const Login = () => {
 
             {/* Primary CTA */}
             <button
-              className="w-full bg-primary text-on-primary font-bold py-4 rounded uppercase tracking-widest text-xs hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+              className="w-full bg-primary text-on-primary font-bold py-4 rounded uppercase tracking-widest text-xs hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
               type="submit"
               disabled={isLoading || !username || !password}
               title={
                 !username || !password ? t("contact.error_fill_all") : ""
               }
             >
-              {isLoading ? t("auth.login.loading") : t("auth.login.submit")}
+              {isLoading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                  {t("auth.login.loading")}
+                </>
+              ) : (
+                t("auth.login.submit")
+              )}
             </button>
           </form>
 

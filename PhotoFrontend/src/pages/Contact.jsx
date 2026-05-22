@@ -115,8 +115,17 @@ export default function Contact() {
               <textarea className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500 resize-none" id="message" placeholder={t('contact.message_placeholder')} rows="5" value={formData.message} onChange={handleChange}></textarea>
             </div>
             <button disabled={isSubmitting} className="w-full bg-cyan-400 text-[#0f2323] font-bold py-3 px-6 rounded flex items-center justify-center gap-2 hover:brightness-110 shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all active:scale-[0.98] disabled:opacity-50" type="submit">
-              <span>{isSubmitting ? t('contact.submitting') : t('contact.submit')}</span>
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+              {isSubmitting ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                  <span>{t('contact.submitting')}</span>
+                </>
+              ) : (
+                <>
+                  <span>{t('contact.submit')}</span>
+                  <span className="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+                </>
+              )}
             </button>
           </form>
         </div>
