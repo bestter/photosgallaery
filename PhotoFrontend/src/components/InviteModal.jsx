@@ -192,8 +192,8 @@ const InviteModal = ({ isOpen, onClose }) => {
                             type="submit"
                             disabled={isLoading}
                         >
+                            {isLoading && <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>}
                             {isLoading ? t('components.invite_modal.sending') : t('components.invite_modal.send')}
-                            
                         </button>
                         <button
                             className="flex-1 bg-slate-800 text-on-surface-variant font-semibold py-3 px-6 rounded-lg hover:bg-slate-700 active:scale-[0.98] transition-all"
