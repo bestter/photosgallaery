@@ -102,10 +102,11 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                             {t("components.group_request.cancel")}
                         </button>
                         <button
-                            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-[#0f2323] bg-cyan-400 hover:brightness-110 transition-colors focus:ring-2 focus:ring-cyan-400 focus:outline-none shadow-[0_0_15px_rgba(0,206,209,0.3)] disabled:opacity-50"
+                            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-[#0f2323] bg-cyan-400 hover:brightness-110 transition-colors focus:ring-2 focus:ring-cyan-400 focus:outline-none shadow-[0_0_15px_rgba(0,206,209,0.3)] disabled:opacity-50 flex items-center justify-center gap-2"
                             type="submit"
                             disabled={isLoading}
                         >
+                            {isLoading && <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>}
                             {isLoading ? t("components.group_request.sending") : t("components.group_request.send")}
                         </button>
                     </div>
