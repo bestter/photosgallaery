@@ -4,3 +4,6 @@
 ## 2024-05-23 - Bounded Concurrency Array Order
 **Learning:** When using `Parallel.ForEachAsync` to bound concurrency safely, `ConcurrentBag` will scramble the order of the results compared to the original inputs.
 **Action:** When order matters, use a pre-sized array instead of a `ConcurrentBag` and assign elements concurrently by their original indices (e.g., `Enumerable.Range(0, collection.Count)`). This is a thread-safe operation in C#.
+## 2026-05-23 - Efficient IQueryable Subqueries
+**Learning:** Calling `await ... ToListAsync()` on an Entity Framework Core query to retrieve a list of IDs to be used in a subsequent `.Contains()` filter causes the framework to fetch the entire list into application memory and execute an inefficient N+1 query pattern.
+**Action:** Retain the ID list as an `IQueryable` (without calling `ToListAsync()`). EF Core will then natively translate the `.Contains()` clause into an efficient single SQL `IN` or `EXISTS` subquery, avoiding unnecessary in-memory data transfers.
