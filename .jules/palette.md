@@ -20,3 +20,7 @@
 ## 2025-02-28 - Add standard loading states for async actions
 **Learning:** Found multiple modals (GroupRequestModal, InviteModal) implementing async actions that updated button text (e.g. 'Sending...') but lacked a standardized visual loading indicator (spinner). This inconsistency breaks the user expectation for async feedback (visual feedback like a spinner) and violates the memory's Frontend UX standard.
 **Action:** Always add a loading spinner using the 'sync' material symbol icon along with standard text for long-running asynchronous actions in modals and ensure flexbox styles are used for proper alignment.
+
+## 2024-05-13 - Add `aria-label` to clear search button in Moderation dashboard
+**Learning:** Found a search input in the Moderation dashboard without a clear button.
+**Action:** Always ensure that search inputs have an accessible clear button with `aria-label` attribute and proper focus styles.

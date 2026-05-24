@@ -197,13 +197,24 @@ export default function Moderation() {
                   search
                 </span>
                 <input
-                  className="pl-10 pr-4 py-2 bg-surface-container border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 text-on-surface"
+                  className="pl-10 pr-10 py-2 bg-surface-container border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 text-on-surface"
                   placeholder="Rechercher..."
                   type="text"
                   aria-label="Rechercher"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+                    onClick={() => setSearchTerm("")}
+                    aria-label="Effacer la recherche"
+                    title="Effacer la recherche"
+                  >
+                    <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+                  </button>
+                )}
               </div>
               <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
                 <span
