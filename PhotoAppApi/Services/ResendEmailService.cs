@@ -10,11 +10,12 @@ namespace PhotoAppApi.Services
     {
 
         private string toEmail;
+        private string fromEmail;
         public ResendEmailService(IConfiguration configuration)
         {
             var _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             ResendKEy = _configuration["Resend:Key"] ?? throw new ArgumentNullException("Resend:Key");
-            //fromEmail = _configuration["Resend:FromEmail"] ?? throw new ArgumentNullException("Resend:FromEmail");
+            fromEmail = _configuration["Resend:FromEmail"] ?? throw new ArgumentNullException("Resend:FromEmail");
             toEmail = _configuration["Resend:ToEmail"] ?? throw new ArgumentNullException("Resend:ToEmail");
         }
 
@@ -71,7 +72,8 @@ namespace PhotoAppApi.Services
 
                 var resp = await resend.EmailSendAsync(new EmailMessage()
                 {
-                    From = from,
+                    From = fromEmail,
+                    ReplyTo = from,
                     To = toEmail,
                     Subject = sujet,
                     HtmlBody = contenuHtml,
