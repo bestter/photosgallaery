@@ -100,11 +100,11 @@ namespace PhotoAppApi.Controllers
 
                 if (!isAdmin && currentUserId.HasValue)
                 {
-                    var userGroupIds = await _context.UserGroups
+                    // ⚡ Bolt: Retain IQueryable instead of ToListAsync to let EF Core generate an efficient SQL subquery for the IN clause, preventing in-memory data transfer and reducing latency.
+                    var userGroupIds = _context.UserGroups
                         .AsNoTracking()
                         .Where(ug => ug.UserId == currentUserId.Value)
-                        .Select(ug => ug.GroupId)
-                        .ToListAsync(cancellationToken);
+                        .Select(ug => ug.GroupId);
 
                     query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
                 }
@@ -1082,11 +1082,11 @@ namespace PhotoAppApi.Controllers
 
                 if (!isAdmin && currentUserIdForAccess.HasValue)
                 {
-                    var userGroupIds = await _context.UserGroups
+                    // ⚡ Bolt: Retain IQueryable instead of ToListAsync to let EF Core generate an efficient SQL subquery for the IN clause, preventing in-memory data transfer and reducing latency.
+                    var userGroupIds = _context.UserGroups
                         .AsNoTracking()
                         .Where(ug => ug.UserId == currentUserIdForAccess.Value)
-                        .Select(ug => ug.GroupId)
-                        .ToListAsync();
+                        .Select(ug => ug.GroupId);
 
                     query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
                 }
@@ -1175,11 +1175,11 @@ namespace PhotoAppApi.Controllers
 
                 if (!isAdmin && currentUserIdForAccess.HasValue)
                 {
-                    var userGroupIds = await _context.UserGroups
+                    // ⚡ Bolt: Retain IQueryable instead of ToListAsync to let EF Core generate an efficient SQL subquery for the IN clause, preventing in-memory data transfer and reducing latency.
+                    var userGroupIds = _context.UserGroups
                         .AsNoTracking()
                         .Where(ug => ug.UserId == currentUserIdForAccess.Value)
-                        .Select(ug => ug.GroupId)
-                        .ToListAsync();
+                        .Select(ug => ug.GroupId);
 
                     query = query.Where(p => !p.GroupId.HasValue || userGroupIds.Contains(p.GroupId.Value));
                 }

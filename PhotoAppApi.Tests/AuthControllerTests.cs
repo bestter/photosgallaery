@@ -61,7 +61,7 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
-        public async Task Register_ExistingUser_ReturnsBadRequest()
+        public async Task Register_ExistingUser_ReturnsOkToPreventEnumeration()
         {
             // Arrange
             using var context = GetDatabaseContext();
@@ -81,10 +81,8 @@ namespace PhotoAppApi.Tests
             var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var value = badRequestResult.Value;
-            var message = value.GetType().GetProperty("message").GetValue(value) as string;
-            Assert.Equal("Cet usager existe déjà. Veuillez vous connecter ou utiliser un autre nom de compte.", message);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal("Compte créé avec succès !", okResult.Value);
         }
 
         [Fact]
