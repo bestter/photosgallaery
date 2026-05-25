@@ -130,8 +130,13 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
               disabled={isSubmitting}
               className="w-full bg-primary text-[#0f2323] font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
+              {isSubmitting && (
+                <span className="material-symbols-outlined animate-spin text-base" aria-hidden="true">
+                  sync
+                </span>
+              )}
               <span className="text-sm font-bold uppercase tracking-wider">
-                {isSubmitting ? "Envoi..." : "Submit Report"}
+                {isSubmitting ? t("common.sending", "Envoi...") : t("common.submit_report", "Submit Report")}
               </span>
               {!isSubmitting && (
                 <span
@@ -144,10 +149,11 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
             </button>
             <button
               onClick={onClose}
-              className="w-full bg-transparent border border-[#1e293b] text-slate-400 font-bold py-3 px-6 rounded-lg hover:bg-[#1c3838] hover:text-slate-100 transition-all flex items-center justify-center"
+              disabled={isSubmitting}
+              className="w-full bg-transparent border border-[#1e293b] text-slate-400 font-bold py-3 px-6 rounded-lg hover:bg-[#1c3838] hover:text-slate-100 transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-sm font-bold uppercase tracking-wider">
-                Cancel
+                {t("common.cancel", "Cancel")}
               </span>
             </button>
           </div>
