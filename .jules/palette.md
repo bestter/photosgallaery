@@ -24,3 +24,7 @@
 ## 2024-05-13 - Add `aria-label` to clear search button in Moderation dashboard
 **Learning:** Found a search input in the Moderation dashboard without a clear button.
 **Action:** Always ensure that search inputs have an accessible clear button with `aria-label` attribute and proper focus styles.
+
+## 2024-05-25 - Improve Loading Feedback in Modals
+**Learning:** For asynchronous loading states on action buttons in PhotoFrontend, replacing standard icons with a Material Symbols 'sync' icon utilizing Tailwind's animate-spin utility (e.g., `<span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>`) provides much clearer visual feedback during form submissions (like the Report Modal). This prevents users from repeatedly clicking the submit button, reducing frustration and potential API duplicate errors. The flexbox classes `flex items-center justify-center gap-2` or `space-x-2` ensure proper alignment with text.
+**Action:** Always include an explicit animated visual indicator and disabled state for all buttons that trigger asynchronous API actions. Wrap the text in `t()` function for translations.
