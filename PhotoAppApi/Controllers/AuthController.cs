@@ -112,10 +112,13 @@ namespace PhotoAppApi.Controllers
             try
             {
                 // 1. Vérifier si l'utilisateur existe déjà
-                if (await _context.Users.AnyAsync(u => u.Username == request.Username, cancellationToken))
+                if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email, cancellationToken))
                 {
-                    // C'est ici la clé : on renvoie un objet avec la propriété "message"
-                    return BadRequest(new { message = "Cet usager existe déjà. Veuillez vous connecter ou utiliser un autre nom de compte." });
+                    // 🛡️ Sentinel: Fix User Enumeration vulnerability
+                    // Avoid explicitly denying registration to prevent attackers from guessing valid emails or usernames.
+                    log.Warn($"Registration attempt for existing user with username '{request.Username}' or email '{request.Email}'. Rejecting silently to prevent user enumeration.");
+                    // Simulate successful creation response to mask the duplicate
+                    return Ok("Compte créé avec succès !");
                 }
 
                 Guid? inviteGuid = null;
