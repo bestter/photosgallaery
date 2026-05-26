@@ -610,14 +610,30 @@ namespace PhotoAppApi.Controllers
                 var s3ThumbUrl = photo.ThumbnailUrl;
 
                 // 3. Find and delete all associated reports first to maintain referential integrity
-                var associatedReports = await _context.ImageReports
-                                                      .Where(r => r.PhotoId == id)
-                                                      .ToListAsync(cancellationToken);
-
-                if (associatedReports.Count != 0)
+                // ⚡ Bolt: Replaced fetching reports into memory via ToListAsync and removing via RemoveRange with ExecuteDeleteAsync in production.
+                // Since EF Core InMemory database provider does not support bulk deletes, we fall back to traditional RemoveRange for unit tests.
+                int deletedCount = 0;
+                if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
                 {
-                    _context.ImageReports.RemoveRange(associatedReports);
-                    log.Debug($"{associatedReports.Count} report(s) deleted for photo ID: {id}");
+                    var associatedReports = await _context.ImageReports
+                                                          .Where(r => r.PhotoId == id)
+                                                          .ToListAsync(cancellationToken);
+                    if (associatedReports.Count != 0)
+                    {
+                        _context.ImageReports.RemoveRange(associatedReports);
+                        deletedCount = associatedReports.Count;
+                    }
+                }
+                else
+                {
+                    deletedCount = await _context.ImageReports
+                                                 .Where(r => r.PhotoId == id)
+                                                 .ExecuteDeleteAsync(cancellationToken);
+                }
+
+                if (deletedCount != 0)
+                {
+                    log.Debug($"{deletedCount} report(s) deleted for photo ID: {id}");
                 }
 
                 // 4. Delete the photo record from the database and commit changes

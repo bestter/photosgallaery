@@ -28,7 +28,7 @@ namespace PhotoAppApi.Tests.Controllers
                 .Options;
         }
 
-        [Fact(Skip = "ExecuteDeleteAsync is not supported by the InMemory provider used in these tests.")]
+        [Fact]
         public async Task DeletePhoto_ShouldDeleteFileAndRecord()
         {
             // Arrange
