@@ -632,14 +632,15 @@ namespace PhotoAppApi.Controllers
                 // --- NOUVEAU CODE ICI 👇 ---
                 // 3.5 Chercher et supprimer tous les signalements associés à cette photo
                 // (Assure-toi que "_context.ImageReports" correspond bien au nom de ton DbSet dans ton DbContext)
-                var associatedReports = await _context.ImageReports
-                                                      .Where(r => r.PhotoId == id)
-                                                      .ToListAsync(cancellationToken);
+                // ⚡ Bolt: Replaced fetching reports into memory via ToListAsync and removing via RemoveRange with ExecuteDeleteAsync.
+                // This performs a direct SQL DELETE operation, avoiding the overhead of fetching entities into memory and saving a database roundtrip.
+                var deletedCount = await _context.ImageReports
+                                                 .Where(r => r.PhotoId == id)
+                                                 .ExecuteDeleteAsync(cancellationToken);
 
-                if (associatedReports.Count != 0)
+                if (deletedCount != 0)
                 {
-                    _context.ImageReports.RemoveRange(associatedReports);
-                    log.Debug($"{associatedReports.Count} signalement(s) supprimé(s) pour la photo ID: {id}");
+                    log.Debug($"{deletedCount} signalement(s) supprimé(s) pour la photo ID: {id}");
                 }
                 // --- FIN DU NOUVEAU CODE 👆 ---
 
