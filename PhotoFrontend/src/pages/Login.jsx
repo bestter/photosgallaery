@@ -8,6 +8,7 @@ const Login = () => {
   const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -109,15 +110,26 @@ const Login = () => {
                   </span>
                 </div>
                 <input
-                  className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
+                  className="block w-full pl-10 pr-10 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
                   id="password"
                   placeholder={t("auth.login.password_placeholder")}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:text-primary"
+                  aria-label={showPassword ? t("common.hide_password", "Hide password") : t("common.show_password", "Show password")}
+                  aria-pressed={showPassword}
+                >
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
               </div>
             </div>
 
