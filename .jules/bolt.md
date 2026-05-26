@@ -7,3 +7,6 @@
 ## 2026-05-23 - Efficient IQueryable Subqueries
 **Learning:** Calling `await ... ToListAsync()` on an Entity Framework Core query to retrieve a list of IDs to be used in a subsequent `.Contains()` filter causes the framework to fetch the entire list into application memory and execute an inefficient N+1 query pattern.
 **Action:** Retain the ID list as an `IQueryable` (without calling `ToListAsync()`). EF Core will then natively translate the `.Contains()` clause into an efficient single SQL `IN` or `EXISTS` subquery, avoiding unnecessary in-memory data transfers.
+## 2024-05-23 - Bulk Delete Performance Optimization
+**Learning:** Using `.Where(...).ToListAsync()` to fetch entities into application memory and then passing them to `.RemoveRange(...)` is inefficient for bulk deletes, as it adds significant database roundtrips and memory overhead.
+**Action:** Use `.ExecuteDeleteAsync()` (or `.ExecuteUpdateAsync()`) introduced in EF Core 7+ for bulk operations to issue a direct SQL DELETE statement without tracking or loading entities into memory.
