@@ -130,7 +130,7 @@ namespace PhotoAppApi.Controllers
                     .Select(g => new { PhotoId = g.Key, Count = g.Count() })
                     .ToDictionaryAsync(x => x.PhotoId, x => x.Count, cancellationToken);
 
-                // C. On vérifie qui est connecté                
+                // C. On vérifie qui est connecté
                 var userLikedPhotoIds = new HashSet<int>();
                 var userReportedPhotoIds = new HashSet<int>();
 
@@ -1288,8 +1288,8 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("ViewLimiter")]
         public async Task<IActionResult> RecordView(int id)
         {
-            // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base 
-            // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT), 
+            // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base
+            // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT),
             // décommente et utilise ce qui suit (sinon UserId reste null) :
 
 
