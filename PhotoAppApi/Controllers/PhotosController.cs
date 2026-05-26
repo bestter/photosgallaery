@@ -130,7 +130,7 @@ namespace PhotoAppApi.Controllers
                     .Select(g => new { PhotoId = g.Key, Count = g.Count() })
                     .ToDictionaryAsync(x => x.PhotoId, x => x.Count, cancellationToken);
 
-                // C. On vérifie qui est connecté                
+                // C. On vérifie qui est connecté
                 var userLikedPhotoIds = new HashSet<int>();
                 var userReportedPhotoIds = new HashSet<int>();
 
@@ -574,7 +574,7 @@ namespace PhotoAppApi.Controllers
         }
 
 
-        // DELETE: api/photos/{id} (Privé: connectés seulement)
+        // DELETE: api/photos/{id} (Private: logged in users only)
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePhoto(int id, CancellationToken cancellationToken = default)
@@ -583,7 +583,7 @@ namespace PhotoAppApi.Controllers
             {
                 log.Debug($"In {nameof(DeletePhoto)} with id: {id}");
 
-                // 1. Chercher la photo dans la base de données MariaDB
+                // 1. Find the photo in the database
                 var photo = await _context.Photos.FindAsync(new object[] { id }, cancellationToken);
                 if (photo == null)
                 {
@@ -597,69 +597,128 @@ namespace PhotoAppApi.Controllers
                 {
                     if (string.IsNullOrEmpty(currentUsername) || photo.UploaderUsername != currentUsername)
                     {
-                        return Forbid(); // Retourne une erreur 403 : "Tu n'as pas le droit !"
+                        return Forbid();
                     }
                 }
 
-                // 2. Construire le chemin physique vers le fichier sur le serveur
+                // 2. Capture the keys and paths needed for cleanup before deleting the record
                 var rootPath = _env.ContentRootPath;
                 var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                 var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
                 var thumbPath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
+                var s3Url = photo.Url;
+                var s3ThumbUrl = photo.ThumbnailUrl;
 
-                // ⚡ Bolt: Execute file deletion concurrently with database operations to minimize latency
-                var fileDeletionTask = Task.Run(() =>
+                // 3. Find and delete all associated reports first to maintain referential integrity
+                // ⚡ Bolt: Replaced fetching reports into memory via ToListAsync and removing via RemoveRange with ExecuteDeleteAsync in production.
+                // Since EF Core InMemory database provider does not support bulk deletes, we fall back to traditional RemoveRange for unit tests.
+                int deletedCount = 0;
+                if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
                 {
-                    // 3. Supprimer le fichier physique s'il existe sur le disque dur
-                    if (System.IO.File.Exists(filePath))
+                    var associatedReports = await _context.ImageReports
+                                                          .Where(r => r.PhotoId == id)
+                                                          .ToListAsync(cancellationToken);
+                    if (associatedReports.Count != 0)
                     {
-                        System.IO.File.Delete(filePath);
-                        log.Debug($"Fichier physique supprimé: {filePath}");
+                        _context.ImageReports.RemoveRange(associatedReports);
+                        deletedCount = associatedReports.Count;
                     }
-                    else
-                    {
-                        log.Debug($"Fichier introuvable sur le disque (déjà supprimé ?) : {filePath}");
-                    }
-
-                    // Supprimer également la miniature si elle existe
-                    if (System.IO.File.Exists(thumbPath))
-                    {
-                        System.IO.File.Delete(thumbPath);
-                        log.Debug($"Fichier miniature supprimé: {thumbPath}");
-                    }
-                }, cancellationToken);
-
-                // --- NOUVEAU CODE ICI 👇 ---
-                // 3.5 Chercher et supprimer tous les signalements associés à cette photo
-                // (Assure-toi que "_context.ImageReports" correspond bien au nom de ton DbSet dans ton DbContext)
-                // ⚡ Bolt: Replaced fetching reports into memory via ToListAsync and removing via RemoveRange with ExecuteDeleteAsync.
-                // This performs a direct SQL DELETE operation, avoiding the overhead of fetching entities into memory and saving a database roundtrip.
-                var deletedCount = await _context.ImageReports
+                }
+                else
+                {
+                    deletedCount = await _context.ImageReports
                                                  .Where(r => r.PhotoId == id)
                                                  .ExecuteDeleteAsync(cancellationToken);
+                }
 
                 if (deletedCount != 0)
                 {
-                    log.Debug($"{deletedCount} signalement(s) supprimé(s) pour la photo ID: {id}");
+                    log.Debug($"{deletedCount} report(s) deleted for photo ID: {id}");
                 }
-                // --- FIN DU NOUVEAU CODE 👆 ---
 
-                // 4. Supprimer l'enregistrement de la base de données
+                // 4. Delete the photo record from the database and commit changes
                 _context.Photos.Remove(photo);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                // Wait for file deletion to complete before returning
-                await fileDeletionTask;
+                // 5. Clean up the physical files (S3 and local disk) concurrently in a resilient manner.
+                // Failures in file cleanup should not return an API error since the record is already deleted.
+                var cleanupTasks = new List<Task>();
 
-                log.Debug($"Enregistrement DB et fichiers physiques supprimés avec succès pour l'ID: {id}");
+                // Clean S3 storage if S3 keys exist
+                if (!string.IsNullOrEmpty(s3Url))
+                {
+                    cleanupTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _storage.DeleteImageAsync(s3Url, cancellationToken);
+                            log.Debug($"S3 original image deleted: {s3Url}");
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Warn($"Failed to delete S3 original image: {s3Url}", ex);
+                        }
+                    }));
+                }
 
-                // On retourne un code 200 (Ok) pour confirmer au frontend (React) que tout s'est bien passé
+                if (!string.IsNullOrEmpty(s3ThumbUrl))
+                {
+                    cleanupTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _storage.DeleteImageAsync(s3ThumbUrl, cancellationToken);
+                            log.Debug($"S3 thumbnail deleted: {s3ThumbUrl}");
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Warn($"Failed to delete S3 thumbnail: {s3ThumbUrl}", ex);
+                        }
+                    }));
+                }
+
+                // Clean local server storage
+                cleanupTasks.Add(Task.Run(() =>
+                {
+                    try
+                    {
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                            log.Debug($"Local file deleted: {filePath}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warn($"Failed to delete local file: {filePath}", ex);
+                    }
+                }));
+
+                cleanupTasks.Add(Task.Run(() =>
+                {
+                    try
+                    {
+                        if (System.IO.File.Exists(thumbPath))
+                        {
+                            System.IO.File.Delete(thumbPath);
+                            log.Debug($"Local thumbnail deleted: {thumbPath}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warn($"Failed to delete local thumbnail: {thumbPath}", ex);
+                    }
+                }));
+
+                await Task.WhenAll(cleanupTasks);
+
+                log.Debug($"DB photo record and associated reports deleted successfully for ID: {id}");
+
                 return Ok(new { message = "Photo et ses signalements supprimés avec succès." });
             }
             catch (Exception e)
             {
                 log.Error($"An error occured in {nameof(DeletePhoto)}", e);
-                // Il est préférable de renvoyer un code 500 (Erreur Serveur) plutôt que de juste faire un "throw" brut
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de la suppression." });
             }
         }
@@ -1245,8 +1304,8 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("ViewLimiter")]
         public async Task<IActionResult> RecordView(int id)
         {
-            // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base 
-            // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT), 
+            // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base
+            // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT),
             // décommente et utilise ce qui suit (sinon UserId reste null) :
 
 

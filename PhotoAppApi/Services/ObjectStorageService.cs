@@ -10,6 +10,11 @@ namespace PhotoAppApi.Services
     {
         Task<string> UploadImageAsync(Stream fileStream, string contentType, string fileName, string? folder = "images", CancellationToken cancellationToken = default);
         Task<string> GetPresignedUrlAsync(string key, TimeSpan? expiration = null);
+        
+        /// <summary>
+        /// Deletes an image from the object storage.
+        /// </summary>
+        Task DeleteImageAsync(string key, CancellationToken cancellationToken = default);
     }
 
     public class ObjectStorageService : IObjectStorageService
@@ -21,6 +26,23 @@ namespace PhotoAppApi.Services
         {
             _s3Client = s3Client;
             _bucketName = options.Value.BucketName;
+        }
+
+        /// <summary>
+        /// Deletes an image from the S3 bucket using its key.
+        /// </summary>
+        public async Task DeleteImageAsync(string key, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(key)) return;
+
+            var safeKey = key.TrimStart('/');
+            var request = new DeleteObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = safeKey
+            };
+
+            await _s3Client.DeleteObjectAsync(request, cancellationToken);
         }
 
         public async Task<string> UploadImageAsync(Stream fileStream, string contentType, string fileName, string? folder = "images", CancellationToken cancellationToken = default)
