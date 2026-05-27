@@ -952,21 +952,13 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 2. Assigner tous les utilisateurs existants à ce groupe
-                var allUserIds = await _context.Users.Select(u => u.Id).ToListAsync();
-                var existingUserIdsInGroup = await _context.UserGroups
-                    .Where(ug => ug.GroupId == defaultGroup.Id)
-                    .Select(ug => ug.UserId)
+                // ⚡ Bolt: Offloaded missing user membership filtering to the database by using a subquery (Any) instead of fetching all users into memory, reducing memory footprint and network latency.
+                var missingUserIds = await _context.Users
+                    .Where(u => !_context.UserGroups.Any(ug => ug.GroupId == defaultGroup.Id && ug.UserId == u.Id))
+                    .Select(u => u.Id)
                     .ToListAsync();
-                var existingUserIdsSet = new HashSet<int>(existingUserIdsInGroup);
 
-                var missingMemberships = new List<UserGroup>();
-                foreach (var userId in allUserIds)
-                {
-                    if (!existingUserIdsSet.Contains(userId))
-                    {
-                        missingMemberships.Add(new UserGroup { UserId = userId, GroupId = defaultGroup.Id });
-                    }
-                }
+                var missingMemberships = missingUserIds.Select(userId => new UserGroup { UserId = userId, GroupId = defaultGroup.Id }).ToList();
 
                 if (missingMemberships.Any())
                 {
