@@ -10,3 +10,6 @@
 ## 2024-05-23 - Bulk Delete Performance Optimization
 **Learning:** Using `.Where(...).ToListAsync()` to fetch entities into application memory and then passing them to `.RemoveRange(...)` is inefficient for bulk deletes, as it adds significant database roundtrips and memory overhead.
 **Action:** Use `.ExecuteDeleteAsync()` (or `.ExecuteUpdateAsync()`) introduced in EF Core 7+ for bulk operations to issue a direct SQL DELETE statement without tracking or loading entities into memory.
+## 2024-05-23 - Offloading Set Differences to the Database
+**Learning:** Fetching multiple entire datasets into memory (e.g. all users and all user group memberships) to compute set differences in C# (e.g. finding users without a specific membership) causes severe memory bloat and performance degradation as the tables grow.
+**Action:** Push the set difference logic to the database by using an EF Core `.Any()` subquery (e.g. `_context.Users.Where(u => !_context.UserGroups.Any(...))`). This evaluates entirely via an efficient SQL `NOT EXISTS` query.
