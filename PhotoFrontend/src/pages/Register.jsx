@@ -10,6 +10,8 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -151,16 +153,27 @@ const Register = () => {
                   </span>
                 </div>
                 <input
-                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
+                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
                   id="password"
                   placeholder={t("auth.register.password_placeholder")}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
                   minLength="6"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:text-primary"
+                  aria-label={showPassword ? t("common.hide_password", "Hide password") : t("common.show_password", "Show password")}
+                  aria-pressed={showPassword}
+                >
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -179,16 +192,27 @@ const Register = () => {
                   </span>
                 </div>
                 <input
-                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
+                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
                   id="confirm_password"
                   placeholder={t("auth.register.password_placeholder")}
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={isLoading}
                   minLength="6"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:text-primary"
+                  aria-label={showConfirmPassword ? t("common.hide_password", "Hide password") : t("common.show_password", "Show password")}
+                  aria-pressed={showConfirmPassword}
+                >
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                    {showConfirmPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
               </div>
             </div>
 
