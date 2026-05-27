@@ -1042,6 +1042,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [Authorize]
+        [EnableRateLimiting("LikeLimiter")]
         [HttpPost("{id}/like")]
         public async Task<IActionResult> ToggleLike(int id)
         {
