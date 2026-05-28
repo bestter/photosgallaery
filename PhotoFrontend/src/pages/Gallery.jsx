@@ -24,6 +24,8 @@ export default function Gallery() {
   // This reduces re-renders and the frequency of the O(n) filtering computation below by ~90% during active typing.
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   // Nouveaux états pour les groupes
   const [userGroups, setUserGroups] = useState([]);
@@ -40,12 +42,25 @@ export default function Gallery() {
   const canSeeDashboard = isLoggedIn && userRole === "Admin";
 
   // Récupération des photos depuis l'API, dépendante du groupe sélectionné
-  const fetchPhotos = async (groupId) => {
+  const fetchPhotos = async (groupId, currentPage = 1, append = false) => {
     try {
       setIsLoading(true);
-      const url = groupId ? `/photos?groupId=${groupId}` : "/photos";
+
+      const params = new URLSearchParams({
+        page: currentPage,
+        pageSize: 20,
+      });
+
+      if (groupId) params.append("groupId", groupId);
+      if (debouncedSearchQuery) params.append("search", debouncedSearchQuery);
+      if (selectedAuthor) params.append("author", selectedAuthor);
+      if (selectedTag) params.append("tag", selectedTag);
+
+      const url = `/photos?${params.toString()}`;
       const response = await api.get(url);
-      setPhotos(response.data);
+
+      setPhotos(prev => append ? [...prev, ...response.data] : response.data);
+      setHasMore(response.data.length === 20);
     } catch (error) {
       console.error("Erreur lors de la récupération des photos :", error);
     } finally {
@@ -86,12 +101,14 @@ export default function Gallery() {
             setActiveGroupId(res.data[0].id || res.data[0].Id);
           } else {
             // S'il n'a pas de groupe
-            fetchPhotos(null);
+            setPage(1);
+            fetchPhotos(null, 1, false);
           }
         })
         .catch((err) => {
           console.error("Erreur lors de la récupération des groupes", err);
-          fetchPhotos(null);
+          setPage(1);
+          fetchPhotos(null, 1, false);
         });
     }
   }, [isLoggedIn]);
@@ -99,8 +116,14 @@ export default function Gallery() {
   useEffect(() => {
     if (activeGroupId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchPhotos(activeGroupId);
+      setPage(1);
+      fetchPhotos(activeGroupId, 1, false);
+    }
+  }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag]);
 
+  // Keep URL in sync
+  useEffect(() => {
+    if (activeGroupId) {
       // Maintenir l'URL synchronisée avec le groupe actif
       if (userGroups && userGroups.length > 0) {
         const activeGroup = userGroups.find(
@@ -136,67 +159,25 @@ export default function Gallery() {
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
   const filteredPhotos = useMemo(() => {
-    return photos
-      .filter((photo) => {
-        let matchTag = true;
-        if (selectedTag) {
-          const photoTags = photo.tags || photo.Tags || [];
-          matchTag = photoTags.some((tagObj) => {
-            const tagTranslations =
-              tagObj.translations || tagObj.Translations || [];
-            const frTranslation =
-              tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
-              tagTranslations[0];
-            const tagName = frTranslation
-              ? frTranslation.name || frTranslation.Name
-              : "Tag";
-            return tagName === selectedTag;
-          });
-        }
+    return photos.map((photo) => {
+      // ⚡ Bolt: Compute display tags once during filtering rather than on every render
+      const photoTagsRaw = photo.tags || photo.Tags || [];
+      const _displayTags = photoTagsRaw
+        .map((tagObj) => {
+          const tagTranslations =
+            tagObj.translations || tagObj.Translations || [];
+          const frTranslation =
+            tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
+            tagTranslations[0];
+          return frTranslation
+            ? frTranslation.name || frTranslation.Name
+            : "Tag";
+        })
+        .filter(Boolean);
 
-        let matchAuthor = true;
-        if (selectedAuthor) {
-          const author =
-            photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
-          matchAuthor = author === selectedAuthor;
-        }
-
-        let matchSearch = true;
-        if (debouncedSearchQuery) {
-          const photoTags = photo.tags || photo.Tags || [];
-          const query = debouncedSearchQuery.toLowerCase();
-          matchSearch = photoTags.some((tagObj) => {
-            const tagTranslations =
-              tagObj.translations || tagObj.Translations || [];
-            return tagTranslations.some((t) => {
-              const tagName = t.name || t.Name;
-              return tagName && tagName.toLowerCase().includes(query);
-            });
-          });
-        }
-
-        return matchTag && matchAuthor && matchSearch;
-      })
-      .map((photo) => {
-        // ⚡ Bolt: Compute display tags once during filtering rather than on every render
-        const photoTagsRaw = photo.tags || photo.Tags || [];
-        const _displayTags = photoTagsRaw
-          .map((tagObj) => {
-            const tagTranslations =
-              tagObj.translations || tagObj.Translations || [];
-            const frTranslation =
-              tagTranslations.find(
-                (t) => t.language === 0 || t.Language === 0,
-              ) || tagTranslations[0];
-            return frTranslation
-              ? frTranslation.name || frTranslation.Name
-              : "Tag";
-          })
-          .filter(Boolean);
-
-        return { ...photo, _displayTags };
-      });
-  }, [photos, selectedTag, selectedAuthor, debouncedSearchQuery]);
+      return { ...photo, _displayTags };
+    });
+  }, [photos]);
 
   return (
     <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen flex flex-col relative">
@@ -250,7 +231,12 @@ export default function Gallery() {
                 aria-label={t("gallery.clear_search", "Effacer la recherche")}
                 title={t("gallery.clear_search", "Effacer la recherche")}
               >
-                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  aria-hidden="true"
+                >
+                  close
+                </span>
               </button>
             )}
           </div>
@@ -359,7 +345,12 @@ export default function Gallery() {
               aria-label={t("gallery.clear_search", "Effacer la recherche")}
               title={t("gallery.clear_search", "Effacer la recherche")}
             >
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+              <span
+                className="material-symbols-outlined text-[18px]"
+                aria-hidden="true"
+              >
+                close
+              </span>
             </button>
           )}
         </div>
@@ -400,7 +391,10 @@ export default function Gallery() {
               <button
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedTag(null)}
-                aria-label={t("gallery.clear_search", "Effacer la recherche") + ` ${t("gallery.tag")}: ${selectedTag}`}
+                aria-label={
+                  t("gallery.clear_search", "Effacer la recherche") +
+                  ` ${t("gallery.tag")}: ${selectedTag}`
+                }
               >
                 <span
                   aria-hidden="true"
@@ -421,7 +415,10 @@ export default function Gallery() {
               <button
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedAuthor(null)}
-                aria-label={t("gallery.clear_search", "Effacer la recherche") + ` ${selectedAuthor}`}
+                aria-label={
+                  t("gallery.clear_search", "Effacer la recherche") +
+                  ` ${selectedAuthor}`
+                }
               >
                 <span
                   aria-hidden="true"
@@ -627,7 +624,22 @@ export default function Gallery() {
               );
             })}
 
-            {filteredPhotos.length === 0 && (
+            {filteredPhotos.length > 0 && hasMore && !isLoading && (
+              <div className="col-span-full flex justify-center mt-8">
+                <button
+                  onClick={() => {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    fetchPhotos(activeGroupId, nextPage, true);
+                  }}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-2 rounded-lg font-semibold transition-colors"
+                >
+                  {t("gallery.load_more", "Load More")}
+                </button>
+              </div>
+            )}
+
+            {filteredPhotos.length === 0 && !isLoading && (
               <div className="col-span-full flex flex-col items-center justify-center text-slate-500 mt-10 p-12 border border-slate-800/60 rounded-xl bg-[#152b2b]/50">
                 <span
                   className="material-symbols-outlined text-5xl mb-4 text-slate-500"
@@ -703,7 +715,8 @@ export default function Gallery() {
                 initialGroupId={activeGroupId}
                 onUploadSuccess={() => {
                   setIsUploadOpen(false);
-                  fetchPhotos(activeGroupId); // Recharge les photos pour le groupe actif après Upload
+                  setPage(1);
+                  fetchPhotos(activeGroupId, 1, false); // Recharge les photos pour le groupe actif après Upload
                 }}
               />
             </div>

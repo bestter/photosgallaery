@@ -5,6 +5,12 @@ import AdminLayout from "../components/AdminLayout";
 
 export default function Moderation() {
   const [reports, setReports] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, pending: 0, processed: 0 });
+    const [searchTerm, setSearchTerm] = useState("");
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
@@ -14,55 +20,57 @@ export default function Moderation() {
       return;
     }
 
-    const fetchReports = async () => {
+    const fetchReports = async (currentPage = 1, append = false) => {
       try {
-        const response = await api.get("/admin/reports");
-        setReports(response.data);
+        setLoading(true);
+        const params = new URLSearchParams({
+          page: currentPage,
+          pageSize: 20,
+        });
+        if (deferredSearchTerm) params.append("search", deferredSearchTerm);
+
+        const response = await api.get(`/admin/reports?${params.toString()}`);
+        setReports((prev) =>
+          append ? [...prev, ...response.data] : response.data,
+        );
+        setHasMore(response.data.length === 20);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des signalements:",
           error,
         );
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchReports();
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+    fetchReports(1, false);
+    const fetchStats = async () => {
+      try {
+        const response = await api.get("/admin/reports/stats");
+        setStats(response.data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des stats:", error);
+      }
+    };
+    fetchStats();
+  }, [deferredSearchTerm]);
 
-  const totalReports = reports.length;
-  const processedReports = reports.filter(
-    (r) => r.status === "Processed" || r.Status === "Processed",
-  ).length;
-  const pendingReports = totalReports - processedReports;
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const deferredSearchTerm = useDeferredValue(searchTerm);
 
-  // ⚡ Bolt: Use useDeferredValue and useMemo to prevent expensive filtering from blocking the main UI thread during typing
+
+
+  // ⚡ Bolt: Server-side pagination and search replaces most client-side filtering.
   const filteredReportsList = useMemo(() => {
-    if (!deferredSearchTerm) {
-      return reports.filter(
-        (r) =>
-          r.status === "Pending" ||
-          r.Status === "Pending" ||
-          (!r.status && !r.Status),
-      );
-    }
-    const term = deferredSearchTerm.toLowerCase();
-    return reports.filter((r) => {
-      const isPending =
+    return reports.filter(
+      (r) =>
         r.status === "Pending" ||
         r.Status === "Pending" ||
-        (!r.status && !r.Status);
-      if (!isPending) return false;
-      const uploader = r.uploader || r.Uploader || "";
-      const reason = r.reason || r.Reason || "";
-      return (
-        uploader.toLowerCase().includes(term) ||
-        reason.toLowerCase().includes(term)
-      );
-    });
-  }, [reports, deferredSearchTerm]);
+        (!r.status && !r.Status),
+    );
+  }, [reports]);
 
   const handleDismiss = async (reportId) => {
     try {
@@ -106,7 +114,7 @@ export default function Moderation() {
                   Total Signalements
                 </p>
                 <p className="text-3xl font-bold mt-1 text-on-surface">
-                  {totalReports}
+                  {stats.total}
                 </p>
               </div>
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -134,7 +142,7 @@ export default function Moderation() {
                   En attente
                 </p>
                 <p className="text-3xl font-bold mt-1 text-primary">
-                  {pendingReports}
+                  {stats.pending}
                 </p>
               </div>
               <div className="p-2 bg-amber-500/10 rounded-lg">
@@ -160,7 +168,7 @@ export default function Moderation() {
                   Traités
                 </p>
                 <p className="text-3xl font-bold mt-1 text-on-surface">
-                  {processedReports}
+                  {stats.processed}
                 </p>
               </div>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
@@ -212,7 +220,12 @@ export default function Moderation() {
                     aria-label="Effacer la recherche"
                     title="Effacer la recherche"
                   >
-                    <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+                    <span
+                      className="material-symbols-outlined text-[18px]"
+                      aria-hidden="true"
+                    >
+                      close
+                    </span>
                   </button>
                 )}
               </div>
@@ -328,28 +341,34 @@ export default function Moderation() {
             </table>
           </div>
           {/* Pagination */}
-          <div className="p-6 border-t border-outline-variant/30 flex items-center justify-between bg-surface-container/30">
-            <p className="text-sm text-on-surface-variant">
-              Affichage de 1 à 4 sur 156 résultats
-            </p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border border-outline-variant/30 rounded hover:bg-surface-container-high transition-all text-sm font-medium text-on-surface">
-                Précédent
-              </button>
-              <button className="px-3 py-1 bg-primary text-background-dark font-bold rounded text-sm">
-                1
-              </button>
-              <button className="px-3 py-1 border border-outline-variant/30 rounded hover:bg-surface-container-high transition-all text-sm font-medium text-on-surface">
-                2
-              </button>
-              <button className="px-3 py-1 border border-outline-variant/30 rounded hover:bg-surface-container-high transition-all text-sm font-medium text-on-surface">
-                3
-              </button>
-              <button className="px-3 py-1 border border-outline-variant/30 rounded hover:bg-surface-container-high transition-all text-sm font-medium text-on-surface">
-                Suivant
+          {hasMore && !loading && filteredReportsList.length > 0 && (
+            <div className="p-6 border-t border-outline-variant/30 flex items-center justify-center bg-surface-container/30">
+              <button
+                onClick={() => {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  setLoading(true);
+                  const params = new URLSearchParams({
+                    page: nextPage,
+                    pageSize: 20,
+                  });
+                  if (deferredSearchTerm)
+                    params.append("search", deferredSearchTerm);
+
+                  api
+                    .get(`/admin/reports?${params.toString()}`)
+                    .then((response) => {
+                      setReports((prev) => [...prev, ...response.data]);
+                      setHasMore(response.data.length === 20);
+                    })
+                    .finally(() => setLoading(false));
+                }}
+                className="px-6 py-2 bg-primary text-background-dark font-bold rounded-lg text-sm hover:brightness-110 transition-all"
+              >
+                Load More
               </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </AdminLayout>

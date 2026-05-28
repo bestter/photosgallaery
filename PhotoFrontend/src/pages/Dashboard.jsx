@@ -13,20 +13,14 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const currentUsername = getUsernameFromToken(localStorage.getItem("token"));
 
-  // ⚡ Bolt: Use useDeferredValue and useMemo to prevent expensive filtering from blocking the main UI thread during typing
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      if (!deferredSearchTerm) return true;
-      const term = deferredSearchTerm.toLowerCase();
-      const username = u.username || u.Username || "";
-      const email = u.email || u.Email || "";
-      return username.toLowerCase().includes(term) || email.toLowerCase().includes(term);
-    });
-  }, [users, deferredSearchTerm]);
+  // ⚡ Bolt: Server-side pagination replaces client-side filtering.
+  const filteredUsers = users;
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
@@ -36,10 +30,19 @@ export default function Dashboard() {
       return;
     }
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (currentPage = 1, append = false) => {
       try {
-        const response = await api.get("/admin/users");
-        setUsers(response.data);
+        const params = new URLSearchParams({
+          page: currentPage,
+          pageSize: 20,
+        });
+        if (deferredSearchTerm) params.append("search", deferredSearchTerm);
+
+        const response = await api.get(`/admin/users?${params.toString()}`);
+        setUsers((prev) =>
+          append ? [...prev, ...response.data] : response.data,
+        );
+        setHasMore(response.data.length === 20);
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -47,8 +50,10 @@ export default function Dashboard() {
       }
     };
 
-    fetchUsers();
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+    fetchUsers(1, false);
+  }, [deferredSearchTerm]);
 
   const handleRoleUpdate = async (userId, newRole) => {
     try {
@@ -91,7 +96,12 @@ export default function Dashboard() {
             aria-label={t("gallery.clear_search", "Effacer la recherche")}
             title={t("gallery.clear_search", "Effacer la recherche")}
           >
-            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+            <span
+              className="material-symbols-outlined text-[18px]"
+              aria-hidden="true"
+            >
+              close
+            </span>
           </button>
         )}
       </div>
@@ -316,7 +326,9 @@ export default function Dashboard() {
                                 <button
                                   disabled
                                   className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50"
-                                  title={t("admin.dashboard.action.self_action_tooltip")}
+                                  title={t(
+                                    "admin.dashboard.action.self_action_tooltip",
+                                  )}
                                 >
                                   {t("admin.dashboard.action.current_admin")}
                                 </button>
@@ -353,14 +365,18 @@ export default function Dashboard() {
                               className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? "text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50" : role === "Forbidden" ? "text-tertiary hover:bg-tertiary/10" : "text-error hover:bg-error/10"}`}
                               title={
                                 isCurrentUser
-                                  ? t("admin.dashboard.action.self_action_tooltip")
+                                  ? t(
+                                      "admin.dashboard.action.self_action_tooltip",
+                                    )
                                   : role === "Forbidden"
                                     ? t("admin.dashboard.action.unban")
                                     : t("admin.dashboard.action.ban")
                               }
                               aria-label={
                                 isCurrentUser
-                                  ? t("admin.dashboard.action.self_action_tooltip")
+                                  ? t(
+                                      "admin.dashboard.action.self_action_tooltip",
+                                    )
                                   : role === "Forbidden"
                                     ? t("admin.dashboard.action.unban")
                                     : t("admin.dashboard.action.ban")
@@ -384,7 +400,9 @@ export default function Dashboard() {
           </div>
           <div className="px-6 py-4 bg-surface-container/30 border-t border-outline-variant/30 flex items-center justify-between">
             <p className="text-xs text-on-surface-variant font-medium tracking-wide">
-              {t("admin.dashboard.showing_users", { count: filteredUsers.length })}
+              {t("admin.dashboard.showing_users", {
+                count: filteredUsers.length,
+              })}
             </p>
             <div className="flex gap-1">
               <button
