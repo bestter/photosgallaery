@@ -266,25 +266,24 @@ namespace PhotoAppApi.Controllers
                 if (files == null || files.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (moderationService != null)
+                if (moderationService == null)
                 {
-                    var moderationTasks = files.Select(async file =>
-                    {
-                        await using var stream = file.OpenReadStream();
-                        return await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, cancellationToken);
-                    });
-
-                    var moderationResults = await Task.WhenAll(moderationTasks);
-
-                    var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
-                    if (nsfwResult != null)
-                    {
-                        return BadRequest(new { message = "Image contains inappropriate content", score = nsfwResult.NsfwScore });
-                    }
+                    log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
+                    return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
-                else
+
+                var moderationTasks = files.Select(async file =>
                 {
-                    log.Warn("ModerationService non configuré. Le téléversement se poursuit sans modération.");
+                    await using var stream = file.OpenReadStream();
+                    return await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, cancellationToken);
+                });
+
+                var moderationResults = await Task.WhenAll(moderationTasks);
+
+                var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
+                if (nsfwResult != null)
+                {
+                    return BadRequest(new { message = "Image contains inappropriate content", score = nsfwResult.NsfwScore });
                 }
 
 
