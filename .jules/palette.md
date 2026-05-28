@@ -28,3 +28,7 @@
 ## 2024-05-25 - Improve Loading Feedback in Modals
 **Learning:** For asynchronous loading states on action buttons in PhotoFrontend, replacing standard icons with a Material Symbols 'sync' icon utilizing Tailwind's animate-spin utility (e.g., `<span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>`) provides much clearer visual feedback during form submissions (like the Report Modal). This prevents users from repeatedly clicking the submit button, reducing frustration and potential API duplicate errors. The flexbox classes `flex items-center justify-center gap-2` or `space-x-2` ensure proper alignment with text.
 **Action:** Always include an explicit animated visual indicator and disabled state for all buttons that trigger asynchronous API actions. Wrap the text in `t()` function for translations.
+
+## 2024-05-28 - Hardcoded ARIA labels in Pagination
+**Learning:** Pagination buttons in components like `Dashboard.jsx` had hardcoded French `aria-label`s (e.g., "Page précédente", "Aller à la page 2"). This violates accessibility guidelines for localized apps where the screen reader needs to announce text matching the current locale.
+**Action:** Use translation functions (e.g., `t('common.previous_page')`) to dynamically localize `aria-label` attributes on pagination controls, ensuring they adapt correctly to the user's selected language.

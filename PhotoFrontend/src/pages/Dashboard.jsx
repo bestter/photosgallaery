@@ -389,7 +389,7 @@ export default function Dashboard() {
             <div className="flex gap-1">
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors"
-                aria-label="Page précédente"
+                aria-label={t("common.previous_page", "Page précédente")}
               >
                 <span
                   className="material-symbols-outlined text-sm"
@@ -401,25 +401,25 @@ export default function Dashboard() {
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs"
                 aria-current="page"
-                aria-label="Page 1"
+                aria-label={t("common.page", "Page 1", { page: 1 })}
               >
                 1
               </button>
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
-                aria-label="Aller à la page 2"
+                aria-label={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
               >
                 2
               </button>
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
-                aria-label="Aller à la page 3"
+                aria-label={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
               >
                 3
               </button>
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors"
-                aria-label="Page suivante"
+                aria-label={t("common.next_page", "Page suivante")}
               >
                 <span
                   className="material-symbols-outlined text-sm"
