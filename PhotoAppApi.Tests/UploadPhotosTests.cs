@@ -180,6 +180,61 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
+        public async Task UploadPhotos_Should_Fail_Closed_When_ModerationService_Is_Null()
+        {
+            // Arrange
+            var options = CreateNewContextOptions();
+            using var context = new AppDbContext(options);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.ContentRootPath).Returns(Directory.GetCurrentDirectory());
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, "mock"));
+
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext() { User = user }
+                }
+            };
+
+            var fileBytes = System.Convert.FromHexString("89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C63000100000500010D0A2DB40000000049454E44AE426082");
+
+            var formFileMock = new Mock<IFormFile>();
+            formFileMock.Setup(f => f.Length).Returns(fileBytes.Length);
+            formFileMock.Setup(f => f.FileName).Returns("safe_image.jpg");
+            formFileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
+
+            var files = new List<IFormFile> { formFileMock.Object };
+            var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
+
+            // Act: Pass null for moderationService
+            var result = await controller.UploadPhotos(files, null, tags, null, false, TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            var value = statusCodeResult.Value;
+            var json = JsonSerializer.Serialize(value);
+            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+
+            Assert.NotNull(dict);
+            Assert.True(dict.ContainsKey("message"));
+            Assert.Contains("Le service de modération est indisponible", dict["message"].GetString() ?? string.Empty);
+
+            var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
+            Assert.Empty(photosInDb);
+        }
+
+        [Fact]
         public async Task UploadPhotos_Should_Reject_Nsfw_Image()
         {
             // Arrange

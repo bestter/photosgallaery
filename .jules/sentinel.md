@@ -30,3 +30,7 @@
 **Vulnerability:** Administrative endpoints (`AdminController`, `GroupsController`) in the `PhotoAppApi` backend lacked explicit rate-limiting protection. While they are access-controlled via `[Authorize(Roles = "Admin")]`, this omission left the application vulnerable to internal DoS attacks or abuse if an administrative account were ever compromised, as these endpoints perform state-mutating actions (like creating groups or updating user roles).
 **Learning:** Even heavily protected internal or administrative APIs should enforce rate limits as a defense-in-depth measure. Trusting authenticated users (even admins) without constraints violates the principle of least privilege in resource consumption.
 **Prevention:** Always apply `[EnableRateLimiting(...)]` to all API endpoints, including administrative ones, establishing a baseline limit (e.g., 30 requests per minute) to contain the blast radius of automated abuse.
+## 2026-05-28 - Moderation Bypass Fix
+**Vulnerability:** The image upload endpoint skipped all moderation checks and allowed any file if the `ModerationURL` was unconfigured.
+**Learning:** Security pipelines should fail-closed. Treating missing security services as a graceful degradation defeats the purpose of the pipeline.
+**Prevention:** Explicitly reject requests (fail-closed) when mandatory security dependencies (like the ModerationService) are null or fail, and write unit tests asserting this behavior.
