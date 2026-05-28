@@ -21,6 +21,15 @@
 **Vulnerability:** Contact forms setting the `From` email address to user-provided input causing SPF/DKIM/DMARC failures and enabling spoofing.
 **Learning:** This is a common pattern that frequently fails in production. Email APIs (like Resend) strictly enforce domain verification for the `From` address. Using user input directly results in the email being rejected or marked as spam.
 **Prevention:** Always use an application-owned, verified email address in the `From` header. Add the user-provided email to the `Reply-To` header to allow easy responses while maintaining email deliverability and security.
+
+## 2025-03-01 - Add Rate Limiting to ToggleLike Endpoint
+**Vulnerability:** The `ToggleLike` endpoint (`[HttpPost("{id}/like")]`) in `PhotosController.cs` lacked rate limiting, allowing authenticated users to spam the like/unlike action, potentially causing unnecessary load and leading to a Denial of Service (DoS) attack on the database.
+**Learning:** Even simple toggle actions require rate limiting, especially when they directly hit the database to create or delete records.
+**Prevention:** All public and user-facing endpoints that perform state-mutating actions must have explicitly configured rate limiting (e.g., `[EnableRateLimiting]`) using a sensible policy in ASP.NET Core.
+## 2024-05-28 - Missing Rate Limiting on Admin Endpoints
+**Vulnerability:** Administrative endpoints (`AdminController`, `GroupsController`) in the `PhotoAppApi` backend lacked explicit rate-limiting protection. While they are access-controlled via `[Authorize(Roles = "Admin")]`, this omission left the application vulnerable to internal DoS attacks or abuse if an administrative account were ever compromised, as these endpoints perform state-mutating actions (like creating groups or updating user roles).
+**Learning:** Even heavily protected internal or administrative APIs should enforce rate limits as a defense-in-depth measure. Trusting authenticated users (even admins) without constraints violates the principle of least privilege in resource consumption.
+**Prevention:** Always apply `[EnableRateLimiting(...)]` to all API endpoints, including administrative ones, establishing a baseline limit (e.g., 30 requests per minute) to contain the blast radius of automated abuse.
 ## 2026-05-28 - Moderation Bypass Fix
 **Vulnerability:** The image upload endpoint skipped all moderation checks and allowed any file if the `ModerationURL` was unconfigured.
 **Learning:** Security pipelines should fail-closed. Treating missing security services as a graceful degradation defeats the purpose of the pipeline.

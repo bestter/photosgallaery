@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
@@ -12,6 +13,7 @@ namespace PhotoAppApi.Controllers
     [Route("api/admin/[controller]")]
     [ApiController]
     [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("AdminLimiter")]
     public class GroupsController : ControllerBase
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(GroupsController));

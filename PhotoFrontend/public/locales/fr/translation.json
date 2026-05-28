@@ -4,7 +4,11 @@
     "upload_photo": "Ajouter une photo",
     "close": "Fermer",
     "previous_image": "Image précédente",
-    "next_image": "Image suivante"
+    "next_image": "Image suivante",
+    "previous_page": "Page précédente",
+    "next_page": "Page suivante",
+    "go_to_page": "Aller à la page {{page}}",
+    "page": "Page {{page}}"
   },
   "auth": {
     "login": {
