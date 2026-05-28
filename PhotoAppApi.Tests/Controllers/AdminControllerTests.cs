@@ -140,7 +140,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetAllUsers(TestContext.Current.CancellationToken);
+            var result = await controller.GetAllUsers(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -197,7 +197,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetAllUsers(TestContext.Current.CancellationToken);
+            var result = await controller.GetAllUsers(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -240,7 +240,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetAllUsers(TestContext.Current.CancellationToken);
+            var result = await controller.GetAllUsers(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -259,7 +259,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetReports(TestContext.Current.CancellationToken);
+            var result = await controller.GetReports(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -297,7 +297,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetReports(TestContext.Current.CancellationToken);
+            var result = await controller.GetReports(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -331,7 +331,7 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new AdminController(context);
 
             // Act
-            var result = await controller.GetReports(TestContext.Current.CancellationToken);
+            var result = await controller.GetReports(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);

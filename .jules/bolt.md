@@ -13,3 +13,9 @@
 ## 2024-05-23 - Offloading Set Differences to the Database
 **Learning:** Fetching multiple entire datasets into memory (e.g. all users and all user group memberships) to compute set differences in C# (e.g. finding users without a specific membership) causes severe memory bloat and performance degradation as the tables grow.
 **Action:** Push the set difference logic to the database by using an EF Core `.Any()` subquery (e.g. `_context.Users.Where(u => !_context.UserGroups.Any(...))`). This evaluates entirely via an efficient SQL `NOT EXISTS` query.
+## 2024-05-23 - EF Core Pagination Translation
+**Learning:** Using `.Skip()` and `.Take()` in EF Core for server-side pagination without an explicit `.OrderBy()` clause causes an `InvalidOperationException` at runtime. Relational databases require a sorted result set to properly translate the `OFFSET/FETCH` query.
+**Action:** Always precede `.Skip()` with a deterministic ordering clause (like `.OrderByDescending(x => x.CreatedAt)`) when applying server-side pagination.
+## 2024-05-23 - Stale Closures in Asynchronous State Updates
+**Learning:** When appending fetched paginated data to an array inside a React component using an async function, directly using the state variable (`setPhotos([...photos, ...newData])`) causes a stale closure if multiple fetches are triggered quickly.
+**Action:** Always use functional state updates (`setPhotos(prev => [...prev, ...newData])`) to guarantee the most current state is preserved and appended accurately.

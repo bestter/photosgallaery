@@ -60,6 +60,10 @@ namespace PhotoAppApi.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos(
             [FromQuery] string? tag = null,
+            [FromQuery] string? search = null,
+            [FromQuery] string? author = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
             [FromQuery] Language lang = Language.FR,
             [FromQuery] Guid? groupId = null, CancellationToken cancellationToken = default)
         {
@@ -92,6 +96,21 @@ namespace PhotoAppApi.Controllers
                     ));
                 }
 
+
+                if (!string.IsNullOrWhiteSpace(author))
+                {
+                    query = query.Where(p => p.UploaderUsername == author);
+                }
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var cleanSearch = search.Trim().ToLowerInvariant();
+                    query = query.Where(p =>
+                        (p.UploaderUsername != null && p.UploaderUsername.ToLower().Contains(cleanSearch)) ||
+                        p.Tags.Any(t => t.Translations.Any(tr => tr.Language == lang && tr.Name.ToLower().Contains(cleanSearch)))
+                    );
+                }
+
                 // Filtrer par accès de groupe pour des raisons de sécurité
                 var currentUsername = User.Identity?.Name;
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -111,7 +130,11 @@ namespace PhotoAppApi.Controllers
                 else if (!isAdmin && !currentUserId.HasValue)
                 {
                     query = query.Where(p => !p.GroupId.HasValue);
+
                 }
+
+                // ⚡ Bolt: Apply pagination on the server-side to limit payload size and improve latency
+                query = query.OrderByDescending(p => p.UploadedAt).Skip((page - 1) * pageSize).Take(pageSize);
 
                 // On exécute la requête pour obtenir la liste des photos
                 var photos = await query.ToListAsync(cancellationToken);

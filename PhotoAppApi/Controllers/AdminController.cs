@@ -25,14 +25,30 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/users
         [HttpGet("users")]
-        public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetAllUsers(
+            [FromQuery] string? search = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(GetAllUsers)}");
             try
             {
-                // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var users = await _context.Users
-                    .AsNoTracking()
+                var query = _context.Users.AsNoTracking().AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var cleanSearch = search.Trim().ToLowerInvariant();
+                    query = query.Where(u =>
+                        (u.Username != null && u.Username.ToLower().Contains(cleanSearch)) ||
+                        (u.Email != null && u.Email.ToLower().Contains(cleanSearch))
+                    );
+                }
+
+                var users = await query
+                    .OrderByDescending(u => u.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(u => new
                     {
                         u.Id,
@@ -78,13 +94,16 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/reports
         [HttpGet("reports")]
-        public async Task<IActionResult> GetReports(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetReports(
+            [FromQuery] string? search = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(GetReports)}");
             try
             {
-                // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var reports = await _context.ImageReports
+                var query = _context.ImageReports
                     .AsNoTracking()
                     .Join(_context.Photos,
                           report => report.PhotoId,
@@ -99,7 +118,21 @@ namespace PhotoAppApi.Controllers
                               report.Status,
                               report.ReportedAt
                           })
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var cleanSearch = search.Trim().ToLowerInvariant();
+                    query = query.Where(r =>
+                        (r.Reason != null && r.Reason.ToLower().Contains(cleanSearch)) ||
+                        (r.Uploader != null && r.Uploader.ToLower().Contains(cleanSearch))
+                    );
+                }
+
+                var reports = await query
                     .OrderByDescending(r => r.ReportedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
                 return Ok(reports);
@@ -111,6 +144,16 @@ namespace PhotoAppApi.Controllers
             }
         }
 
+
+        [HttpGet("reports/stats")]
+        public async Task<IActionResult> GetReportStats(CancellationToken cancellationToken = default)
+        {
+            var reports = await _context.ImageReports.AsNoTracking().ToListAsync(cancellationToken);
+            var total = reports.Count;
+            var processed = reports.Count(r => r.Status == "Processed");
+            var pending = total - processed;
+            return Ok(new { total, pending, processed });
+        }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("reports/{id}")]
