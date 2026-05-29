@@ -34,3 +34,7 @@
 **Vulnerability:** The image upload endpoint skipped all moderation checks and allowed any file if the `ModerationURL` was unconfigured.
 **Learning:** Security pipelines should fail-closed. Treating missing security services as a graceful degradation defeats the purpose of the pipeline.
 **Prevention:** Explicitly reject requests (fail-closed) when mandatory security dependencies (like the ModerationService) are null or fail, and write unit tests asserting this behavior.
+## 2025-03-01 - Missing Rate Limiting on ImagesController
+**Vulnerability:** The `ImagesController` exposes resource-intensive endpoints that read files from the disk and interact with external APIs (generating S3 pre-signed URLs). These endpoints lacked rate limiting, making the application vulnerable to Denial of Service (DoS) attacks via resource exhaustion (high disk I/O, memory usage, and network bandwidth consumption).
+**Learning:** Even read-only endpoints (GET requests) that interact with the file system or external services need rate limiting protection to prevent automated scraping or DoS attacks from overwhelming the backend.
+**Prevention:** Always apply an appropriate `[EnableRateLimiting]` policy to resource-intensive controllers, balancing normal usage needs with protection against aggressive, automated requests.
