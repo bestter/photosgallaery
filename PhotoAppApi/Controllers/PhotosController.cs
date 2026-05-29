@@ -77,6 +77,9 @@ namespace PhotoAppApi.Controllers
                     .AsNoTracking()
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
+                    // ⚡ Bolt: Adding .AsSplitQuery() prevents Cartesian explosion when including multiple collections (Tags and Translations),
+                    // significantly reducing memory footprint and database network transfer by issuing separate queries instead of massive JOINs.
+                    .AsSplitQuery()
                     .OrderByDescending(p => p.UploadedAt)
                     .AsQueryable();
 
@@ -1152,6 +1155,9 @@ namespace PhotoAppApi.Controllers
                     .Where(p => p.UploaderUsername == targetUser.Username) // On filtre par UploaderUsername !
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
+                    // ⚡ Bolt: Adding .AsSplitQuery() prevents Cartesian explosion when including multiple collections (Tags and Translations),
+                    // significantly reducing memory footprint and database network transfer by issuing separate queries instead of massive JOINs.
+                    .AsSplitQuery()
                     .OrderByDescending(p => p.UploadedAt)
                     .AsQueryable();
 
@@ -1245,6 +1251,9 @@ namespace PhotoAppApi.Controllers
                     .AsNoTracking()
                     .Include(p => p.Tags)
                         .ThenInclude(t => t.Translations)
+                    // ⚡ Bolt: Adding .AsSplitQuery() prevents Cartesian explosion when including multiple collections (Tags and Translations),
+                    // significantly reducing memory footprint and database network transfer by issuing separate queries instead of massive JOINs.
+                    .AsSplitQuery()
                     .Where(p => p.ViewsCount > 0)
                     .AsQueryable();
 

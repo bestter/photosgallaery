@@ -19,3 +19,7 @@
 ## 2024-05-23 - Stale Closures in Asynchronous State Updates
 **Learning:** When appending fetched paginated data to an array inside a React component using an async function, directly using the state variable (`setPhotos([...photos, ...newData])`) causes a stale closure if multiple fetches are triggered quickly.
 **Action:** Always use functional state updates (`setPhotos(prev => [...prev, ...newData])`) to guarantee the most current state is preserved and appended accurately.
+
+## 2026-05-29 - Prevent Cartesian Explosion with AsSplitQuery
+**Learning:** When using Entity Framework Core's `.Include()` and `.ThenInclude()` on multiple or nested collections, the default `.AsSingleQuery()` behavior creates massive SQL JOINs leading to Cartesian explosions. This bloats memory usage and network transfer size, causing severe performance bottlenecks.
+**Action:** Always append `.AsSplitQuery()` to LINQ queries fetching entities with multiple one-to-many relationships to instruct EF Core to issue separate, optimized SQL queries.
