@@ -1,6 +1,7 @@
 using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
@@ -12,6 +13,7 @@ namespace PhotoAppApi.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [EnableRateLimiting("ImageLimiter")]
     public class ImagesController : ControllerBase
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(ImagesController));
