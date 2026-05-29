@@ -32,3 +32,7 @@
 ## 2024-05-28 - Hardcoded ARIA labels in Pagination
 **Learning:** Pagination buttons in components like `Dashboard.jsx` had hardcoded French `aria-label`s (e.g., "Page précédente", "Aller à la page 2"). This violates accessibility guidelines for localized apps where the screen reader needs to announce text matching the current locale.
 **Action:** Use translation functions (e.g., `t('common.previous_page')`) to dynamically localize `aria-label` attributes on pagination controls, ensuring they adapt correctly to the user's selected language.
+
+## 2024-05-29 - Icon-only buttons tooltip with `title` attribute
+**Learning:** Icon-only buttons with an `aria-hidden` span for the icon should not only have an `aria-label` for screen readers but also a `title` attribute. The `title` attribute acts as a native hover tooltip, making the button's action explicitly clear for sighted users who might not immediately recognize the icon.
+**Action:** When creating or fixing icon-only buttons, always ensure that both `aria-label` and `title` attributes are present and contain the same translated text (using the `t()` function).

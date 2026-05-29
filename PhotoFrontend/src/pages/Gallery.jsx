@@ -395,6 +395,10 @@ export default function Gallery() {
                   t("gallery.clear_search", "Effacer la recherche") +
                   ` ${t("gallery.tag")}: ${selectedTag}`
                 }
+                title={
+                  t("gallery.clear_search", "Effacer la recherche") +
+                  ` ${t("gallery.tag")}: ${selectedTag}`
+                }
               >
                 <span
                   aria-hidden="true"
@@ -416,6 +420,10 @@ export default function Gallery() {
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors"
                 onClick={() => setSelectedAuthor(null)}
                 aria-label={
+                  t("gallery.clear_search", "Effacer la recherche") +
+                  ` ${selectedAuthor}`
+                }
+                title={
                   t("gallery.clear_search", "Effacer la recherche") +
                   ` ${selectedAuthor}`
                 }
