@@ -92,11 +92,15 @@ namespace PhotoAppApi.Services
                     await dbContext.SaveChangesAsync(stoppingToken);
 
                     // B. UPDATE massif des compteurs (Extrêmement rapide via ExecuteUpdateAsync : pas de Tracking EF)
-                    foreach (var inc in increments)
+                    var groupedIncrements = increments.GroupBy(i => i.ViewCountToAdd);
+                    foreach (var group in groupedIncrements)
                     {
+                        var countToAdd = group.Key;
+                        var photoIds = group.Select(i => i.PhotoId).ToList();
+
                         await dbContext.Photos
-                            .Where(p => p.Id == inc.PhotoId)
-                            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + inc.ViewCountToAdd), stoppingToken);
+                            .Where(p => photoIds.Contains(p.Id))
+                            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + countToAdd), stoppingToken);
                     }
 
                     // 3. Valider la transaction atomique (Tout ou Rien)
