@@ -150,9 +150,9 @@ namespace PhotoAppApi.Controllers
         [HttpGet("reports/stats")]
         public async Task<IActionResult> GetReportStats(CancellationToken cancellationToken = default)
         {
-            var reports = await _context.ImageReports.AsNoTracking().ToListAsync(cancellationToken);
-            var total = reports.Count;
-            var processed = reports.Count(r => r.Status == "Processed");
+            // ⚡ Bolt: Execute aggregate counts directly in the database to prevent in-memory transfer of large datasets.
+            var total = await _context.ImageReports.CountAsync(cancellationToken);
+            var processed = await _context.ImageReports.CountAsync(r => r.Status == "Processed", cancellationToken);
             var pending = total - processed;
             return Ok(new { total, pending, processed });
         }

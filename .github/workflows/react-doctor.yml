@@ -21,5 +21,4 @@ jobs:
       - uses: millionco/react-doctor@main
         with:
           directory: PhotoFrontend
-          diff: main
           fail-on: none
