@@ -64,6 +64,14 @@ describe('authHelper', () => {
             jwtDecode.mockReturnValue({ role: "Guest" });
             expect(getUserRole('valid-token')).toBe('Guest');
         });
+
+        it('should read from Microsoft role claim if present, prioritizing it over role property', () => {
+            jwtDecode.mockReturnValue({
+                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": "Admin",
+                role: "User" // Should prioritize Microsoft claim
+            });
+            expect(getUserRole('valid-token')).toBe("Admin");
+        });
     });
 
     describe('isTokenExpired', () => {
@@ -168,6 +176,11 @@ describe('authHelper', () => {
                 sub: "user3"
             });
             expect(getUsernameFromToken('valid-token')).toBe('user2');
+        });
+
+        it('should return undefined if no known name claim is present', () => {
+            jwtDecode.mockReturnValue({});
+            expect(getUsernameFromToken('valid-token')).toBeUndefined();
         });
     });
 });
