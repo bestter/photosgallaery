@@ -23,3 +23,6 @@
 ## 2026-05-29 - Prevent Cartesian Explosion with AsSplitQuery
 **Learning:** When using Entity Framework Core's `.Include()` and `.ThenInclude()` on multiple or nested collections, the default `.AsSingleQuery()` behavior creates massive SQL JOINs leading to Cartesian explosions. This bloats memory usage and network transfer size, causing severe performance bottlenecks.
 **Action:** Always append `.AsSplitQuery()` to LINQ queries fetching entities with multiple one-to-many relationships to instruct EF Core to issue separate, optimized SQL queries.
+## $(date +%Y-%m-%d) - Optimize Aggregations with DB Pushdown
+**Learning:** Fetching an entire table into application memory (e.g., using `await _context.ImageReports.AsNoTracking().ToListAsync()`) just to perform simple aggregations like counting in C# creates severe memory bloat and slow execution times as the table grows.
+**Action:** When calculating counts or simple aggregations, use Entity Framework Core's aggregate functions like `.CountAsync()` to push the computation to the database, leveraging efficient SQL `COUNT` operations.
