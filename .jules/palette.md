@@ -36,3 +36,7 @@
 ## 2024-05-29 - Icon-only buttons tooltip with `title` attribute
 **Learning:** Icon-only buttons with an `aria-hidden` span for the icon should not only have an `aria-label` for screen readers but also a `title` attribute. The `title` attribute acts as a native hover tooltip, making the button's action explicitly clear for sighted users who might not immediately recognize the icon.
 **Action:** When creating or fixing icon-only buttons, always ensure that both `aria-label` and `title` attributes are present and contain the same translated text (using the `t()` function).
+
+## 2026-05-30 - Native tooltips for icon-only buttons
+**Learning:** In `Dashboard.jsx`, icon-only pagination buttons had `aria-label`s for screen readers but lacked `title` attributes. Adding the `title` attribute provides a native hover tooltip, which is crucial for sighted users to immediately understand the function of an icon if it is not universally recognizable.
+**Action:** When implementing icon-only interactive elements, ensure they include both a localized `aria-label` for screen readers and a matching `title` attribute for visual hover context.
