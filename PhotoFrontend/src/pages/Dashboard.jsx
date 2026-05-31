@@ -408,6 +408,7 @@ export default function Dashboard() {
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors"
                 aria-label={t("common.previous_page", "Page précédente")}
+                title={t("common.previous_page", "Page précédente")}
               >
                 <span
                   className="material-symbols-outlined text-sm"
@@ -438,6 +439,7 @@ export default function Dashboard() {
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors"
                 aria-label={t("common.next_page", "Page suivante")}
+                title={t("common.next_page", "Page suivante")}
               >
                 <span
                   className="material-symbols-outlined text-sm"

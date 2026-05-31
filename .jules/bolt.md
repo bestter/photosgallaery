@@ -29,3 +29,6 @@
 ## 2026-05-30 - Optimize PhotoViewProcessingWorker mass update
 **Learning:** I learned that even when using ExecuteUpdateAsync to skip EF Core tracking, invoking it in a loop results in an N+1 query problem, creating heavy database I/O for batch operations. Grouping by the updated property values and using a `.Contains` filter allows combining updates into a much smaller number of SQL statements.
 **Action:** Refactored `PhotoViewProcessingWorker` to group view count increments by the added amount and apply `ExecuteUpdateAsync` to all corresponding photo IDs in a single query.
+## 2026-05-31 - Safe API Pagination Contract
+**Learning:** When converting an existing endpoint from returning an unpaginated flat array to a paginated one, modifying the JSON return body (e.g. from `[]` to `{ items: [], totalCount: 0 }`) is a breaking API change that will crash connected clients expecting an array.
+**Action:** Preserve the flat array in the JSON response body and safely append pagination metadata to the HTTP response headers (e.g. `Response.Headers.Append("X-Total-Count", totalCount.ToString())`). Always use `.Append` instead of `.Add` to avoid exceptions if the header is already registered.
