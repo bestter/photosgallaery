@@ -1138,7 +1138,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/photos/user/{username}
         [HttpGet("user/{username}")]
-        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] Language lang = Language.FR)
+        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR)
         {
             try
             {
@@ -1177,10 +1177,17 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 2. Chercher toutes ses photos publiées
+                // ⚡ Bolt: Apply pagination on the server-side to limit payload size and improve latency
+                var totalCount = await query.CountAsync();
+                query = query.Skip((page - 1) * pageSize).Take(pageSize);
+
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
                 var userPhotos = await query.ToListAsync();
 
-                if (userPhotos.Count == 0) return Ok(userPhotos);
+                if (userPhotos.Count == 0) {
+                    Response.Headers.Append("X-Total-Count", totalCount.ToString());
+                    return Ok(userPhotos);
+                }
 
                 // 3. LOGIQUE DES COMPTEURS (Comme d'habitude)
                 var photoIds = userPhotos.Select(p => p.Id).ToList();
@@ -1223,6 +1230,7 @@ namespace PhotoAppApi.Controllers
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
                 }
 
+                Response.Headers.Append("X-Total-Count", totalCount.ToString());
                 return Ok(userPhotos);
             }
             catch (Exception e)
