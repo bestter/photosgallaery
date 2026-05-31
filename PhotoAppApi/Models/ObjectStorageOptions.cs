@@ -1,4 +1,4 @@
-﻿namespace PhotoAppApi.Models
+namespace PhotoAppApi.Models
 {
     public class ObjectStorageOptions
     {

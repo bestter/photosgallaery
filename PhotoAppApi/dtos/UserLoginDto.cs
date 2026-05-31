@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-﻿namespace PhotoAppApi.dtos
+namespace PhotoAppApi.dtos
 {
     public class UserLoginDto
     {

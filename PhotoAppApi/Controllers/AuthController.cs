@@ -1,6 +1,8 @@
+using log4net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PhotoAppApi.Data;
 using PhotoAppApi.dtos;
@@ -8,8 +10,6 @@ using PhotoAppApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -19,7 +19,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(AuthController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
 
         // 1. On déclare une variable pour stocker la configuration
         private readonly IConfiguration _configuration;

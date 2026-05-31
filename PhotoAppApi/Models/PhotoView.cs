@@ -1,4 +1,4 @@
-﻿// Modèle de l'entité Entity Framework (Table PhotoViews)
+// Modèle de l'entité Entity Framework (Table PhotoViews)
 using System.Text.Json.Serialization;
 
 namespace PhotoAppApi.Models

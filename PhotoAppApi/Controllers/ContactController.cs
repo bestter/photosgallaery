@@ -1,8 +1,8 @@
+using log4net;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.RateLimiting;
 using PhotoAppApi.Services;
-using log4net;
+using System.ComponentModel.DataAnnotations;
 
 namespace PhotoAppApi.Controllers
 {
@@ -12,7 +12,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(ContactController));
 
-                private readonly IEmailService _emailService;
+        private readonly IEmailService _emailService;
         public ContactController(IEmailService emailService)
         {
             _emailService = emailService;

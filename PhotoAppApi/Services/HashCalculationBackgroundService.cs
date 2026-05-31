@@ -1,19 +1,19 @@
 using log4net;
-using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
+using System.Security.Cryptography;
 
 namespace PhotoAppApi.Services;
 
 public class HashCalculationBackgroundService : BackgroundService
 {
-        private static readonly ILog log = LogManager.GetLogger(typeof(HashCalculationBackgroundService));
+    private static readonly ILog log = LogManager.GetLogger(typeof(HashCalculationBackgroundService));
 
     private readonly IServiceProvider _serviceProvider;
     public HashCalculationBackgroundService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        }
+    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

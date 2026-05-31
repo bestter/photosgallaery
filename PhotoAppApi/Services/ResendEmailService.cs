@@ -6,7 +6,7 @@ using System.Text;
 
 namespace PhotoAppApi.Services
 {
-    public class ResendEmailService: IEmailService
+    public class ResendEmailService : IEmailService
     {
 
         private string toEmail;

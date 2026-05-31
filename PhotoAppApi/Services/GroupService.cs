@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using PhotoAppApi.Data;
 using System;
 using System.Threading.Tasks;
-using PhotoAppApi.Data;
 
 namespace PhotoAppApi.Services
 {

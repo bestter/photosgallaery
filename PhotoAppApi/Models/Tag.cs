@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization; // 👈 N'oublie pas cet import en haut !
+using System.Text.Json.Serialization; // 👈 N'oublie pas cet import en haut !
 
 namespace PhotoAppApi.Models
 {
