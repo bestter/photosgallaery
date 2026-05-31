@@ -1,14 +1,13 @@
+using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using System.ComponentModel.DataAnnotations;
-using log4net;
-
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Configuration;
 
 namespace PhotoAppApi.Controllers
 {
@@ -18,7 +17,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(InvitationsController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
@@ -106,7 +105,7 @@ namespace PhotoAppApi.Controllers
                     inviterName: inviterUsername,
                     groupName: group.Name,
                     message: invitation.Message ?? "",
-                    inviteUrl: inviteUrl, 
+                    inviteUrl: inviteUrl,
                     cancellationToken
                 );
 

@@ -1,3 +1,4 @@
+using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -6,7 +7,6 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -17,7 +17,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(GroupRequestsController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
         public GroupRequestsController(AppDbContext context)
         {
             _context = context;

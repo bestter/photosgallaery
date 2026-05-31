@@ -1,7 +1,7 @@
 using log4net;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net;
 
 
 namespace PhotoAppApi.Services
@@ -10,9 +10,9 @@ namespace PhotoAppApi.Services
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(MockEmailService));
 
-                public MockEmailService()
+        public MockEmailService()
         {
-            }
+        }
 
         private static string SanitizeForLog(string input)
         {
@@ -55,7 +55,7 @@ namespace PhotoAppApi.Services
             var sanitizedMessage = SanitizeForLog(message);
             var sanitizedInviteUrl = SanitizeForLog(inviteUrl);
 
-            log.Info  ("========================================");
+            log.Info("========================================");
             log.Info("[EMAIL SIMULATION] Sending invitation to {sanitizedEmail}");
             log.Info("Subject: {sanitizedInviterName} vous a invité à rejoindre le cercle {sanitizedGroupName} sur Vision");
             log.Info("\nBonjour {sanitizedFirstName} {sanitizedLastName},");

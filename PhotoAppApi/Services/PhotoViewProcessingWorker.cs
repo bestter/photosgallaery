@@ -1,8 +1,8 @@
 using log4net;
-using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
+using System.Threading.Channels;
 
 namespace PhotoAppApi.Services
 {
@@ -21,7 +21,7 @@ namespace PhotoAppApi.Services
         {
             _channelReader = channelReader;
             _serviceProvider = serviceProvider;
-            }
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -107,7 +107,7 @@ namespace PhotoAppApi.Services
                     await transaction.CommitAsync(stoppingToken);
                 });
 
-                log.Info("✅ Lot de {batch.Count} vues traité et enregistré en DB.");
+                log.Info($"✅ Lot de {batch.Count} vues traité et enregistré en DB.");
             }
             catch (OperationCanceledException)
             {

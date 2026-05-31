@@ -1,4 +1,5 @@
 using Amazon.S3;
+using log4net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
@@ -10,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using PhotoAppApi;
 using PhotoAppApi.Data;
+using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
 using Resend;
@@ -17,9 +19,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.RateLimiting;
-
-using log4net;
-using PhotoAppApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 var log = LogManager.GetLogger(typeof(Program));

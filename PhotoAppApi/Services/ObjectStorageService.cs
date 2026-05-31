@@ -10,7 +10,7 @@ namespace PhotoAppApi.Services
     {
         Task<string> UploadImageAsync(Stream fileStream, string contentType, string fileName, string? folder = "images", CancellationToken cancellationToken = default);
         Task<string> GetPresignedUrlAsync(string key, TimeSpan? expiration = null);
-        
+
         /// <summary>
         /// Deletes an image from the object storage.
         /// </summary>

@@ -99,7 +99,7 @@ namespace PhotoAppApi.Helpers
             }
             catch (Exception ex)
             {
-                log.Error( $"Error storing Data Protection element {friendlyName}", ex);
+                log.Error($"Error storing Data Protection element {friendlyName}", ex);
                 throw;
             }
         }

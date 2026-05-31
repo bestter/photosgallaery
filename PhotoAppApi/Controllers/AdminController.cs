@@ -1,3 +1,4 @@
+using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -5,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.ComponentModel.DataAnnotations;
-using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -18,7 +18,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(AdminController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
         public AdminController(AppDbContext context)
         {
             _context = context;

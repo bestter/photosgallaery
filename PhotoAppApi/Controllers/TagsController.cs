@@ -1,9 +1,9 @@
+using log4net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
-using log4net;
 
 namespace PhotoAppApi.Controllers
 {
@@ -13,7 +13,7 @@ namespace PhotoAppApi.Controllers
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(TagsController));
 
-                private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
         public TagsController(AppDbContext context)
         {
             _context = context;
