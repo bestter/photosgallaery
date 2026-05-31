@@ -58,6 +58,7 @@ namespace PhotoAppApi.Controllers
         // GET: api/photos (Sécurisé pour récupérer selon les groupes)
         [HttpGet]
         [Authorize]
+        [EnableRateLimiting("PhotosGetLimiter")]
         public async Task<ActionResult<IEnumerable<Photo>>> GetPhotos(
             [FromQuery] string? tag = null,
             [FromQuery] string? search = null,
@@ -1138,7 +1139,8 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/photos/user/{username}
         [HttpGet("user/{username}")]
-        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR)
+        [EnableRateLimiting("PhotosGetLimiter")]
+        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] Language lang = Language.FR)
         {
             try
             {
@@ -1242,6 +1244,7 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/photos/most-viewed
         [HttpGet("most-viewed")]
+        [EnableRateLimiting("PhotosGetLimiter")]
         public async Task<ActionResult<IEnumerable<Photo>>> GetMostViewedPhotos(
             [FromQuery] int count = 10,
             [FromQuery] Language lang = Language.FR)
