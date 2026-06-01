@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useDeferredValue } from "react";
+import { useTranslation } from "react-i18next";
 import { getUserRole, isTokenExpired } from "../authHelper";
 import api from "../api";
 import AdminLayout from "../components/AdminLayout";
 
 export default function Moderation() {
+  const { t } = useTranslation();
   const [reports, setReports] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -100,8 +102,8 @@ export default function Moderation() {
 
   return (
     <AdminLayout
-      title="Centre de Modération"
-      subtitle="Gérez les contenus signalés par la communauté."
+      title={t("admin.moderation.title")}
+      subtitle={t("admin.moderation.subtitle")}
       topActions={topActions}
     >
       <div className="space-y-8">
@@ -111,7 +113,7 @@ export default function Moderation() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-on-surface-variant">
-                  Total Signalements
+                  {t("admin.moderation.total_reports")}
                 </p>
                 <p className="text-3xl font-bold mt-1 text-on-surface">
                   {stats.total}
@@ -131,7 +133,7 @@ export default function Moderation() {
                 +12%
               </span>
               <span className="text-xs text-slate-400 italic">
-                depuis le mois dernier
+                {t("admin.moderation.since_last_month")}
               </span>
             </div>
           </div>
@@ -139,7 +141,7 @@ export default function Moderation() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-on-surface-variant">
-                  En attente
+                  {t("admin.moderation.pending")}
                 </p>
                 <p className="text-3xl font-bold mt-1 text-primary">
                   {stats.pending}
@@ -157,7 +159,7 @@ export default function Moderation() {
             <div className="mt-4 flex items-center gap-1">
               <span className="text-rose-500 text-sm font-semibold">-5%</span>
               <span className="text-xs text-on-surface-variant italic">
-                réduction du backlog
+                {t("admin.moderation.backlog_reduction")}
               </span>
             </div>
           </div>
@@ -165,7 +167,7 @@ export default function Moderation() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-on-surface-variant">
-                  Traités
+                  {t("admin.moderation.processed")}
                 </p>
                 <p className="text-3xl font-bold mt-1 text-on-surface">
                   {stats.processed}
@@ -185,7 +187,7 @@ export default function Moderation() {
                 +8%
               </span>
               <span className="text-xs text-on-surface-variant italic">
-                efficacité accrue
+                {t("admin.moderation.efficiency_increase")}
               </span>
             </div>
           </div>
@@ -194,7 +196,7 @@ export default function Moderation() {
         <div className="bg-surface-container-low rounded-xl border border-outline-variant/30 shadow-md overflow-hidden">
           <div className="p-6 border-b border-outline-variant/30 flex flex-wrap justify-between items-center gap-4">
             <h3 className="text-lg font-bold text-on-surface">
-              Images Signalées
+              {t("admin.moderation.reported_images")}
             </h3>
             <div className="flex gap-3">
               <div className="relative">
@@ -206,9 +208,9 @@ export default function Moderation() {
                 </span>
                 <input
                   className="pl-10 pr-10 py-2 bg-surface-container border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 text-on-surface"
-                  placeholder="Rechercher..."
+                  placeholder={t("admin.moderation.search_placeholder")}
                   type="text"
-                  aria-label="Rechercher"
+                  aria-label={t("admin.moderation.search_placeholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -217,8 +219,8 @@ export default function Moderation() {
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
                     onClick={() => setSearchTerm("")}
-                    aria-label="Effacer la recherche"
-                    title="Effacer la recherche"
+                    aria-label={t("admin.moderation.clear_search")}
+                    title={t("admin.moderation.clear_search")}
                   >
                     <span
                       className="material-symbols-outlined text-[18px]"
@@ -236,7 +238,7 @@ export default function Moderation() {
                 >
                   filter_list
                 </span>{" "}
-                Filtrer
+                {t("admin.moderation.filter")}
               </button>
             </div>
           </div>
@@ -245,19 +247,19 @@ export default function Moderation() {
               <thead>
                 <tr className="bg-surface-container/50 border-b border-outline-variant/40">
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Image
+                    {t("admin.moderation.table.image")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Nom de l&apos;image
+                    {t("admin.moderation.table.image_name")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Utilisateur signalé
+                    {t("admin.moderation.table.reported_user")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Motif du signalement
+                    {t("admin.moderation.table.reason")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">
-                    Actions
+                    {t("admin.moderation.table.actions")}
                   </th>
                 </tr>
               </thead>
@@ -278,7 +280,7 @@ export default function Moderation() {
                         <div className="w-12 h-12 rounded bg-surface-container-highest overflow-hidden border border-outline-variant">
                           <img
                             className="w-full h-full object-cover"
-                            alt="Image signalée"
+                            alt={t("admin.moderation.table.image")}
                             src={getImageUrl(pUrl)}
                           />
                         </div>
@@ -289,7 +291,7 @@ export default function Moderation() {
                           href="#"
                           onClick={(e) => e.preventDefault()}
                         >
-                          Photo #{photoId}
+                          {t("admin.moderation.photo_num", { id: photoId })}
                         </a>
                       </td>
                       <td className="px-6 py-4">
@@ -300,7 +302,7 @@ export default function Moderation() {
                               : "??"}
                           </div>
                           <span className="text-primary font-medium text-sm">
-                            {uploader || "Anonyme"}
+                            {uploader || t("admin.moderation.anonymous")}
                           </span>
                         </div>
                       </td>
@@ -312,16 +314,16 @@ export default function Moderation() {
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
                           className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide"
-                          aria-label={`Effacer la photo signalée`}
+                          aria-label={t("admin.moderation.action.delete")}
                         >
-                          Effacer
+                          {t("admin.moderation.action.delete")}
                         </button>
                         <button
                           onClick={() => handleDismiss(rId)}
                           className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide border border-outline-variant/30"
-                          aria-label={`Annuler le signalement`}
+                          aria-label={t("admin.moderation.action.dismiss")}
                         >
-                          Annuler
+                          {t("admin.moderation.action.dismiss")}
                         </button>
                       </td>
                     </tr>
@@ -333,7 +335,7 @@ export default function Moderation() {
                       colSpan="5"
                       className="px-6 py-4 text-center text-slate-500"
                     >
-                      Aucun signalement en attente.
+                      {t("admin.moderation.no_reports")}
                     </td>
                   </tr>
                 )}
@@ -365,7 +367,7 @@ export default function Moderation() {
                 }}
                 className="px-6 py-2 bg-primary text-background-dark font-bold rounded-lg text-sm hover:brightness-110 transition-all"
               >
-                Load More
+                {t("admin.moderation.load_more")}
               </button>
             </div>
           )}

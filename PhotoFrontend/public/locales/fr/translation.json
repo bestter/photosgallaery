@@ -154,17 +154,19 @@
       "back": "arrow_back"
     },
     "moderation": {
+      "search_placeholder": "Rechercher...",
+      "clear_search": "Effacer la recherche",
+      "filter": "Filtrer",
+      "load_more": "Charger Plus",
       "title": "Centre de Modération",
       "subtitle": "Gérez les contenus signalés par la communauté.",
-      "total_reports": "Total Signalements",
-      "since_last_month": "depuis le mois dernier",
       "pending": "En attente",
-      "backlog_reduction": "réduction du backlog",
       "processed": "Traités",
+      "total": "Total Signalements",
+      "since_last_month": "depuis le mois dernier",
+      "backlog_reduction": "réduction du backlog",
       "efficiency_increase": "efficacité accrue",
       "reported_images": "Images Signalées",
-      "search_placeholder": "Rechercher...",
-      "filter": "Filtrer",
       "table": {
         "image": "Image",
         "image_name": "Nom de l'image",
@@ -172,6 +174,7 @@
         "reason": "Motif du signalement",
         "actions": "Actions"
       },
+      "photo_num": "Photo #{{id}}",
       "anonymous": "Anonyme",
       "action": {
         "delete": "Effacer",
