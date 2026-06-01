@@ -26,6 +26,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("AdminLimiter")]
         public async Task<IActionResult> GetAllGroupRequests(CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(GetAllGroupRequests)}");
@@ -62,6 +63,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("AdminLimiter")]
         public async Task<IActionResult> DeleteGroupRequest(Guid id, CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(DeleteGroupRequest)} with id: {id}");
