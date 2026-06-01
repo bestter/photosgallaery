@@ -40,3 +40,7 @@
 ## 2026-05-30 - Native tooltips for icon-only buttons
 **Learning:** In `Dashboard.jsx`, icon-only pagination buttons had `aria-label`s for screen readers but lacked `title` attributes. Adding the `title` attribute provides a native hover tooltip, which is crucial for sighted users to immediately understand the function of an icon if it is not universally recognizable.
 **Action:** When implementing icon-only interactive elements, ensure they include both a localized `aria-label` for screen readers and a matching `title` attribute for visual hover context.
+
+## 2026-05-31 - Localized Loading State for 'Load More'
+**Learning:** In `PhotoFrontend`, when implementing pagination features like a "Load More" button that appends items to an existing list, using a global `isLoading` state causes the entire existing data set to visually unmount and flash a full-page spinner. This is jarring and destroys context.
+**Action:** Always use a dedicated localized loading state (e.g., `isFetchingMore`) for appending data. This localized state should be used to display an inline spinner inside the button itself, ensuring a smooth and non-disruptive user experience.

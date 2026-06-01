@@ -24,6 +24,7 @@ export default function Gallery() {
   // This reduces re-renders and the frequency of the O(n) filtering computation below by ~90% during active typing.
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -44,7 +45,11 @@ export default function Gallery() {
   // Récupération des photos depuis l'API, dépendante du groupe sélectionné
   const fetchPhotos = async (groupId, currentPage = 1, append = false) => {
     try {
-      setIsLoading(true);
+      if (append) {
+        setIsFetchingMore(true);
+      } else {
+        setIsLoading(true);
+      }
 
       const params = new URLSearchParams({
         page: currentPage,
@@ -65,6 +70,7 @@ export default function Gallery() {
       console.error("Erreur lors de la récupération des photos :", error);
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
     }
   };
 
@@ -640,9 +646,17 @@ export default function Gallery() {
                     setPage(nextPage);
                     fetchPhotos(activeGroupId, nextPage, true);
                   }}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-2 rounded-lg font-semibold transition-colors"
+                  disabled={isFetchingMore}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {t("gallery.load_more", "Load More")}
+                  {isFetchingMore ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                      {t("gallery.load_more", "Load More")}
+                    </>
+                  ) : (
+                    t("gallery.load_more", "Load More")
+                  )}
                 </button>
               </div>
             )}
