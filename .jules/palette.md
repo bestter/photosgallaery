@@ -44,3 +44,7 @@
 ## 2026-05-31 - Localized Loading State for 'Load More'
 **Learning:** In `PhotoFrontend`, when implementing pagination features like a "Load More" button that appends items to an existing list, using a global `isLoading` state causes the entire existing data set to visually unmount and flash a full-page spinner. This is jarring and destroys context.
 **Action:** Always use a dedicated localized loading state (e.g., `isFetchingMore`) for appending data. This localized state should be used to display an inline spinner inside the button itself, ensuring a smooth and non-disruptive user experience.
+
+## 2024-05-31 - Avoid breaking translations by flattening objects
+**Learning:** In the `PhotoFrontend` app, when replacing hardcoded text with translations, ensure you add the new translation keys to the existing translation objects appropriately without nesting existing keys or changing their structural location. In my previous attempt, I inadvertently moved `admin.moderation.title` to `admin.moderation.reports.title` creating an object where a string previously was. This creates a high risk of breaking other components that expect the string at that location.
+**Action:** When adding new translations using `react-i18next`, append the keys thoughtfully without nesting/moving existing translation nodes, to guarantee backwards compatibility.

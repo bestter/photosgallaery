@@ -154,17 +154,19 @@
       "back": "arrow_back"
     },
     "moderation": {
+      "search_placeholder": "Search...",
+      "clear_search": "Clear search",
+      "filter": "Filter",
+      "load_more": "Load More",
       "title": "Moderation Center",
       "subtitle": "Manage content reported by the community.",
-      "total_reports": "Total Reports",
-      "since_last_month": "since last month",
       "pending": "Pending",
-      "backlog_reduction": "backlog reduction",
       "processed": "Processed",
+      "total": "Total Reports",
+      "since_last_month": "since last month",
+      "backlog_reduction": "backlog reduction",
       "efficiency_increase": "efficiency increase",
       "reported_images": "Reported Images",
-      "search_placeholder": "Search...",
-      "filter": "Filter",
       "table": {
         "image": "Image",
         "image_name": "Image Name",
@@ -172,6 +174,7 @@
         "reason": "Report Reason",
         "actions": "Actions"
       },
+      "photo_num": "Photo #{{id}}",
       "anonymous": "Anonymous",
       "action": {
         "delete": "Delete",
