@@ -42,3 +42,8 @@
 **Vulnerability:** The `PhotosController` endpoints (`GetPhotos`, `GetUserPhotos`, `GetMostViewedPhotos`) perform resource-intensive queries involving multiple tables and translations, making them potential targets for Denial of Service (DoS) attacks via resource exhaustion if spammed.
 **Learning:** Rate limiting is not just for mutating operations (like POST/PUT); any endpoint that consumes significant server resources (CPU, memory, or database I/O) needs protection to ensure system stability.
 **Prevention:** Apply appropriate `[EnableRateLimiting]` policies (e.g., `PhotosGetLimiter`) to resource-intensive GET endpoints, ensuring automated scraping or abusive traffic cannot overwhelm the backend while allowing legitimate users normal access.
+
+## 2025-03-01 - Add Rate Limiting to Unprotected Endpoints
+**Vulnerability:** Several endpoints in `GroupRequestsController` (`GetAllGroupRequests`, `DeleteGroupRequest`) and `AuthController` (`GetUserGroups`) lacked explicit rate limiting protection. These endpoints perform database queries or deletions and were vulnerable to resource exhaustion or Denial of Service (DoS) attacks if spammed.
+**Learning:** All endpoints, including administrative and user profile actions, should have rate limits applied to them. Relying solely on authorization is not sufficient protection against automated abuse or compromised accounts.
+**Prevention:** Consistently apply `[EnableRateLimiting]` to all API endpoints, including administrative (`AdminLimiter`) and general GET endpoints (`PhotosGetLimiter`), to establish a baseline protection against resource exhaustion.

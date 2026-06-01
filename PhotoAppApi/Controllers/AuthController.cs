@@ -189,6 +189,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpGet("groups")]
         [Microsoft.AspNetCore.Authorization.Authorize]
+        [EnableRateLimiting("PhotosGetLimiter")]
         public async Task<IActionResult> GetUserGroups()
         {
             log.Debug($"In {nameof(GetUserGroups)}");
