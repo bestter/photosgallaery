@@ -47,3 +47,8 @@
 **Vulnerability:** Several endpoints in `GroupRequestsController` (`GetAllGroupRequests`, `DeleteGroupRequest`) and `AuthController` (`GetUserGroups`) lacked explicit rate limiting protection. These endpoints perform database queries or deletions and were vulnerable to resource exhaustion or Denial of Service (DoS) attacks if spammed.
 **Learning:** All endpoints, including administrative and user profile actions, should have rate limits applied to them. Relying solely on authorization is not sufficient protection against automated abuse or compromised accounts.
 **Prevention:** Consistently apply `[EnableRateLimiting]` to all API endpoints, including administrative (`AdminLimiter`) and general GET endpoints (`PhotosGetLimiter`), to establish a baseline protection against resource exhaustion.
+
+## 2024-05-21 - Missing Rate Limiting on Endpoints
+**Vulnerability:** Found missing rate limiting attributes on several potentially expensive or sensitive endpoints, notably `DeletePhoto`, `BackfillHashes`, `GenerateMissingThumbnails`, and `MigrateClosedLoop` in `PhotosController`.
+**Learning:** Even administrative endpoints or authenticated endpoints manipulating resources need explicit rate limiting to prevent DoS via resource exhaustion or abuse.
+**Prevention:** Always ensure `[EnableRateLimiting]` is applied to all endpoints (or via global/controller-level filters) unless explicitly bypassed.
