@@ -130,5 +130,86 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             Assert.Equal(expectedUrl, result);
         }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldReturnNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { new Claim(ClaimTypes.Name, "testuser"), new Claim(ClaimTypes.Role, "User") };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("nonexistentuser", 1, 20);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldReturnPaginatedPhotosAndTotalCountHeader()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            // Add 25 photos for targetuser
+            for (int i = 1; i <= 25; i++)
+            {
+                context.Photos.Add(new Photo
+                {
+                    Id = i,
+                    FileName = $"photo{i}.jpg",
+                    UploaderUsername = "targetuser",
+                    Url = $"gallery/photo{i}.jpg",
+                    ThumbnailUrl = $"thumbnails/photo{i}.jpg",
+                    UploadedAt = DateTime.UtcNow.AddMinutes(i)
+                });
+            }
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, "testuser"), 
+                new Claim(ClaimTypes.NameIdentifier, "1"), 
+                new Claim(ClaimTypes.Role, "User") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var httpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) };
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
+            // Act: request page 2, page size 10
+            var result = await controller.GetUserPhotos("targetuser", page: 2, pageSize: 10);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            
+            // Should return exactly 10 photos
+            var photoList = new System.Collections.Generic.List<Photo>(photos);
+            Assert.Equal(10, photoList.Count);
+
+            // Header should have total count of 25
+            Assert.True(httpContext.Response.Headers.TryGetValue("X-Total-Count", out var totalCountHeader));
+            Assert.Equal("25", totalCountHeader.ToString());
+        }
     }
 }

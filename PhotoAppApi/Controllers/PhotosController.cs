@@ -1140,7 +1140,7 @@ namespace PhotoAppApi.Controllers
         // GET: api/photos/user/{username}
         [HttpGet("user/{username}")]
         [EnableRateLimiting("PhotosGetLimiter")]
-        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] Language lang = Language.FR)
+        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR)
         {
             try
             {
