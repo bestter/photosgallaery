@@ -124,6 +124,7 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:text-primary"
                   aria-label={showPassword ? t("common.hide_password", "Hide password") : t("common.show_password", "Show password")}
+                  title={showPassword ? t("common.hide_password", "Hide password") : t("common.show_password", "Show password")}
                   aria-pressed={showPassword}
                 >
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
