@@ -1,0 +1,5 @@
+🎯 **What:** Fixed an incomplete JWT secret length validation in `PhotoAppApi/Program.cs`. The previous code threw an exception mentioning a 64-character minimum but failed to actually enforce this length check.
+
+⚠️ **Risk:** Without a length check, weak or extremely short JWT secrets could be used, drastically reducing the cryptographic strength of the tokens. This makes the application susceptible to offline brute-force attacks, allowing malicious actors to forge valid JWTs and gain unauthorized access to any account.
+
+🛡️ **Solution:** Appended a `secretKey.Length < 64` check to the existing validation condition. The check leverages C#'s short-circuit evaluation, ensuring it is only executed if the `secretKey` is not null or whitespace, preventing potential null reference exceptions.

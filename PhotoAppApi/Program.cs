@@ -81,7 +81,7 @@ builder.Services.AddCors(options =>
 
 // 3. Authentification (JWT Simplifié)
 var secretKey = builder.Configuration["Jwt:Key"];
-if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Contains("YOUR_JWT_SECRET_KEY"))
+if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Contains("YOUR_JWT_SECRET_KEY") || secretKey.Length < 64)
 {
     throw new InvalidOperationException("La clé secrète pour JWT n'est pas configurée correctement. " +
                                         "Une clé d'au moins 64 caractères doit être fournie via la configuration (ex: variable d'environnement Jwt__Key).");
