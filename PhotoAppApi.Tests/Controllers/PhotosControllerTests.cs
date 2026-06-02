@@ -130,5 +130,353 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             Assert.Equal(expectedUrl, result);
         }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldReturnNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { new Claim(ClaimTypes.Name, "testuser"), new Claim(ClaimTypes.Role, "User") };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("nonexistentuser", 1, 20);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldReturnPaginatedPhotosAndTotalCountHeader()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            // Add 25 photos for targetuser
+            for (int i = 1; i <= 25; i++)
+            {
+                context.Photos.Add(new Photo
+                {
+                    Id = i,
+                    FileName = $"photo{i}.jpg",
+                    UploaderUsername = "targetuser",
+                    Url = $"gallery/photo{i}.jpg",
+                    ThumbnailUrl = $"thumbnails/photo{i}.jpg",
+                    UploadedAt = DateTime.UtcNow.AddMinutes(i)
+                });
+            }
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, "testuser"), 
+                new Claim(ClaimTypes.NameIdentifier, "1"), 
+                new Claim(ClaimTypes.Role, "User") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var httpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) };
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
+            // Act: request page 2, page size 10
+            var result = await controller.GetUserPhotos("targetuser", page: 2, pageSize: 10);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            
+            // Should return exactly 10 photos
+            var photoList = new System.Collections.Generic.List<Photo>(photos);
+            Assert.Equal(10, photoList.Count);
+
+            // Header should have total count of 25
+            Assert.True(httpContext.Response.Headers.TryGetValue("X-Total-Count", out var totalCountHeader));
+            Assert.Equal("25", totalCountHeader.ToString());
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldFilterOutGroupPhotos_WhenUserIsNotMemberOfGroup()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            var groupId = Guid.NewGuid();
+            context.Photos.Add(new Photo
+            {
+                Id = 101,
+                FileName = "group_photo.jpg",
+                UploaderUsername = "targetuser",
+                Url = "gallery/group_photo.jpg",
+                ThumbnailUrl = "thumbnails/group_photo.jpg",
+                GroupId = groupId,
+                UploadedAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Logged in user who is NOT a member of groupId
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, "testuser"), 
+                new Claim(ClaimTypes.NameIdentifier, "1"), 
+                new Claim(ClaimTypes.Role, "User") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            Assert.Empty(photos);
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldReturnGroupPhotos_WhenUserIsMemberOfGroup()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            var groupId = Guid.NewGuid();
+            context.Photos.Add(new Photo
+            {
+                Id = 102,
+                FileName = "group_photo.jpg",
+                UploaderUsername = "targetuser",
+                Url = "gallery/group_photo.jpg",
+                ThumbnailUrl = "thumbnails/group_photo.jpg",
+                GroupId = groupId,
+                UploadedAt = DateTime.UtcNow
+            });
+
+            // Make the calling user (Id = 1) a member of groupId
+            context.UserGroups.Add(new UserGroup
+            {
+                UserId = 1,
+                GroupId = groupId,
+                User = new User { Id = 1, Username = "testuser", PasswordHash = "hash" },
+                Group = new Group { Id = groupId, Name = "Test Group", ShortName = "test", Description = "Test" }
+            });
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, "testuser"), 
+                new Claim(ClaimTypes.NameIdentifier, "1"), 
+                new Claim(ClaimTypes.Role, "User") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            var photoList = new System.Collections.Generic.List<Photo>(photos);
+            Assert.Single(photoList);
+            Assert.Equal(102, photoList[0].Id);
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldReturnAllPhotos_WhenCallerIsAdmin()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            var groupId = Guid.NewGuid();
+            context.Photos.Add(new Photo
+            {
+                Id = 103,
+                FileName = "group_photo.jpg",
+                UploaderUsername = "targetuser",
+                Url = "gallery/group_photo.jpg",
+                ThumbnailUrl = "thumbnails/group_photo.jpg",
+                GroupId = groupId,
+                UploadedAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Admin calling user
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, "adminuser"), 
+                new Claim(ClaimTypes.NameIdentifier, "99"), 
+                new Claim(ClaimTypes.Role, "Admin") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            var photoList = new System.Collections.Generic.List<Photo>(photos);
+            Assert.Single(photoList);
+            Assert.Equal(103, photoList[0].Id);
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldCorrectlyMapLikedAndReportedFlags()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            var photo1 = new Photo { Id = 201, FileName = "photo1.jpg", UploaderUsername = "targetuser", Url = "gallery/photo1.jpg", ThumbnailUrl = "thumbnails/photo1.jpg", UploadedAt = DateTime.UtcNow.AddMinutes(1) };
+            var photo2 = new Photo { Id = 202, FileName = "photo2.jpg", UploaderUsername = "targetuser", Url = "gallery/photo2.jpg", ThumbnailUrl = "thumbnails/photo2.jpg", UploadedAt = DateTime.UtcNow.AddMinutes(2) };
+            context.Photos.Add(photo1);
+            context.Photos.Add(photo2);
+
+            // User with ID 1 likes photo1
+            context.PhotoLikes.Add(new PhotoLike 
+            { 
+                PhotoId = 201, 
+                UserId = 1, 
+                LikedAt = DateTime.UtcNow,
+                Photo = null!,
+                User = null!
+            });
+            
+            // User with ID 1 (username: "testuser") reports photo2
+            context.ImageReports.Add(new ImageReport 
+            { 
+                PhotoId = 202, 
+                ReporterUsername = "testuser", 
+                Reason = "Inappropriate", 
+                ReportedAt = DateTime.UtcNow 
+            });
+            
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, "testuser"), 
+                new Claim(ClaimTypes.NameIdentifier, "1"), 
+                new Claim(ClaimTypes.Role, "User") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            var photoList = new System.Collections.Generic.List<Photo>(photos);
+
+            var p1 = photoList.Find(p => p.Id == 201);
+            var p2 = photoList.Find(p => p.Id == 202);
+
+            Assert.NotNull(p1);
+            Assert.True(p1.IsLikedByCurrentUser);
+            Assert.False(p1.IsReportedByCurrentUser);
+
+            Assert.NotNull(p2);
+            Assert.False(p2.IsLikedByCurrentUser);
+            Assert.True(p2.IsReportedByCurrentUser);
+        }
+
+        [Fact]
+        public async Task GetUserPhotos_ShouldOnlyReturnPublicPhotos_WhenCallerIsUnauthenticated()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            
+            var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
+            context.Users.Add(targetUser);
+
+            var photo1 = new Photo { Id = 301, FileName = "public_photo.jpg", UploaderUsername = "targetuser", Url = "gallery/public_photo.jpg", ThumbnailUrl = "thumbnails/public_photo.jpg", GroupId = null, UploadedAt = DateTime.UtcNow.AddMinutes(1) };
+            var photo2 = new Photo { Id = 302, FileName = "group_photo.jpg", UploaderUsername = "targetuser", Url = "gallery/group_photo.jpg", ThumbnailUrl = "thumbnails/group_photo.jpg", GroupId = Guid.NewGuid(), UploadedAt = DateTime.UtcNow.AddMinutes(2) };
+            context.Photos.Add(photo1);
+            context.Photos.Add(photo2);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Empty principal / claims = unauthenticated caller
+            var httpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity()) };
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
+            // Act
+            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
+            var photoList = new System.Collections.Generic.List<Photo>(photos);
+
+            // Should return only the public photo (301) and not the group photo (302)
+            Assert.Single(photoList);
+            Assert.Equal(301, photoList[0].Id);
+        }
     }
 }
