@@ -609,6 +609,7 @@ namespace PhotoAppApi.Controllers
         // DELETE: api/photos/{id} (Private: logged in users only)
         [Authorize]
         [HttpDelete("{id}")]
+        [EnableRateLimiting("UploadLimiter")]
         public async Task<IActionResult> DeletePhoto(int id, CancellationToken cancellationToken = default)
         {
             try
@@ -759,6 +760,7 @@ namespace PhotoAppApi.Controllers
         // Route temporaire pour mettre à jour les anciennes images
         [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/backfill-hashes")]
+        [EnableRateLimiting("AdminLimiter")]
         public async Task<IActionResult> BackfillHashes()
         {
             try
@@ -901,6 +903,7 @@ namespace PhotoAppApi.Controllers
         // POST: api/photos/maintenance/generate-thumbnails
         [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/generate-thumbnails")]
+        [EnableRateLimiting("AdminLimiter")]
         public async Task<IActionResult> GenerateMissingThumbnails()
         {
             try
@@ -968,6 +971,7 @@ namespace PhotoAppApi.Controllers
         // POST: api/photos/maintenance/migrate-closed-loop
         [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/migrate-closed-loop")]
+        [EnableRateLimiting("AdminLimiter")]
         public async Task<IActionResult> MigrateClosedLoop()
         {
             try
