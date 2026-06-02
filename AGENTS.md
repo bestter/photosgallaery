@@ -56,3 +56,12 @@
 * **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C#, **Vitest** pour le frontend React). Si la logique d'affaire change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
 * **Couverture des nouveautés :** Toute nouvelle fonctionnalité ou modification touchant à l'accès aux données doit être accompagnée de nouveaux tests appropriés utilisant le framework correspondant.
 * **Validation stricte :** S'assurer que l'ensemble de la suite de tests passe avec succès avant de soumettre un Pull Request ou de finaliser un *diff*.
+
+## 5. Conventions Git et Historique
+
+* **Gestion des branches (Branching) :** Ne pousse **jamais** de code directement sur les branches principales (`main` ou `master`). Crée toujours une branche de travail distincte, courte et descriptive (ex: `feature/nom-de-la-fonctionnalite`, `bugfix/nom-du-bug`, `refactor/nom-du-composant`).
+* **Pull Requests (PR) :** Tout changement doit obligatoirement passer par la création d'une Pull Request. Aucune fusion (merge) ne doit être effectuée sans une revue préalable.
+* **Commits atomiques :** Chaque commit doit représenter une unité de travail cohérente et complète. Évite les commits qui mélangent plusieurs changements non liés.
+* **Format des messages :** Utilise la spécification *Conventional Commits* (`feat:`, `fix:`, `refactor:`, `chore:`, etc.) pour structurer les titres de tes commits.
+* **Signature de l'IA :** Signe toujours tes commits avec ton nom et ton nom de modèle exact à la fin de la description (ex: `Generated-by: Hermes 2 Pro` ou `Generated-by: OpenClaw`). Cette traçabilité est essentielle pour auditer avec précision le code produit par les différents agents locaux ou distants.
+* **Langue :** Conformément à la Règle Dorée #6, l'intégralité des messages de commit (titre et description) doit être rédigée **strictement en anglais**.
