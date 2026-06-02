@@ -65,7 +65,12 @@ export default function Gallery() {
       const response = await api.get(url);
 
       setPhotos(prev => append ? [...prev, ...response.data] : response.data);
-      setHasMore(response.data.length === 20);
+      const totalCount = response.headers["x-total-count"];
+      if (totalCount) {
+        setHasMore((append ? photos.length : 0) + response.data.length < parseInt(totalCount, 10));
+      } else {
+        setHasMore(response.data.length === 20);
+      }
     } catch (error) {
       console.error("Erreur lors de la récupération des photos :", error);
     } finally {
@@ -121,6 +126,7 @@ export default function Gallery() {
 
   useEffect(() => {
     if (activeGroupId) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPage(1);
       fetchPhotos(activeGroupId, 1, false);
