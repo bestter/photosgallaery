@@ -42,7 +42,12 @@ export default function Dashboard() {
         setUsers((prev) =>
           append ? [...prev, ...response.data] : response.data,
         );
-        setHasMore(response.data.length === 20);
+        const totalCount = response.headers["x-total-count"];
+        if (totalCount) {
+          setHasMore((append ? users.length : 0) + response.data.length < parseInt(totalCount, 10));
+        } else {
+          setHasMore(response.data.length === 20);
+        }
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {

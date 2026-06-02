@@ -137,13 +137,18 @@ namespace PhotoAppApi.Controllers
 
                 }
 
+                var totalCount = await query.CountAsync(cancellationToken);
+
                 // ⚡ Bolt: Apply pagination on the server-side to limit payload size and improve latency
                 query = query.OrderByDescending(p => p.UploadedAt).Skip((page - 1) * pageSize).Take(pageSize);
 
                 // On exécute la requête pour obtenir la liste des photos
                 var photos = await query.ToListAsync(cancellationToken);
 
-                if (photos.Count == 0) return Ok(photos);
+                if (photos.Count == 0) {
+                    Response.Headers.Append("X-Total-Count", totalCount.ToString());
+                    return Ok(photos);
+                }
 
                 // --- 2. NOUVELLE LOGIQUE POUR LES LIKES ---
 
@@ -192,6 +197,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // On retourne tes photos enrichies !
+                Response.Headers.Append("X-Total-Count", totalCount.ToString());
                 return Ok(photos);
             }
             catch (Exception e)
@@ -1140,7 +1146,7 @@ namespace PhotoAppApi.Controllers
         // GET: api/photos/user/{username}
         [HttpGet("user/{username}")]
         [EnableRateLimiting("PhotosGetLimiter")]
-        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] Language lang = Language.FR)
+        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR)
         {
             try
             {

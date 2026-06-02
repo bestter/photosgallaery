@@ -32,3 +32,6 @@
 ## 2026-05-31 - Safe API Pagination Contract
 **Learning:** When converting an existing endpoint from returning an unpaginated flat array to a paginated one, modifying the JSON return body (e.g. from `[]` to `{ items: [], totalCount: 0 }`) is a breaking API change that will crash connected clients expecting an array.
 **Action:** Preserve the flat array in the JSON response body and safely append pagination metadata to the HTTP response headers (e.g. `Response.Headers.Append("X-Total-Count", totalCount.ToString())`). Always use `.Append` instead of `.Add` to avoid exceptions if the header is already registered.
+## 2025-10-24 - Database I/O Optimization for Counts
+**Learning:** Entity Framework Core evaluates `.ToListAsync()` followed by `.Count()` in memory, which is a performance bottleneck for retrieving row counts, particularly large collections.
+**Action:** Replaced in-memory evaluation with database aggregate functions like `.CountAsync()` and `Response.Headers.Append("X-Total-Count")` to improve I/O efficiency, following the provided codebase anti-patterns.

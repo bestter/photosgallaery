@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
@@ -66,7 +67,17 @@ namespace PhotoAppApi.Tests.Controllers
             context.Users.Add(user);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             var invalidRoleRequest = new RoleUpdateDto { Role = "InvalidRoleName" };
 
@@ -99,7 +110,17 @@ namespace PhotoAppApi.Tests.Controllers
             context.Users.Add(user);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             var validRoleRequest = new RoleUpdateDto { Role = "Admin" };
 
@@ -120,7 +141,17 @@ namespace PhotoAppApi.Tests.Controllers
             // Arrange
             using var context = GetDbContext();
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             var roleRequest = new RoleUpdateDto { Role = "Admin" };
 
@@ -137,7 +168,17 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDbContext();
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.GetAllUsers(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
@@ -194,7 +235,17 @@ namespace PhotoAppApi.Tests.Controllers
 
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.GetAllUsers(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
@@ -237,7 +288,17 @@ namespace PhotoAppApi.Tests.Controllers
             // Dispose the context immediately so any query throws an ObjectDisposedException
             context.Dispose();
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.GetAllUsers(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
@@ -256,7 +317,17 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDbContext();
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.GetReports(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
@@ -294,7 +365,17 @@ namespace PhotoAppApi.Tests.Controllers
             context.ImageReports.Add(report);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.GetReports(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
@@ -328,7 +409,17 @@ namespace PhotoAppApi.Tests.Controllers
             // Dispose the context immediately so any query throws an ObjectDisposedException
             context.Dispose();
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.GetReports(search: null, page: 1, pageSize: 20, cancellationToken: TestContext.Current.CancellationToken);
@@ -359,7 +450,17 @@ namespace PhotoAppApi.Tests.Controllers
             context.ImageReports.Add(report);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.DeleteReport(1, TestContext.Current.CancellationToken);
@@ -381,7 +482,17 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDbContext();
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.DeleteReport(999, TestContext.Current.CancellationToken);
@@ -401,7 +512,17 @@ namespace PhotoAppApi.Tests.Controllers
             var context = new AppDbContext(options);
             context.Dispose(); // Will cause ObjectDisposedException
 
-            var controller = new AdminController(context);
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
 
             // Act
             var result = await controller.DeleteReport(1, TestContext.Current.CancellationToken);

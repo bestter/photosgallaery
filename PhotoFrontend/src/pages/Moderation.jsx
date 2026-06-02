@@ -35,7 +35,12 @@ export default function Moderation() {
         setReports((prev) =>
           append ? [...prev, ...response.data] : response.data,
         );
-        setHasMore(response.data.length === 20);
+        const totalCount = response.headers["x-total-count"];
+        if (totalCount) {
+          setHasMore((append ? reports.length : 0) + response.data.length < parseInt(totalCount, 10));
+        } else {
+          setHasMore(response.data.length === 20);
+        }
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des signalements:",
@@ -361,7 +366,12 @@ export default function Moderation() {
                     .get(`/admin/reports?${params.toString()}`)
                     .then((response) => {
                       setReports((prev) => [...prev, ...response.data]);
-                      setHasMore(response.data.length === 20);
+                      const totalCount = response.headers["x-total-count"];
+                      if (totalCount) {
+                        setHasMore(reports.length + response.data.length < parseInt(totalCount, 10));
+                      } else {
+                        setHasMore(response.data.length === 20);
+                      }
                     })
                     .finally(() => setLoading(false));
                 }}

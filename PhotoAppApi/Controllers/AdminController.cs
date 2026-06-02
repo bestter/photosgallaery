@@ -47,6 +47,8 @@ namespace PhotoAppApi.Controllers
                     );
                 }
 
+                var totalCount = await query.CountAsync(cancellationToken);
+
                 var users = await query
                     .OrderByDescending(u => u.CreatedAt)
                     .Skip((page - 1) * pageSize)
@@ -62,6 +64,7 @@ namespace PhotoAppApi.Controllers
                     })
                     .ToListAsync(cancellationToken);
 
+                Response.Headers.Append("X-Total-Count", totalCount.ToString());
                 return Ok(users);
             }
             catch (Exception ex)
@@ -131,12 +134,15 @@ namespace PhotoAppApi.Controllers
                     );
                 }
 
+                var totalCount = await query.CountAsync(cancellationToken);
+
                 var reports = await query
                     .OrderByDescending(r => r.ReportedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
+                Response.Headers.Append("X-Total-Count", totalCount.ToString());
                 return Ok(reports);
             }
             catch (Exception ex)
