@@ -301,7 +301,7 @@ namespace PhotoAppApi.Controllers
                 if (theFiles == null || theFiles.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                var _modSvc = moderationService;
+                var _modSvc = moderationService == null ? null : moderationService;
                 if (_modSvc == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
