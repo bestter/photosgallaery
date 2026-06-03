@@ -305,13 +305,17 @@ namespace PhotoAppApi.Controllers
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
 
-                var moderationTasks = files.Select(async file =>
-                {
-                    await using var stream = file.OpenReadStream();
-                    return await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, cancellationToken);
-                });
+                // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
+                // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
+                var moderationResults = new ModerationResult[files.Count];
+                var moderationMaxDegrees = Environment.ProcessorCount;
 
-                var moderationResults = await Task.WhenAll(moderationTasks);
+                await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), new ParallelOptions { MaxDegreeOfParallelism = moderationMaxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
+                {
+                    var file = files[i];
+                    await using var stream = file.OpenReadStream();
+                    moderationResults[i] = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
+                });
 
                 var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
                 if (nsfwResult != null)
