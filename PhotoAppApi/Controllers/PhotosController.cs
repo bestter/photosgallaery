@@ -303,12 +303,12 @@ namespace PhotoAppApi.Controllers
                 if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                var theModerationService = moderationService ?? _moderationService;
-                if (theModerationService == null)
+                if (moderationService == null && _moderationService == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
+                IModerationService theModerationService = moderationService ?? _moderationService!;
                 var moderationSvc = theModerationService;
 
 
