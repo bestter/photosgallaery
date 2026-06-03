@@ -290,7 +290,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UploadPhotos([FromForm] IList<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
         {
             try
             {
