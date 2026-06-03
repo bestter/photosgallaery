@@ -297,7 +297,7 @@ namespace PhotoAppApi.Controllers
                 log.Debug($"In {nameof(UploadPhotos)}");
 
 
-                var theFiles = files;
+                var theFiles = files == null ? new List<IFormFile>() : new List<IFormFile>(files);
                 if (theFiles == null || theFiles.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
