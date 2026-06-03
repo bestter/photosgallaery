@@ -40,14 +40,16 @@ namespace PhotoAppApi.Controllers
         private readonly IObjectStorageService _storage;
 
         private readonly ChannelWriter<PhotoViewEvent> _viewChannelWriter;
+        private readonly IModerationService? _moderationService;
 
-        public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter)
+        public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter, IModerationService? moderationService = null)
         {
 
             _context = context;
             _env = env;
             _storage = storage;
             _viewChannelWriter = viewChannelWriter;
+            _moderationService = moderationService;
         }
 
         public string GetImageUrl(int photoId, bool isThumb)
@@ -290,31 +292,38 @@ namespace PhotoAppApi.Controllers
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] List<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UploadPhotos([FromForm] IList<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
         {
             try
             {
                 log.Debug($"In {nameof(UploadPhotos)}");
 
-                if (files == null || files.Count == 0)
+
+                var theFiles = files == null ? new List<IFormFile>() : new List<IFormFile>(files);
+                if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (moderationService == null)
+                if (moderationService == null && _moderationService == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
+                IModerationService theModerationService = moderationService ?? _moderationService!;
+                var moderationSvc = theModerationService;
+
 
                 // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
                 // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
-                var moderationResults = new ModerationResult[files.Count];
+                List<IFormFile> fileList = theFiles;
+
+                var moderationResults = new ModerationResult[fileList.Count];
                 var moderationMaxDegrees = Environment.ProcessorCount;
 
-                await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), new ParallelOptions { MaxDegreeOfParallelism = moderationMaxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
+                await Parallel.ForEachAsync(Enumerable.Range(0, fileList.Count), new ParallelOptions { MaxDegreeOfParallelism = moderationMaxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
                 {
-                    var file = files[i];
+                    var file = fileList[i];
                     await using var stream = file.OpenReadStream();
-                    moderationResults[i] = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
+                    moderationResults[i] = await moderationSvc.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
                 });
 
                 var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
@@ -391,7 +400,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 1. Vérification de la taille totale avant de traiter quoi que ce soit
-                long totalSize = files.Sum(f => f.Length);
+                long totalSize = fileList.Sum(f => f.Length);
                 if (totalSize > 52428800)
                 {
                     log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
@@ -405,8 +414,10 @@ namespace PhotoAppApi.Controllers
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
 
-                if (groupId.HasValue && currentUserId.HasValue)
+                if (groupId.HasValue)
                 {
+                    if (!currentUserId.HasValue) return Unauthorized(new { message = "Utilisateur non authentifié." });
+
                     bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
@@ -421,7 +432,7 @@ namespace PhotoAppApi.Controllers
                 // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
                 // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
                 // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) with a pre-sized array to safely process files without exhausting File Descriptors and preserve file order.
-                var validFiles = files.Where(file => file.Length > 0).ToList();
+                var validFiles = fileList.Where(file => file.Length > 0).ToList();
                 var fileHashesArray = new (IFormFile File, string Hash)[validFiles.Count];
                 var maxDegrees = Environment.ProcessorCount;
 
