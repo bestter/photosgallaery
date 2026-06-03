@@ -296,7 +296,8 @@ namespace PhotoAppApi.Controllers
             {
                 log.Debug($"In {nameof(UploadPhotos)}");
 
-                if (files == null || files.Count == 0)
+                var fileList = files?.ToList();
+                if (fileList == null || fileList.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
                 if (moderationService == null)
@@ -307,12 +308,12 @@ namespace PhotoAppApi.Controllers
 
                 // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
                 // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
-                var moderationResults = new ModerationResult[files.Count];
+                var moderationResults = new ModerationResult[fileList.Count];
                 var moderationMaxDegrees = Environment.ProcessorCount;
 
-                await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), new ParallelOptions { MaxDegreeOfParallelism = moderationMaxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
+                await Parallel.ForEachAsync(Enumerable.Range(0, fileList.Count), new ParallelOptions { MaxDegreeOfParallelism = moderationMaxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
                 {
-                    var file = files[i];
+                    var file = fileList[i];
                     await using var stream = file.OpenReadStream();
                     moderationResults[i] = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
                 });
@@ -391,7 +392,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 1. Vérification de la taille totale avant de traiter quoi que ce soit
-                long totalSize = files.Sum(f => f.Length);
+                long totalSize = fileList.Sum(f => f.Length);
                 if (totalSize > 52428800)
                 {
                     log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
@@ -423,7 +424,7 @@ namespace PhotoAppApi.Controllers
                 // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
                 // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
                 // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) with a pre-sized array to safely process files without exhausting File Descriptors and preserve file order.
-                var validFiles = files.Where(file => file.Length > 0).ToList();
+                var validFiles = fileList.Where(file => file.Length > 0).ToList();
                 var fileHashesArray = new (IFormFile File, string Hash)[validFiles.Count];
                 var maxDegrees = Environment.ProcessorCount;
 
