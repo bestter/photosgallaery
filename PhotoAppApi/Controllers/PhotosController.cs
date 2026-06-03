@@ -40,14 +40,16 @@ namespace PhotoAppApi.Controllers
         private readonly IObjectStorageService _storage;
 
         private readonly ChannelWriter<PhotoViewEvent> _viewChannelWriter;
+        private readonly IModerationService? _moderationService;
 
-        public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter)
+        public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter, IModerationService? moderationService = null)
         {
 
             _context = context;
             _env = env;
             _storage = storage;
             _viewChannelWriter = viewChannelWriter;
+            _moderationService = moderationService;
         }
 
         public string GetImageUrl(int photoId, bool isThumb)
@@ -301,19 +303,19 @@ namespace PhotoAppApi.Controllers
                 if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                var modServiceObj = moderationService;
-                if (modServiceObj == null)
+                var theModerationService = moderationService ?? _moderationService;
+                if (theModerationService == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
-                IModerationService _modSvc = modServiceObj;
+                var moderationSvc = theModerationService;
 
 
                 // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
                 // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
                 List<IFormFile> fileList = theFiles;
-                var moderationSvc = _modSvc;
+
                 var moderationResults = new ModerationResult[fileList.Count];
                 var moderationMaxDegrees = Environment.ProcessorCount;
 
