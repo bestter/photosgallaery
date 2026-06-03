@@ -298,20 +298,20 @@ namespace PhotoAppApi.Controllers
 
 
                 var theFiles = files == null ? new List<IFormFile>() : new List<IFormFile>(files);
-                if (theFiles == null || theFiles.Count == 0)
+                if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (moderationService == null)
+                if (ReferenceEquals(moderationService, null))
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
-                var _modSvc = moderationService;
+                IModerationService _modSvc = moderationService;
 
 
                 // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
                 // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
-                var fileList = theFiles;
+                IReadOnlyList<IFormFile> fileList = theFiles;
                 var moderationSvc = _modSvc;
                 var moderationResults = new ModerationResult[fileList.Count];
                 var moderationMaxDegrees = Environment.ProcessorCount;
