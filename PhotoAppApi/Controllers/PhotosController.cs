@@ -300,7 +300,8 @@ namespace PhotoAppApi.Controllers
                 if (fileList == null || fileList.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (moderationService == null)
+                var moderationSvc = moderationService;
+                if (moderationSvc == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
@@ -315,7 +316,7 @@ namespace PhotoAppApi.Controllers
                 {
                     var file = fileList[i];
                     await using var stream = file.OpenReadStream();
-                    moderationResults[i] = await moderationService.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
+                    moderationResults[i] = await moderationSvc.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
                 });
 
                 var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
