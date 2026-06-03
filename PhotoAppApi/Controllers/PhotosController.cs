@@ -301,12 +301,13 @@ namespace PhotoAppApi.Controllers
                 if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                if (ReferenceEquals(moderationService, null))
+                var modServiceObj = moderationService;
+                if (modServiceObj == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
-                IModerationService _modSvc = moderationService;
+                IModerationService _modSvc = modServiceObj;
 
 
                 // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
