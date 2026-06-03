@@ -35,3 +35,6 @@
 ## 2025-10-24 - Database I/O Optimization for Counts
 **Learning:** Entity Framework Core evaluates `.ToListAsync()` followed by `.Count()` in memory, which is a performance bottleneck for retrieving row counts, particularly large collections.
 **Action:** Replaced in-memory evaluation with database aggregate functions like `.CountAsync()` and `Response.Headers.Append("X-Total-Count")` to improve I/O efficiency, following the provided codebase anti-patterns.
+## 2026-06-03 - Bounded Concurrency Array Order
+**Learning:** When using `Parallel.ForEachAsync` to bound concurrency safely, `ConcurrentBag` will scramble the order of the results compared to the original inputs.
+**Action:** When order matters, use a pre-sized array instead of a `ConcurrentBag` and assign elements concurrently by their original indices (e.g., `Enumerable.Range(0, collection.Count)`). This is a thread-safe operation in C#.
