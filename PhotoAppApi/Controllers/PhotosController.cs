@@ -311,7 +311,7 @@ namespace PhotoAppApi.Controllers
 
                 // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
                 // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
-                IReadOnlyList<IFormFile> fileList = theFiles;
+                List<IFormFile> fileList = theFiles;
                 var moderationSvc = _modSvc;
                 var moderationResults = new ModerationResult[fileList.Count];
                 var moderationMaxDegrees = Environment.ProcessorCount;
