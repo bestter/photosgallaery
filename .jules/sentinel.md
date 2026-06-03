@@ -52,3 +52,8 @@
 **Vulnerability:** Found missing rate limiting attributes on several potentially expensive or sensitive endpoints, notably `DeletePhoto`, `BackfillHashes`, `GenerateMissingThumbnails`, and `MigrateClosedLoop` in `PhotosController`.
 **Learning:** Even administrative endpoints or authenticated endpoints manipulating resources need explicit rate limiting to prevent DoS via resource exhaustion or abuse.
 **Prevention:** Always ensure `[EnableRateLimiting]` is applied to all endpoints (or via global/controller-level filters) unless explicitly bypassed.
+
+## 2025-02-23 - Prevent IDOR when fallback authenticating UploadPhotos
+**Vulnerability:** In `PhotoAppApi/Controllers/PhotosController.cs`, the `UploadPhotos` endpoint relied on `currentUserId.HasValue` combined with `groupId.HasValue` checks but failed to actively deny requests when `groupId.HasValue` was true but `currentUserId.HasValue` was false. This insecure direct object reference (IDOR) allowed the authentication check to be bypassed.
+**Learning:** Explicit fallback validation for null claims should always eagerly and actively reject processing if the needed claim for group validation is missing.
+**Prevention:** Always verify identity eagerly. When conditional authentication or authorization logic relies on a claim, ensure the absence of that claim results in an immediate 401 or 403, preventing bypasses down the logic chain.

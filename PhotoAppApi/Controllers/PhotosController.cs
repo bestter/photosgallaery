@@ -405,8 +405,10 @@ namespace PhotoAppApi.Controllers
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
 
-                if (groupId.HasValue && currentUserId.HasValue)
+                if (groupId.HasValue)
                 {
+                    if (!currentUserId.HasValue) return Unauthorized(new { message = "Utilisateur non authentifié." });
+
                     bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
