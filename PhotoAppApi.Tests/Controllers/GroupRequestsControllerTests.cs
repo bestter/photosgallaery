@@ -87,28 +87,45 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetAllGroupRequests_WhenExceptionOccurs_Returns500()
+        public async Task GetAllGroupRequests_WhenExceptionOccurs_LogsErrorAndReturns500()
         {
             // Arrange
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            var context = new AppDbContext(options);
-            context.Dispose(); // Dispose to cause ObjectDisposedException when queried
+            var repository = log4net.LogManager.GetRepository(System.Reflection.Assembly.GetExecutingAssembly());
+            var appender = new TestMemoryAppender();
+            log4net.Config.BasicConfigurator.Configure(repository, appender);
 
-            var controller = new GroupRequestsController(context);
+            try
+            {
+                var options = new DbContextOptionsBuilder<AppDbContext>()
+                    .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                    .Options;
+                var context = new AppDbContext(options);
+                context.Dispose(); // Dispose to cause ObjectDisposedException when queried
 
-            // Act
-            var result = await controller.GetAllGroupRequests(TestContext.Current.CancellationToken);
+                var controller = new GroupRequestsController(context);
 
-            // Assert
-            var statusCodeResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(500, statusCodeResult.StatusCode);
+                // Act
+                var result = await controller.GetAllGroupRequests(TestContext.Current.CancellationToken);
 
-            var value = statusCodeResult.Value;
-            Assert.NotNull(value);
-            var message = value.GetType().GetProperty("message")?.GetValue(value, null) as string;
-            Assert.Equal("Erreur lors de la récupération des demandes.", message);
+                // Assert
+                var statusCodeResult = Assert.IsType<ObjectResult>(result);
+                Assert.Equal(500, statusCodeResult.StatusCode);
+
+                var value = statusCodeResult.Value;
+                Assert.NotNull(value);
+                var message = value.GetType().GetProperty("message")?.GetValue(value, null) as string;
+                Assert.Equal("Erreur lors de la récupération des demandes.", message);
+
+                var events = appender.GetEvents();
+                var errorEvent = events.FirstOrDefault(e => e.Level == log4net.Core.Level.Error);
+                Assert.NotNull(errorEvent);
+                Assert.Equal("An error occured in GetAllGroupRequests", errorEvent.RenderedMessage);
+                Assert.NotNull(errorEvent.ExceptionObject);
+            }
+            finally
+            {
+                repository.ResetConfiguration();
+            }
         }
     }
 }
