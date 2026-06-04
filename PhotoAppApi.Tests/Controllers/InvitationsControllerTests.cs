@@ -285,20 +285,37 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
-        public async Task CreateInvitation_WhenExceptionThrown_Returns500()
+        public async Task CreateInvitation_WhenEmailServiceThrows_Returns500()
         {
             // Arrange
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
+            using var context = GetDbContext();
 
-            var context = new AppDbContext(options);
-            context.Dispose(); // Force ObjectDisposedException
+            var group = new Group { Id = Guid.NewGuid(), Name = "Test Group", ShortName = "TG", Description = "Test" };
+            context.Groups.Add(group);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var emailServiceMock = new Mock<IEmailService>();
-            var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "a dmin", role: "Admin");
+            emailServiceMock.Setup(x => x.SendInvitationEmailAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()
+            )).ThrowsAsync(new Exception("Email service failed"));
 
-            var dto = new CreateInvitationDto { GroupId = Guid.NewGuid(), Email = "test@example.com" };
+            var controller = CreateController(context, emailServiceMock.Object, userId: 1, username: "admin", role: "Admin");
+
+            var dto = new CreateInvitationDto
+            {
+                GroupId = group.Id,
+                Email = "test@example.com",
+                FirstName = "Test",
+                LastName = "User",
+                Message = "Hello"
+            };
 
             // Act
             var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
