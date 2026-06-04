@@ -1,7 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
@@ -9,6 +8,7 @@ using PhotoAppApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -349,7 +349,8 @@ namespace PhotoAppApi.Tests.Controllers
                 Id = 1,
                 FileName = "test.jpg",
                 Url = "/uploads/test.jpg",
-                UploaderUsername = "uploader1", ThumbnailUrl = string.Empty
+                UploaderUsername = "uploader1",
+                ThumbnailUrl = string.Empty
             };
 
             var report = new ImageReport

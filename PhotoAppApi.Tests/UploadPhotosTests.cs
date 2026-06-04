@@ -1,21 +1,21 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Moq;
+using PhotoAppApi.Controllers;
+using PhotoAppApi.Data;
+using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Hosting;
 using System.Threading.Channels;
-using Moq;
-using PhotoAppApi.Controllers;
-using PhotoAppApi.Data;
-using PhotoAppApi.Models;
-using PhotoAppApi.Services;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace PhotoAppApi.Tests
@@ -52,7 +52,7 @@ namespace PhotoAppApi.Tests
             }, "mock"));
 
             var storageMock = new Mock<IObjectStorageService>();
-            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)  
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -73,8 +73,8 @@ namespace PhotoAppApi.Tests
                 Url = "/api/images/existing_image.jpg",
                 UploaderUsername = "anotheruser",
                 FileHash = fileHash,
-                    UploadedAt = DateTime.UtcNow,
-                    ThumbnailUrl = "/api/images/existing_image_thumbnail.jpg",
+                UploadedAt = DateTime.UtcNow,
+                ThumbnailUrl = "/api/images/existing_image_thumbnail.jpg",
             });
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -131,7 +131,7 @@ namespace PhotoAppApi.Tests
                 new Claim(ClaimTypes.Name, "testuser"),
                 new Claim(ClaimTypes.Role, "Admin")
             }, "mock"));
-            
+
             var storageMock = new Mock<IObjectStorageService>();
 
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object)
@@ -165,7 +165,7 @@ namespace PhotoAppApi.Tests
                 .ReturnsAsync("dummy_url");
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false,TestContext.Current.CancellationToken);
+            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -286,7 +286,7 @@ namespace PhotoAppApi.Tests
             Assert.NotNull(dict);
             Assert.True(dict.ContainsKey("message"));
             Assert.Contains("Image contains inappropriate content", dict["message"].GetString() ?? string.Empty);
-            
+
             var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
             Assert.Empty(photosInDb);
         }
