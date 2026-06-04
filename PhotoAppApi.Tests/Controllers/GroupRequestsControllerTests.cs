@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Controllers;
@@ -109,6 +110,37 @@ namespace PhotoAppApi.Tests.Controllers
             Assert.NotNull(value);
             var message = value.GetType().GetProperty("message")?.GetValue(value, null) as string;
             Assert.Equal("Erreur lors de la récupération des demandes.", message);
+        }
+
+        [Fact]
+        public async Task SubmitGroupRequest_WhenExceptionOccurs_Returns500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new AppDbContext(options);
+            context.Dispose(); // Dispose to cause ObjectDisposedException when queried
+
+            var controller = new GroupRequestsController(context);
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1")
+            }, "mock"));
+            controller.ControllerContext = new ControllerContext { HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext { User = user } };
+
+            var request = new SubmitGroupRequestDto { Name = "Test", Description = "Test" };
+
+            // Act
+            var result = await controller.SubmitGroupRequest(request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+            var value = statusCodeResult.Value;
+            Assert.NotNull(value);
+            var message = value.GetType().GetProperty("message")?.GetValue(value, null) as string;
+            Assert.Equal("Erreur lors de la création de la demande de groupe.", message);
         }
     }
 }
