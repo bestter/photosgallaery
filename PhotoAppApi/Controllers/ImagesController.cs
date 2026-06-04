@@ -31,22 +31,11 @@ namespace PhotoAppApi.Controllers
         [HttpGet("{fileName}")]
         public Task<IActionResult> GetImage(string fileName, CancellationToken cancellationToken = default)
         {
-            return GetImageFileInternalAsync(fileName, isThumbnail: false, cancellationToken);
-        }
-
-        [HttpGet("thumbnails/{fileName}")]
-        public Task<IActionResult> GetThumbnail(string fileName, CancellationToken cancellationToken = default)
-        {
-            return GetImageFileInternalAsync(fileName, isThumbnail: true, cancellationToken);
-        }
-
-        private async Task<IActionResult> GetImageFileInternalAsync(string fileName, bool isThumbnail, CancellationToken cancellationToken)
-        {
             if (string.IsNullOrEmpty(fileName) ||
                 fileName.Contains("..") ||
                 fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
-                return BadRequest("Invalid file name.");
+                return Task.FromResult<IActionResult>(BadRequest("Invalid file name."));
             }
 
             // Extract pure file name and implicitly clear CodeQL taint.
@@ -54,9 +43,35 @@ namespace PhotoAppApi.Controllers
             var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
             if (fileName != safeFileName)
             {
-                return BadRequest("Invalid file name.");
+                return Task.FromResult<IActionResult>(BadRequest("Invalid file name."));
             }
 
+            return GetImageFileInternalAsync(safeFileName, isThumbnail: false, cancellationToken);
+        }
+
+        [HttpGet("thumbnails/{fileName}")]
+        public Task<IActionResult> GetThumbnail(string fileName, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(fileName) ||
+                fileName.Contains("..") ||
+                fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return Task.FromResult<IActionResult>(BadRequest("Invalid file name."));
+            }
+
+            // Extract pure file name and implicitly clear CodeQL taint.
+            // Validating after extracting ensures no cross-platform bypasses occur.
+            var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+            if (fileName != safeFileName)
+            {
+                return Task.FromResult<IActionResult>(BadRequest("Invalid file name."));
+            }
+
+            return GetImageFileInternalAsync(safeFileName, isThumbnail: true, cancellationToken);
+        }
+
+        private async Task<IActionResult> GetImageFileInternalAsync(string safeFileName, bool isThumbnail, CancellationToken cancellationToken)
+        {
             string methodName = isThumbnail ? nameof(GetThumbnail) : nameof(GetImage);
             log.Debug($"In {methodName} for file: {safeFileName}");
 
