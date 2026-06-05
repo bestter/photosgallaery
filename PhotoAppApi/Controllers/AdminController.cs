@@ -19,10 +19,12 @@ namespace PhotoAppApi.Controllers
         private static readonly ILog log = LogManager.GetLogger(typeof(AdminController));
 
         private readonly AppDbContext _context;
-        public AdminController(AppDbContext context)
+        private readonly ILogger<AdminController> _logger;
+
+        public AdminController(AppDbContext context, ILogger<AdminController> logger)
         {
             _context = context;
-
+            _logger = logger;
         }
 
         // GET: api/admin/users
@@ -69,8 +71,8 @@ namespace PhotoAppApi.Controllers
             }
             catch (Exception ex)
             {
-                log.Error($"An error occured in {nameof(GetAllUsers)}", ex);
-                return StatusCode(500, new { message = "Erreur lors de la récupération des utilisateurs." });
+                _logger.LogError(ex, "Error fetching users.");
+                return StatusCode(500, "Internal server error");
             }
         }
 

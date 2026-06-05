@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -73,7 +75,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -116,7 +118,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -147,7 +149,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -174,7 +176,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -241,7 +243,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -294,7 +296,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -307,9 +309,8 @@ namespace PhotoAppApi.Tests.Controllers
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
 
-            // Validate the message via reflection
-            var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
-            Assert.Equal("Erreur lors de la récupération des utilisateurs.", message);
+            // Validate the message
+            Assert.Equal("Internal server error", statusCodeResult.Value);
         }
 
         [Fact]
@@ -323,7 +324,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -371,7 +372,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -415,7 +416,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -492,7 +493,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -524,7 +525,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -554,7 +555,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
