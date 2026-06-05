@@ -57,3 +57,8 @@
 **Vulnerability:** In `PhotoAppApi/Controllers/PhotosController.cs`, the `UploadPhotos` endpoint relied on `currentUserId.HasValue` combined with `groupId.HasValue` checks but failed to actively deny requests when `groupId.HasValue` was true but `currentUserId.HasValue` was false. This insecure direct object reference (IDOR) allowed the authentication check to be bypassed.
 **Learning:** Explicit fallback validation for null claims should always eagerly and actively reject processing if the needed claim for group validation is missing.
 **Prevention:** Always verify identity eagerly. When conditional authentication or authorization logic relies on a claim, ensure the absence of that claim results in an immediate 401 or 403, preventing bypasses down the logic chain.
+
+## 2025-03-02 - Fix IDOR in ToggleLike
+**Vulnerability:** The `ToggleLike` endpoint (`[HttpPost("{id}/like")]` in `PhotosController.cs`) allowed any authenticated user to toggle a like on any photo, including those belonging to private groups they were not members of, by manipulating the photo ID parameter. This was an Insecure Direct Object Reference (IDOR) vulnerability.
+**Learning:** Mutating actions on resources that belong to restricted groups must consistently validate the caller's authorization (group membership or admin role) prior to performing the action.
+**Prevention:** Explicitly validate group membership using an efficient database query (e.g., `AnyAsync` against the `UserGroups` table) whenever a user attempts to interact with a group-associated resource, and eagerly return `Forbid()` for unauthorized users.

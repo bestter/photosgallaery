@@ -558,5 +558,44 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
         }
+        [Fact]
+        public async Task ToggleLike_ShouldReturnOk_WhenUserIsAdminAndNotGroupMember()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new AppDbContext(options);
+
+            var groupId = Guid.NewGuid();
+            var photo = new Photo { Id = 1, GroupId = groupId, UploaderUsername = "otheruser", FileName = "test.jpg", Url = "test.jpg", ThumbnailUrl = string.Empty };
+
+            context.Photos.Add(photo);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Name, "adminuser"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, "mock"));
+
+            var httpContext = new DefaultHttpContext { User = user };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act
+            var result = await controller.ToggleLike(1);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+        }
+
     }
 }

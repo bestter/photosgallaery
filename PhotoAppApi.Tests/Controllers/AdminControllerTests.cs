@@ -454,7 +454,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
