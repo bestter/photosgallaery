@@ -38,3 +38,6 @@
 ## 2026-06-03 - Bounded Concurrency Array Order
 **Learning:** When using `Parallel.ForEachAsync` to bound concurrency safely, `ConcurrentBag` will scramble the order of the results compared to the original inputs.
 **Action:** When order matters, use a pre-sized array instead of a `ConcurrentBag` and assign elements concurrently by their original indices (e.g., `Enumerable.Range(0, collection.Count)`). This is a thread-safe operation in C#.
+## 2024-05-23 - Bounded Concurrency S3 Objects
+**Learning:** Fetching an unbounded number of S3 objects concurrently using `Task.WhenAll` can lead to socket exhaustion and large memory spikes, degrading performance when loading configuration.
+**Action:** Always use `Parallel.ForEachAsync` to bound the concurrency when doing batch external IO or S3 object reading. This applies identically to file system reading or external service batch fetches.

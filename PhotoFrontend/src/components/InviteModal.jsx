@@ -16,22 +16,26 @@ const InviteModal = ({ isOpen, onClose }) => {
     const [selectedGroupId, setSelectedGroupId] = useState('');
 
     useEffect(() => {
-        if (isOpen) {
-            const fetchGroups = async () => {
-                try {
-                    const response = await api.get('/auth/groups');
+        if (!isOpen) return;
+        let isMounted = true;
+        api.get('/auth/groups')
+            .then(response => {
+                if (isMounted) {
                     setUserGroups(response.data);
                     if (response.data.length > 0) {
                         setSelectedGroupId(response.data[0].id || response.data[0].Id);
                     }
-                } catch (error) {
-                    toast.error(t('components.invite_modal.error.load_groups'));
+                }
+            })
+            .catch(error => {
+                if (isMounted) {
                     toast.error(t('components.invite_modal.error.load_groups'));
                 }
-            };
-            fetchGroups();
-        }
-    }, [t,isOpen]);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [isOpen, t]);
 
     if (!isOpen) return null;
 

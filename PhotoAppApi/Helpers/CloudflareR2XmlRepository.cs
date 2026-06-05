@@ -62,26 +62,32 @@ namespace PhotoAppApi.Helpers
                 var response = await _s3Client.ListObjectsV2Async(request, ct);
 
 
-                var getTasks = (response?.S3Objects ?? Enumerable.Empty<S3Object>())
+                var s3Objects = (response?.S3Objects ?? Enumerable.Empty<S3Object>())
                     .Where(o => o?.Key?.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) == true)
-                    .Select(async obj =>
+                    .ToList();
+
+                // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
+                var results = new XElement?[s3Objects.Count];
+                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = ct };
+
+                await Parallel.ForEachAsync(Enumerable.Range(0, s3Objects.Count), options, async (i, token) =>
+                {
+                    var obj = s3Objects[i];
+                    try
                     {
-                        try
-                        {
-                            var getRequest = new GetObjectRequest { BucketName = _bucketName, Key = obj.Key };
-                            using var getResponse = await _s3Client.GetObjectAsync(getRequest, ct);
-                            using var streamReader = new StreamReader(getResponse.ResponseStream);
+                        var getRequest = new GetObjectRequest { BucketName = _bucketName, Key = obj.Key };
+                        using var getResponse = await _s3Client.GetObjectAsync(getRequest, token);
+                        using var streamReader = new StreamReader(getResponse.ResponseStream);
 
-                            return await XElement.LoadAsync(streamReader, LoadOptions.None, ct);
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error($"Error loading Data Protection key from R2: {obj?.Key}", ex);
-                            return null;
-                        }
-                    });
+                        results[i] = await XElement.LoadAsync(streamReader, LoadOptions.None, token);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Error loading Data Protection key from R2: {obj?.Key}", ex);
+                        results[i] = null;
+                    }
+                });
 
-                var results = await Task.WhenAll(getTasks);
                 elements.AddRange(results.Where(x => x != null)!);
 
                 continuationToken = response.NextContinuationToken;
