@@ -434,6 +434,42 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetReportStats_WhenExceptionOccurs_ReturnsStatusCode500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new AppDbContext(options);
+            // Dispose the context immediately so any query throws an ObjectDisposedException
+            context.Dispose();
+
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
+
+            // Act
+            var result = await controller.GetReportStats(TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            // Validate the message via reflection
+            var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
+            Assert.Equal("Erreur lors de la récupération des statistiques.", message);
+        }
+
+        [Fact]
         public async Task DeleteReport_WithValidId_UpdatesStatusToProcessed()
         {
             // Arrange
