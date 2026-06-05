@@ -28,8 +28,8 @@ export default function AdminGroups() {
     }, [members, allUsers]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token || isTokenExpired(token) || getUserRole(token) !== 'Admin') {
+
+        if (isTokenExpired() || getUserRole() !== 'Admin') {
             window.location.href = '/';
             return;
         }

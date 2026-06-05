@@ -1,40 +1,65 @@
 import { jwtDecode } from "jwt-decode";
 
-export const getUserRole = (token) => {
-    if (!token) return null;
+export const saveUserSession = (token) => {
+    if (!token) return;
     try {
         const decoded = jwtDecode(token);
-        // On récupère la valeur brute du jeton
-        let rawRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
-        // On fait la traduction automatique (bilingue texte/chiffre) !
-        if (rawRole === "9999" || rawRole === "Admin") return "Admin";
-        if (rawRole === "1" || rawRole === "Creator") return "Creator";
         
-        return rawRole; // Par défaut, on retourne ce qu'on a trouvé (ex: "User" ou "0")
+        let role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
+        if (role === "9999" || role === "Admin") role = "Admin";
+        else if (role === "1" || role === "Creator") role = "Creator";
+
+        const username = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.unique_name || decoded.sub;
+
+        const userInfo = {
+            role: role,
+            username: username,
+            exp: decoded.exp
+        };
+
+        localStorage.setItem("user_info", JSON.stringify(userInfo));
+    } catch (error) {
+        console.error("Error saving user session:", error);
+    }
+};
+
+export const clearUserSession = () => {
+    localStorage.removeItem("user_info");
+};
+
+export const getUserRole = () => {
+    try {
+        const userInfoStr = localStorage.getItem("user_info");
+        if (!userInfoStr) return null;
+        const userInfo = JSON.parse(userInfoStr);
+        return userInfo.role;
     } catch (error) {
         return null;
     }
 };
 
-export const getUsernameFromToken = (token) => {
-    if (!token) return null;
+export const getUsernameFromToken = () => {
     try {
-        const decoded = jwtDecode(token);
-        // .NET utilise souvent ClaimTypes.Name qui devient cette URL dans le JSON :
-        return decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.unique_name || decoded.sub;
+        const userInfoStr = localStorage.getItem("user_info");
+        if (!userInfoStr) return null;
+        const userInfo = JSON.parse(userInfoStr);
+        return userInfo.username;
     } catch (error) {
         return null;
     }
 };
 
-export const isTokenExpired = (token) => {
-    if (!token || token === "null" || token === "undefined") return true;
+export const isTokenExpired = () => {
     try {
-        const decoded = jwtDecode(token);
+        const userInfoStr = localStorage.getItem("user_info");
+        if (!userInfoStr) return true;
+
+        const userInfo = JSON.parse(userInfoStr);
+        if (!userInfo.exp) return true;
+        
         const currentTime = Date.now() / 1000;
-        
         // Marge de sécurité de 10 secondes : on le considère expiré juste avant sa vraie fin
-        return decoded.exp < (currentTime + 10); 
+        return userInfo.exp < (currentTime + 10);
     } catch (error) {
         return true; 
     }

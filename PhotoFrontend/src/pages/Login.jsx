@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { saveUserSession } from "../authHelper";
 import Footer from "../components/Footer";
 
 const Login = () => {
@@ -18,7 +19,7 @@ const Login = () => {
       // Ajustez l'endpoint selon votre API
       const response = await api.post("/auth/login", { username, password });
       if (response.data && response.data.token) {
-        localStorage.setItem("token", response.data.token);
+        saveUserSession(response.data.token);
         toast.success(t("auth.login.success"));
         window.location.href = "/";
       }

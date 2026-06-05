@@ -16,8 +16,8 @@ export default function Moderation() {
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token || isTokenExpired(token) || getUserRole(token) !== "Admin") {
+
+    if (isTokenExpired() || getUserRole() !== "Admin") {
       window.location.href = "/";
       return;
     }

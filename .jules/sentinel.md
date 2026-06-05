@@ -62,3 +62,11 @@
 **Vulnerability:** A catch block returning a generic 500 error in `GroupRequestsController.GetAllGroupRequests` lacked test coverage. Unverified exception handling can mask logging failures, misconfigured exception formats, or regressions where exceptions bubble up instead of being handled gracefully.
 **Learning:** Exception handling paths (like catch blocks) in controllers must be explicitly unit tested to ensure they catch expected errors, log appropriately, and return the correct HTTP status code and response schema to the client.
 **Prevention:** Intentionally simulate failure states (e.g., disposing the database context to trigger an `ObjectDisposedException` upon querying) within unit tests to trigger and verify `catch` block execution, ensuring both logging and HTTP responses function as designed.
+
+## $(date +%Y-%m-%d) - JWT Token Storage
+
+**Vulnerability:** JWT token stored in `localStorage` in `PhotoFrontend/src/api.js` made it susceptible to Cross-Site Scripting (XSS) attacks.
+
+**Learning:** Sensitive authentication tokens should not be stored in `localStorage` or `sessionStorage` where they can be read by any JavaScript running on the page.
+
+**Prevention:** To prevent XSS exposure, sensitive tokens (like JWT) should be stored in an `HttpOnly`, `Secure` cookie set by the backend API. The frontend can still decode and store non-sensitive user identity claims (like username and role) in `localStorage` for UI rendering, but the actual authentication mechanism should rely on the browser automatically attaching the secure cookie.

@@ -17,15 +17,15 @@ export default function Dashboard() {
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const currentUsername = getUsernameFromToken(localStorage.getItem("token"));
+  const currentUsername = getUsernameFromToken();
 
   // ⚡ Bolt: Server-side pagination replaces client-side filtering.
   const filteredUsers = users;
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token || isTokenExpired(token) || getUserRole(token) !== "Admin") {
+
+    if (isTokenExpired() || getUserRole() !== "Admin") {
       window.location.href = "/";
       return;
     }

@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { isTokenExpired, getUserRole } from "../authHelper";
+import { isTokenExpired, getUserRole, clearUserSession } from "../authHelper";
 
 const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
   const { t } = useTranslation();
@@ -146,7 +146,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
         icon: "🔒",
       });
       if (setToken) setToken(null);
-      localStorage.removeItem("token");
+      clearUserSession();
       return;
     }
 

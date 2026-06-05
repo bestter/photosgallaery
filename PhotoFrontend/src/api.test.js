@@ -39,11 +39,11 @@ describe('api.js interceptors', () => {
         const error = { response: { status: 401 } };
         axiosInstance.defaults.adapter.mockRejectedValue(error);
 
-        localStorage.setItem('token', 'fake-token');
+        localStorage.setItem('user_info', JSON.stringify({role: 'User'}));
 
         await expect(axiosInstance.get('/test')).rejects.toEqual(error);
 
-        expect(localStorage.getItem('token')).toBeNull();
+        expect(localStorage.getItem('user_info')).toBeNull();
         expect(window.location.href).toBe('/login?ejected=true');
     });
 
@@ -51,11 +51,11 @@ describe('api.js interceptors', () => {
         const error = { response: { status: 403 } };
         axiosInstance.defaults.adapter.mockRejectedValue(error);
 
-        localStorage.setItem('token', 'fake-token');
+        localStorage.setItem('user_info', JSON.stringify({role: 'User'}));
 
         await expect(axiosInstance.get('/test')).rejects.toEqual(error);
 
-        expect(localStorage.getItem('token')).toBeNull();
+        expect(localStorage.getItem('user_info')).toBeNull();
         expect(window.location.href).toBe('/login?ejected=true');
     });
 
@@ -64,11 +64,11 @@ describe('api.js interceptors', () => {
         const error = { response: { status: 401 } };
         axiosInstance.defaults.adapter.mockRejectedValue(error);
 
-        localStorage.setItem('token', 'fake-token');
+        localStorage.setItem('user_info', JSON.stringify({role: 'User'}));
 
         await expect(axiosInstance.get('/test')).rejects.toEqual(error);
 
-        expect(localStorage.getItem('token')).toBe('fake-token');
+        expect(localStorage.getItem('user_info')).toBe(JSON.stringify({role: 'User'}));
         expect(window.location.href).toBe('');
     });
 
@@ -95,15 +95,16 @@ describe('api.js interceptors', () => {
         expect(window.location.href).toBe('');
     });
 
-    it('should add Authorization and X-App-Client headers when token is present', async () => {
-        localStorage.setItem('token', 'my-token');
+    it('should add X-App-Client header, but no Authorization header (using withCredentials instead)', async () => {
+
         axiosInstance.defaults.adapter.mockResolvedValue({ data: 'ok', status: 200, headers: {} });
 
         await axiosInstance.get('/test');
 
         const config = axiosInstance.defaults.adapter.mock.calls[0][0];
         expect(config.headers['X-App-Client']).toBe('PhotoApp-Web');
-        expect(config.headers.Authorization).toBe('Bearer my-token');
+        expect(axiosInstance.defaults.withCredentials).toBe(true);
+        expect(config.headers.Authorization).toBeUndefined();
     });
 
     it('should not add Authorization header when token is absent', async () => {
@@ -113,6 +114,7 @@ describe('api.js interceptors', () => {
 
         const config = axiosInstance.defaults.adapter.mock.calls[0][0];
         expect(config.headers['X-App-Client']).toBe('PhotoApp-Web');
+        expect(axiosInstance.defaults.withCredentials).toBe(true);
         expect(config.headers.Authorization).toBeUndefined();
     });
 });

@@ -76,7 +76,8 @@ builder.Services.AddCors(options =>
         b => b.WithOrigins(frontendUrl)
               .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
               .WithHeaders("Authorization", "Content-Type", "Accept", "X-App-Client")
-              .WithExposedHeaders("X-Total-Count"));
+              .WithExposedHeaders("X-Total-Count")
+              .AllowCredentials());
 });
 
 
@@ -104,6 +105,11 @@ builder.Services.AddAuthentication(options =>
             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/images"))
             {
                 context.Token = accessToken;
+            }
+            var cookieToken = context.Request.Cookies["jwt_token"];
+            if (!string.IsNullOrEmpty(cookieToken))
+            {
+                context.Token = cookieToken;
             }
             return Task.CompletedTask;
         },
