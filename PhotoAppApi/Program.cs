@@ -74,8 +74,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         b => b.WithOrigins(frontendUrl)
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+              .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+              .WithHeaders("Authorization", "Content-Type", "Accept", "X-App-Client")
+              .WithExposedHeaders("X-Total-Count"));
 });
 
 
