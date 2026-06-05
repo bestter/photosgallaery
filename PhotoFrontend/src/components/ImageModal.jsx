@@ -64,8 +64,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
     const tags = photo.tags || photo.Tags || [];
 
-    const token = localStorage.getItem('token');
-    const currentUser = getUsernameFromToken(token);
+
+    const currentUser = getUsernameFromToken();
     const isMyPhoto = currentUser && currentUser === author;
 
     // L'url hi-res de l'image (injectée par le parent)

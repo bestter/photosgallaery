@@ -5,7 +5,7 @@ import InviteModal from "../components/InviteModal";
 import GroupRequestModal from "../components/GroupRequestModal";
 import GroupSelector from "../components/GroupSelector";
 import { useDebounce } from "../hooks/useDebounce";
-import { getUserRole, isTokenExpired } from "../authHelper";
+import { getUserRole, clearUserSession, isTokenExpired, getUsernameFromToken } from "../authHelper";
 import api from "../api";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
@@ -32,10 +32,10 @@ export default function Gallery() {
   const [userGroups, setUserGroups] = useState([]);
   const [activeGroupId, setActiveGroupId] = useState(null);
 
-  // Vérification de la session via le token
-  const token = localStorage.getItem("token");
-  const isLoggedIn = token && !isTokenExpired(token);
-  const userRole = isLoggedIn ? getUserRole(token) : null;
+  // Vérification de la session via le (!isTokenExpired())
+
+  const isLoggedIn = (!isTokenExpired()) && !isTokenExpired();
+  const userRole = isLoggedIn ? getUserRole() : null;
 
   // Permissions
   const canUpload =
@@ -161,9 +161,9 @@ export default function Gallery() {
     }
 
     // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
-    if (token) {
+    if (!isTokenExpired()) {
       const separator = fullUrl.includes("?") ? "&" : "?";
-      fullUrl += `${separator}access_token=${token}`;
+      fullUrl += `${separator}access_(!isTokenExpired())=${(!isTokenExpired())}`;
     }
     return fullUrl;
   };
@@ -315,7 +315,7 @@ export default function Gallery() {
             {isLoggedIn && (
               <button
                 onClick={() => {
-                  localStorage.removeItem("token");
+                  clearUserSession();
                   window.location.reload();
                 }}
                 className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors"
@@ -739,7 +739,7 @@ export default function Gallery() {
             </button>
             <div className="p-2 sm:p-4">
               <UploadPhoto
-                token={token}
+
                 initialGroupId={activeGroupId}
                 onUploadSuccess={() => {
                   setIsUploadOpen(false);

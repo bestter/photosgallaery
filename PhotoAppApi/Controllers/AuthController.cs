@@ -63,6 +63,17 @@ namespace PhotoAppApi.Controllers
 
                 string token = CreateToken(user);
 
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // Force HTTPS for security
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.Now.AddDays(1)
+                };
+                Response.Cookies.Append("jwt_token", token, cookieOptions);
+
+                // Return token in payload so frontend can decode claims for UI,
+                // but actual API requests will use the HttpOnly cookie.
                 return Ok(new { token });
             }
             catch (Exception e)
@@ -106,6 +117,13 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost("register")]
         [EnableRateLimiting("RegisterLimiter")]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("jwt_token");
+            return Ok(new { message = "Déconnexion réussie." });
+        }
+
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(Register)} for user: {request.Username}");

@@ -16,8 +16,8 @@ function App() {
   const currentPath = window.location.pathname;
 
   // Logique Closed Loop : L'Auth est obligatoire
-  const token = localStorage.getItem('token');
-  const isLoggedIn = token && !isTokenExpired(token);
+  const isLoggedIn = !isTokenExpired();
+
 
   const isPublicRoute = currentPath === '/login' || currentPath === '/register' || currentPath.startsWith('/join') || currentPath === '/contact';
 

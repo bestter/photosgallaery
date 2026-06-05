@@ -1,11 +1,14 @@
+import { clearUserSession } from '../authHelper';
+import api from '../api';
 import React from 'react';
 import Footer from './Footer';
 
 export default function AdminLayout({ children, title, subtitle, topActions }) {
     const currentPath = window.location.pathname;
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
+    const handleLogout = async () => {
+        try { await api.post('/auth/logout'); } catch(e) {/* empty */}
+        clearUserSession();
         window.location.href = '/login';
     };
 

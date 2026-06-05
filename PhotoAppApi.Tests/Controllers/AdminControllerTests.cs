@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -454,7 +455,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
