@@ -38,3 +38,6 @@
 ## 2026-06-03 - Bounded Concurrency Array Order
 **Learning:** When using `Parallel.ForEachAsync` to bound concurrency safely, `ConcurrentBag` will scramble the order of the results compared to the original inputs.
 **Action:** When order matters, use a pre-sized array instead of a `ConcurrentBag` and assign elements concurrently by their original indices (e.g., `Enumerable.Range(0, collection.Count)`). This is a thread-safe operation in C#.
+## 2025-06-05 - Optimize Thumbnail Generation File IO
+**Learning:** Doing synchronous `File.Exists` calls inside a loop can be a performance bottleneck, particularly for a large number of files. Batch checking using `Directory.EnumerateFiles` and `HashSet` eliminates individual IO overhead, drastically improving execution times.
+**Action:** Refactored `GenerateMissingThumbnails` in `PhotosController.cs` to fetch directory contents upfront using `Directory.EnumerateFiles` and loaded them into HashSets for O(1) lookups during the foreach iteration. Benchmarks showed a measurable decrease in overall loop execution time.
