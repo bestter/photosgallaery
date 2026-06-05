@@ -58,6 +58,11 @@
 **Learning:** Explicit fallback validation for null claims should always eagerly and actively reject processing if the needed claim for group validation is missing.
 **Prevention:** Always verify identity eagerly. When conditional authentication or authorization logic relies on a claim, ensure the absence of that claim results in an immediate 401 or 403, preventing bypasses down the logic chain.
 
+## 2026-06-04 - Unverified Exception Handling Coverage
+**Vulnerability:** A catch block returning a generic 500 error in `GroupRequestsController.GetAllGroupRequests` lacked test coverage. Unverified exception handling can mask logging failures, misconfigured exception formats, or regressions where exceptions bubble up instead of being handled gracefully.
+**Learning:** Exception handling paths (like catch blocks) in controllers must be explicitly unit tested to ensure they catch expected errors, log appropriately, and return the correct HTTP status code and response schema to the client.
+**Prevention:** Intentionally simulate failure states (e.g., disposing the database context to trigger an `ObjectDisposedException` upon querying) within unit tests to trigger and verify `catch` block execution, ensuring both logging and HTTP responses function as designed.
+
 ## $(date +%Y-%m-%d) - JWT Token Storage
 
 **Vulnerability:** JWT token stored in `localStorage` in `PhotoFrontend/src/api.js` made it susceptible to Cross-Site Scripting (XSS) attacks.
