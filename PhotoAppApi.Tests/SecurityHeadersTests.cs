@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace PhotoAppApi.Tests
 {
@@ -70,12 +70,12 @@ namespace PhotoAppApi.Tests
 
             // Assert
             Assert.True(response.Headers.Contains("Content-Security-Policy"), "L'en-tête Content-Security-Policy est manquant.");
-            
+
             var cspHeader = response.Headers.GetValues("Content-Security-Policy").First();
-            
+
             // Check Google Tag Manager
             Assert.Contains("https://www.googletagmanager.com", cspHeader);
-            
+
             // Check Google Fonts
             Assert.Contains("https://fonts.googleapis.com", cspHeader);
         }

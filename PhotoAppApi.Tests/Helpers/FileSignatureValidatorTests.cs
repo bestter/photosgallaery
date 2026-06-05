@@ -1,5 +1,5 @@
-using System.IO;
 using PhotoAppApi.Helpers;
+using System.IO;
 using Xunit;
 
 namespace PhotoAppApi.Tests.Helpers

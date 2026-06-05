@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
-using Xunit;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace PhotoAppApi.Tests
 {

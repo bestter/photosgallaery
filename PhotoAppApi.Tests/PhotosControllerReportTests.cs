@@ -1,18 +1,18 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using PhotoAppApi.Controllers;
+using PhotoAppApi.Data;
+using PhotoAppApi.Models;
+using PhotoAppApi.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
-using Moq;
-using PhotoAppApi.Controllers;
-using PhotoAppApi.Data;
-using PhotoAppApi.Models;
-using PhotoAppApi.Services;
 using Xunit;
 
 namespace PhotoAppApi.Tests
