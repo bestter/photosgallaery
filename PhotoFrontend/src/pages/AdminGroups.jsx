@@ -270,8 +270,8 @@ export default function AdminGroups() {
                                                             <button
                                                                 onClick={() => handleDeleteGroup(group.id || group.Id)}
                                                                 className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors align-middle"
-                                                                title="Supprimer ce groupe"
-                                                                aria-label={`Supprimer le groupe ${group.name || group.Name}`}
+                                                                title={t("admin.groups.action.delete_group_tooltip")}
+                                                                aria-label={t("admin.groups.action.delete_group_aria", { name: group.name || group.Name })}
                                                             >
                                                                 <span aria-hidden="true" className="material-symbols-outlined">delete</span>
                                                             </button>
@@ -366,9 +366,9 @@ export default function AdminGroups() {
                                                             <button
                                                                 onClick={() => handleRemoveMember(member.userId || member.UserId)}
                                                                 className="px-3 py-1.5 text-xs font-bold text-error border border-error/50 hover:bg-error/10 rounded-lg transition-colors"
-                                                                aria-label={`Retirer le membre ${member.username || member.Username || member.userId || member.UserId} du groupe`}
+                                                                aria-label={t("admin.groups.action.remove_member_aria", { name: member.username || member.Username || member.userId || member.UserId })}
                                                             >
-                                                                Retirer
+                                                                {t("admin.groups.action.remove")}
                                                             </button>
                                                         </td>
                                                     </tr>
