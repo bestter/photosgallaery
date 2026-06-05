@@ -130,7 +130,10 @@
       "action": {
         "members": "Members",
         "delete": "Delete",
-        "remove": "Remove"
+        "remove": "Remove",
+        "delete_group_tooltip": "Delete this group",
+        "delete_group_aria": "Delete the group {{name}}",
+        "remove_member_aria": "Remove member {{name}} from the group"
       },
       "back_button": "Back to groups",
       "back_to_groups": "Back to groups",
