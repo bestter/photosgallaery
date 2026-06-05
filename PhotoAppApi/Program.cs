@@ -76,7 +76,8 @@ builder.Services.AddCors(options =>
         b => b.WithOrigins(frontendUrl)
               .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
               .WithHeaders("Authorization", "Content-Type", "Accept", "X-App-Client")
-              .WithExposedHeaders("X-Total-Count"));
+              .WithExposedHeaders("X-Total-Count")
+              .AllowCredentials());
 });
 
 
@@ -104,6 +105,11 @@ builder.Services.AddAuthentication(options =>
             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/images"))
             {
                 context.Token = accessToken;
+            }
+            var cookieToken = context.Request.Cookies["jwt_token"];
+            if (!string.IsNullOrEmpty(cookieToken))
+            {
+                context.Token = cookieToken;
             }
             return Task.CompletedTask;
         },
@@ -172,15 +178,27 @@ if (!string.IsNullOrWhiteSpace(moderationUrl))
 
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
-    var config = new AmazonS3Config
-    {
-        ServiceURL = builder.Configuration["ObjectStorage:ServiceUrl"] ?? "https://s3.eu-west-1.amazonaws.com",
-        ForcePathStyle = true,           // Important pour R2, B2 et MinIO    
-        AuthenticationRegion = builder.Configuration["ObjectStorage:Region"] ?? "us-east-1"
-    };
-
+    var serviceUrl = builder.Configuration["ObjectStorage:ServiceUrl"];
+    var region = builder.Configuration["ObjectStorage:Region"];
     var accessKey = builder.Configuration["ObjectStorage:AccessKey"];
     var secretKey = builder.Configuration["ObjectStorage:SecretKey"];
+
+    if (string.IsNullOrWhiteSpace(serviceUrl))
+    {
+        throw new InvalidOperationException("The 'ObjectStorage:ServiceUrl' configuration is missing or empty.");
+    }
+
+    if (string.IsNullOrWhiteSpace(region))
+    {
+        throw new InvalidOperationException("The 'ObjectStorage:Region' configuration is missing or empty.");
+    }
+
+    var config = new AmazonS3Config
+    {
+        ServiceURL = serviceUrl,
+        ForcePathStyle = true,           // Important pour R2, B2 et MinIO    
+        AuthenticationRegion = region
+    };
 
     if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey))
     {

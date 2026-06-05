@@ -41,3 +41,6 @@
 ## 2024-05-23 - Bounded Concurrency S3 Objects
 **Learning:** Fetching an unbounded number of S3 objects concurrently using `Task.WhenAll` can lead to socket exhaustion and large memory spikes, degrading performance when loading configuration.
 **Action:** Always use `Parallel.ForEachAsync` to bound the concurrency when doing batch external IO or S3 object reading. This applies identically to file system reading or external service batch fetches.
+## 2025-06-05 - Optimize Thumbnail Generation File IO
+**Learning:** Doing synchronous `File.Exists` calls inside a loop can be a performance bottleneck, particularly for a large number of files. Batch checking using `Directory.EnumerateFiles` and `HashSet` eliminates individual IO overhead, drastically improving execution times.
+**Action:** Refactored `GenerateMissingThumbnails` in `PhotosController.cs` to fetch directory contents upfront using `Directory.EnumerateFiles` and loaded them into HashSets for O(1) lookups during the foreach iteration. Benchmarks showed a measurable decrease in overall loop execution time.

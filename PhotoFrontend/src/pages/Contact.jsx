@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import api from '../api';
-import { getUserRole, isTokenExpired } from "../authHelper";
+import { getUserRole, isTokenExpired, getUsernameFromToken, clearUserSession } from "../authHelper";
 import { useTranslation } from 'react-i18next';
 import Footer from '../components/Footer';
 
@@ -16,9 +16,9 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Vérification de la session
-  const token = localStorage.getItem("token");
-  const isLoggedIn = token && !isTokenExpired(token);
-  const canSeeDashboard = isLoggedIn && getUserRole(token) === "Admin";
+
+  const isLoggedIn = (!isTokenExpired()) && !isTokenExpired();
+  const canSeeDashboard = isLoggedIn && getUserRole() === "Admin";
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -78,7 +78,7 @@ export default function Contact() {
                 <button onClick={() => window.location.href = '/register'} className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110">{t('gallery.subscribe')}</button>
               </>
             ) : (
-              <button onClick={() => { localStorage.removeItem('token'); window.location.href = '/login'; }} className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors" aria-label={t('gallery.logout_tooltip')} title={t('gallery.logout_tooltip')}>
+              <button onClick={async () => { try { await api.post('/auth/logout'); } catch(e) { /* empty */ } clearUserSession(); window.location.href = '/login'; }} className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors" aria-label={t('gallery.logout_tooltip')} title={t('gallery.logout_tooltip')}>
                 <span className="material-symbols-outlined" aria-hidden="true">logout</span>
               </button>
             )}
