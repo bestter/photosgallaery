@@ -17,13 +17,12 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 
 // Correction du bug classique de React avec les icônes par défaut de Leaflet
-const customMarkerIcon = new L.Icon({
-  iconUrl: icon,
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
   iconRetinaUrl: iconRetina,
+  iconUrl: icon,
   shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
 });
 // -------------------------------------
 
@@ -287,7 +286,6 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
                   />
                   <Marker
                     position={[picture.latitude, picture.longitude]}
-                    icon={customMarkerIcon}
                   />
                 </MapContainer>
               </div>

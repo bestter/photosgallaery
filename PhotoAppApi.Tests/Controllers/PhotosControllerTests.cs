@@ -35,7 +35,7 @@ namespace PhotoAppApi.Tests.Controllers
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var imagesDir = Path.Combine(tempDir, "PrivateImages");
             var thumbDir = Path.Combine(imagesDir, "thumbnails");
-            
+
             var filePath = Path.Combine(imagesDir, "test_image.jpg");
             var thumbPath = Path.Combine(thumbDir, "test_image.jpg");
 
@@ -44,13 +44,13 @@ namespace PhotoAppApi.Tests.Controllers
                 using var context = new AppDbContext(_dbContextOptions);
 
                 var user = new User { Id = 1, Username = "testuser", PasswordHash = "hash" };
-                var photo = new Photo 
-                { 
-                    Id = 1, 
-                    FileName = "test_image.jpg", 
-                    UploaderUsername = "testuser", 
-                    Url = "gallery/test_image.jpg", 
-                    ThumbnailUrl = "thumbnails/test_image.jpg" 
+                var photo = new Photo
+                {
+                    Id = 1,
+                    FileName = "test_image.jpg",
+                    UploaderUsername = "testuser",
+                    Url = "gallery/test_image.jpg",
+                    ThumbnailUrl = "thumbnails/test_image.jpg"
                 };
                 context.Users.Add(user);
                 context.Photos.Add(photo);
@@ -65,7 +65,7 @@ namespace PhotoAppApi.Tests.Controllers
 
                 var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
                 var storageMock = new Mock<IObjectStorageService>();
-                
+
                 // Set up S3 deletion mock behavior
                 storageMock.Setup(s => s.DeleteImageAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                            .Returns(Task.CompletedTask);
@@ -160,7 +160,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
-            
+
             var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
             context.Users.Add(targetUser);
 
@@ -184,10 +184,10 @@ namespace PhotoAppApi.Tests.Controllers
             var storageMock = new Mock<IObjectStorageService>();
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
-            var claims = new[] { 
-                new Claim(ClaimTypes.Name, "testuser"), 
-                new Claim(ClaimTypes.NameIdentifier, "1"), 
-                new Claim(ClaimTypes.Role, "User") 
+            var claims = new[] {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Role, "User")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             var httpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) };
@@ -202,7 +202,7 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var photos = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult.Value);
-            
+
             // Should return exactly 10 photos
             var photoList = new System.Collections.Generic.List<Photo>(photos);
             Assert.Equal(10, photoList.Count);
@@ -217,7 +217,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
-            
+
             var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
             context.Users.Add(targetUser);
 
@@ -240,10 +240,10 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
             // Logged in user who is NOT a member of groupId
-            var claims = new[] { 
-                new Claim(ClaimTypes.Name, "testuser"), 
-                new Claim(ClaimTypes.NameIdentifier, "1"), 
-                new Claim(ClaimTypes.Role, "User") 
+            var claims = new[] {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Role, "User")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             controller.ControllerContext = new ControllerContext
@@ -265,7 +265,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
-            
+
             var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
             context.Users.Add(targetUser);
 
@@ -296,10 +296,10 @@ namespace PhotoAppApi.Tests.Controllers
             var storageMock = new Mock<IObjectStorageService>();
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
-            var claims = new[] { 
-                new Claim(ClaimTypes.Name, "testuser"), 
-                new Claim(ClaimTypes.NameIdentifier, "1"), 
-                new Claim(ClaimTypes.Role, "User") 
+            var claims = new[] {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Role, "User")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             controller.ControllerContext = new ControllerContext
@@ -323,7 +323,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
-            
+
             var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
             context.Users.Add(targetUser);
 
@@ -346,10 +346,10 @@ namespace PhotoAppApi.Tests.Controllers
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
             // Admin calling user
-            var claims = new[] { 
-                new Claim(ClaimTypes.Name, "adminuser"), 
-                new Claim(ClaimTypes.NameIdentifier, "99"), 
-                new Claim(ClaimTypes.Role, "Admin") 
+            var claims = new[] {
+                new Claim(ClaimTypes.Name, "adminuser"),
+                new Claim(ClaimTypes.NameIdentifier, "99"),
+                new Claim(ClaimTypes.Role, "Admin")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             controller.ControllerContext = new ControllerContext
@@ -373,7 +373,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
-            
+
             var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
             context.Users.Add(targetUser);
 
@@ -383,24 +383,24 @@ namespace PhotoAppApi.Tests.Controllers
             context.Photos.Add(photo2);
 
             // User with ID 1 likes photo1
-            context.PhotoLikes.Add(new PhotoLike 
-            { 
-                PhotoId = 201, 
-                UserId = 1, 
+            context.PhotoLikes.Add(new PhotoLike
+            {
+                PhotoId = 201,
+                UserId = 1,
                 LikedAt = DateTime.UtcNow,
                 Photo = null!,
                 User = null!
             });
-            
+
             // User with ID 1 (username: "testuser") reports photo2
-            context.ImageReports.Add(new ImageReport 
-            { 
-                PhotoId = 202, 
-                ReporterUsername = "testuser", 
-                Reason = "Inappropriate", 
-                ReportedAt = DateTime.UtcNow 
+            context.ImageReports.Add(new ImageReport
+            {
+                PhotoId = 202,
+                ReporterUsername = "testuser",
+                Reason = "Inappropriate",
+                ReportedAt = DateTime.UtcNow
             });
-            
+
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var envMock = new Mock<IWebHostEnvironment>();
@@ -408,10 +408,10 @@ namespace PhotoAppApi.Tests.Controllers
             var storageMock = new Mock<IObjectStorageService>();
             var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
 
-            var claims = new[] { 
-                new Claim(ClaimTypes.Name, "testuser"), 
-                new Claim(ClaimTypes.NameIdentifier, "1"), 
-                new Claim(ClaimTypes.Role, "User") 
+            var claims = new[] {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Role, "User")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             controller.ControllerContext = new ControllerContext
@@ -444,7 +444,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = new AppDbContext(_dbContextOptions);
-            
+
             var targetUser = new User { Id = 2, Username = "targetuser", PasswordHash = "hash" };
             context.Users.Add(targetUser);
 
@@ -477,6 +477,86 @@ namespace PhotoAppApi.Tests.Controllers
             // Should return only the public photo (301) and not the group photo (302)
             Assert.Single(photoList);
             Assert.Equal(301, photoList[0].Id);
+        }
+
+        [Fact]
+        public async Task ToggleLike_ShouldReturnForbid_WhenUserIsNotGroupMember()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new AppDbContext(options);
+
+            var groupId = Guid.NewGuid();
+            var photo = new Photo { Id = 1, GroupId = groupId, UploaderUsername = "otheruser", FileName = "test.jpg", Url = "test.jpg", ThumbnailUrl = string.Empty };
+            context.Photos.Add(photo);
+
+            // The user is not in the group.
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Name, "testuser")
+            }, "mock"));
+
+            var httpContext = new DefaultHttpContext { User = user };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act
+            var result = await controller.ToggleLike(1);
+
+            // Assert
+            Assert.IsType<ForbidResult>(result);
+        }
+
+        [Fact]
+        public async Task ToggleLike_ShouldReturnOk_WhenUserIsGroupMember()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new AppDbContext(options);
+
+            var groupId = Guid.NewGuid();
+            var photo = new Photo { Id = 1, GroupId = groupId, UploaderUsername = "otheruser", FileName = "test.jpg", Url = "test.jpg", ThumbnailUrl = string.Empty };
+
+            var userGroup = new UserGroup { UserId = 1, GroupId = groupId };
+
+            context.Photos.Add(photo);
+            context.UserGroups.Add(userGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Name, "testuser")
+            }, "mock"));
+
+            var httpContext = new DefaultHttpContext { User = user };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act
+            var result = await controller.ToggleLike(1);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
         }
     }
 }

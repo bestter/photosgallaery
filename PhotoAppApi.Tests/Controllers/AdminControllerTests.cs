@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Moq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Controllers;
@@ -9,6 +11,7 @@ using PhotoAppApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -73,7 +76,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -116,7 +119,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -147,7 +150,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -174,7 +177,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -241,7 +244,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -294,7 +297,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -307,9 +310,8 @@ namespace PhotoAppApi.Tests.Controllers
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
 
-            // Validate the message via reflection
-            var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
-            Assert.Equal("Erreur lors de la récupération des utilisateurs.", message);
+            // Validate the message
+            Assert.Equal("Internal server error", statusCodeResult.Value);
         }
 
         [Fact]
@@ -323,7 +325,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -349,7 +351,8 @@ namespace PhotoAppApi.Tests.Controllers
                 Id = 1,
                 FileName = "test.jpg",
                 Url = "/uploads/test.jpg",
-                UploaderUsername = "uploader1", ThumbnailUrl = string.Empty
+                UploaderUsername = "uploader1",
+                ThumbnailUrl = string.Empty
             };
 
             var report = new ImageReport
@@ -371,7 +374,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -415,7 +418,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -431,6 +434,42 @@ namespace PhotoAppApi.Tests.Controllers
             // Validate the message via reflection
             var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
             Assert.Equal("Erreur lors de la récupération des signalements.", message);
+        }
+
+        [Fact]
+        public async Task GetReportStats_WhenExceptionOccurs_ReturnsStatusCode500()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new AppDbContext(options);
+            // Dispose the context immediately so any query throws an ObjectDisposedException
+            context.Dispose();
+
+
+            var httpContext = new DefaultHttpContext();
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+            var controller = new AdminController(context)
+            {
+                ControllerContext = controllerContext
+            };
+
+
+            // Act
+            var result = await controller.GetReportStats(TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            // Validate the message via reflection
+            var message = statusCodeResult.Value.GetType().GetProperty("message").GetValue(statusCodeResult.Value) as string;
+            Assert.Equal("Erreur lors de la récupération des statistiques.", message);
         }
 
         [Fact]
@@ -456,7 +495,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -488,7 +527,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
@@ -518,7 +557,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
             {
                 ControllerContext = controllerContext
             };
