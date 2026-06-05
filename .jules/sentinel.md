@@ -70,3 +70,8 @@
 **Learning:** Sensitive authentication tokens should not be stored in `localStorage` or `sessionStorage` where they can be read by any JavaScript running on the page.
 
 **Prevention:** To prevent XSS exposure, sensitive tokens (like JWT) should be stored in an `HttpOnly`, `Secure` cookie set by the backend API. The frontend can still decode and store non-sensitive user identity claims (like username and role) in `localStorage` for UI rendering, but the actual authentication mechanism should rely on the browser automatically attaching the secure cookie.
+
+## 2025-03-02 - Fix IDOR in ToggleLike
+**Vulnerability:** The `ToggleLike` endpoint (`[HttpPost("{id}/like")]` in `PhotosController.cs`) allowed any authenticated user to toggle a like on any photo, including those belonging to private groups they were not members of, by manipulating the photo ID parameter. This was an Insecure Direct Object Reference (IDOR) vulnerability.
+**Learning:** Mutating actions on resources that belong to restricted groups must consistently validate the caller's authorization (group membership or admin role) prior to performing the action.
+**Prevention:** Explicitly validate group membership using an efficient database query (e.g., `AnyAsync` against the `UserGroups` table) whenever a user attempts to interact with a group-associated resource, and eagerly return `Forbid()` for unauthorized users.
