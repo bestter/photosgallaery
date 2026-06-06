@@ -25,6 +25,8 @@ namespace PhotoAppApi.Tests
                 builder.UseSetting("ObjectStorage:Region", "eu-west-1");
                 builder.UseSetting("ObjectStorage:AccessKey", "test");
                 builder.UseSetting("ObjectStorage:SecretKey", "test");
+                builder.UseSetting("ObjectStorage:ServiceUrl", "https://s3.amazonaws.com");
+                builder.UseSetting("ObjectStorage:BucketName", "test-bucket");
 
                 builder.ConfigureAppConfiguration((context, config) =>
                 {

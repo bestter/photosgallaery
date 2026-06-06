@@ -44,3 +44,6 @@
 ## 2025-06-05 - Optimize Thumbnail Generation File IO
 **Learning:** Doing synchronous `File.Exists` calls inside a loop can be a performance bottleneck, particularly for a large number of files. Batch checking using `Directory.EnumerateFiles` and `HashSet` eliminates individual IO overhead, drastically improving execution times.
 **Action:** Refactored `GenerateMissingThumbnails` in `PhotosController.cs` to fetch directory contents upfront using `Directory.EnumerateFiles` and loaded them into HashSets for O(1) lookups during the foreach iteration. Benchmarks showed a measurable decrease in overall loop execution time.
+## 2026-06-05 - Avoid Sync-over-Async Task.Run wrappers
+**Learning:** Wrapping a blocking asynchronous call in `Task.Run(...).GetAwaiter().GetResult()` from a synchronous method (like when implementing a sync interface) is an anti-pattern. It unnecessarily consumes two thread pool threads: one to execute the Task.Run delegate and one blocking on the result, which exacerbates thread pool starvation.
+**Action:** When forced to perform sync-over-async, invoke the method directly and block on the returned task: `AsyncMethod().GetAwaiter().GetResult()`.

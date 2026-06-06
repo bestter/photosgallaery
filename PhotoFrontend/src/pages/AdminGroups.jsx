@@ -20,6 +20,8 @@ export default function AdminGroups() {
     const [allUsers, setAllUsers] = useState([]);
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRole, setSelectedRole] = useState(1);
+    const [isCreating, setIsCreating] = useState(false);
+    const [isAddingMember, setIsAddingMember] = useState(false);
 
     // O(N) optimized filtering using a Set and useMemo to prevent unnecessary N*M computations on each render
     const availableUsers = useMemo(() => {
@@ -70,6 +72,8 @@ export default function AdminGroups() {
         e.preventDefault();
         if (!newGroupName.trim()) return;
 
+        setIsCreating(true);
+
         try {
             const body = { name: newGroupName, description: newGroupDescription };
             if (requesterId) body.requesterId = parseInt(requesterId);
@@ -93,6 +97,8 @@ export default function AdminGroups() {
 
         } catch (error) {
             toast.error("Erreur lors de la création du groupe.");
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -139,6 +145,7 @@ export default function AdminGroups() {
     const handleAddMember = async (e) => {
         e.preventDefault();
         if (!selectedUserId) return;
+        setIsAddingMember(true);
         const groupId = selectedGroup.id || selectedGroup.Id;
         try {
             await api.post(`/admin/groups/${groupId}/members`, { userId: parseInt(selectedUserId), role: selectedRole });
@@ -151,6 +158,8 @@ export default function AdminGroups() {
             setSelectedUserId('');
         } catch (error) {
             toast.error(error.response?.data?.message || "Erreur lors de l'ajout.");
+        } finally {
+            setIsAddingMember(false);
         }
     };
 
@@ -215,8 +224,9 @@ export default function AdminGroups() {
                                             className="flex-1 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all text-on-surface"
                                             required
                                         />
-                                        <button type="submit" className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_15px_rgba(0,206,209,0.3)]">
-                                            Ajouter
+                                        <button type="submit" disabled={isCreating} className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_15px_rgba(0,206,209,0.3)] disabled:opacity-50 flex items-center justify-center gap-2">
+                                            {isCreating && <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>}
+                                            {t("admin.groups.action.add", "Ajouter")}
                                         </button>
                                     </div>
                                     <textarea
@@ -321,8 +331,9 @@ export default function AdminGroups() {
                                         <option value={9999}>{t("admin.groups.role.admin")}</option>
                                         <option value={0}>{t("admin.groups.role.none")}</option>
                                     </select>
-                                    <button type="submit" className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors focus:ring-2 focus:ring-primary focus:outline-none shadow-[0_0_15px_rgba(0,206,209,0.3)]">
-                                        Ajouter au groupe
+                                    <button type="submit" disabled={isAddingMember} className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors focus:ring-2 focus:ring-primary focus:outline-none shadow-[0_0_15px_rgba(0,206,209,0.3)] disabled:opacity-50 flex items-center justify-center gap-2">
+                                        {isAddingMember && <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>}
+                                        {t("admin.groups.action.add_member", "Ajouter au groupe")}
                                     </button>
                                 </form>
                             </div>
