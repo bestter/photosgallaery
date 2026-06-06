@@ -42,7 +42,8 @@ namespace PhotoAppApi.Helpers
 
         public IReadOnlyCollection<XElement> GetAllElements()
         {
-            return Task.Run(() => GetAllElementsAsync()).GetAwaiter().GetResult();
+            // ⚡ Bolt: Removed Task.Run wrapper to prevent thread pool starvation when making blocking async calls.
+            return GetAllElementsAsync().GetAwaiter().GetResult();
         }
 
         private async Task<IReadOnlyCollection<XElement>> GetAllElementsAsync(CancellationToken ct = default)
@@ -101,7 +102,8 @@ namespace PhotoAppApi.Helpers
         {
             try
             {
-                Task.Run(() => StoreElementAsync(element, friendlyName)).GetAwaiter().GetResult();
+                // ⚡ Bolt: Removed Task.Run wrapper to prevent thread pool starvation when making blocking async calls.
+                StoreElementAsync(element, friendlyName).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -146,7 +148,8 @@ namespace PhotoAppApi.Helpers
         {
             try
             {
-                return Task.Run(() => DeleteElementsAsync(chooseElements)).GetAwaiter().GetResult();
+                // ⚡ Bolt: Removed Task.Run wrapper to prevent thread pool starvation when making blocking async calls.
+                return DeleteElementsAsync(chooseElements).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
