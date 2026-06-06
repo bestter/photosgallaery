@@ -133,7 +133,9 @@
         "remove": "Retirer",
         "delete_group_tooltip": "Supprimer ce groupe",
         "delete_group_aria": "Supprimer le groupe {{name}}",
-        "remove_member_aria": "Retirer le membre {{name}} du groupe"
+        "remove_member_aria": "Retirer le membre {{name}} du groupe",
+        "add": "Ajouter",
+        "add_member": "Ajouter au groupe"
       },
       "back_button": "Retour aux groupes",
       "back_to_groups": "Retour aux groupes",
