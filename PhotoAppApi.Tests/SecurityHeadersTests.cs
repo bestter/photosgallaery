@@ -33,6 +33,8 @@ namespace PhotoAppApi.Tests
                         {"ObjectStorage:Region", "eu-west-1"},
                         {"ObjectStorage:AccessKey", "test"},
                         {"ObjectStorage:SecretKey", "test"},
+                        {"ObjectStorage:ServiceUrl", "http://localhost:9000"},
+                        {"ObjectStorage:BucketName", "test-bucket"},
                         { "FrontendUrl", "http://localhost:3000" },
                         { "ConnectionStrings:DefaultConnection", "Server=localhost;Database=testdb;User=root;Password=root;" },
                         { "Jwt:Key", "une_super_cle_secrete_pour_les_tests_qui_doit_etre_vraiment_tres_longue_12345678901234567890!" }
