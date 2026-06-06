@@ -115,8 +115,6 @@ namespace PhotoAppApi.Controllers
         }
 
 
-        [HttpPost("register")]
-        [EnableRateLimiting("RegisterLimiter")]
         [HttpPost("logout")]
         public IActionResult Logout()
         {
@@ -124,6 +122,8 @@ namespace PhotoAppApi.Controllers
             return Ok(new { message = "Déconnexion réussie." });
         }
 
+        [HttpPost("register")]
+        [EnableRateLimiting("RegisterLimiter")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(Register)} for user: {request.Username}");

@@ -35,7 +35,7 @@ namespace PhotoAppApi.Tests
                         {"ObjectStorage:Region", "eu-west-1"},
                         {"ObjectStorage:AccessKey", "test"},
                         {"ObjectStorage:SecretKey", "test"},
-                        {"ObjectStorage:ServiceUrl", "https://s3.amazonaws.com"},
+                        {"ObjectStorage:ServiceUrl", "http://localhost:9000"},
                         {"ObjectStorage:BucketName", "test-bucket"},
                         { "FrontendUrl", "http://localhost:3000" },
                         { "ConnectionStrings:DefaultConnection", "Server=localhost;Database=testdb;User=root;Password=root;" },
