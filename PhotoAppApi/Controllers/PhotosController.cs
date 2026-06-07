@@ -925,8 +925,13 @@ namespace PhotoAppApi.Controllers
             {
                 log.Debug($"In {nameof(GenerateMissingThumbnails)}");
 
-                // On récupère toutes les photos de MariaDB
-                var photos = await _context.Photos.ToListAsync();
+                // ⚡ Bolt: Project only the required FileName field to reduce memory overhead and use Parallel.ForEachAsync
+                // to accelerate CPU/IO bound thumbnail generation across all available cores.
+                var fileNames = await _context.Photos
+                    .AsNoTracking()
+                    .Where(p => p.FileName != null)
+                    .Select(p => p.FileName!)
+                    .ToListAsync();
 
                 var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var uploadsFolder = Path.Combine(rootPath, "images");
@@ -947,35 +952,34 @@ namespace PhotoAppApi.Controllers
                 int generatedCount = 0;
                 int missingOriginalsCount = 0;
 
-                foreach (var photo in photos)
+                await Parallel.ForEachAsync(fileNames, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (fileName, ct) =>
                 {
-                    var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
+                    var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
                     var originalPath = Path.Combine(uploadsFolder, safeFileName);
                     var thumbPath = Path.Combine(thumbFolder, safeFileName);
 
                     // 1. Si la miniature existe déjà, on ne gaspille pas de temps CPU, on passe !
-                    if (existingThumbnails.Contains(safeFileName)) continue;
+                    if (existingThumbnails.Contains(safeFileName)) return;
 
                     // 2. Si par hasard le gros fichier original a disparu du disque, on note l'erreur
                     if (!existingOriginals.Contains(safeFileName))
                     {
-                        missingOriginalsCount++;
-                        continue;
+                        Interlocked.Increment(ref missingOriginalsCount);
+                        return;
                     }
 
                     // 3. La magie d'ImageSharp : on charge, on compresse, on sauvegarde
-                    using (var image = await Image.LoadAsync(originalPath))
-
+                    using (var image = await Image.LoadAsync(originalPath, ct))
                     {
                         image.Mutate(x => x.Resize(new ResizeOptions
                         {
                             Size = new Size(400, 400),
                             Mode = ResizeMode.Max // Conserve les proportions
                         }));
-                        await image.SaveAsync(thumbPath);
+                        await image.SaveAsync(thumbPath, ct);
                     }
-                    generatedCount++;
-                }
+                    Interlocked.Increment(ref generatedCount);
+                });
 
                 return Ok(new
                 {

@@ -47,3 +47,6 @@
 ## 2026-06-05 - Avoid Sync-over-Async Task.Run wrappers
 **Learning:** Wrapping a blocking asynchronous call in `Task.Run(...).GetAwaiter().GetResult()` from a synchronous method (like when implementing a sync interface) is an anti-pattern. It unnecessarily consumes two thread pool threads: one to execute the Task.Run delegate and one blocking on the result, which exacerbates thread pool starvation.
 **Action:** When forced to perform sync-over-async, invoke the method directly and block on the returned task: `AsyncMethod().GetAwaiter().GetResult()`.
+## 2024-06-08 - Parallelizing Synchronous Image Processing
+**Learning:** Loading the entire entity table into memory (e.g. `await _context.Photos.ToListAsync()`) just to read a single column like `FileName` creates severe memory bloat and latency. Furthermore, processing thousands of images sequentially is heavily CPU/IO bound and under-utilizes available system resources, resulting in massive execution times.
+**Action:** Always project only the required fields (e.g., `.Select(p => p.FileName)`) using `AsNoTracking()` to minimize the memory footprint. For batch CPU/IO bound tasks like image processing, use bounded concurrency via `Parallel.ForEachAsync` coupled with `Interlocked.Increment` for thread-safe counters to drastically improve throughput.
