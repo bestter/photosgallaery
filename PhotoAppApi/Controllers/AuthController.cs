@@ -116,6 +116,7 @@ namespace PhotoAppApi.Controllers
 
 
         [HttpPost("logout")]
+        [EnableRateLimiting("LoginLimiter")]
         public IActionResult Logout()
         {
             Response.Cookies.Delete("jwt_token");
