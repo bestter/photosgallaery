@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const currentUsername = getUsernameFromToken();
+  const [updatingUserId, setUpdatingUserId] = useState(null);
 
   // ⚡ Bolt: Server-side pagination replaces client-side filtering.
   const filteredUsers = users;
@@ -61,6 +62,7 @@ export default function Dashboard() {
   }, [deferredSearchTerm]);
 
   const handleRoleUpdate = async (userId, newRole) => {
+    setUpdatingUserId(userId);
     try {
       await api.put(`/admin/users/${userId}/role`, { role: newRole });
       setUsers((prev) =>
@@ -73,6 +75,8 @@ export default function Dashboard() {
     } catch (error) {
       console.error(`Error updating role to ${newRole}:`, error);
       toast.error(t("admin.dashboard.role_update_error"));
+    } finally {
+      setUpdatingUserId(null);
     }
   };
 
@@ -312,18 +316,28 @@ export default function Dashboard() {
                                   onClick={() =>
                                     handleRoleUpdate(userId, "User")
                                   }
-                                  className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors"
+                                  disabled={updatingUserId === userId}
+                                  className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                                 >
-                                  {t("admin.dashboard.action.demote_creator")}
+                                  {updatingUserId === userId ? (
+                                    <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                                  ) : (
+                                    t("admin.dashboard.action.demote_creator")
+                                  )}
                                 </button>
                               ) : (
                                 <button
                                   onClick={() =>
                                     handleRoleUpdate(userId, "Creator")
                                   }
-                                  className="px-3 py-1.5 text-xs font-bold text-primary border border-primary/50 hover:bg-primary/10 rounded-lg transition-colors"
+                                  disabled={updatingUserId === userId}
+                                  className="px-3 py-1.5 text-xs font-bold text-primary border border-primary/50 hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                                 >
-                                  {t("admin.dashboard.action.promote_creator")}
+                                  {updatingUserId === userId ? (
+                                    <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                                  ) : (
+                                    t("admin.dashboard.action.promote_creator")
+                                  )}
                                 </button>
                               ))}
                             {role === "Admin" ? (
@@ -342,9 +356,14 @@ export default function Dashboard() {
                                   onClick={() =>
                                     handleRoleUpdate(userId, "User")
                                   }
-                                  className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors"
+                                  disabled={updatingUserId === userId}
+                                  className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                                 >
-                                  {t("admin.dashboard.action.demote_admin")}
+                                  {updatingUserId === userId ? (
+                                    <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                                  ) : (
+                                    t("admin.dashboard.action.demote_admin")
+                                  )}
                                 </button>
                               )
                             ) : (
@@ -352,13 +371,18 @@ export default function Dashboard() {
                                 onClick={() =>
                                   handleRoleUpdate(userId, "Admin")
                                 }
-                                className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary/90 rounded-lg transition-colors"
+                                disabled={updatingUserId === userId}
+                                className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                               >
-                                {t("admin.dashboard.action.promote_admin")}
+                                {updatingUserId === userId ? (
+                                  <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                                ) : (
+                                  t("admin.dashboard.action.promote_admin")
+                                )}
                               </button>
                             )}
                             <button
-                              disabled={isCurrentUser}
+                              disabled={isCurrentUser || updatingUserId === userId}
                               onClick={() => {
                                 if (!isCurrentUser) {
                                   handleRoleUpdate(
@@ -367,7 +391,7 @@ export default function Dashboard() {
                                   );
                                 }
                               }}
-                              className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? "text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50" : role === "Forbidden" ? "text-tertiary hover:bg-tertiary/10" : "text-error hover:bg-error/10"}`}
+                              className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isCurrentUser ? "text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50" : role === "Forbidden" ? "text-tertiary hover:bg-tertiary/10" : "text-error hover:bg-error/10"}`}
                               title={
                                 isCurrentUser
                                   ? t(
@@ -387,12 +411,16 @@ export default function Dashboard() {
                                     : t("admin.dashboard.action.ban")
                               }
                             >
-                              <span
-                                className="material-symbols-outlined text-lg leading-none"
-                                aria-hidden="true"
-                              >
-                                {role === "Forbidden" ? "lock_open" : "block"}
-                              </span>
+                              {updatingUserId === userId ? (
+                                <span className="material-symbols-outlined animate-spin text-lg leading-none" aria-hidden="true">sync</span>
+                              ) : (
+                                <span
+                                  className="material-symbols-outlined text-lg leading-none"
+                                  aria-hidden="true"
+                                >
+                                  {role === "Forbidden" ? "lock_open" : "block"}
+                                </span>
+                              )}
                             </button>
                           </div>
                         </td>
@@ -426,18 +454,21 @@ export default function Dashboard() {
                 className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs"
                 aria-current="page"
                 aria-label={t("common.page", "Page 1", { page: 1 })}
+                title={t("common.page", "Page 1", { page: 1 })}
               >
                 1
               </button>
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
                 aria-label={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
+                title={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
               >
                 2
               </button>
               <button
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
                 aria-label={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
+                title={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
               >
                 3
               </button>
