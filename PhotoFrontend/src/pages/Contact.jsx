@@ -98,21 +98,21 @@ export default function Contact() {
           <form className="space-y-6 relative z-10" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="name">{t('contact.name_label')}</label>
-                <input className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500" id="name" placeholder={t('contact.name_placeholder')} type="text" value={formData.name} onChange={handleChange} />
+                <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="name">{t('contact.name_label')} <span className="text-red-500 ml-1">*</span></label>
+                <input required className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500" id="name" placeholder={t('contact.name_placeholder')} type="text" value={formData.name} onChange={handleChange} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="email">{t('contact.email_label')}</label>
-                <input className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500" id="email" placeholder={t('contact.email_placeholder')} type="email" value={formData.email} onChange={handleChange} />
+                <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="email">{t('contact.email_label')} <span className="text-red-500 ml-1">*</span></label>
+                <input required className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500" id="email" placeholder={t('contact.email_placeholder')} type="email" value={formData.email} onChange={handleChange} />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="subject">{t('contact.subject_label')}</label>
-              <input className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500" id="subject" placeholder={t('contact.subject_placeholder')} type="text" value={formData.subject} onChange={handleChange} />
+              <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="subject">{t('contact.subject_label')} <span className="text-red-500 ml-1">*</span></label>
+              <input required className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500" id="subject" placeholder={t('contact.subject_placeholder')} type="text" value={formData.subject} onChange={handleChange} />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="message">{t('contact.message_label')}</label>
-              <textarea className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500 resize-none" id="message" placeholder={t('contact.message_placeholder')} rows="5" value={formData.message} onChange={handleChange}></textarea>
+              <label className="text-xs font-bold tracking-wider uppercase text-cyan-400" htmlFor="message">{t('contact.message_label')} <span className="text-red-500 ml-1">*</span></label>
+              <textarea required className="w-full bg-slate-800/80 border border-slate-700/50 rounded px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all placeholder-slate-500 resize-none" id="message" placeholder={t('contact.message_placeholder')} rows="5" value={formData.message} onChange={handleChange}></textarea>
             </div>
             <button disabled={isSubmitting} className="w-full bg-cyan-400 text-[#0f2323] font-bold py-3 px-6 rounded flex items-center justify-center gap-2 hover:brightness-110 shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all active:scale-[0.98] disabled:opacity-50" type="submit">
               {isSubmitting ? (
