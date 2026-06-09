@@ -69,6 +69,7 @@
   "admin": {
     "dashboard": {
       "role_update_error": "Erreur lors de la modification du rôle.",
+      "loading": "Chargement...",
       "search_placeholder": "Rechercher un utilisateur, un email...",
       "title": "Gestion des usagers",
       "subtitle": "Administration système",

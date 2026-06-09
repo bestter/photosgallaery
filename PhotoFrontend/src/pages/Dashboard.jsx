@@ -215,7 +215,10 @@ export default function Dashboard() {
                 {loading ? (
                   <tr>
                     <td colSpan="5" className="text-center py-4 text-slate-500">
-                      Chargement...
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                        {t("admin.dashboard.loading", "Chargement...")}
+                      </div>
                     </td>
                   </tr>
                 ) : (
