@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using System.Net;
 using System.Text;
 
 namespace PhotoAppApi.Services
@@ -25,13 +26,13 @@ namespace PhotoAppApi.Services
         {
             StringBuilder sb = new();
             sb.AppendLine("========================================");
-            sb.AppendLine($"Subject: {inviterName} vous a invité à rejoindre le cercle {groupName} sur Vision");
-            sb.AppendLine($"\nBonjour {firstName} {lastName},");
-            sb.AppendLine($"\nVous avez été invité par {inviterName} à rejoindre notre galerie privée.");
+            sb.AppendLine($"Subject: {WebUtility.HtmlEncode(inviterName)} vous a invité à rejoindre le cercle {WebUtility.HtmlEncode(groupName)} sur Vision");
+            sb.AppendLine($"\nBonjour {WebUtility.HtmlEncode(firstName)} {WebUtility.HtmlEncode(lastName)},");
+            sb.AppendLine($"\nVous avez été invité par {WebUtility.HtmlEncode(inviterName)} à rejoindre notre galerie privée.");
 
             if (!string.IsNullOrWhiteSpace(message))
             {
-                sb.AppendLine($"\nMessage personnel : \"{message}\"");
+                sb.AppendLine($"\nMessage personnel : \"{WebUtility.HtmlEncode(message)}\"");
             }
 
             sb.AppendLine($"\nPour accepter l'invitation et créer votre compte, veuillez cliquer sur ce lien exclusif :");
@@ -45,10 +46,10 @@ namespace PhotoAppApi.Services
         {
             StringBuilder sb = new();
             sb.AppendLine("<h2>Nouveau message de contact via PixelLyra</h2>");
-            sb.AppendLine($"<p><strong>Nom :</strong> {name}</p>");
-            sb.AppendLine($"<p><strong>Courriel :</strong> {email}</p>");
-            sb.AppendLine($"<p><strong>Sujet :</strong> {subject}</p>");
-            sb.AppendLine($"<p><strong>Message :</strong><br/>{message.Replace("\n", "<br/>")}</p>");
+            sb.AppendLine($"<p><strong>Nom :</strong> {WebUtility.HtmlEncode(name)}</p>");
+            sb.AppendLine($"<p><strong>Courriel :</strong> {WebUtility.HtmlEncode(email)}</p>");
+            sb.AppendLine($"<p><strong>Sujet :</strong> {WebUtility.HtmlEncode(subject)}</p>");
+            sb.AppendLine($"<p><strong>Message :</strong><br/>{WebUtility.HtmlEncode(message).Replace("\n", "<br/>")}</p>");
 
             await EnvoyerCourrielAsync(email, $"Contact - {subject}", sb.ToString(), cancellationToken);
         }
