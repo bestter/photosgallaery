@@ -69,6 +69,7 @@
   "admin": {
     "dashboard": {
       "role_update_error": "Error updating role.",
+      "loading": "Loading...",
       "search_placeholder": "Search user, email...",
       "title": "User Management",
       "subtitle": "System Administration",
