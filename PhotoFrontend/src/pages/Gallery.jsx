@@ -491,7 +491,7 @@ export default function Gallery() {
                     className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
                     role="button"
                     tabIndex={0}
-                    aria-label={`Ouvrir la photo ${photo.title || "par " + author}`}
+                    aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -500,7 +500,7 @@ export default function Gallery() {
                     }}
                   >
                     <img
-                      alt={`Photo par ${author}`}
+                      alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
                       src={thumbnailUrl || originalUrl}
@@ -546,7 +546,7 @@ export default function Gallery() {
                     className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
                     role="button"
                     tabIndex={0}
-                    aria-label={`Ouvrir la photo ${photo.title || "par " + author}`}
+                    aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -555,7 +555,7 @@ export default function Gallery() {
                     }}
                   >
                     <img
-                      alt={`Photo par ${author}`}
+                      alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                       src={thumbnailUrl || originalUrl}
@@ -601,7 +601,7 @@ export default function Gallery() {
                   className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
                   role="button"
                   tabIndex={0}
-                  aria-label={`Ouvrir la photo ${photo.title || "par " + author}`}
+                  aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
@@ -611,7 +611,7 @@ export default function Gallery() {
                 >
                   <div className="relative flex-1 overflow-hidden">
                     <img
-                      alt={`Photo par ${author}`}
+                      alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       src={thumbnailUrl || originalUrl}

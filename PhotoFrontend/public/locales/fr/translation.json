@@ -204,7 +204,9 @@
       "action": {
         "reject": "Reject",
         "accept": "Accept"
-      }
+      },
+      "accept_aria": "Accepter la requête du groupe {{name}}",
+      "reject_aria": "Rejeter la requête du groupe {{name}}"
     }
   },
   "gallery": {
@@ -226,7 +228,9 @@
     "empty_space": "Cet espace est encore vide. Soyez le premier à le remplir !",
     "add_photo": "Ajouter une photo",
     "view_image": "Voir l'image",
-    "without_categories": "Sans catégories"
+    "without_categories": "Sans catégories",
+    "open_photo": "Ouvrir la photo {{title}}",
+    "photo_by": "Photo par {{author}}"
   },
   "contact": {
     "title": "Contactez-nous",
