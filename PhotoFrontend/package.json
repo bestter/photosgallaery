@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
-    "axios": "^1.13.6",
+    "axios": "^1.17.0",
     "i18next": "^26.0.7",
     "i18next-browser-languagedetector": "^8.2.1",
     "i18next-http-backend": "^3.0.6",
