@@ -40,7 +40,7 @@ axiosInstance.interceptors.response.use(
         else // 2. LE SIÈGE ÉJECTABLE (Erreur 401 ou 403)
         if (error.response.status === 401 || error.response.status === 403) {
             if (window.location.pathname !== '/login') {
-                localStorage.removeItem('token'); 
+                localStorage.removeItem('user_info');
                 
                 // On supprime le toast.error ici car il sera tué par le rechargement.
                 // À la place, on ajoute un paramètre caché dans l'URL :
