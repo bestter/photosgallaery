@@ -112,7 +112,7 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
         if (!isSessionValid()) {
             toast.error("Votre session a expiré. Veuillez vous reconnecter.", { icon: '🔒' });
             if (setToken) setToken(null); 
-            localStorage.removeItem('token'); 
+            clearUserSession();
             return;
         }
 

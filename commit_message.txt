@@ -1,0 +1,5 @@
+🔒 [Security] Fix insecure JWT token storage in localStorage
+
+🎯 What: The JWT token was being stored directly in localStorage and manually attached to requests.
+⚠️ Risk: Storing tokens in localStorage exposes them to XSS attacks.
+🛡️ Solution: Updated the frontend to rely on HttpOnly cookies by enabling `withCredentials: true` in the Axios instance and decoding the token to only store safe user claims in `user_info` within localStorage.

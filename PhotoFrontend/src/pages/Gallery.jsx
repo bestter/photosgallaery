@@ -171,19 +171,35 @@ export default function Gallery() {
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
   const filteredPhotos = useMemo(() => {
+    // ⚡ Bolt: Use a Map to cache tag translations and avoid O(N) lookup repeatedly for the same tag
+    const translationCache = new Map();
+
     return photos.map((photo) => {
       // ⚡ Bolt: Compute display tags once during filtering rather than on every render
       const photoTagsRaw = photo.tags || photo.Tags || [];
       const _displayTags = photoTagsRaw
         .map((tagObj) => {
+          const tagId = tagObj.id || tagObj.Id;
+
+          if (tagId !== undefined && translationCache.has(tagId)) {
+            return translationCache.get(tagId);
+          }
+
           const tagTranslations =
             tagObj.translations || tagObj.Translations || [];
           const frTranslation =
             tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
             tagTranslations[0];
-          return frTranslation
+
+          const name = frTranslation
             ? frTranslation.name || frTranslation.Name
             : "Tag";
+
+          if (tagId !== undefined) {
+             translationCache.set(tagId, name);
+          }
+
+          return name;
         })
         .filter(Boolean);
 
