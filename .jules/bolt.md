@@ -61,3 +61,7 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2024-06-12 - Optimize Nested Array Lookups using Map Cache
 **Learning:** Performing a `.find()` operation inside a nested `.map()` iteration over a large array (such as filtering or formatting nested data structures like tags in photos) is highly inefficient and creates an O(N*M*L) bottleneck. Repeatedly searching for the same nested items (like translated tag names) significantly blocks the main thread.
 **Action:** Extract the nested lookup by building a `Map` cache inside the outer execution scope. This memoizes the translation results by ID, replacing the inner O(L) find array search with an O(1) map lookup, drastically improving rendering and computation speed.
+
+## 2024-03-24 - Cryptographic Hashing Allocation Overhead
+**Learning:** Instantiating `SHA512.Create()` and disposing it in a loop creates significant allocation overhead and slows down hashing, even with fast streams or arrays.
+**Action:** Always prefer the static helper methods introduced in newer .NET versions, like `SHA512.HashDataAsync()`, which avoid allocating the provider instance and manage internal pooling efficiently.
