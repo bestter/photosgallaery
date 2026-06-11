@@ -312,28 +312,46 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     </div>
 
                     {/* Tags */}
-                    {tags && tags.length > 0 && (
-                        <div className="space-y-3">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
-                            <div className="flex flex-wrap gap-2">
-                                {tags.map((tagObj, idx) => {
-                                    const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                                    const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
-                                    const tagName = frTranslation ? (frTranslation.name || frTranslation.Name) : 'Tag';
+                    {tags && tags.length > 0 && (() => {
+                        // ⚡ Bolt: Build dictionary BEFORE the loop to make lookups O(1)
+                        const tagTranslationsDict = new Map();
 
-                                    return (
-                                        <span
-                                            key={idx}
-                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer"
-                                            onClick={() => onTagClick && onTagClick(tagName)}
-                                        >
-                                            {tagName}
-                                        </span>
-                                    );
-                                })}
+                        tags.forEach((tagObj) => {
+                            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+                            if (!tagTranslationsDict.has(tagId)) {
+                                const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                                let frTranslation = tagTranslations[0];
+                                for (let i = 0; i < tagTranslations.length; i++) {
+                                    if (tagTranslations[i].language === 0 || tagTranslations[i].Language === 0) {
+                                        frTranslation = tagTranslations[i];
+                                        break;
+                                    }
+                                }
+                                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
+                            }
+                        });
+
+                        return (
+                            <div className="space-y-3">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {tags.map((tagObj, idx) => {
+                                        const tagName = tagTranslationsDict.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
+
+                                        return (
+                                            <span
+                                                key={idx}
+                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer"
+                                                onClick={() => onTagClick && onTagClick(tagName)}
+                                            >
+                                                {tagName}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {/* Location */}
                     {latitude != null && longitude != null && (

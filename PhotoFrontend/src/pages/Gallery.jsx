@@ -171,20 +171,34 @@ export default function Gallery() {
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
   const filteredPhotos = useMemo(() => {
+    // ⚡ Bolt: Build dictionary BEFORE the loop to make tag resolution lookups O(1)
+    // Map of TagId -> Translated Name
+    const translationsMap = new Map();
+
+    // First Pass: Extract unique tags and build the translation dictionary
+    photos.forEach(photo => {
+      const photoTagsRaw = photo.tags || photo.Tags || [];
+      photoTagsRaw.forEach(tagObj => {
+        const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+        if (!translationsMap.has(tagId)) {
+          const tagTranslations = tagObj.translations || tagObj.Translations || [];
+          let frTranslation = tagTranslations[0];
+          for (let i = 0; i < tagTranslations.length; i++) {
+            if (tagTranslations[i].language === 0 || tagTranslations[i].Language === 0) {
+              frTranslation = tagTranslations[i];
+              break;
+            }
+          }
+          translationsMap.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : "Tag");
+        }
+      });
+    });
+
+    // Second Pass: Use O(1) dictionary lookup instead of mapping arrays
     return photos.map((photo) => {
-      // ⚡ Bolt: Compute display tags once during filtering rather than on every render
       const photoTagsRaw = photo.tags || photo.Tags || [];
       const _displayTags = photoTagsRaw
-        .map((tagObj) => {
-          const tagTranslations =
-            tagObj.translations || tagObj.Translations || [];
-          const frTranslation =
-            tagTranslations.find((t) => t.language === 0 || t.Language === 0) ||
-            tagTranslations[0];
-          return frTranslation
-            ? frTranslation.name || frTranslation.Name
-            : "Tag";
-        })
+        .map((tagObj) => translationsMap.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj)))
         .filter(Boolean);
 
       return { ...photo, _displayTags };

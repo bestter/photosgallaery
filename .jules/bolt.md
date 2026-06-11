@@ -50,3 +50,8 @@
 ## 2024-06-08 - Parallelizing Synchronous Image Processing
 **Learning:** Loading the entire entity table into memory (e.g. `await _context.Photos.ToListAsync()`) just to read a single column like `FileName` creates severe memory bloat and latency. Furthermore, processing thousands of images sequentially is heavily CPU/IO bound and under-utilizes available system resources, resulting in massive execution times.
 **Action:** Always project only the required fields (e.g., `.Select(p => p.FileName)`) using `AsNoTracking()` to minimize the memory footprint. For batch CPU/IO bound tasks like image processing, use bounded concurrency via `Parallel.ForEachAsync` coupled with `Interlocked.Increment` for thread-safe counters to drastically improve throughput.
+## 2026-06-11 - Performance Regression with Nested Array Scans in React Loops
+
+**Learning:** When dealing with nested loops inside React components (e.g. `.map()` over items, and then `.find()` over a property of those items), `Array.prototype.find()` incurs significant overhead due to callback execution and continuous linear array scanning. When processing thousands of items, this `O(N*M)` complexity becomes a noticeable bottleneck.
+
+**Action:** Replace nested array scanning inside `.map()` loops by pre-computing a shared dictionary (`Map`) of derived values *before* the loop. Use unique identifiers (e.g. `tag.id` or `JSON.stringify(tag)`) as keys to map to the resolved values, transforming the inner scan into an `O(1)` dictionary lookup.
