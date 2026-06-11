@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
 import Button from './Button';
 import toast from 'react-hot-toast';
-import { getUserRole } from './authHelper';
+import { getUserRole, saveUserSession } from './authHelper';
 
 const Login = ({ setToken }) => { 
     const navigate = useNavigate();
@@ -34,10 +34,10 @@ const Login = ({ setToken }) => {
             {
                 loading: 'Connexion en cours...',
                 success: (response) => {
-                    localStorage.setItem('token', response.data.token);
+                    saveUserSession(response.data.token);
                     if (setToken) setToken(response.data.token);
                     
-                    const role = getUserRole(response.data.token);                    
+                    const role = getUserRole();
                     if (role === 'Admin') {
                         toast((t) => (
                             <span className="flex items-center gap-2">

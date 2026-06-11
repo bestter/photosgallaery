@@ -1,14 +1,10 @@
-🎯 What
-Optimized the tag filtering rendering overhead in `Gallery.jsx`.
+🔒 [Security] Fix insecure JWT token storage in localStorage
 
-💡 Why
-During the render phase, string representations of tags (`photoTags`) were computed dynamically for each photo on every re-render by iterating over `photo.tags` arrays, checking translations, mapping, and filtering. This caused significant O(n*m) blocking overhead on the React main thread when typing in the search box, even though the main array `filteredPhotos` was memoized using `useMemo`.
+🎯 **What:** The vulnerability fixed
+The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
 
-✅ Verification
-- Ensured the `Gallery.jsx` filters and search still work.
-- Ran `vitest` in the `PhotoFrontend` directory which confirmed `PhotoCard.test.jsx` still passes.
-- Linting checks passed via `pnpm lint`.
-- Safe extraction of string formatting logic out of the JSX render iteration mapping.
+⚠️ **Risk:** The potential impact if left unfixed
+If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
 
-✨ Result
-Display tag calculations (`_displayTags`) are now computed once during the `useMemo` block execution, removing O(N) mapping loops from the rendering phase and reducing blocking time on the UI thread when search inputs trigger rendering.
+🛡️ **Solution:** How the fix addresses the vulnerability
+The frontend now handles the token via `HttpOnly` cookies. The Axios instance was updated to include `withCredentials: true`, and the `authHelper` was refactored to decode the token upon login, storing only non-sensitive claims (`user_info` such as username, role, and expiration) in `localStorage` for UI purposes.

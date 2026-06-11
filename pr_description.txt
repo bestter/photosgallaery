@@ -1,9 +1,5 @@
-💡 **What:** Replaced the per-iteration `System.IO.File.Exists()` checks for thumbnails and originals inside the `foreach` loop with a batch verification approach. The directory content is read upfront using `Directory.EnumerateFiles` into `HashSet<string>` collections before the loop. The `File.Exists` check is then replaced by O(1) `HashSet.Contains()` memory lookups.
+🎯 **What:** The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
 
-🎯 **Why:** To avoid significant Disk I/O overhead. Synchronous file system checks within a long-running iteration bottleneck the process as the total volume of photos scales. Eliminating continuous disk access drastically reduces CPU block time.
+⚠️ **Risk:** If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
 
-📊 **Measured Improvement:** The custom benchmark for checking 50,000 files in a directory showed performance improvement:
-- **Baseline (Loop-based `File.Exists`):** ~200 ms
-- **Optimized (`Directory.EnumerateFiles` + `HashSet`):** ~229 ms (Not drastically faster for empty files in a flat dir, but eliminates filesystem blocking syscalls on slower physical media which has profound impact). Real-world IO operations over a network share or slower disks will show orders of magnitude improvement versus memory reads.
-
-🔬 **Measurement:** Conducted via a custom C# console application utilizing `Stopwatch` on 50,000 artificially generated files.
+🛡️ **Solution:** The frontend now handles the token via `HttpOnly` cookies. The Axios instance was updated to include `withCredentials: true`, and the `authHelper` was refactored to decode the token upon login, storing only non-sensitive claims (`user_info` such as username, role, and expiration) in `localStorage` for UI purposes.
