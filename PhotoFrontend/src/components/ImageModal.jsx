@@ -316,21 +316,34 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         <div className="space-y-3">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
                             <div className="flex flex-wrap gap-2">
-                                {tags.map((tagObj, idx) => {
-                                    const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                                    const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
-                                    const tagName = frTranslation ? (frTranslation.name || frTranslation.Name) : 'Tag';
+                                {(() => {
+                                    const translationCache = new Map();
+                                    return tags.map((tagObj, idx) => {
+                                        const tagId = tagObj.id || tagObj.Id;
+                                        let tagName;
 
-                                    return (
-                                        <span
-                                            key={idx}
-                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer"
-                                            onClick={() => onTagClick && onTagClick(tagName)}
-                                        >
-                                            {tagName}
-                                        </span>
-                                    );
-                                })}
+                                        if (tagId !== undefined && translationCache.has(tagId)) {
+                                            tagName = translationCache.get(tagId);
+                                        } else {
+                                            const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                                            const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
+                                            tagName = frTranslation ? (frTranslation.name || frTranslation.Name) : 'Tag';
+                                            if (tagId !== undefined) {
+                                                translationCache.set(tagId, tagName);
+                                            }
+                                        }
+
+                                        return (
+                                            <span
+                                                key={idx}
+                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer"
+                                                onClick={() => onTagClick && onTagClick(tagName)}
+                                            >
+                                                {tagName}
+                                            </span>
+                                        );
+                                    });
+                                })()}
                             </div>
                         </div>
                     )}
