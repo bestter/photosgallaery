@@ -692,37 +692,29 @@ namespace PhotoAppApi.Controllers
                 // Failures in file cleanup should not return an API error since the record is already deleted.
                 var cleanupTasks = new List<Task>();
 
+                // ⚡ Bolt: Removed Task.Run wrapper around blocking async tasks to prevent thread pool starvation
+                async Task DeleteSafeAsync(string url, string type)
+                {
+                    try
+                    {
+                        await _storage.DeleteImageAsync(url, cancellationToken);
+                        log.Debug($"S3 {type} deleted: {url}");
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warn($"Failed to delete S3 {type}: {url}", ex);
+                    }
+                }
+
                 // Clean S3 storage if S3 keys exist
                 if (!string.IsNullOrEmpty(s3Url))
                 {
-                    cleanupTasks.Add(Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await _storage.DeleteImageAsync(s3Url, cancellationToken);
-                            log.Debug($"S3 original image deleted: {s3Url}");
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Warn($"Failed to delete S3 original image: {s3Url}", ex);
-                        }
-                    }));
+                    cleanupTasks.Add(DeleteSafeAsync(s3Url, "original image"));
                 }
 
                 if (!string.IsNullOrEmpty(s3ThumbUrl))
                 {
-                    cleanupTasks.Add(Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await _storage.DeleteImageAsync(s3ThumbUrl, cancellationToken);
-                            log.Debug($"S3 thumbnail deleted: {s3ThumbUrl}");
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Warn($"Failed to delete S3 thumbnail: {s3ThumbUrl}", ex);
-                        }
-                    }));
+                    cleanupTasks.Add(DeleteSafeAsync(s3ThumbUrl, "thumbnail"));
                 }
 
                 // Clean local server storage
