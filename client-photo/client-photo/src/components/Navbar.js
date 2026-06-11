@@ -41,7 +41,7 @@ const Navbar = ({ token, setToken }) => {
     }, [location.pathname, checkReports, role]); // Ajout des dépendances manquantes
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        clearUserSession();
         if (setToken) setToken(null);
         navigate('/');
     };

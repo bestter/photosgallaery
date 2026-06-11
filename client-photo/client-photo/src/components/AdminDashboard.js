@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';import { getUsernameFromToken } from './auth
 
 const AdminDashboard = () => {
     // C'est ici que ça doit vivre ! 👇
-    const currentUser = getUsernameFromToken(localStorage.getItem('token'));
+    const currentUser = getUsernameFromToken();
     const [users, setUsers] = useState([]);
     const [reports, setReports] = useState([]); // Pour tes futurs signalements
     const [isLoading, setIsLoading] = useState(true);    
