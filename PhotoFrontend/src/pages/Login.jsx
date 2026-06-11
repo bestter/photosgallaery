@@ -63,7 +63,7 @@ const Login = () => {
                 className="block text-[10px] font-bold uppercase tracking-widest text-primary ml-1"
                 htmlFor="username"
               >
-                {t("auth.login.username_label")}
+                {t("auth.login.username_label")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -95,7 +95,7 @@ const Login = () => {
                   className="text-[10px] font-bold uppercase tracking-widest text-primary"
                   htmlFor="password"
                 >
-                  {t("auth.login.password_label")}
+                  {t("auth.login.password_label")} <span className="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <a
                   className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
