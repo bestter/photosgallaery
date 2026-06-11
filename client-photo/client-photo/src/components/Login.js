@@ -34,7 +34,7 @@ const Login = ({ setToken }) => {
             {
                 loading: 'Connexion en cours...',
                 success: (response) => {
-                    localStorage.setItem('token', response.data.token);
+                    localStorage.setItem('user_info', JSON.stringify({username: username, role: getUserRole(response.data.token)}));
                     if (setToken) setToken(response.data.token);
                     
                     const role = getUserRole(response.data.token);                    

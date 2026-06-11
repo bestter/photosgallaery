@@ -7,14 +7,16 @@ const baseURL = process.env.NODE_ENV === 'development'
     : '/api';                      // 🌍 Sur ton serveur Linux Mint (Via Apache)
 
 const axiosInstance = axios.create({
-    baseURL: baseURL
+    baseURL: baseURL,
+    withCredentials: true
 });
 
 axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
+    // 🛡️ Securité de base pour identifier que la requête vient bien de l'app React
+    config.headers['X-App-Client'] = 'PhotoApp-Web';
+
+    // The JWT token is now handled via HttpOnly cookie,
+    // so we don't attach it to the Authorization header from localStorage here.
     return config;
 });
 
@@ -40,7 +42,7 @@ axiosInstance.interceptors.response.use(
         else // 2. LE SIÈGE ÉJECTABLE (Erreur 401 ou 403)
         if (error.response.status === 401 || error.response.status === 403) {
             if (window.location.pathname !== '/login') {
-                localStorage.removeItem('token'); 
+                localStorage.removeItem('user_info');
                 
                 // On supprime le toast.error ici car il sera tué par le rechargement.
                 // À la place, on ajoute un paramètre caché dans l'URL :

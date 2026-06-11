@@ -15,7 +15,7 @@ import MostViewed from './components/MostViewed';
 
 function App() {
     // L'état centralisé pour savoir si l'utilisateur est connecté
-    const [token, setToken] = useState(localStorage.getItem('token'));
+    const [token, setToken] = useState(localStorage.getItem('user_info'));
     return (
         
         <Router>
