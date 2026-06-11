@@ -288,7 +288,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 htmlFor="photo-title"
                 className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
               >
-                {t("components.upload.photo_title")}
+                {t("components.upload.photo_title")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <input
                 id="photo-title"
@@ -343,7 +343,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
                 htmlFor="photo-group"
                 className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
               >
-                {t("components.upload.visibility")}
+                {t("components.upload.visibility")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <select
                 id="photo-group"

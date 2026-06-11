@@ -89,7 +89,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="full_name"
               >
-                {t("auth.register.username_label")}
+                {t("auth.register.username_label")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -117,7 +117,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="email"
               >
-                {t("auth.register.email_label")}
+                {t("auth.register.email_label")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -144,7 +144,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="password"
               >
-                {t("auth.register.password_label")}
+                {t("auth.register.password_label")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -184,7 +184,7 @@ const Register = () => {
                 className="block text-xs font-bold uppercase tracking-widest text-secondary"
                 htmlFor="confirm_password"
               >
-                {t("auth.register.confirm_password_label")}
+                {t("auth.register.confirm_password_label")} <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
