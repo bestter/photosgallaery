@@ -50,6 +50,14 @@
 ## 2024-06-08 - Parallelizing Synchronous Image Processing
 **Learning:** Loading the entire entity table into memory (e.g. `await _context.Photos.ToListAsync()`) just to read a single column like `FileName` creates severe memory bloat and latency. Furthermore, processing thousands of images sequentially is heavily CPU/IO bound and under-utilizes available system resources, resulting in massive execution times.
 **Action:** Always project only the required fields (e.g., `.Select(p => p.FileName)`) using `AsNoTracking()` to minimize the memory footprint. For batch CPU/IO bound tasks like image processing, use bounded concurrency via `Parallel.ForEachAsync` coupled with `Interlocked.Increment` for thread-safe counters to drastically improve throughput.
+
+## 2026-06-11 - Optimize DB point-lookups for potential collisions by batching
+
+**Learning:**
+Repeatedly querying the database inside a `while` loop to check for collisions (even if collisions are rare) is an anti-pattern. While a single `.AnyAsync()` check is fast, putting it inside a loop opens the door to N+1 queries under worst-case scenarios.
+
+**Action:**
+Instead of checking for existence row by row in a loop, query all related existing items upfront (e.g., using `.StartsWith()` for string prefixes) and materialize them into a memory-efficient `HashSet`. Ensure that `StringComparer.OrdinalIgnoreCase` is used when materializing strings from a database to accurately reflect database collision rules.
 ## 2024-06-12 - Optimize Nested Array Lookups using Map Cache
 **Learning:** Performing a `.find()` operation inside a nested `.map()` iteration over a large array (such as filtering or formatting nested data structures like tags in photos) is highly inefficient and creates an O(N*M*L) bottleneck. Repeatedly searching for the same nested items (like translated tag names) significantly blocks the main thread.
 **Action:** Extract the nested lookup by building a `Map` cache inside the outer execution scope. This memoizes the translation results by ID, replacing the inner O(L) find array search with an O(1) map lookup, drastically improving rendering and computation speed.
