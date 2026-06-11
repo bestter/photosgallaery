@@ -27,8 +27,17 @@ namespace PhotoAppApi.Services
 
             string uniqueSlug = baseSlug;
 
-            // On vérifie dans la base de données si le slug existe déjà
-            while (await _context.Groups.AnyAsync(g => g.ShortName == uniqueSlug, cancellationToken))
+            // On récupère tous les slugs existants qui commencent par la base pour éviter les requêtes N+1
+            var existingSlugsList = await _context.Groups
+                .AsNoTracking()
+                .Where(g => g.ShortName != null && g.ShortName.StartsWith(baseSlug))
+                .Select(g => g.ShortName)
+                .ToListAsync(cancellationToken);
+
+            var existingSlugs = existingSlugsList.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            // On vérifie dans le HashSet si le slug existe déjà
+            while (existingSlugs.Contains(uniqueSlug))
             {
                 // S'il y a une collision, on ajoute un petit ID de 5 caractères
                 string shortId = Guid.NewGuid().ToString("N").Substring(0, 5);
