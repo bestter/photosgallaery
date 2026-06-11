@@ -83,3 +83,7 @@
 **Vulnerability:** The `ResendEmailService` constructed HTML emails by directly concatenating user-provided inputs (`name`, `email`, `subject`, `message`, `firstName`, `lastName`, `inviterName`, `groupName`) into a `StringBuilder` without HTML encoding. This created a Cross-Site Scripting (XSS) / HTML Injection vulnerability where attackers could inject deceptive HTML or malicious scripts that render in the recipient's email client.
 **Learning:** Even if data isn't rendered directly in the web browser, if it's sent to an email client as part of an HTML body (`HtmlBody`), it must be sanitized. Email clients can interpret injected HTML, leading to severe phishing or XSS risks.
 **Prevention:** Always use `System.Net.WebUtility.HtmlEncode()` to sanitize user-provided inputs before embedding them into any HTML context, including HTML emails.
+## 2026-06-11 - [HIGH] Fix overly permissive CORS policy
+**Vulnerability:** Using .AllowAnyMethod() and .AllowAnyHeader() in the CORS policy is overly broad and exposes endpoints to potentially malicious cross-site requests.
+**Learning:** Always restrict CORS policies using .WithMethods() and .WithHeaders() to exactly the expected verbs and fields required by the frontend.
+**Prevention:** Hardcode specific headers and methods in the options.AddPolicy builder rather than utilizing catch-all extension methods.
