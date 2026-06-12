@@ -1,70 +1,72 @@
-# PixelLyra
+# PixelLyra 🌌
 
-PixelLyra is a full-stack, modern web application for managing and sharing photos. It features a robust backend API built with C# and ASP.NET Core, and a responsive, dynamic frontend built with React and Vite. The application is designed for secure image storage, efficient processing, and multi-language support.
+PixelLyra est une application web moderne et performante de gestion, partage et modération de photos. Elle combine une interface utilisateur immersive au style cyberpunk minimaliste avec une API résiliente et sécurisée.
 
-## 🚀 Features
+Le projet met en œuvre des fonctionnalités avancées comme la génération asynchrone de miniatures, l'extraction de métadonnées EXIF/GPS, la modération automatique d'images assistée par IA, et un système robuste d'authentification basé sur des cookies sécurisés.
 
-- **Photo Management**: Securely upload, view, and manage your photos.
-- **Image Processing**: Automatic thumbnail generation and EXIF/GPS metadata extraction (using SixLabors.ImageSharp).
-- **Secure Storage**: Integration with AWS S3 for secure, scalable object storage using pre-signed URLs.
-- **Authentication & Security**: Robust JWT-based authentication and secure password hashing with BCrypt.
-- **Internationalization (i18n)**: Full multi-language support (English and French) built with `react-i18next`.
-- **Responsive UI**: Modern interface styled with Tailwind CSS v4, providing an optimistic UI for fluid interactions.
-- **Email Notifications**: Integrated with Resend for transactional emails.
+---
 
-## 🛠️ Technology Stack
+## 📖 Liens et Documentation Clés
 
-### Frontend (`PhotoFrontend`)
-- **Framework**: React 19 + Vite
-- **Styling**: Tailwind CSS v4
-- **Localization**: `react-i18next`
-- **State/Requests**: Axios, `jwt-decode`
-- **Testing**: Vitest, React Testing Library
+* **[Analyse Technique et Architecture Complète (project_analysis.md)](file:///C:/Users/marti/.gemini/antigravity-cli/brain/694679d4-6da2-493f-8746-fda0929a7558/project_analysis.md)** : Rapport complet détaillant la base de données, la logique de cache, les workers d'arrière-plan (files d'attente asynchrones), le microservice de modération, ainsi que les stratégies de performance.
+* **[Conventions de Développement (AGENTS.md)](file:///C:/Users/marti/source/repos/PhotoApp/AGENTS.md)** : Règles strictes concernant les modifications de code, la localisation i18n, et l'écriture de commits atomiques.
+* **[Design System « Cyanide Glass » (DESIGN.md)](file:///C:/Users/marti/source/repos/PhotoApp/PhotoFrontend/DESIGN.md)** : Spécifications visuelles détaillées du thème (couleurs, typographie, effets lumineux et animations).
 
-### Backend (`PhotoAppApi`)
-- **Framework**: C# / ASP.NET Core (.NET 10)
-- **Database**: MariaDB / MySQL with Entity Framework Core (Pomelo)
-- **Object Storage**: AWS SDK for S3
-- **Image Processing**: SixLabors.ImageSharp
-- **Logging**: Log4Net
-- **Testing**: xUnit
+---
 
-### Infrastructure & Deployment
-- **Containerization**: Docker
-- **Hosting**: Fly.io (`fly.toml` configuration included)
+## 🛠️ Stack Technologique
 
-## 🏗️ Architecture & Best Practices
+### 1. Frontend (`PhotoFrontend`)
+* **Framework** : React 19 + Vite.
+* **Styling** : Tailwind CSS v4 (Cyberpunk Glassmorphism).
+* **Localisation** : `react-i18next` (support complet du Français et de l'Anglais sans textes codés en dur).
+* **Requêtes et État** : Axios (avec `withCredentials` pour les cookies sécurisés).
+* **Tests** : Vitest, React Testing Library.
 
-PixelLyra follows strict development guidelines (outlined in `AGENTS.md`):
-- **Clean Backend Controllers**: Controllers remain lightweight, with business logic (such as secure uploads, tag management, and thumbnail generation) extracted into independent, injectable services.
-- **Database Integrity**: Strict referential integrity in MariaDB, including proper cascading deletes for dependent entities (likes, reports).
-- **Optimistic UI**: Frontend interactions (like counters and tagging) update optimistically for a seamless user experience.
-- **Zero Hardcoded Strings**: All user-facing text is managed via `react-i18next` localization files.
+### 2. Backend API (`PhotoAppApi`)
+* **Framework** : C# / ASP.NET Core (.NET 10.0).
+* **Base de données** : MariaDB / MySQL avec Entity Framework Core (Pomelo).
+* **Stockage d'objets** : AWS SDK pour S3 (connecté sur Cloudflare R2).
+* **Traitement d'images** : SixLabors.ImageSharp.
+* **Workers de Fond** : Traitement asynchrone par `BoundedChannel` pour l'incrémentation des vues et le calcul de hachages.
+* **Logging** : Log4Net.
+* **Tests** : xUnit.
 
-## 🚦 Getting Started
+### 3. Microservice de Modération (`moderation-service`)
+* **Framework** : FastAPI + Python.
+* **Modèle IA** : Détection d'images inappropriées via le modèle `Falconsai/nsfw_image_detection` (Transformers / PyTorch).
 
-### Prerequisites
-- .NET 10 SDK
-- Node.js (v20+ recommended)
-- MariaDB / MySQL Server
-- AWS S3 Bucket (or compatible object storage)
+### 4. Infrastructure & Déploiement
+* **Conteneurisation** : Docker (build multi-étapes combinant le bundle statique React dans le serveur C#).
+* **Hébergement** : Fly.io.
 
-### Backend Setup
-1. Navigate to the API directory: `cd PhotoAppApi`
-2. Configure your `appsettings.json` or User Secrets with your Database Connection String, JWT Settings, AWS S3 Credentials, and Resend API key.
-3. Run Entity Framework migrations to set up the database schema.
-4. Run the API: `dotnet run`
+---
 
-### Frontend Setup
-1. Navigate to the frontend directory: `cd PhotoFrontend`
-2. Install dependencies: `npm install`
-3. Start the development server: `npm run dev`
+## 🚦 Démarrage Rapide
 
-## 🧪 Testing
+### Prérequis
+* .NET 10.0 SDK
+* Node.js (v20+)
+* Base de données MySQL / MariaDB locale ou distante
+* Python 3.10+ (uniquement si vous lancez le service de modération en local)
 
-The project maintains a strong emphasis on testing to prevent regressions:
-- **Backend**: Run tests via `dotnet test` in the `PhotoAppApi.Tests` directory.
-- **Frontend**: Run the Vitest suite via `npm run test` in the `PhotoFrontend` directory.
+### Étape 1 : Configuration et Lancement de l'API Backend
+1. Naviguez dans le répertoire de l'API : `cd PhotoAppApi`
+2. Configurez vos secrets dans le fichier `appsettings.json` ou via les variables d'environnement (chaîne de connexion MySQL, clé secrète JWT d'au moins 64 caractères, identifiants ObjectStorage S3/R2).
+3. Appliquez les migrations de base de données si nécessaire.
+4. Lancez le serveur : `dotnet run`
 
-## 📄 License
-This project is licensed under the terms specified in the `LICENSE` file.
+### Étape 2 : Configuration et Lancement du Frontend React
+1. Naviguez dans le répertoire frontend : `cd PhotoFrontend`
+2. Installez les paquets : `npm install`
+3. Démarrez le serveur de développement Vite : `npm run dev`
+4. L'application est accessible par défaut sur [http://localhost:5173](http://localhost:5173).
+
+---
+
+## 🧪 Tests et Validation du Code
+
+Le projet impose le passage réussi de toutes les suites de tests avant validation :
+* **Backend C#** : Exécutez `dotnet test` dans le répertoire [PhotoAppApi.Tests](file:///C:/Users/marti/source/repos/PhotoApp/PhotoAppApi.Tests) ou à la racine.
+* **Frontend React** : Exécutez `npm run test` (ou `npx vitest run`) dans [PhotoFrontend](file:///C:/Users/marti/source/repos/PhotoApp/PhotoFrontend).
+* **Linter Frontend** : Exécutez `npm run lint` pour s'assurer qu'aucun warning ou erreur de syntaxe n'est présent.

@@ -147,7 +147,8 @@ namespace PhotoAppApi.Controllers
                 // On exécute la requête pour obtenir la liste des photos
                 var photos = await query.ToListAsync(cancellationToken);
 
-                if (photos.Count == 0) {
+                if (photos.Count == 0)
+                {
                     Response.Headers.Append("X-Total-Count", totalCount.ToString());
                     return Ok(photos);
                 }
@@ -440,8 +441,7 @@ namespace PhotoAppApi.Controllers
                 {
                     var file = validFiles[i];
                     await using var stream = file.OpenReadStream();
-                    using var sha512 = SHA512.Create();
-                    var hashBytes = await sha512.ComputeHashAsync(stream, ct);
+                    var hashBytes = await SHA512.HashDataAsync(stream, ct);
                     fileHashesArray[i] = (File: file, Hash: Convert.ToHexStringLower(hashBytes));
                 });
                 var fileHashes = fileHashesArray.ToList();
@@ -801,8 +801,7 @@ namespace PhotoAppApi.Controllers
                     if (System.IO.File.Exists(filePath))
                     {
                         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
-                        using var sha512 = SHA512.Create();
-                        var hashBytes = await sha512.ComputeHashAsync(stream, ct);
+                        var hashBytes = await SHA512.HashDataAsync(stream, ct);
                         hashResults.Add((Photo: photo, Hash: Convert.ToHexStringLower(hashBytes), Exists: true, FilePath: filePath));
                     }
                     else
@@ -1217,7 +1216,8 @@ namespace PhotoAppApi.Controllers
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
                 var userPhotos = await query.ToListAsync();
 
-                if (userPhotos.Count == 0) {
+                if (userPhotos.Count == 0)
+                {
                     Response.Headers.Append("X-Total-Count", totalCount.ToString());
                     return Ok(userPhotos);
                 }
