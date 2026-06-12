@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { isTokenExpired, getUserRole, clearUserSession } from "../authHelper";
 
-const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
+const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,11 +28,11 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
   const MAX_SIZE_BYTES = 50 * 1024 * 1024;
 
   const isSessionValid = useCallback(() => {
-    if (!token || isTokenExpired(token)) {
+    if (isTokenExpired()) {
       return false;
     }
     return true;
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     // Charger les groupes de l'utilisateur
@@ -59,7 +59,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
       fetchGroups();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, initialGroupId, isSessionValid]);
+  }, [initialGroupId, isSessionValid]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -124,7 +124,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
   };
 
   const canUpload = () => {
-    const role = getUserRole(token);
+    const role = getUserRole();
     if (!role) return false;
 
     if (Array.isArray(role)) {
@@ -145,7 +145,7 @@ const UploadPhoto = ({ onUploadSuccess, token, setToken, initialGroupId }) => {
       toast.error(t("components.upload.error.session_expired"), {
         icon: "🔒",
       });
-      if (setToken) setToken(null);
+
       clearUserSession();
       return;
     }

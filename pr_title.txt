@@ -1,1 +1,1 @@
-⚡ Bolt: Implement Server-Side Pagination for Photo Queries
+🛡️ Sentinel: [CRITICAL] Fix Insecure Storage of JWT Token in LocalStorage
