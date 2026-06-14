@@ -1,16 +1,12 @@
-🚨 **Severity:** CRITICAL
+💡 What:
+Added `aria-hidden="true"` to the mandatory field indicators (red asterisk `*`) for the Name, Email, Subject, and Message fields in the Contact form.
 
-💡 **Vulnerability:** The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
+🎯 Why:
+To prevent screen readers from redundantly announcing "star" for every required field. Since the associated `<input>` and `<textarea>` elements already use the native HTML5 `required` attribute, the screen reader will automatically announce that the fields are mandatory. Hiding the visual indicator cleans up the audio experience for visually impaired users.
 
-🎯 **Impact:** If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
+📸 Before/After:
+Before: `<span className="text-red-500 ml-1">*</span>`
+After: `<span className="text-red-500 ml-1" aria-hidden="true">*</span>`
 
-🔧 **Fix:** The authentication mechanism was updated to use `HttpOnly` and `Secure` cookies.
-- The C# Backend (`AuthController`) now sets an `HttpOnly` cookie containing the JWT upon successful login.
-- The React Frontend (`axiosInstance`) was configured to send credentials automatically (`withCredentials: true`), allowing the browser to attach the secure cookie to API requests without exposing it to JavaScript.
-- The Frontend `authHelper.js` now decodes the token upon login and stores only non-sensitive claims (`user_info`) in `localStorage` for UI purposes (like displaying the user's role and username), ensuring the actual authentication token remains secure.
-- Fixed `UploadPhoto.jsx` which was mistakenly relying on an old \`token\` property.
-
-✅ **Verification:**
-- Validated `UploadPhoto.jsx` correctly retrieves user identity and session validation without referencing \`token\`.
-- Cleaned up any residual insecure `localStorage.getItem('token')` usages in the frontend directories.
-- Tests pass via `pnpm test --run`.
+♿ Accessibility:
+Improves screen reader experience by removing redundant announcements of decorative/visual required indicators, relying instead on programmatic semantic HTML (`required` attribute).
