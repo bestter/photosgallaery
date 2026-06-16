@@ -44,8 +44,7 @@ public class HashCalculationBackgroundService : BackgroundService
                         var rootWebPath = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                         var publicImagesFolder = Path.Combine(rootWebPath, "images");
 
-                        using var sha512 = SHA512.Create();
-
+                        // ⚡ Bolt: Removed SHA512.Create() allocation overhead and used SHA512.HashDataAsync static method
                         foreach (var photo in photosWithoutHash)
                         {
                             var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
@@ -59,7 +58,7 @@ public class HashCalculationBackgroundService : BackgroundService
                             {
                                 using var stream = File.OpenRead(filePath);
 
-                                var hashBytes = await sha512.ComputeHashAsync(stream, stoppingToken);
+                                var hashBytes = await SHA512.HashDataAsync(stream, stoppingToken);
                                 photo.FileHash = Convert.ToHexStringLower(hashBytes);
                             }
                             else
