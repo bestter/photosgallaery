@@ -65,3 +65,11 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2024-03-24 - Cryptographic Hashing Allocation Overhead
 **Learning:** Instantiating `SHA512.Create()` and disposing it in a loop creates significant allocation overhead and slows down hashing, even with fast streams or arrays.
 **Action:** Always prefer the static helper methods introduced in newer .NET versions, like `SHA512.HashDataAsync()`, which avoid allocating the provider instance and manage internal pooling efficiently.
+
+## 2026-06-25 - Avoid False Optimizations with Directory.EnumerateFiles
+**Learning:** Attempting to optimize a small number of `File.Exists()` checks inside a loop by preemptively enumerating the entire directory (using `Directory.EnumerateFiles()` to build a `HashSet`) introduces a massive O(N) performance and memory regression if the directory contains thousands of files and the batch is small. It also introduces TOCTOU bugs if files are moved concurrently.
+**Action:** Retain direct `File.Exists()` system calls for checking specific file paths, especially when processing small batches.
+
+## 2026-06-25 - Enable True Asynchronous I/O for FileStreams
+**Learning:** When passing a `FileStream` to an asynchronous method like `SHA512.HashDataAsync`, the underlying I/O operations will remain synchronous and block the thread pool if the stream was created with a synchronous method like `File.OpenRead()`.
+**Action:** Always instantiate the stream explicitly with `useAsync: true` (e.g., `new FileStream(..., useAsync: true)`) when intending to perform asynchronous file processing.
