@@ -44,8 +44,8 @@ public class HashCalculationBackgroundService : BackgroundService
                         var rootWebPath = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                         var publicImagesFolder = Path.Combine(rootWebPath, "images");
 
-                        // ⚡ Bolt: Removed SHA512.Create() allocation overhead and used SHA512.HashDataAsync static method
-                        foreach (var photo in photosWithoutHash)
+                        // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) to parallelize CPU/IO bound hashing operations.
+                        await Parallel.ForEachAsync(photosWithoutHash, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = stoppingToken }, async (photo, ct) =>
                         {
                             var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                             var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
@@ -56,9 +56,8 @@ public class HashCalculationBackgroundService : BackgroundService
 
                             if (filePath != null)
                             {
-                                using var stream = File.OpenRead(filePath);
-
-                                var hashBytes = await SHA512.HashDataAsync(stream, stoppingToken);
+                                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+                                var hashBytes = await SHA512.HashDataAsync(stream, ct);
                                 photo.FileHash = Convert.ToHexStringLower(hashBytes);
                             }
                             else
@@ -66,7 +65,7 @@ public class HashCalculationBackgroundService : BackgroundService
                                 log.Warn($"File not found for photo {photo.Id}: {photo.FileName}");
                                 photo.FileHash = "FILE_MISSING";
                             }
-                        }
+                        });
 
                         await dbContext.SaveChangesAsync(stoppingToken);
                         log.Info("Processed {photosWithoutHash.Count} photos.");
