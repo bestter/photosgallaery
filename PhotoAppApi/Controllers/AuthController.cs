@@ -136,6 +136,10 @@ namespace PhotoAppApi.Controllers
                     // 🛡️ Sentinel: Fix User Enumeration vulnerability
                     // Avoid explicitly denying registration to prevent attackers from guessing valid emails or usernames.
                     log.Warn($"Registration attempt for existing user with username '{request.Username}' or email '{request.Email}'. Rejecting silently to prevent user enumeration.");
+                    // 🛡️ Sentinel: Mitigate User Enumeration Timing Attacks
+                    // Hash the password even if the user exists to equalize the response time.
+                    BCrypt.Net.BCrypt.HashPassword(request.Password);
+
                     // Simulate successful creation response to mask the duplicate
                     return Ok("Compte créé avec succès !");
                 }
