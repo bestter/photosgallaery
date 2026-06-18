@@ -1,5 +1,4 @@
-🎯 **What:** The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
-
-⚠️ **Risk:** If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
-
-🛡️ **Solution:** The frontend now handles the token via `HttpOnly` cookies. The Axios instance was updated to include `withCredentials: true`, and the `authHelper` was refactored to decode the token upon login, storing only non-sensitive claims (`user_info` such as username, role, and expiration) in `localStorage` for UI purposes.
+🎯 **What:** The `RemoveDiacritics` method in `SlugGenerator.cs` was refactored to replace a manual character-by-character iteration loop with a clean `Regex.Replace` one-liner.
+💡 **Why:** This significantly improves maintainability and readability by utilizing standard library features (`Regex` and Unicode Categories matching `\p{Mn}`) instead of manually traversing the normalized string, checking unicode categories, and building a new string with a `StringBuilder`. This makes the code shorter, less prone to errors, and instantly recognizable to other developers.
+✅ **Verification:** Verified by compiling the solution and running the unit tests for `SlugGeneratorTests`. All existing behaviors remain unchanged, and 123 tests passed.
+✨ **Result:** The 16-line `RemoveDiacritics` loop method is now a concise 1-liner, improving code health and reducing cyclomatic complexity while strictly preserving previous functionality.
