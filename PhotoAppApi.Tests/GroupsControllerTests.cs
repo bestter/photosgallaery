@@ -251,5 +251,56 @@ namespace PhotoAppApi.Tests
             var deletedGroup = await context.Groups.FindAsync(new object[] { group.Id }, TestContext.Current.CancellationToken);
             Assert.Null(deletedGroup);
         }
+
+        [Fact]
+        public async Task UpdateMemberRole_ReturnsNotFound_WhenMemberDoesNotExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+            var request = new UpdateMemberRoleRequest
+            {
+                Role = GroupUserRole.Admin
+            };
+
+            // Act
+            var result = await controller.UpdateMemberRole(Guid.NewGuid(), 999, request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
+            var messageProperty = notFoundResult.Value.GetType().GetProperty("message")?.GetValue(notFoundResult.Value, null) as string;
+            Assert.Equal("Membre non trouvé dans ce groupe.", messageProperty);
+        }
+
+        [Fact]
+        public async Task UpdateMemberRole_ReturnsOk_WhenMemberExists()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            var user = new User { Id = 1, Username = "user", Email = "u@e.com", PasswordHash = "hash", Role = UserRole.User };
+            var userGroup = new UserGroup { GroupId = group.Id, Group = group, UserId = user.Id, User = user, Role = GroupUserRole.Member };
+
+            context.Groups.Add(group);
+            context.Users.Add(user);
+            context.UserGroups.Add(userGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            var request = new UpdateMemberRoleRequest
+            {
+                Role = GroupUserRole.Admin
+            };
+
+            // Act
+            var result = await controller.UpdateMemberRole(group.Id, user.Id, request, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.IsType<OkObjectResult>(result);
+            var updatedUserGroup = await context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == group.Id && ug.UserId == user.Id, TestContext.Current.CancellationToken);
+            Assert.NotNull(updatedUserGroup);
+            Assert.Equal(GroupUserRole.Admin, updatedUserGroup.Role);
+        }
     }
 }
