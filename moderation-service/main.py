@@ -51,6 +51,8 @@ async def moderate_image(file: UploadFile = File(...)):
             "label": results[0]["label"]
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error during moderation: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during moderation")
