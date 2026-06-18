@@ -73,3 +73,7 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2026-06-25 - Enable True Asynchronous I/O for FileStreams
 **Learning:** When passing a `FileStream` to an asynchronous method like `SHA512.HashDataAsync`, the underlying I/O operations will remain synchronous and block the thread pool if the stream was created with a synchronous method like `File.OpenRead()`.
 **Action:** Always instantiate the stream explicitly with `useAsync: true` (e.g., `new FileStream(..., useAsync: true)`) when intending to perform asynchronous file processing.
+
+## 2024-06-18 - Avoid O(N) Directory Enumeration for Targeted File Existence Checks
+**Learning:** Checking file existence by preemptively loading a large directory into memory via `Directory.EnumerateFiles()` and building a `HashSet` is extremely memory inefficient (O(N)). It triggers heavy disk I/O to read the full directory metadata and causes severe memory spikes on the thread pool for large directories. Furthermore, this approach introduces Time-Of-Check to Time-Of-Use (TOCTOU) vulnerabilities in concurrent environments because the directory state may drift after the initial enumeration.
+**Action:** When validating the existence of a small batch of known files, always use `System.IO.File.Exists()`. It delegates directly to the OS to check metadata locally and operates in O(1) time without loading other directory entries, keeping memory usage flat and avoiding race conditions.
