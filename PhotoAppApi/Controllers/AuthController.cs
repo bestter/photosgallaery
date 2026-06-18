@@ -218,6 +218,10 @@ namespace PhotoAppApi.Controllers
                 var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!int.TryParse(userIdString, out int userId)) return Unauthorized();
 
+                // 🛡️ Sentinel: Verify user is still active and exists in the database
+                var user = await _context.Users.FindAsync(new object[] { userId });
+                if (user == null || user.Role == UserRole.Forbidden) return Unauthorized();
+
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
                 var groups = await _context.UserGroups
                     .AsNoTracking()
@@ -233,7 +237,7 @@ namespace PhotoAppApi.Controllers
                     .ToListAsync();
 
                 // Si Admin, retourner tous les groupes
-                if (User.IsInRole("Admin"))
+                if (user.Role == UserRole.Admin)
                 {
                     // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
                     groups = await _context.Groups
