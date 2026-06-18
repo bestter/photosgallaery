@@ -930,16 +930,6 @@ namespace PhotoAppApi.Controllers
 
                 if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
 
-                var existingThumbnails = new HashSet<string>(
-                    Directory.Exists(thumbFolder) ? Directory.EnumerateFiles(thumbFolder).Select(Path.GetFileName) : Array.Empty<string>(),
-                    StringComparer.OrdinalIgnoreCase
-                );
-
-                var existingOriginals = new HashSet<string>(
-                    Directory.Exists(uploadsFolder) ? Directory.EnumerateFiles(uploadsFolder).Select(Path.GetFileName) : Array.Empty<string>(),
-                    StringComparer.OrdinalIgnoreCase
-                );
-
                 int generatedCount = 0;
                 int missingOriginalsCount = 0;
 
@@ -950,10 +940,13 @@ namespace PhotoAppApi.Controllers
                     var thumbPath = Path.Combine(thumbFolder, safeFileName);
 
                     // 1. Si la miniature existe déjà, on ne gaspille pas de temps CPU, on passe !
-                    if (existingThumbnails.Contains(safeFileName)) return;
+                    // ⚡ Bolt: Replace O(N) memory-heavy directory enumeration and HashSet building
+                    // with fast, direct O(1) System.IO.File.Exists checks to prevent massive memory
+                    // spikes and avoid Time-Of-Check to Time-Of-Use (TOCTOU) concurrency issues.
+                    if (System.IO.File.Exists(thumbPath)) return;
 
                     // 2. Si par hasard le gros fichier original a disparu du disque, on note l'erreur
-                    if (!existingOriginals.Contains(safeFileName))
+                    if (!System.IO.File.Exists(originalPath))
                     {
                         Interlocked.Increment(ref missingOriginalsCount);
                         return;
