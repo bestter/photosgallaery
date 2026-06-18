@@ -87,3 +87,7 @@
 **Vulnerability:** Using .AllowAnyMethod() and .AllowAnyHeader() in the CORS policy is overly broad and exposes endpoints to potentially malicious cross-site requests.
 **Learning:** Always restrict CORS policies using .WithMethods() and .WithHeaders() to exactly the expected verbs and fields required by the frontend.
 **Prevention:** Hardcode specific headers and methods in the options.AddPolicy builder rather than utilizing catch-all extension methods.
+## 2026-06-18 - Fix IDOR in ReportPhoto
+**Vulnerability:** The `ReportPhoto` endpoint (`[HttpPost("{id}/report")]` in `PhotosController.cs`) allowed any authenticated user to report any photo, including those belonging to private groups they were not members of, by manipulating the photo ID parameter. This was an Insecure Direct Object Reference (IDOR) vulnerability.
+**Learning:** Mutating actions on resources that belong to restricted groups must consistently validate the caller's authorization (group membership or admin role) prior to performing the action.
+**Prevention:** Explicitly validate group membership using an efficient database query (e.g., `AnyAsync` against the `UserGroups` table) whenever a user attempts to interact with a group-associated resource, and eagerly return `Forbid()` for unauthorized users.
