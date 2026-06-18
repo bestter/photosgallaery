@@ -172,20 +172,22 @@ namespace PhotoAppApi.Controllers
                 if (currentUserId.HasValue)
                 {
                     // On récupère uniquement les IDs des photos que CET utilisateur a aimées
-                    var likedIds = await _context.PhotoLikes
+                    var likedIdsTask = _context.PhotoLikes
                         .AsNoTracking()
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
                         .ToListAsync(cancellationToken);
 
-                    userLikedPhotoIds = new HashSet<int>(likedIds);
-
-                    var reportedIds = await _context.ImageReports
+                    var reportedIdsTask = _context.ImageReports
                         .AsNoTracking()
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
                         .ToListAsync(cancellationToken);
-                    userReportedPhotoIds = [.. reportedIds];
+
+                    await Task.WhenAll(likedIdsTask, reportedIdsTask);
+
+                    userLikedPhotoIds = new HashSet<int>(await likedIdsTask);
+                    userReportedPhotoIds = [.. (await reportedIdsTask)];
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
@@ -1240,17 +1242,20 @@ namespace PhotoAppApi.Controllers
 
                 if (currentUserId.HasValue)
                 {
-                    var likedIds = await _context.PhotoLikes
+                    var likedIdsTask = _context.PhotoLikes
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
                         .ToListAsync();
-                    currentUserLikedPhotoIds = new HashSet<int>(likedIds);
 
-                    var reportedIds = await _context.ImageReports
+                    var reportedIdsTask = _context.ImageReports
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
                         .ToListAsync();
-                    currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
+
+                    await Task.WhenAll(likedIdsTask, reportedIdsTask);
+
+                    currentUserLikedPhotoIds = new HashSet<int>(await likedIdsTask);
+                    currentUserReportedPhotoIds = new HashSet<int>(await reportedIdsTask);
                 }
 
                 // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
