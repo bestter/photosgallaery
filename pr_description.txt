@@ -1,5 +1,5 @@
-🎯 **What:** The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
-
-⚠️ **Risk:** If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
-
-🛡️ **Solution:** The frontend now handles the token via `HttpOnly` cookies. The Axios instance was updated to include `withCredentials: true`, and the `authHelper` was refactored to decode the token upon login, storing only non-sensitive claims (`user_info` such as username, role, and expiration) in `localStorage` for UI purposes.
+🚨 Severity: High
+💡 Vulnerability: The `ToggleLike` endpoint (`[HttpPost("{id}/like")]` in `PhotosController.cs`) lacked validation to ensure the requesting user was a member of the group the photo belonged to. This allowed any authenticated user to toggle likes on any photo, regardless of group membership, leading to an Insecure Direct Object Reference (IDOR).
+🎯 Impact: Unauthorized users could like or unlike photos in private groups, potentially gaining insight into group activity or manipulating engagement metrics.
+🔧 Fix: Validated that the caller has either an `Admin` role or is explicitly a member of the group associated with the photo by querying the `UserGroups` table before processing the like.
+✅ Verification: Ran unit tests `dotnet test PhotoAppApi.Tests/`, which includes test cases `ToggleLike_ShouldReturnForbid_WhenUserIsNotGroupMember` and `ToggleLike_ShouldReturnOk_WhenUserIsGroupMember`. All tests pass, validating that group checking logic is correctly enforcing permissions.

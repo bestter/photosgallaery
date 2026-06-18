@@ -70,3 +70,4 @@ Le projet impose le passage réussi de toutes les suites de tests avant validati
 * **Backend C#** : Exécutez `dotnet test` dans le répertoire [PhotoAppApi.Tests](file:///C:/Users/marti/source/repos/PhotoApp/PhotoAppApi.Tests) ou à la racine.
 * **Frontend React** : Exécutez `npm run test` (ou `npx vitest run`) dans [PhotoFrontend](file:///C:/Users/marti/source/repos/PhotoApp/PhotoFrontend).
 * **Linter Frontend** : Exécutez `npm run lint` pour s'assurer qu'aucun warning ou erreur de syntaxe n'est présent.
+Dummy change
