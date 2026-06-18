@@ -63,7 +63,7 @@
 **Learning:** Exception handling paths (like catch blocks) in controllers must be explicitly unit tested to ensure they catch expected errors, log appropriately, and return the correct HTTP status code and response schema to the client.
 **Prevention:** Intentionally simulate failure states (e.g., disposing the database context to trigger an `ObjectDisposedException` upon querying) within unit tests to trigger and verify `catch` block execution, ensuring both logging and HTTP responses function as designed.
 
-## $(date +%Y-%m-%d) - JWT Token Storage
+## 2025-03-02 - JWT Token Storage
 
 **Vulnerability:** JWT token stored in `localStorage` in `PhotoFrontend/src/api.js` made it susceptible to Cross-Site Scripting (XSS) attacks.
 
@@ -79,7 +79,7 @@
 **Vulnerability:** The `[HttpPost("register")]` route and its associated `[EnableRateLimiting("RegisterLimiter")]` attribute were mistakenly placed on the `Logout` method in `AuthController.cs`.
 **Learning:** This resulted in the `Register` method acting as an open route without the intended rate-limiting protection, exposing the system to potential automated account creation spam (DoS) and routing the registration requests incorrectly.
 **Prevention:** Always verify that route and security attributes are applied to the correct controller actions, especially after refactoring or code additions. Ensure test coverage checks both routing behavior and the presence of expected rate limit protections on sensitive endpoints.
-## $(date +%Y-%m-%d) - Fix HTML Injection in Emails
+## 2025-03-02 - Fix HTML Injection in Emails
 **Vulnerability:** The `ResendEmailService` constructed HTML emails by directly concatenating user-provided inputs (`name`, `email`, `subject`, `message`, `firstName`, `lastName`, `inviterName`, `groupName`) into a `StringBuilder` without HTML encoding. This created a Cross-Site Scripting (XSS) / HTML Injection vulnerability where attackers could inject deceptive HTML or malicious scripts that render in the recipient's email client.
 **Learning:** Even if data isn't rendered directly in the web browser, if it's sent to an email client as part of an HTML body (`HtmlBody`), it must be sanitized. Email clients can interpret injected HTML, leading to severe phishing or XSS risks.
 **Prevention:** Always use `System.Net.WebUtility.HtmlEncode()` to sanitize user-provided inputs before embedding them into any HTML context, including HTML emails.
