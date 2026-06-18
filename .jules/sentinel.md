@@ -87,3 +87,8 @@
 **Vulnerability:** Using .AllowAnyMethod() and .AllowAnyHeader() in the CORS policy is overly broad and exposes endpoints to potentially malicious cross-site requests.
 **Learning:** Always restrict CORS policies using .WithMethods() and .WithHeaders() to exactly the expected verbs and fields required by the frontend.
 **Prevention:** Hardcode specific headers and methods in the options.AddPolicy builder rather than utilizing catch-all extension methods.
+
+## $(date +%Y-%m-%d) - Hardcoded Cloud Storage Properties Fix
+**Vulnerability:** A hardcoded fallback value `?? "pixellyra"` was used for `ObjectStorage:BucketName` configuration. This can lead to sensitive data (such as Data Protection Keys) being written to or read from a predictable, potentially externally owned, storage bucket, introducing risks of data leakage and sovereignty violations.
+**Learning:** Hardcoded fallback values for external cloud infrastructure (e.g. buckets, regions) mask configuration errors and introduce severe security/compliance risks.
+**Prevention:** Do not use fallback strings like `?? "fallback"` for external infrastructure locations. Always enforce explicit configuration by checking `string.IsNullOrWhiteSpace` and throwing an `InvalidOperationException` if the necessary configuration is not provided.
