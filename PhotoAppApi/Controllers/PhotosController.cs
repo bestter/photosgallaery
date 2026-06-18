@@ -218,39 +218,46 @@ namespace PhotoAppApi.Controllers
 
             try
             {
-                // 1. Extraction et validation de la Latitude
-                var latExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitude);
-                var latRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitudeRef);
-
-                if (latExif?.GetValue() is Rational[] latRationals && latRefExif?.GetValue() is string latRefStr)
-                {
-                    double? lat = ConvertToDecimalDegreesSafely(latRationals, latRefStr);
-
-                    // Validation géographique de base (entre Pôle Nord et Pôle Sud)
-                    if (lat.HasValue && lat >= -90.0 && lat <= 90.0)
-                    {
-                        photo.Latitude = lat;
-                    }
-                }
-
-                // 2. Extraction et validation de la Longitude
-                var lonExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitude);
-                var lonRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitudeRef);
-
-                if (lonExif?.GetValue() is Rational[] lonRationals && lonRefExif?.GetValue() is string lonRefStr)
-                {
-                    double? lon = ConvertToDecimalDegreesSafely(lonRationals, lonRefStr);
-
-                    // Validation géographique de base (entre Ligne de changement de date Est et Ouest)
-                    if (lon.HasValue && lon >= -180.0 && lon <= 180.0)
-                    {
-                        photo.Longitude = lon;
-                    }
-                }
+                ExtractLatitudeSafely(exifProfile, photo);
+                ExtractLongitudeSafely(exifProfile, photo);
             }
             catch (Exception ex)
             {
                 log.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);
+            }
+        }
+
+        private void ExtractLatitudeSafely(ExifProfile exifProfile, Photo photo)
+        {
+            var latExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitude);
+            var latRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitudeRef);
+
+            if (latExif?.GetValue() is Rational[] latRationals && latRefExif?.GetValue() is string latRefStr)
+            {
+                double? lat = ConvertToDecimalDegreesSafely(latRationals, latRefStr);
+
+                // Validation géographique de base (entre Pôle Nord et Pôle Sud)
+                if (lat.HasValue && lat >= -90.0 && lat <= 90.0)
+                {
+                    photo.Latitude = lat;
+                }
+            }
+        }
+
+        private void ExtractLongitudeSafely(ExifProfile exifProfile, Photo photo)
+        {
+            var lonExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitude);
+            var lonRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitudeRef);
+
+            if (lonExif?.GetValue() is Rational[] lonRationals && lonRefExif?.GetValue() is string lonRefStr)
+            {
+                double? lon = ConvertToDecimalDegreesSafely(lonRationals, lonRefStr);
+
+                // Validation géographique de base (entre Ligne de changement de date Est et Ouest)
+                if (lon.HasValue && lon >= -180.0 && lon <= 180.0)
+                {
+                    photo.Longitude = lon;
+                }
             }
         }
 
