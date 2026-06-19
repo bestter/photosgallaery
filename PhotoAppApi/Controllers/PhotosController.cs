@@ -172,20 +172,22 @@ namespace PhotoAppApi.Controllers
                 if (currentUserId.HasValue)
                 {
                     // On récupère uniquement les IDs des photos que CET utilisateur a aimées
-                    var likedIds = await _context.PhotoLikes
+                    var likedIdsTask = _context.PhotoLikes
                         .AsNoTracking()
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
                         .ToListAsync(cancellationToken);
 
-                    userLikedPhotoIds = new HashSet<int>(likedIds);
-
-                    var reportedIds = await _context.ImageReports
+                    var reportedIdsTask = _context.ImageReports
                         .AsNoTracking()
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
                         .ToListAsync(cancellationToken);
-                    userReportedPhotoIds = [.. reportedIds];
+
+                    await Task.WhenAll(likedIdsTask, reportedIdsTask);
+
+                    userLikedPhotoIds = new HashSet<int>(await likedIdsTask);
+                    userReportedPhotoIds = [.. (await reportedIdsTask)];
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
@@ -218,39 +220,46 @@ namespace PhotoAppApi.Controllers
 
             try
             {
-                // 1. Extraction et validation de la Latitude
-                var latExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitude);
-                var latRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitudeRef);
-
-                if (latExif?.GetValue() is Rational[] latRationals && latRefExif?.GetValue() is string latRefStr)
-                {
-                    double? lat = ConvertToDecimalDegreesSafely(latRationals, latRefStr);
-
-                    // Validation géographique de base (entre Pôle Nord et Pôle Sud)
-                    if (lat.HasValue && lat >= -90.0 && lat <= 90.0)
-                    {
-                        photo.Latitude = lat;
-                    }
-                }
-
-                // 2. Extraction et validation de la Longitude
-                var lonExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitude);
-                var lonRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitudeRef);
-
-                if (lonExif?.GetValue() is Rational[] lonRationals && lonRefExif?.GetValue() is string lonRefStr)
-                {
-                    double? lon = ConvertToDecimalDegreesSafely(lonRationals, lonRefStr);
-
-                    // Validation géographique de base (entre Ligne de changement de date Est et Ouest)
-                    if (lon.HasValue && lon >= -180.0 && lon <= 180.0)
-                    {
-                        photo.Longitude = lon;
-                    }
-                }
+                ExtractLatitudeSafely(exifProfile, photo);
+                ExtractLongitudeSafely(exifProfile, photo);
             }
             catch (Exception ex)
             {
                 log.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);
+            }
+        }
+
+        private void ExtractLatitudeSafely(ExifProfile exifProfile, Photo photo)
+        {
+            var latExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitude);
+            var latRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitudeRef);
+
+            if (latExif?.GetValue() is Rational[] latRationals && latRefExif?.GetValue() is string latRefStr)
+            {
+                double? lat = ConvertToDecimalDegreesSafely(latRationals, latRefStr);
+
+                // Validation géographique de base (entre Pôle Nord et Pôle Sud)
+                if (lat.HasValue && lat >= -90.0 && lat <= 90.0)
+                {
+                    photo.Latitude = lat;
+                }
+            }
+        }
+
+        private void ExtractLongitudeSafely(ExifProfile exifProfile, Photo photo)
+        {
+            var lonExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitude);
+            var lonRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitudeRef);
+
+            if (lonExif?.GetValue() is Rational[] lonRationals && lonRefExif?.GetValue() is string lonRefStr)
+            {
+                double? lon = ConvertToDecimalDegreesSafely(lonRationals, lonRefStr);
+
+                // Validation géographique de base (entre Ligne de changement de date Est et Ouest)
+                if (lon.HasValue && lon >= -180.0 && lon <= 180.0)
+                {
+                    photo.Longitude = lon;
+                }
             }
         }
 
@@ -1233,17 +1242,20 @@ namespace PhotoAppApi.Controllers
 
                 if (currentUserId.HasValue)
                 {
-                    var likedIds = await _context.PhotoLikes
+                    var likedIdsTask = _context.PhotoLikes
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
                         .ToListAsync();
-                    currentUserLikedPhotoIds = new HashSet<int>(likedIds);
 
-                    var reportedIds = await _context.ImageReports
+                    var reportedIdsTask = _context.ImageReports
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
                         .ToListAsync();
-                    currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
+
+                    await Task.WhenAll(likedIdsTask, reportedIdsTask);
+
+                    currentUserLikedPhotoIds = new HashSet<int>(await likedIdsTask);
+                    currentUserReportedPhotoIds = new HashSet<int>(await reportedIdsTask);
                 }
 
                 // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
