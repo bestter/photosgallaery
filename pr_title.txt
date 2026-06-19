@@ -1,1 +1,1 @@
-🛡️ Sentinel: [CRITICAL] Fix Insecure Storage of JWT Token in LocalStorage
+🛡️ Sentinel: [HIGH] Fix IDOR in ToggleLike endpoint
