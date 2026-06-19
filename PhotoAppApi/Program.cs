@@ -218,7 +218,11 @@ builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
     return new ConfigureOptions<KeyManagementOptions>(options =>
     {
         var s3Client = sp.GetRequiredService<IAmazonS3>();
-        var bucketName = builder.Configuration["ObjectStorage:BucketName"] ?? "pixellyra";
+        var bucketName = builder.Configuration["ObjectStorage:BucketName"];
+        if (string.IsNullOrWhiteSpace(bucketName))
+        {
+            throw new InvalidOperationException("The 'ObjectStorage:BucketName' configuration is missing or empty.");
+        }
 
         options.XmlRepository = new CloudflareR2XmlRepository(s3Client, bucketName);
     });

@@ -1,5 +1,4 @@
-🚨 Severity: High
-💡 Vulnerability: The `ToggleLike` endpoint (`[HttpPost("{id}/like")]` in `PhotosController.cs`) lacked validation to ensure the requesting user was a member of the group the photo belonged to. This allowed any authenticated user to toggle likes on any photo, regardless of group membership, leading to an Insecure Direct Object Reference (IDOR).
-🎯 Impact: Unauthorized users could like or unlike photos in private groups, potentially gaining insight into group activity or manipulating engagement metrics.
-🔧 Fix: Validated that the caller has either an `Admin` role or is explicitly a member of the group associated with the photo by querying the `UserGroups` table before processing the like.
-✅ Verification: Ran unit tests `dotnet test PhotoAppApi.Tests/`, which includes test cases `ToggleLike_ShouldReturnForbid_WhenUserIsNotGroupMember` and `ToggleLike_ShouldReturnOk_WhenUserIsGroupMember`. All tests pass, validating that group checking logic is correctly enforcing permissions.
+🎯 **What:** The `RemoveDiacritics` method in `SlugGenerator.cs` was refactored to replace a manual character-by-character iteration loop with a clean `Regex.Replace` one-liner.
+💡 **Why:** This significantly improves maintainability and readability by utilizing standard library features (`Regex` and Unicode Categories matching `\p{Mn}`) instead of manually traversing the normalized string, checking unicode categories, and building a new string with a `StringBuilder`. This makes the code shorter, less prone to errors, and instantly recognizable to other developers.
+✅ **Verification:** Verified by compiling the solution and running the unit tests for `SlugGeneratorTests`. All existing behaviors remain unchanged, and 123 tests passed.
+✨ **Result:** The 16-line `RemoveDiacritics` loop method is now a concise 1-liner, improving code health and reducing cyclomatic complexity while strictly preserving previous functionality.

@@ -96,6 +96,7 @@ describe('api.js interceptors', () => {
     });
 
     it('should add X-App-Client header, but no Authorization header (using withCredentials instead)', async () => {
+        const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
 
         axiosInstance.defaults.adapter.mockResolvedValue({ data: 'ok', status: 200, headers: {} });
 
@@ -105,6 +106,10 @@ describe('api.js interceptors', () => {
         expect(config.headers['X-App-Client']).toBe('PhotoApp-Web');
         expect(axiosInstance.defaults.withCredentials).toBe(true);
         expect(config.headers.Authorization).toBeUndefined();
+
+        // Ensure localStorage.getItem('token') is never called by the request interceptor to prevent XSS vulnerability regression
+        expect(getItemSpy).not.toHaveBeenCalledWith('token');
+        getItemSpy.mockRestore();
     });
 
     it('should not add Authorization header when token is absent', async () => {
