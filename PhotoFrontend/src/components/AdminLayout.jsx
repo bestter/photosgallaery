@@ -39,8 +39,9 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                                 href={link.path} 
                                 onClick={(e) => { e.preventDefault(); window.location.href = link.path; }}
                                 className={isActive 
-                                    ? "flex items-center gap-3 bg-cyan-400/20 text-cyan-400 border-l-4 border-cyan-400 px-4 py-3"
-                                    : "flex items-center gap-3 text-slate-500 px-4 py-3 hover:bg-slate-800 hover:text-cyan-200 transition-all hover:translate-x-1 duration-200"}
+                                    ? "flex items-center gap-3 bg-cyan-400/20 text-cyan-400 border-l-4 border-cyan-400 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+                                    : "flex items-center gap-3 text-slate-500 px-4 py-3 hover:bg-slate-800 hover:text-cyan-200 transition-all hover:translate-x-1 duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"}
+                                aria-current={isActive ? "page" : undefined}
                             >
                                 <span aria-hidden="true" className="material-symbols-outlined text-lg" style={link.iconStyle}>{link.icon}</span>
                                 {link.label}
