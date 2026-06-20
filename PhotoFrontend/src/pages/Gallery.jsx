@@ -168,6 +168,13 @@ export default function Gallery() {
     return fullUrl;
   };
 
+  // ⚡ Bolt: Memoize the active group name to avoid executing an O(N) array lookup twice during every render.
+  const activeGroupName = useMemo(() => {
+    if (!activeGroupId) return t("gallery.gallery_title");
+    const group = userGroups.find((g) => (g.id || g.Id) === activeGroupId);
+    return group?.name || group?.Name || t("gallery.gallery_title");
+  }, [activeGroupId, userGroups, t]);
+
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
   const filteredPhotos = useMemo(() => {
@@ -388,13 +395,7 @@ export default function Gallery() {
               {t("gallery.workspace_gallery")}
             </div>
             <h1 className="text-[1.875rem] font-extrabold tracking-tight text-slate-100">
-              {activeGroupId
-                ? userGroups.find((g) => (g.id || g.Id) === activeGroupId)
-                    ?.name ||
-                  userGroups.find((g) => (g.id || g.Id) === activeGroupId)
-                    ?.Name ||
-                  t("gallery.gallery_title")
-                : t("gallery.gallery_title")}
+              {activeGroupName}
             </h1>
           </div>
           <div className="flex flex-wrap gap-2">

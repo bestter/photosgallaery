@@ -81,3 +81,6 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2024-05-24 - Combine independent DB queries using Task.WhenAll
 **Learning:** Sequential `await` calls for independent database queries (like fetching user's likes and user's reports for a list of photos) add unnecessary latency, especially when network hops to the DB are involved.
 **Action:** Used `Task.WhenAll` to execute independent `IQueryable.ToListAsync()` tasks concurrently, reducing the total duration of the data fetch phase. For example, in `GetUserPhotos`, `likedIds` and `reportedIds` queries are now launched simultaneously. Measured ~25% reduction in latency for this logic block using local benchmarks.
+## 2024-06-25 - Avoid redundant O(N) Array Lookups in Render Loops
+**Learning:** Performing inline `.find()` operations inside a React component's return block (or in unmemoized variables) forces an O(N) array scan on every render. If the value is needed multiple times (e.g. `group?.name || group?.Name`), the array might be scanned multiple times sequentially, blocking the main thread and slowing down responsiveness.
+**Action:** Extract inline array lookups into memoized variables using `useMemo` so the O(N) scan only occurs when the dependencies (like the array or lookup ID) change, making render cycles much faster.
