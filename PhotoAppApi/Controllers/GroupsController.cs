@@ -43,8 +43,8 @@ namespace PhotoAppApi.Controllers
                         g.ShortName,
                         g.InviteToken,
                         g.CreatedAt,
-                        UserCount = g.UserGroups.Count(),
-                        PhotoCount = g.Photos.Count()
+                        UserCount = g.UserGroups.Count,
+                        PhotoCount = g.Photos.Count
                     })
                     .ToListAsync(cancellationToken);
 
