@@ -189,9 +189,9 @@ export default function AdminGroups() {
     const topActions = (
         <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto">
             {selectedGroup && (
-                <button onClick={handleBackToGroups} className="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors flex items-center gap-2">
+                <button onClick={handleBackToGroups} className="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors flex items-center gap-2" aria-label={t("admin.groups.back")} title={t("admin.groups.back")}>
                     <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-                    Retour aux groupes
+                    {t("admin.groups.back")}
                 </button>
             )}
         </div>
