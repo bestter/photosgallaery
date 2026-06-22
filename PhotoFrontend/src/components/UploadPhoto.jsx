@@ -386,7 +386,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
             <button
               type="button"
               onClick={() => onUploadSuccess && onUploadSuccess()}
-              className="px-6 py-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
               disabled={isUploading}
             >
               {t("components.upload.cancel")}
@@ -395,7 +395,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               type="submit"
               disabled={isUploading || files.length === 0}
               title={files.length === 0 ? t("components.upload.error.select_file") : ""}
-              className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
+              className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
             >
               {isUploading ? (
                 <>
