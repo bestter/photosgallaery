@@ -248,6 +248,8 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             onChange={handleFileChange}
             accept="image/png, image/jpeg"
+            aria-label={t("components.upload.browse_files")}
+            title={t("components.upload.browse_files")}
           />
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
             <span aria-hidden="true" className="material-symbols-outlined text-4xl">
