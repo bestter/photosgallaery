@@ -21,4 +21,3 @@ buildData.build += 1;
 
 // On sauvegarde le nouveau numéro dans le fichier
 fs.writeFileSync(filePath, JSON.stringify(buildData, null, 2));
-

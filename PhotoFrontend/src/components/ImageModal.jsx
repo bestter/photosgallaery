@@ -5,6 +5,8 @@ import ReportModal from './ReportModal';
 import { getUsernameFromToken } from '../authHelper';
 import { useTranslation } from 'react-i18next';
 
+const handleContentClick = (e) => e.stopPropagation();
+
 export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNext, onTagClick, onAuthorClick }) {
     const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
@@ -76,8 +78,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const isLiked = photo.isLikedByCurrentUser || photo.IsLikedByCurrentUser || false;
     const viewsCount = photo.viewsCount || photo.ViewsCount || 0;
 
-    // prevent clicks in modal content from closing the modal
-    const handleContentClick = (e) => e.stopPropagation();
+
 
     // HANDLERS DES BOUTONS --------------------------
     const handleDownload = async () => {

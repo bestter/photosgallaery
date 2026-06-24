@@ -3,14 +3,15 @@ import api from '../api';
 import React from 'react';
 import Footer from './Footer';
 
+const handleLogout = async () => {
+    try { await api.post('/auth/logout'); } catch(e) {/* empty */}
+    clearUserSession();
+    window.location.href = '/login';
+};
+
 export default function AdminLayout({ children, title, subtitle, topActions }) {
     const currentPath = window.location.pathname;
 
-    const handleLogout = async () => {
-        try { await api.post('/auth/logout'); } catch(e) {/* empty */}
-        clearUserSession();
-        window.location.href = '/login';
-    };
 
     const navLinks = [
         { path: '/dashboard', icon: 'person', label: 'Gestion des usagers' },
