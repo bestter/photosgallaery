@@ -153,10 +153,10 @@ namespace PhotoAppApi.Tests.Controllers
             var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var value = badRequestResult.Value;
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = okResult.Value;
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
-            Assert.Equal("Cet utilisateur fait déjà partie du cercle.", message);
+            Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
         }
 
         [Fact]
@@ -183,7 +183,7 @@ namespace PhotoAppApi.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
             var value = okResult.Value;
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
-            Assert.Equal("L'utilisateur existant a été ajouté automatiquement au cercle !", message);
+            Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
 
             var isMember = await context.UserGroups.AnyAsync(ug => ug.UserId == 2 && ug.GroupId == group.Id, TestContext.Current.CancellationToken);
             Assert.True(isMember);
@@ -229,10 +229,10 @@ namespace PhotoAppApi.Tests.Controllers
             var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var value = badRequestResult.Value;
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = okResult.Value;
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
-            Assert.Equal("Une invitation est déjà en attente pour cette adresse e-mail dans ce cercle.", message);
+            Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
         }
 
         [Fact]
@@ -264,7 +264,7 @@ namespace PhotoAppApi.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
             var value = okResult.Value;
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
-            Assert.Equal($"Invitation envoyée avec succès à {dto.Email} !", message);
+            Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
 
             var invitation = await context.GroupInvitations.FirstOrDefaultAsync(i => i.Email == dto.Email, TestContext.Current.CancellationToken);
             Assert.NotNull(invitation);

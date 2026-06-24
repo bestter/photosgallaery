@@ -52,7 +52,10 @@ namespace PhotoAppApi.Controllers
                     return Forbid();
                 }
 
-                // --- AJOUT : Vérifier si l'utilisateur existe déjà
+                // 🛡️ Sentinel: Fix User Enumeration vulnerability
+                // Standardize the response message to avoid leaking user existence or group membership status.
+                var genericSuccessMessage = "Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.";
+
                 var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
                 if (existingUser != null)
                 {
@@ -60,17 +63,16 @@ namespace PhotoAppApi.Controllers
                     bool alreadyInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == existingUser.Id && ug.GroupId == group.Id, cancellationToken);
                     if (alreadyInGroup)
                     {
-                        return BadRequest(new { message = "Cet utilisateur fait déjà partie du cercle." });
+                        return Ok(new { message = genericSuccessMessage });
                     }
                     else
                     {
                         // L'ajouter directement au groupe sans envoyer d'invitation avec token
                         _context.UserGroups.Add(new UserGroup { UserId = existingUser.Id, GroupId = group.Id });
                         await _context.SaveChangesAsync(cancellationToken);
-                        return Ok(new { message = $"L'utilisateur existant a été ajouté automatiquement au cercle !" });
+                        return Ok(new { message = genericSuccessMessage });
                     }
                 }
-                // --- FIN AJOUT
 
                 // Vérifier s'il a déjà été invité
                 var existingInvite = await _context.GroupInvitations
@@ -78,7 +80,7 @@ namespace PhotoAppApi.Controllers
 
                 if (existingInvite != null)
                 {
-                    return BadRequest(new { message = "Une invitation est déjà en attente pour cette adresse e-mail dans ce cercle." });
+                    return Ok(new { message = genericSuccessMessage });
                 }
 
                 var invitation = new GroupInvitation
@@ -109,7 +111,7 @@ namespace PhotoAppApi.Controllers
                     cancellationToken
                 );
 
-                return Ok(new { message = $"Invitation envoyée avec succès à {invitation.Email} !" });
+                return Ok(new { message = genericSuccessMessage });
             }
             catch (Exception ex)
             {
