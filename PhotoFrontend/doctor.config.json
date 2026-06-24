@@ -1,0 +1,8 @@
+{
+    "ignore": {
+        "rules": [],
+        "files": [
+            "increment-build.js"
+        ]
+    }
+}

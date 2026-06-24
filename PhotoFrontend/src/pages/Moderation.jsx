@@ -4,6 +4,13 @@ import { getUserRole, isTokenExpired } from "../authHelper";
 import api from "../api";
 import AdminLayout from "../components/AdminLayout";
 
+const getImageUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
+  return backendRoot + url;
+};
+
 export default function Moderation() {
   const { t } = useTranslation();
   const [reports, setReports] = useState([]);
@@ -94,12 +101,7 @@ export default function Moderation() {
     }
   };
 
-  const getImageUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("http")) return url;
-    const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
-    return backendRoot + url;
-  };
+
 
   const topActions = (
     <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto"></div>

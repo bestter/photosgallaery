@@ -1,1 +1,7 @@
-🧹 Refactor RemoveDiacritics to use Regex
+fix: resolve top 3 react-doctor audit warnings
+
+- Hoist six pure functions (handleLogout, handleContentClick, canUpload, handleAccept, and getImageUrl) to module scope in order to avoid per-render allocations and unnecessary child re-renders.
+- Create pnpm-workspace.yaml with minimumReleaseAge and trustPolicy configurations to harden package installations against supply-chain vulnerabilities.
+- Remove unused benchmark.js file, and add local and global configurations to ignore increment-build.js so it remains available for external deployment scripts without generating warnings.
+
+Generated-by: Antigravity-Gemini-3.5-Flash

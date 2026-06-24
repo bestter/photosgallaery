@@ -13,7 +13,7 @@ export default function ContactFab() {
   return (
     <button 
       onClick={() => window.location.href = '/contact'}
-      className="fixed bottom-8 left-8 flex items-center gap-3 px-5 py-3 rounded-full bg-slate-950/80 backdrop-blur-xl border border-cyan-400/30 text-cyan-400 shadow-[0_0_20px_rgba(0,206,209,0.4)] hover:shadow-[0_0_30px_rgba(0,206,209,0.7)] active:scale-95 transition-all duration-300 group z-[60]"
+      className="fixed bottom-8 left-8 flex items-center gap-3 px-5 py-3 rounded-full bg-slate-950/80 backdrop-blur-xl border border-cyan-400/30 text-cyan-400 shadow-[0_0_20px_rgba(0,206,209,0.4)] hover:shadow-[0_0_30px_rgba(0,206,209,0.7)] active:scale-95 transition-all duration-300 group z-[60] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
       aria-label={t('contact.nav_title')}
       title={t('contact.nav_title')}
     >

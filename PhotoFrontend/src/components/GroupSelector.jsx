@@ -20,7 +20,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
 
     return (
         <div className="relative group">
-            <button className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200 py-1">
+            <button className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">
                 <span aria-hidden="true" className="material-symbols-outlined text-[18px]">groups</span>
                 <span>{activeGroup.name || activeGroup.Name}</span>
                 <span aria-hidden="true" className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
@@ -39,7 +39,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                         <button
                             key={groupId}
                             onClick={() => onGroupSelect(groupId)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors ${
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset ${
                                 isActive 
                                     ? 'text-cyan-400 bg-cyan-400/10' 
                                     : 'text-slate-300 hover:bg-cyan-400/10 hover:text-cyan-400'

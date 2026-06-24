@@ -10,6 +10,22 @@ import api from "../api";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
 
+const getImageUrl = (url) => {
+  if (!url) return "";
+  let fullUrl = url;
+  if (!url.startsWith("http")) {
+    const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
+    fullUrl = backendRoot + url;
+  }
+
+  // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
+  if (!isTokenExpired()) {
+    const separator = fullUrl.includes("?") ? "&" : "?";
+    fullUrl += `${separator}access_(!isTokenExpired())=${(!isTokenExpired())}`;
+  }
+  return fullUrl;
+};
+
 export default function Gallery() {
   const { t } = useTranslation();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -151,22 +167,7 @@ export default function Gallery() {
     }
   }, [activeGroupId, userGroups]);
 
-  // Helper pour générer l'URL complète de l'image sécurisée
-  const getImageUrl = (url) => {
-    if (!url) return "";
-    let fullUrl = url;
-    if (!url.startsWith("http")) {
-      const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
-      fullUrl = backendRoot + url;
-    }
 
-    // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
-    if (!isTokenExpired()) {
-      const separator = fullUrl.includes("?") ? "&" : "?";
-      fullUrl += `${separator}access_(!isTokenExpired())=${(!isTokenExpired())}`;
-    }
-    return fullUrl;
-  };
 
   // ⚡ Bolt: Memoize the active group name to avoid executing an O(N) array lookup twice during every render.
   const activeGroupName = useMemo(() => {

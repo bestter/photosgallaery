@@ -5,6 +5,8 @@ import ReportModal from './ReportModal';
 import { getUsernameFromToken } from '../authHelper';
 import { useTranslation } from 'react-i18next';
 
+const handleContentClick = (e) => e.stopPropagation();
+
 export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNext, onTagClick, onAuthorClick }) {
     const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
@@ -76,8 +78,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const isLiked = photo.isLikedByCurrentUser || photo.IsLikedByCurrentUser || false;
     const viewsCount = photo.viewsCount || photo.ViewsCount || 0;
 
-    // prevent clicks in modal content from closing the modal
-    const handleContentClick = (e) => e.stopPropagation();
+
 
     // HANDLERS DES BOUTONS --------------------------
     const handleDownload = async () => {
@@ -181,7 +182,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     onClick={onClose}
                     aria-label={t("common.close", "Close")}
                     title={t("common.close", "Close")}
-                    className="absolute top-4 right-4 z-20 p-2 rounded-full bg-background-dark/50 text-slate-100 hover:bg-primary/20 transition-colors"
+                    className="absolute top-4 right-4 z-20 p-2 rounded-full bg-background-dark/50 text-slate-100 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                     <span className="material-symbols-outlined" aria-hidden="true">close</span>
                 </button>
@@ -195,12 +196,12 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Navigation Arrows */}
                     {onPrev && (
-                        <button onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                        <button onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                         </button>
                     )}
                     {onNext && (
-                        <button onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40">
+                        <button onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
@@ -233,7 +234,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="grid grid-cols-4 gap-3">
                         <button
                             onClick={handleDownload}
-                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity">
+                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                             <span className="material-symbols-outlined" aria-hidden="true">download</span>
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
                         </button>
@@ -241,7 +242,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         <button
                             onClick={handleLike}
                             aria-pressed={isLiked}
-                            className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors ${isLiked
+                            className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
                                 ? "bg-primary text-background-dark border-primary hover:opacity-90"
                                 : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
                                 } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -257,7 +258,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                         <button
                             onClick={handleShare}
-                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors">
+                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                             <span className="material-symbols-outlined" aria-hidden="true">share</span>
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
                         </button>
@@ -265,7 +266,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         {hasReported ? (
                             <button
                                 disabled
-                                className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed">
+                                className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                                 <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
                                 <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
                             </button>
@@ -274,7 +275,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
                                 title={isMyPhoto ? t("components.image_modal.cant_report_own") : ""}
-                                className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors ${isMyPhoto
+                                className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isMyPhoto
                                     ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
                                     : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
                                     }`}>
@@ -363,7 +364,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 </span>
                             </div>
                             <button
-                                className="text-xs font-bold text-primary hover:underline"
+                                className="text-xs font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
                             >
                                 {t("components.image_modal.view_map")}

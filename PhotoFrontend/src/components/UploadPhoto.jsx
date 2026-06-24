@@ -5,6 +5,23 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { isTokenExpired, getUserRole, clearUserSession } from "../authHelper";
 
+const canUpload = () => {
+  const role = getUserRole();
+  if (!role) return false;
+
+  if (Array.isArray(role)) {
+    return role.some(
+      (r) => r.toLowerCase() === "admin" || r.toLowerCase() === "creator",
+    );
+  }
+
+  if (typeof role === "string") {
+    return role.toLowerCase() === "admin" || role.toLowerCase() === "creator";
+  }
+
+  return false;
+};
+
 const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   const { t } = useTranslation();
   const [files, setFiles] = useState([]);
@@ -123,22 +140,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     }
   };
 
-  const canUpload = () => {
-    const role = getUserRole();
-    if (!role) return false;
 
-    if (Array.isArray(role)) {
-      return role.some(
-        (r) => r.toLowerCase() === "admin" || r.toLowerCase() === "creator",
-      );
-    }
-
-    if (typeof role === "string") {
-      return role.toLowerCase() === "admin" || role.toLowerCase() === "creator";
-    }
-
-    return false;
-  };
 
   const handleUpload = async () => {
     if (!isSessionValid()) {

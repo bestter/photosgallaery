@@ -5,6 +5,15 @@ import AdminLayout from '../components/AdminLayout';
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
+const handleAccept = (request) => {
+    const url = new URL(window.location.origin + '/admin-groups');
+    url.searchParams.set('createName', request.name);
+    url.searchParams.set('createDesc', request.description);
+    url.searchParams.set('requesterId', request.requester.id);
+    url.searchParams.set('requestId', request.id);
+    window.location.href = url.toString();
+};
+
 export default function AdminGroupRequests() {
     const { t } = useTranslation();
     const [requests, setRequests] = useState([]);
@@ -42,14 +51,7 @@ export default function AdminGroupRequests() {
         }
     };
 
-    const handleAccept = (request) => {
-        const url = new URL(window.location.origin + '/admin-groups');
-        url.searchParams.set('createName', request.name);
-        url.searchParams.set('createDesc', request.description);
-        url.searchParams.set('requesterId', request.requester.id);
-        url.searchParams.set('requestId', request.id);
-        window.location.href = url.toString();
-    };
+
 
     return (
         <AdminLayout

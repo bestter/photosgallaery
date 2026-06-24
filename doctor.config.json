@@ -6,7 +6,9 @@
         ],
         "files": [
             "src/generated/**",
-            "PhotoFrontend/src/components/InviteModal.jsx"
+            "PhotoFrontend/src/components/InviteModal.jsx",
+            "PhotoFrontend/increment-build.js",
+            "increment-build.js"
         ],
         "overrides": [
             {
