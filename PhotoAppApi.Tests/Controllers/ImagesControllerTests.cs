@@ -58,7 +58,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object, _cache);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache, new Mock<PhotoAppApi.Services.IObjectStorageService>().Object);
 
             // Mock a photo in the DB
             var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg", ThumbnailUrl = string.Empty };
@@ -77,7 +77,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object, _cache);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache, new Mock<PhotoAppApi.Services.IObjectStorageService>().Object);
 
             // Mock a photo in the DB
             var photo = new Photo { FileName = "valid.jpg", Url = "/valid.jpg", ThumbnailUrl = string.Empty };
@@ -102,7 +102,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object, _cache);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache, new Mock<PhotoAppApi.Services.IObjectStorageService>().Object);
 
             // Mock a photo in the DB. The Path.GetFileName on traversal payload will extract "passwd"
             var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd", ThumbnailUrl = string.Empty };
@@ -124,7 +124,7 @@ namespace PhotoAppApi.Tests.Controllers
         {
             // Arrange
             using var context = GetDatabaseContext();
-            var controller = new ImagesController(context, _mockEnv.Object, _cache);
+            var controller = new ImagesController(context, _mockEnv.Object, _cache, new Mock<PhotoAppApi.Services.IObjectStorageService>().Object);
 
             // Mock a photo in the DB. The Path.GetFileName on traversal payload will extract "passwd"
             var photo = new Photo { FileName = @"..\..\etc\passwd", Url = "/passwd", ThumbnailUrl = string.Empty };

@@ -1102,7 +1102,7 @@ namespace PhotoAppApi.Controllers
         [Authorize]
         [EnableRateLimiting("LikeLimiter")]
         [HttpPost("{id}/like")]
-        public async Task<IActionResult> ToggleLike(int id)
+        public async Task<IActionResult> ToggleLike(int id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -1114,7 +1114,7 @@ namespace PhotoAppApi.Controllers
                 if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized(new { message = "Utilisateur non trouvé." });
 
                 // 2. Vérifier si la photo existe
-                var photo = await _context.Photos.FindAsync(id);
+                var photo = await _context.Photos.FindAsync(new object[] { id }, cancellationToken);
                 if (photo == null) return NotFound(new { message = "Photo introuvable." });
 
                 // 🛡️ Sentinel: Fix IDOR by validating group membership
@@ -1124,7 +1124,7 @@ namespace PhotoAppApi.Controllers
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
 
                         if (!isMember) return Forbid();
                     }
@@ -1137,13 +1137,13 @@ namespace PhotoAppApi.Controllers
 
                 // 3. Chercher si le "Like" existe déjà pour cet utilisateur et cette photo
                 var existingLike = await _context.PhotoLikes
-                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == userId);
+                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == userId, cancellationToken);
 
                 if (existingLike != null)
                 {
                     // Le Like existe déjà : on l'efface (Unlike)
                     _context.PhotoLikes.Remove(existingLike);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                     return Ok(new { liked = false, message = "Like retiré." });
                 }
                 else
@@ -1158,7 +1158,7 @@ namespace PhotoAppApi.Controllers
                     };
 
                     _context.PhotoLikes.Add(newLike);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                     return Ok(new { liked = true, message = "Photo aimée." });
                 }
             }
