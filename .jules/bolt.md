@@ -87,3 +87,7 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2024-06-20 - EF Core Projection `.Count` property optimization
 **Learning:** In Entity Framework Core, when projecting properties in a `.Select()` statement, calling the `.Count()` LINQ extension method on an `ICollection` navigation property compiles into a SQL `COUNT()` operation, but using the natively available `.Count` property does exactly the same thing while avoiding the overhead of compiling the LINQ extension method. This results in ~15% faster query building for the projection.
 **Action:** Always prefer `.Count` over `.Count()` for `ICollection` or `List` navigation properties inside EF Core projections to slightly improve query building performance.
+
+## 2026-06-25 - Denormalize Aggregates for Read-Heavy Endpoints
+**Learning:** Repeatedly calculating aggregate values like `LikesCount` using `GroupBy` inside high-traffic `GET` endpoints creates a noticeable CPU and memory overhead on both the database and the application server during list retrieval.
+**Action:** Denormalize frequently accessed aggregates onto the parent entity. Increment and decrement the counter during write operations (like toggling a like) to allow `GET` endpoints to serve precalculated values, which scales significantly better with traffic.
