@@ -174,37 +174,50 @@ namespace PhotoAppApi.Helpers
 
             bool success = true;
 
-            foreach (var deletable in deletableList.Where(d => d.ShouldDelete))
+            var keysToDelete = deletableList
+                .Where(d => d.ShouldDelete)
+                .Select(d => d.Element.Attribute("friendlyName")?.Value)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Select(name => new KeyVersion { Key = $"{_prefix}{name}.xml" })
+                .ToList();
+
+            if (!keysToDelete.Any())
+                return success;
+
+            // AWS S3 DeleteObjects allows up to 1000 keys per request
+            for (int i = 0; i < keysToDelete.Count; i += 1000)
             {
-                var friendlyName = deletable.Element.Attribute("friendlyName")?.Value;
-                if (string.IsNullOrEmpty(friendlyName))
-                    continue;
-
-                var key = $"{_prefix}{friendlyName}.xml";
-
+                var batch = keysToDelete.Skip(i).Take(1000).ToList();
                 try
                 {
-                    var deleteRequest = new DeleteObjectRequest
+                    var deleteRequest = new DeleteObjectsRequest
                     {
                         BucketName = _bucketName,
-                        Key = key
+                        Objects = batch
                     };
 
-                    var response = await _s3Client.DeleteObjectAsync(deleteRequest, cancellationToken);
+                    var response = await _s3Client.DeleteObjectsAsync(deleteRequest, cancellationToken);
 
-                    if (response.HttpStatusCode != System.Net.HttpStatusCode.NoContent)
+                    if (response.DeleteErrors != null && response.DeleteErrors.Any())
                     {
-                        log.Warn($"Failed to delete key {key}. Status: {response.HttpStatusCode}");
+                        foreach (var error in response.DeleteErrors)
+                        {
+                            log.Warn($"Failed to delete key {error.Key}. Code: {error.Code}, Message: {error.Message}");
+                        }
                         success = false;
                     }
-                    else
+
+                    if (response.DeletedObjects != null && response.DeletedObjects.Any())
                     {
-                        log.Info($"Successfully deleted old Data Protection key: {key}");
+                        foreach (var deleted in response.DeletedObjects)
+                        {
+                            log.Info($"Successfully deleted old Data Protection key: {deleted.Key}");
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Exception while deleting key {key}", ex);
+                    log.Error($"Exception while deleting batch of keys", ex);
                     success = false;
                 }
             }
