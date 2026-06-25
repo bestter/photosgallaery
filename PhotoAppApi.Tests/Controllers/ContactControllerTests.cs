@@ -55,15 +55,15 @@ namespace PhotoAppApi.Tests.Controllers
         [InlineData("John", " ", "Hello", "Test")]
         [InlineData("John", "john@example.com", " ", "Test")]
         [InlineData("John", "john@example.com", "Hello", " ")]
-        public async Task SubmitContactForm_MissingFields_ReturnsBadRequest(string name, string email, string subject, string message)
+        public async Task SubmitContactForm_MissingFields_ReturnsBadRequest(string? name, string? email, string? subject, string? message)
         {
             // Arrange
             var request = new ContactRequestDto
             {
-                Name = name,
-                Email = email,
-                Subject = subject,
-                Message = message
+                Name = name!,
+                Email = email!,
+                Subject = subject!,
+                Message = message!
             };
 
             // Act
@@ -84,6 +84,27 @@ namespace PhotoAppApi.Tests.Controllers
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Requête invalide.", badRequestResult.Value);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SubmitContactForm_InvalidModelState_ReturnsBadRequest()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("Email", "The Email field is not a valid e-mail address.");
+            var request = new ContactRequestDto
+            {
+                Name = "John Doe",
+                Email = "invalid-email",
+                Subject = "Hello",
+                Message = "Test message"
+            };
+
+            // Act
+            var result = await _controller.SubmitContactForm(request);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
             _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 

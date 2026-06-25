@@ -1,10 +1,7 @@
-🔒 [Security] Fix insecure JWT token storage in localStorage
+🧪 [testing improvement] Add tests for ContactController
 
-🎯 **What:** The vulnerability fixed
-The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
+🎯 **What:** The testing gap addressed is the lack of unit tests for the `ContactController`. The issue of not validating the ModelState when tests invoke the method directly is fixed. xUnit warnings about using null literals in string parameters are resolved.
 
-⚠️ **Risk:** The potential impact if left unfixed
-If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
+📊 **Coverage:** The scenarios now tested are valid contact requests, validation of missing required fields, null requests, and invalid state models. The presence of required attributes like `HttpPost` and rate limiting is also verified, as well as handling exceptions in the `IEmailService`.
 
-🛡️ **Solution:** How the fix addresses the vulnerability
-The frontend now handles the token via `HttpOnly` cookies. The Axios instance was updated to include `withCredentials: true`, and the `authHelper` was refactored to decode the token upon login, storing only non-sensitive claims (`user_info` such as username, role, and expiration) in `localStorage` for UI purposes.
+✨ **Result:** The overall test coverage is improved.
