@@ -230,7 +230,9 @@
     "view_image": "View Image",
     "without_categories": "Uncategorized",
     "open_photo": "Open photo {{title}}",
-    "photo_by": "Photo by {{author}}"
+    "photo_by": "Photo by {{author}}",
+    "view_photo_by": "View photo by {{author}}",
+    "view_profile_of": "View profile of {{author}}"
   },
   "contact": {
     "title": "Get in Touch",

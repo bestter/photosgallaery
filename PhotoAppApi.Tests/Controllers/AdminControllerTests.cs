@@ -535,6 +535,7 @@ namespace PhotoAppApi.Tests.Controllers
 
 
             // Act
+            // Verify that deleting a non-existent report ID correctly yields a 404 Not Found response
             var result = await controller.DeleteReport(999, TestContext.Current.CancellationToken);
 
             // Assert

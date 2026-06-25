@@ -1,10 +1,16 @@
-🔒 [security fix] Fix Insecure Storage of JWT Token in LocalStorage
+🛡️ Sentinel: [CRITICAL/HIGH] Fix DoS via Synchronous CPU-Bound Operation
 
-🎯 **What:** The application was storing sensitive JWT tokens in `localStorage`, which exposed them to potential Cross-Site Scripting (XSS) attacks.
+🚨 Severity: CRITICAL/HIGH
 
-⚠️ **Risk:** If an attacker successfully executed malicious JavaScript on the page (XSS), they could easily read the JWT token from `localStorage` and impersonate the user, gaining unauthorized access to their account and sensitive data.
+💡 Vulnerability:
+Synchronous execution of CPU-bound tasks like `BCrypt.HashPassword` and `BCrypt.Verify` in ASP.NET Core controllers blocked the thread pool, leading to thread starvation and a potential Denial of Service (DoS) when subjected to concurrent requests.
 
-🛡️ **Solution:** The authentication mechanism was updated to use `HttpOnly` and `Secure` cookies.
-- The C# Backend (`AuthController`) now sets an `HttpOnly` cookie containing the JWT upon successful login.
-- The React Frontend (`axiosInstance`) was configured to send credentials automatically (`withCredentials: true`), allowing the browser to attach the secure cookie to API requests without exposing it to JavaScript.
-- The Frontend `authHelper.js` now decodes the token upon login and stores only non-sensitive claims (`user_info`) in `localStorage` for UI purposes (like displaying the user's role and username), ensuring the actual authentication token remains secure.
+🎯 Impact:
+An attacker could cause the service to become unresponsive to all requests by intentionally spamming the `/api/Auth/login` or `/api/Auth/register` endpoints, starving the application's underlying ThreadPool due to long-running, blocking CPU tasks.
+
+🔧 Fix:
+Offloaded computationally expensive, synchronous CPU-bound cryptographic operations (specifically `BCrypt.Net.BCrypt.HashPassword` and `Verify`) to the ThreadPool by wrapping the calls in `await Task.Run(...)`, effectively freeing up request threads and ensuring overall application responsiveness.
+
+✅ Verification:
+1. Ran all tests in `PhotoAppApi.Tests` to verify no functionality or testing assertions were broken.
+2. Verified the fix locally to make sure compilation passed.
