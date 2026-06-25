@@ -26,9 +26,17 @@ async def moderate_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
 
     try:
-        contents = await file.read()
-        if len(contents) > 52428800:
-            raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
+        real_size = 0
+        contents = bytearray()
+        while True:
+            chunk = await file.read(1024 * 1024)
+            if not chunk:
+                break
+            real_size += len(chunk)
+            if real_size > 52428800:
+                raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
+            contents.extend(chunk)
+
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
         # Prédiction
