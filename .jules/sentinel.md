@@ -113,3 +113,8 @@
 **Vulnerability:** Calling `await file.read()` in FastAPI/Starlette loads the entire file into memory, causing a high risk of Out-Of-Memory (OOM) Denial-of-Service attacks when malicious actors upload extremely large files or use decompression bombs.
 **Learning:** File size limits must be checked dynamically while reading the file in chunks rather than relying on content-length headers or reading the entire file first.
 **Prevention:** Always use chunked reading loops (e.g., `while True: chunk = await file.read(1MB)`) when processing file uploads, verifying the cumulative size does not exceed the allowed threshold before proceeding.
+
+## 2024-06-25 - DoS via Synchronous CPU-Bound Operation
+**Vulnerability:** Synchronous execution of CPU-bound tasks like `BCrypt.HashPassword` and `BCrypt.Verify` in ASP.NET Core controllers blocks the thread pool, leading to thread starvation and a potential Denial of Service (DoS) when subjected to concurrent requests.
+**Learning:** Even if a library does not provide native asynchronous methods for computationally heavy tasks, they must not be executed synchronously on the request thread.
+**Prevention:** Always offload computationally expensive, synchronous CPU-bound work to the ThreadPool using `await Task.Run(...)` to free up request threads.

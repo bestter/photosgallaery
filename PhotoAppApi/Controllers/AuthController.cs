@@ -47,7 +47,7 @@ namespace PhotoAppApi.Controllers
                 // Always verify the password against a hash so the execution time remains constant regardless of whether the user exists or not.
                 string hashToVerify = user != null ? user.PasswordHash : _dummyHash;
 
-                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, hashToVerify);
+                bool isPasswordValid = await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.Password, hashToVerify));
 
                 if (user == null || !isPasswordValid)
                 {
@@ -137,8 +137,8 @@ namespace PhotoAppApi.Controllers
                     // Avoid explicitly denying registration to prevent attackers from guessing valid emails or usernames.
                     log.Warn($"Registration attempt for existing user with username '{request.Username}' or email '{request.Email}'. Rejecting silently to prevent user enumeration.");
                     // 🛡️ Sentinel: Mitigate User Enumeration Timing Attacks
-                    // Verify against a dummy hash to equalize the response time without the allocation overhead of HashPassword.
-                    BCrypt.Net.BCrypt.Verify(request.Password, _dummyHash);
+                    // Hash the password even if the user exists to equalize the response time.
+                    await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password));
 
                     // Simulate successful creation response to mask the duplicate
                     return Ok("Compte créé avec succès !");
@@ -156,7 +156,7 @@ namespace PhotoAppApi.Controllers
 
 
                 // 2. Hasher le mot de passe avec BCrypt
-                string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                string passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password));
 
                 // 3. Créer l'objet utilisateur
                 var user = new User
