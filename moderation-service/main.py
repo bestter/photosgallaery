@@ -11,11 +11,15 @@ app = FastAPI(title="NSFW Moderation Service")
 # Charger le modèle une seule fois au démarrage
 print("Loading Falconsai model...")
 classifier = pipeline(
-    "image-classification", 
+    "image-classification",
     model="Falconsai/nsfw_image_detection",
     device=0 if torch.cuda.is_available() else -1
 )
 print("Model loaded successfully!")
+
+
+def load_image(data):
+    return Image.open(io.BytesIO(data)).convert("RGB")
 
 @app.post("/moderate")
 async def moderate_image(file: UploadFile = File(...)):
@@ -41,7 +45,7 @@ async def moderate_image(file: UploadFile = File(...)):
 
         # Prédiction
         results = await asyncio.to_thread(classifier, image)
-        
+
         # === LOG IMPORTANT pour debug ===
         print("=== RAW MODEL OUTPUT ===")
         print(results)

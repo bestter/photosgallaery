@@ -230,7 +230,9 @@
     "view_image": "Voir l'image",
     "without_categories": "Sans catégories",
     "open_photo": "Ouvrir la photo {{title}}",
-    "photo_by": "Photo par {{author}}"
+    "photo_by": "Photo par {{author}}",
+    "view_photo_by": "Voir la photo de {{author}}",
+    "view_profile_of": "Voir le profil de {{author}}"
   },
   "contact": {
     "title": "Contactez-nous",

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export default function PhotoCard({
   src,
@@ -7,6 +8,7 @@ export default function PhotoCard({
   onClick,
   onAuthorClick,
 }) {
+  const { t } = useTranslation();
   const handleKeyDown = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -30,7 +32,7 @@ export default function PhotoCard({
       role="button"
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      aria-label={`View photo by ${author}`}
+      aria-label={t('gallery.view_photo_by', { author })}
     >
       <div className="overflow-hidden rounded-lg">
         <img
@@ -55,7 +57,7 @@ export default function PhotoCard({
             role={onAuthorClick ? "button" : undefined}
             tabIndex={onAuthorClick ? 0 : undefined}
             onKeyDown={onAuthorClick ? handleAuthorKeyDown : undefined}
-            aria-label={onAuthorClick ? `View profile of ${author}` : undefined}
+            aria-label={onAuthorClick ? t('gallery.view_profile_of', { author }) : undefined}
           >
             {author}
           </span>
