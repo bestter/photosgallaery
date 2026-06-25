@@ -105,3 +105,7 @@
 **Vulnerability:** The `Register` endpoint in `AuthController.cs` mitigated User Enumeration timing attacks by computing `BCrypt.HashPassword` when a user already existed. However, this is a CPU-bound, synchronous operation that allocates new salt every time, creating a Denial-of-Service (DoS) vulnerability in a high-traffic endpoint.
 **Learning:** Using `BCrypt.HashPassword` as a dummy operation for timing attack mitigation is overly expensive and blocks thread pool threads.
 **Prevention:** To equalize response times for authentication or registration endpoints without generating new salts, use `BCrypt.Verify(password, dummyHash)` against a pre-computed dummy hash instead of `BCrypt.HashPassword(password)`.
+## 2026-06-25 - Fix missing CancellationToken in ToggleLike
+**Vulnerability:** The `ToggleLike` endpoint (`[HttpPost("{id}/like")]` in `PhotosController.cs`) was already patched for an IDOR vulnerability, but lacked cancellation token support for its database queries.
+**Learning:** Endpoints that perform multiple database queries (`FindAsync`, `AnyAsync`, `FirstOrDefaultAsync`, `SaveChangesAsync`) can waste database resources and thread pool threads if the client disconnects prematurely. Passing a `CancellationToken` enables the database driver to cancel operations in flight.
+**Prevention:** Consistently inject a `CancellationToken cancellationToken = default` parameter into ASP.NET Core API controller methods and thread it down into all asynchronous Entity Framework Core operations.
