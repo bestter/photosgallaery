@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using PhotoAppApi.Services;
 
 namespace PhotoAppApi.Controllers
 {
@@ -21,11 +22,13 @@ namespace PhotoAppApi.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IMemoryCache _cache;
-        public ImagesController(AppDbContext context, IWebHostEnvironment env, IMemoryCache cache)
+        private readonly IObjectStorageService _storage;
+        public ImagesController(AppDbContext context, IWebHostEnvironment env, IMemoryCache cache, IObjectStorageService storage)
         {
             _context = context;
             _env = env;
             _cache = cache;
+            _storage = storage;
 
         }
         [HttpGet("{fileName}")]
@@ -164,7 +167,7 @@ namespace PhotoAppApi.Controllers
 
 
         [HttpGet("s3/{photoId}")]
-        public async Task<IActionResult> GetS3Image(int photoId, [FromQuery] bool isThumb = false, [FromServices] PhotoAppApi.Services.IObjectStorageService _storage = null!, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetS3Image(int photoId, [FromQuery] bool isThumb = false, CancellationToken cancellationToken = default)
         {
             try
             {
