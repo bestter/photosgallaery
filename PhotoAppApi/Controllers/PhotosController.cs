@@ -9,6 +9,7 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
+using PhotoAppApi.DTOs;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -302,14 +303,14 @@ namespace PhotoAppApi.Controllers
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] IList<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UploadPhotos([FromForm] UploadRequestDto request, [FromServices] IModerationService? moderationService, CancellationToken cancellationToken = default)
         {
             try
             {
                 log.Debug($"In {nameof(UploadPhotos)}");
 
 
-                var theFiles = files == null ? new List<IFormFile>() : new List<IFormFile>(files);
+                var theFiles = request.Files == null ? new List<IFormFile>() : new List<IFormFile>(request.Files);
                 if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
@@ -343,9 +344,9 @@ namespace PhotoAppApi.Controllers
                 }
 
 
-                var tagNames = string.IsNullOrWhiteSpace(tags)
+                var tagNames = string.IsNullOrWhiteSpace(request.Tags)
                     ? new List<string>()
-                    : JsonSerializer.Deserialize<List<string>>(tags) ?? new List<string>();
+                    : JsonSerializer.Deserialize<List<string>>(request.Tags) ?? new List<string>();
 
                 // Validation : entre 1 et 12 tags
                 if (tagNames.Count < 1 || tagNames.Count > 12)
@@ -424,14 +425,14 @@ namespace PhotoAppApi.Controllers
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
 
-                if (groupId.HasValue)
+                if (request.GroupId.HasValue)
                 {
                     if (!currentUserId.HasValue) return Unauthorized(new { message = "Utilisateur non authentifié." });
 
-                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
+                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == request.GroupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
-                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
+                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{request.GroupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
                         return Forbid();
                     }
                 }
@@ -515,7 +516,7 @@ namespace PhotoAppApi.Controllers
                                 UploaderUsername = currentUsername ?? "Anonyme",
                                 FileHash = fileHash,
                                 Tags = tagsToAttach.ToList(),
-                                GroupId = groupId,
+                                GroupId = request.GroupId,
                                 FileSize = file.Length,
                                 ResolutionWidth = originalWidth,
                                 ResolutionHeight = originalHeight,
@@ -543,7 +544,7 @@ namespace PhotoAppApi.Controllers
                                     photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
                                 }
 
-                                if (includeGps)
+                                if (request.IncludeGps)
                                 {
                                     ExtractGpsDataSafely(exifProfile, photo);
                                 }
