@@ -92,7 +92,7 @@
 **Learning:** Mutating actions on resources that belong to restricted groups must consistently validate the caller's authorization (group membership or admin role) prior to performing the action.
 **Prevention:** Explicitly validate group membership using an efficient database query (e.g., `AnyAsync` against the `UserGroups` table) whenever a user attempts to interact with a group-associated resource, and eagerly return `Forbid()` for unauthorized users.
 
-## $(date +%Y-%m-%d) - Hardcoded Cloud Storage Properties Fix
+## 2026-06-25 - Hardcoded Cloud Storage Properties Fix
 **Vulnerability:** A hardcoded fallback value `?? "pixellyra"` was used for `ObjectStorage:BucketName` configuration. This can lead to sensitive data (such as Data Protection Keys) being written to or read from a predictable, potentially externally owned, storage bucket, introducing risks of data leakage and sovereignty violations.
 **Learning:** Hardcoded fallback values for external cloud infrastructure (e.g. buckets, regions) mask configuration errors and introduce severe security/compliance risks.
 **Prevention:** Do not use fallback strings like `?? "fallback"` for external infrastructure locations. Always enforce explicit configuration by checking `string.IsNullOrWhiteSpace` and throwing an `InvalidOperationException` if the necessary configuration is not provided.
@@ -100,6 +100,11 @@
 **Vulnerability:** In `InvitationsController`, inviting an existing user returned different API messages depending on their account state, allowing attackers to enumerate registered emails.
 **Learning:** Explicitly stating if an invited user already exists or is already in a group leaks identity state. Furthermore, attempting to mitigate timing attacks by using synchronous CPU-bound operations like `BCrypt.HashPassword` on high-traffic endpoints blocks thread pool threads and introduces a Denial-of-Service (DoS) vulnerability.
 **Prevention:** Standardize response payloads for all invitation states (success, already invited, user exists) to a single generic message. Avoid using synchronous CPU-bound cryptographic operations as timing attack mitigations in endpoints where they can cause thread starvation.
+
+## 2026-06-25 - Fix Synchronous BCrypt in High-Traffic Endpoints
+**Vulnerability:** The `Register` endpoint in `AuthController.cs` mitigated User Enumeration timing attacks by computing `BCrypt.HashPassword` when a user already existed. However, this is a CPU-bound, synchronous operation that allocates new salt every time, creating a Denial-of-Service (DoS) vulnerability in a high-traffic endpoint.
+**Learning:** Using `BCrypt.HashPassword` as a dummy operation for timing attack mitigation is overly expensive and blocks thread pool threads.
+**Prevention:** To equalize response times for authentication or registration endpoints without generating new salts, use `BCrypt.Verify(password, dummyHash)` against a pre-computed dummy hash instead of `BCrypt.HashPassword(password)`.
 ## 2026-06-25 - Fix missing CancellationToken in ToggleLike
 **Vulnerability:** The `ToggleLike` endpoint (`[HttpPost("{id}/like")]` in `PhotosController.cs`) was already patched for an IDOR vulnerability, but lacked cancellation token support for its database queries.
 **Learning:** Endpoints that perform multiple database queries (`FindAsync`, `AnyAsync`, `FirstOrDefaultAsync`, `SaveChangesAsync`) can waste database resources and thread pool threads if the client disconnects prematurely. Passing a `CancellationToken` enables the database driver to cancel operations in flight.
