@@ -100,3 +100,8 @@
 **Vulnerability:** In `InvitationsController`, inviting an existing user returned different API messages depending on their account state, allowing attackers to enumerate registered emails.
 **Learning:** Explicitly stating if an invited user already exists or is already in a group leaks identity state. Furthermore, attempting to mitigate timing attacks by using synchronous CPU-bound operations like `BCrypt.HashPassword` on high-traffic endpoints blocks thread pool threads and introduces a Denial-of-Service (DoS) vulnerability.
 **Prevention:** Standardize response payloads for all invitation states (success, already invited, user exists) to a single generic message. Avoid using synchronous CPU-bound cryptographic operations as timing attack mitigations in endpoints where they can cause thread starvation.
+
+## 2024-06-25 - DoS via Synchronous CPU-Bound Operation
+**Vulnerability:** Synchronous execution of CPU-bound tasks like `BCrypt.HashPassword` and `BCrypt.Verify` in ASP.NET Core controllers blocks the thread pool, leading to thread starvation and a potential Denial of Service (DoS) when subjected to concurrent requests.
+**Learning:** Even if a library does not provide native asynchronous methods for computationally heavy tasks, they must not be executed synchronously on the request thread.
+**Prevention:** Always offload computationally expensive, synchronous CPU-bound work to the ThreadPool using `await Task.Run(...)` to free up request threads.
