@@ -85,21 +85,21 @@ def test_internal_server_error(mock_to_thread):
     assert response.status_code == 500
     assert response.json()["detail"] == "Internal server error during moderation"
 
-def test_large_file_size_header():
-    # Test file > 50MB
-    class LargeUploadFile:
-        content_type = "image/jpeg"
-        size = 52428801
-        async def read(self):
-            return b"0"
+@patch("starlette.datastructures.UploadFile.read", new_callable=AsyncMock)
+def test_file_size_exceeds_content_length(mock_read):
+    # Mock read to return slightly more than 50MB (52428800 bytes)
+    mock_read.return_value = b"0" * 52428801
+    response = client.post(
+        "/moderate",
+        files={"file": ("test.jpg", b"small payload to save memory", "image/jpeg")}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "File exceeds maximum allowed size (50MB)"
 
-    with patch("main.File", return_value=LargeUploadFile()):
-        # Try a direct mock? It's tricky to mock File(...) in FastAPI because of Depends.
-        pass
-
-def test_file_size_exceeds_content_length_by_large_payload():
-    # Sending a 50MB+1 string will take a second to generate and send, but it's guaranteed to work.
-    large_content = b"0" * (52428800 + 1)
+def test_file_size_exceeds_real_large_payload():
+    # Sending a 50MB+1 string will take a bit of memory, but it's guaranteed to work
+    # and populates `file.size` natively.
+    large_content = b"0" * 52428801
     response = client.post(
         "/moderate",
         files={"file": ("test.jpg", large_content, "image/jpeg")}
