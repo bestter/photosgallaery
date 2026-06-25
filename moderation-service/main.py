@@ -41,7 +41,7 @@ async def moderate_image(file: UploadFile = File(...)):
                 raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
             contents.extend(chunk)
 
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image = await asyncio.to_thread(load_image, contents)
 
         # Prédiction
         results = await asyncio.to_thread(classifier, image)
