@@ -11,7 +11,7 @@ app = FastAPI(title="NSFW Moderation Service")
 # Charger le modèle une seule fois au démarrage
 print("Loading Falconsai model...")
 classifier = pipeline(
-    "image-classification", 
+    "image-classification",
     model="Falconsai/nsfw_image_detection",
     device=0 if torch.cuda.is_available() else -1
 )
@@ -30,14 +30,22 @@ async def moderate_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
 
     try:
-        contents = await file.read()
-        if len(contents) > 52428800:
-            raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
+        real_size = 0
+        contents = bytearray()
+        while True:
+            chunk = await file.read(1024 * 1024)
+            if not chunk:
+                break
+            real_size += len(chunk)
+            if real_size > 52428800:
+                raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
+            contents.extend(chunk)
+
         image = await asyncio.to_thread(load_image, contents)
 
         # Prédiction
         results = await asyncio.to_thread(classifier, image)
-        
+
         # === LOG IMPORTANT pour debug ===
         print("=== RAW MODEL OUTPUT ===")
         print(results)
