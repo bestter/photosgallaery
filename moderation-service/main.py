@@ -17,6 +17,10 @@ classifier = pipeline(
 )
 print("Model loaded successfully!")
 
+
+def load_image(data):
+    return Image.open(io.BytesIO(data)).convert("RGB")
+
 @app.post("/moderate")
 async def moderate_image(file: UploadFile = File(...)):
     if file.content_type is None or not file.content_type.startswith("image/"):
@@ -29,7 +33,7 @@ async def moderate_image(file: UploadFile = File(...)):
         contents = await file.read()
         if len(contents) > 52428800:
             raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image = await asyncio.to_thread(load_image, contents)
 
         # Prédiction
         results = await asyncio.to_thread(classifier, image)
