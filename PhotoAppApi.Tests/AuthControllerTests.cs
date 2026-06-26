@@ -61,7 +61,7 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
-        public async Task Register_ExistingUser_ReturnsOkToPreventEnumeration()
+        public async Task Register_ExistingUsername_ReturnsBadRequest()
         {
             // Arrange
             using var context = GetDatabaseContext();
@@ -81,8 +81,47 @@ namespace PhotoAppApi.Tests
             var result = await controller.Register(request, TestContext.Current.CancellationToken);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal("Compte créé avec succès !", okResult.Value);
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var value = badRequestResult.Value;
+            var message = value!.GetType().GetProperty("message")!.GetValue(value) as string;
+            Assert.Equal("Ce nom d'utilisateur ou cette adresse e-mail est déjà utilisé.", message);
+
+            var errorKey = value.GetType().GetProperty("errorKey")!.GetValue(value) as string;
+            Assert.Equal("auth.register.error_duplicate", errorKey);
+
+            Assert.Equal(1, await context.Users.CountAsync(TestContext.Current.CancellationToken));
+        }
+
+        [Fact]
+        public async Task Register_ExistingEmail_ReturnsBadRequest()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            context.Users.Add(new User { Username = "existinguser", Email = "taken@example.com", PasswordHash = "hash" });
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+            var request = new UserRegisterDto
+            {
+                Username = "newuser",
+                Email = "taken@example.com",
+                Password = "password123"
+            };
+
+            // Act
+            var result = await controller.Register(request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var value = badRequestResult.Value;
+            var message = value!.GetType().GetProperty("message")!.GetValue(value) as string;
+            Assert.Equal("Ce nom d'utilisateur ou cette adresse e-mail est déjà utilisé.", message);
+
+            var errorKey = value.GetType().GetProperty("errorKey")!.GetValue(value) as string;
+            Assert.Equal("auth.register.error_duplicate", errorKey);
+
+            Assert.Equal(1, await context.Users.CountAsync(TestContext.Current.CancellationToken));
         }
 
         [Fact]

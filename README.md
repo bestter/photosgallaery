@@ -40,6 +40,18 @@ Le projet met en œuvre des fonctionnalités avancées comme la génération asy
 * **Conteneurisation** : Docker (build multi-étapes combinant le bundle statique React dans le serveur C#).
 * **Hébergement** : Fly.io.
 
+#### Secrets Fly.io (modération NSFW)
+
+Avant tout redéploiement, définir la **même** clé API sur les deux applications Fly.io (`pixellyra` et `ton-moderation-service`) :
+
+```bash
+fly secrets set MODERATION_API_KEY="<votre-clé-secrète>" -a pixellyra
+fly secrets set MODERATION_API_KEY="<votre-clé-secrète>" -a ton-moderation-service
+```
+
+* **Microservice FastAPI** : lit `MODERATION_API_KEY` et exige l'en-tête `X-API-Key` sur `POST /moderate`.
+* **API C#** : lit `ModerationApiKey` (appsettings) ou `MODERATION_API_KEY` (variable d'environnement) et l'envoie automatiquement au service de modération.
+
 ---
 
 ## 🚦 Démarrage Rapide
