@@ -1,12 +1,24 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from PIL import Image
-import io
 import asyncio
+import io
+import os
+import secrets
 from transformers import pipeline
 import torch
 
 app = FastAPI(title="NSFW Moderation Service")
+
+MODERATION_API_KEY = os.environ.get("MODERATION_API_KEY", "")
+
+
+async def verify_api_key(x_api_key: str | None = Header(default=None, alias="X-API-Key")):
+    if (
+        not MODERATION_API_KEY
+        or not x_api_key
+        or not secrets.compare_digest(x_api_key, MODERATION_API_KEY)
+    ):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 # Charger le modèle une seule fois au démarrage
 print("Loading Falconsai model...")
@@ -22,7 +34,10 @@ def load_image(data):
     return Image.open(io.BytesIO(data)).convert("RGB")
 
 @app.post("/moderate")
-async def moderate_image(file: UploadFile = File(...)):
+async def moderate_image(
+    file: UploadFile = File(...),
+    _: None = Depends(verify_api_key),
+):
     if file.content_type is None or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
