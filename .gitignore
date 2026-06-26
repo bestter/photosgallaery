@@ -57,3 +57,4 @@ __pycache__/
 *$py.class
 PERFORMANCE_OPPORTUNITIES.md
 SECURITY_VULNERABILITIES.md
+Documentation/security_report.html
