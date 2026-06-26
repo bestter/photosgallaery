@@ -51,7 +51,7 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                     })}
                 </nav>
                 <div className="mt-auto border-t border-cyan-400/10 pt-4 space-y-1 font-['Inter'] text-sm font-medium tracking-wide bg-slate-900/40">
-                    <button onClick={handleLogout} className="w-full flex items-center gap-3 text-slate-500 px-4 py-2 hover:bg-slate-800 hover:text-cyan-200 transition-all hover:translate-x-1 duration-200" title="Logout">
+                    <button onClick={handleLogout} className="w-full flex items-center gap-3 text-slate-500 px-4 py-2 hover:bg-slate-800 hover:text-cyan-200 transition-all hover:translate-x-1 duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset" title="Logout">
                         <span aria-hidden="true" className="material-symbols-outlined text-lg">logout</span>
                         Logout
                     </button>
