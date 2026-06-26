@@ -9,8 +9,8 @@ namespace PhotoAppApi.Models
 
         public required string ShortName { get; set; }
 
-        // UUID v7 for invitation link
-        public Guid InviteToken { get; set; } = Guid.CreateVersion7();
+        // Cryptographically random UUID v4 for invitation link (must not be predictable)
+        public Guid InviteToken { get; set; } = Guid.NewGuid();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -18,7 +18,8 @@ namespace PhotoAppApi.Models
         public string Email { get; set; } = string.Empty;
         public string? Message { get; set; }
 
-        public Guid InviteToken { get; set; } = Guid.CreateVersion7();
+        // Cryptographically random UUID v4 for invitation link (must not be predictable)
+        public Guid InviteToken { get; set; } = Guid.NewGuid();
 
         // Pending, Accepted, Expired
         public string Status { get; set; } = "Pending";
