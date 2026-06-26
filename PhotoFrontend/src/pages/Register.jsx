@@ -46,8 +46,9 @@ const Register = () => {
       toast.success(t("auth.register.success"));
       window.location.href = "/login";
     } catch (err) {
+      const errorKey = err.response?.data?.errorKey;
       toast.error(
-        t("auth.register.error_general"),
+        errorKey ? t(errorKey) : t("auth.register.error_general"),
       );
     } finally {
       setIsLoading(false);

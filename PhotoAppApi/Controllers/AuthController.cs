@@ -130,18 +130,15 @@ namespace PhotoAppApi.Controllers
             log.Debug($"In {nameof(Register)} for user: {request.Username}");
             try
             {
-                // 1. Vérifier si l'utilisateur existe déjà
+                // 1. Reject duplicate username or email with a clear, actionable response
                 if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email, cancellationToken))
                 {
-                    // 🛡️ Sentinel: Fix User Enumeration vulnerability
-                    // Avoid explicitly denying registration to prevent attackers from guessing valid emails or usernames.
-                    log.Warn($"Registration attempt for existing user with username '{request.Username}' or email '{request.Email}'. Rejecting silently to prevent user enumeration.");
-                    // 🛡️ Sentinel: Mitigate User Enumeration Timing Attacks
-                    // Hash the password even if the user exists to equalize the response time.
-                    await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password));
-
-                    // Simulate successful creation response to mask the duplicate
-                    return Ok("Compte créé avec succès !");
+                    log.Warn($"Registration attempt for existing user with username '{request.Username}' or email '{request.Email}'.");
+                    return BadRequest(new
+                    {
+                        message = "Ce nom d'utilisateur ou cette adresse e-mail est déjà utilisé.",
+                        errorKey = "auth.register.error_duplicate",
+                    });
                 }
 
                 Guid? inviteGuid = null;

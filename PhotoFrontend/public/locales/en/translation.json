@@ -53,6 +53,7 @@
       "error_passwords_match": "Passwords do not match.",
       "error_accept_terms": "You must accept the terms of use.",
       "error_general": "Error creating account. Please check your information.",
+      "error_duplicate": "This username or email address is already in use.",
       "fill_all": "Please fill in all fields"
     },
     "join": {
