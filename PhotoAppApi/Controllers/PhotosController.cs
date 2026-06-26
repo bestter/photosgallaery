@@ -9,6 +9,7 @@ using PhotoAppApi.Data;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
+using PhotoAppApi.DTOs;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -302,14 +303,14 @@ namespace PhotoAppApi.Controllers
         [HttpPost("upload")]
         [RequestSizeLimit(52428800)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
-        public async Task<IActionResult> UploadPhotos([FromForm] IList<IFormFile> files, [FromServices] IModerationService? moderationService, [FromForm] string tags, [FromForm] Guid? groupId, [FromForm] bool includeGps = true, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UploadPhotos([FromForm] UploadRequestDto request, [FromServices] IModerationService? moderationService, CancellationToken cancellationToken = default)
         {
             try
             {
                 log.Debug($"In {nameof(UploadPhotos)}");
 
 
-                var theFiles = files == null ? new List<IFormFile>() : new List<IFormFile>(files);
+                var theFiles = request.Files == null ? new List<IFormFile>() : new List<IFormFile>(request.Files);
                 if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
@@ -343,9 +344,9 @@ namespace PhotoAppApi.Controllers
                 }
 
 
-                var tagNames = string.IsNullOrWhiteSpace(tags)
+                var tagNames = string.IsNullOrWhiteSpace(request.Tags)
                     ? new List<string>()
-                    : JsonSerializer.Deserialize<List<string>>(tags) ?? new List<string>();
+                    : JsonSerializer.Deserialize<List<string>>(request.Tags) ?? new List<string>();
 
                 // Validation : entre 1 et 12 tags
                 if (tagNames.Count < 1 || tagNames.Count > 12)
@@ -424,14 +425,14 @@ namespace PhotoAppApi.Controllers
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
 
-                if (groupId.HasValue)
+                if (request.GroupId.HasValue)
                 {
                     if (!currentUserId.HasValue) return Unauthorized(new { message = "Utilisateur non authentifié." });
 
-                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == groupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
+                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == request.GroupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
-                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{groupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
+                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{request.GroupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
                         return Forbid();
                     }
                 }
@@ -515,7 +516,7 @@ namespace PhotoAppApi.Controllers
                                 UploaderUsername = currentUsername ?? "Anonyme",
                                 FileHash = fileHash,
                                 Tags = tagsToAttach.ToList(),
-                                GroupId = groupId,
+                                GroupId = request.GroupId,
                                 FileSize = file.Length,
                                 ResolutionWidth = originalWidth,
                                 ResolutionHeight = originalHeight,
@@ -543,7 +544,7 @@ namespace PhotoAppApi.Controllers
                                     photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
                                 }
 
-                                if (includeGps)
+                                if (request.IncludeGps)
                                 {
                                     ExtractGpsDataSafely(exifProfile, photo);
                                 }
@@ -1102,7 +1103,7 @@ namespace PhotoAppApi.Controllers
         [Authorize]
         [EnableRateLimiting("LikeLimiter")]
         [HttpPost("{id}/like")]
-        public async Task<IActionResult> ToggleLike(int id)
+        public async Task<IActionResult> ToggleLike(int id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -1114,7 +1115,7 @@ namespace PhotoAppApi.Controllers
                 if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized(new { message = "Utilisateur non trouvé." });
 
                 // 2. Vérifier si la photo existe
-                var photo = await _context.Photos.FindAsync(id);
+                var photo = await _context.Photos.FindAsync(new object[] { id }, cancellationToken);
                 if (photo == null) return NotFound(new { message = "Photo introuvable." });
 
                 // 🛡️ Sentinel: Fix IDOR by validating group membership
@@ -1124,7 +1125,7 @@ namespace PhotoAppApi.Controllers
                     if (!isAdmin)
                     {
                         bool isMember = await _context.UserGroups
-                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value);
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
 
                         if (!isMember) return Forbid();
                     }
@@ -1137,13 +1138,13 @@ namespace PhotoAppApi.Controllers
 
                 // 3. Chercher si le "Like" existe déjà pour cet utilisateur et cette photo
                 var existingLike = await _context.PhotoLikes
-                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == userId);
+                                                 .FirstOrDefaultAsync(l => l.PhotoId == id && l.UserId == userId, cancellationToken);
 
                 if (existingLike != null)
                 {
                     // Le Like existe déjà : on l'efface (Unlike)
                     _context.PhotoLikes.Remove(existingLike);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                     return Ok(new { liked = false, message = "Like retiré." });
                 }
                 else
@@ -1158,7 +1159,7 @@ namespace PhotoAppApi.Controllers
                     };
 
                     _context.PhotoLikes.Add(newLike);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                     return Ok(new { liked = true, message = "Photo aimée." });
                 }
             }

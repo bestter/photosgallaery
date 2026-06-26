@@ -92,7 +92,7 @@ namespace PhotoAppApi.Tests
                 .ReturnsAsync(new ModerationResult { IsNsfw = false, SafeScore = 0.99, Label = "safe" });
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false, TestContext.Current.CancellationToken);
+            var result = await controller.UploadPhotos(new PhotoAppApi.DTOs.UploadRequestDto { Files = files, Tags = tags, GroupId = null, IncludeGps = false }, moderationMock.Object, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -165,7 +165,7 @@ namespace PhotoAppApi.Tests
                 .ReturnsAsync("dummy_url");
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false, TestContext.Current.CancellationToken);
+            var result = await controller.UploadPhotos(new PhotoAppApi.DTOs.UploadRequestDto { Files = files, Tags = tags, GroupId = null, IncludeGps = false }, moderationMock.Object, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -216,7 +216,7 @@ namespace PhotoAppApi.Tests
             var tags = JsonSerializer.Serialize(new List<string> { "tag1" });
 
             // Act: Pass null for moderationService
-            var result = await controller.UploadPhotos(files, null, tags, null, false, TestContext.Current.CancellationToken);
+            var result = await controller.UploadPhotos(new PhotoAppApi.DTOs.UploadRequestDto { Files = files, Tags = tags, GroupId = null, IncludeGps = false }, null, TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
@@ -275,7 +275,7 @@ namespace PhotoAppApi.Tests
                 .ReturnsAsync(new ModerationResult { IsNsfw = true, NsfwScore = 0.95, SafeScore = 0.05, Label = "nsfw" });
 
             // Act
-            var result = await controller.UploadPhotos(files, moderationMock.Object, tags, null, false, TestContext.Current.CancellationToken);
+            var result = await controller.UploadPhotos(new PhotoAppApi.DTOs.UploadRequestDto { Files = files, Tags = tags, GroupId = null, IncludeGps = false }, moderationMock.Object, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
