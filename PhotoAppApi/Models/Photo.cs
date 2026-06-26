@@ -24,7 +24,6 @@ namespace PhotoAppApi.Models
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
 
-        [NotMapped]
         public int LikesCount { get; set; }
 
         [NotMapped]
