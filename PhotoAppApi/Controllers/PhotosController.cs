@@ -159,13 +159,6 @@ namespace PhotoAppApi.Controllers
                 // A. On récupère les IDs des photos qu'on vient de trouver
                 var photoIds = photos.Select(p => p.Id).ToList();
 
-                // B. On compte les likes pour ces photos (GroupBy est super rapide en SQL)
-                var likesCounts = await _context.PhotoLikes
-                    .Where(l => photoIds.Contains(l.PhotoId))
-                    .GroupBy(l => l.PhotoId)
-                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count, cancellationToken);
-
                 // C. On vérifie qui est connecté
                 var userLikedPhotoIds = new HashSet<int>();
                 var userReportedPhotoIds = new HashSet<int>();
@@ -197,7 +190,6 @@ namespace PhotoAppApi.Controllers
                 {
                     photo.Url = GetImageUrl(photo.Id, false);
                     photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
-                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
                 }
@@ -1144,6 +1136,7 @@ namespace PhotoAppApi.Controllers
                 {
                     // Le Like existe déjà : on l'efface (Unlike)
                     _context.PhotoLikes.Remove(existingLike);
+                    photo.LikesCount = Math.Max(0, photo.LikesCount - 1);
                     await _context.SaveChangesAsync(cancellationToken);
                     return Ok(new { liked = false, message = "Like retiré." });
                 }
@@ -1159,6 +1152,7 @@ namespace PhotoAppApi.Controllers
                     };
 
                     _context.PhotoLikes.Add(newLike);
+                    photo.LikesCount++;
                     await _context.SaveChangesAsync(cancellationToken);
                     return Ok(new { liked = true, message = "Photo aimée." });
                 }
@@ -1228,12 +1222,6 @@ namespace PhotoAppApi.Controllers
                 // 3. LOGIQUE DES COMPTEURS (Comme d'habitude)
                 var photoIds = userPhotos.Select(p => p.Id).ToList();
 
-                var likesCounts = await _context.PhotoLikes
-                    .Where(l => photoIds.Contains(l.PhotoId))
-                    .GroupBy(l => l.PhotoId)
-                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
-
                 var currentUsername = User.Identity?.Name;
                 var currentUserLikedPhotoIds = new HashSet<int>();
                 var currentUserReportedPhotoIds = new HashSet<int>();
@@ -1264,7 +1252,6 @@ namespace PhotoAppApi.Controllers
                 {
                     photo.Url = GetImageUrl(photo.Id, false);
                     photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
-                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
                 }
@@ -1331,12 +1318,6 @@ namespace PhotoAppApi.Controllers
                 // 2. On attache les likes (comme pour GetPhotos)
                 var photoIds = photos.Select(p => p.Id).ToList();
 
-                var likesCounts = await _context.PhotoLikes
-                    .Where(l => photoIds.Contains(l.PhotoId))
-                    .GroupBy(l => l.PhotoId)
-                    .Select(g => new { PhotoId = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.PhotoId, x => x.Count);
-
                 var currentUsername = User.Identity?.Name;
                 var currentUserLikedPhotoIds = new HashSet<int>();
 
@@ -1357,7 +1338,6 @@ namespace PhotoAppApi.Controllers
                 {
                     photo.Url = GetImageUrl(photo.Id, false);
                     photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
-                    photo.LikesCount = likesCounts.TryGetValue(photo.Id, out int value) ? value : 0;
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                 }
 

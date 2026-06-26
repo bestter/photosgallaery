@@ -91,3 +91,6 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2026-06-25 - Denormalize Aggregates for Read-Heavy Endpoints
 **Learning:** Repeatedly calculating aggregate values like `LikesCount` using `GroupBy` inside high-traffic `GET` endpoints creates a noticeable CPU and memory overhead on both the database and the application server during list retrieval.
 **Action:** Denormalize frequently accessed aggregates onto the parent entity. Increment and decrement the counter during write operations (like toggling a like) to allow `GET` endpoints to serve precalculated values, which scales significantly better with traffic.
+## 2026-06-26 - Seed Denormalized EF Core Columns
+**Learning:** When denormalizing a column (like `LikesCount`) in Entity Framework Core by removing `[NotMapped]`, the structural migration alone will leave existing records with empty/zero values, creating a severe data inconsistency in production.
+**Action:** Always follow up a structural denormalization migration with a data migration (using `dotnet ef migrations add` and `migrationBuilder.Sql()`) to explicitly calculate and backfill the new column for all existing records.
