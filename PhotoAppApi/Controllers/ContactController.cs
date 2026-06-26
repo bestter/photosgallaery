@@ -23,6 +23,11 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("ContactLimiter")]
         public async Task<IActionResult> SubmitContactForm([FromBody] ContactRequestDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (request == null)
             {
                 return BadRequest("Requête invalide.");
