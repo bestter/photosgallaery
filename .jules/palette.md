@@ -67,3 +67,7 @@
 ## 2026-06-21 - Native tooltips and ARIA localization for icon-only action buttons
 **Learning:** Found an icon-only 'Retour aux groupes' button in `AdminGroups.jsx` with hardcoded French text alongside the icon, but missing localized `aria-label` and `title` attributes. This violates localization standards for multi-language apps and lacks proper tooltip support for sighted users.
 **Action:** Always replace hardcoded string literals with localized equivalents using `t()` from `react-i18next` for both visible text and ARIA labels. Ensure icon-only interactive elements also receive a `title` attribute containing the localized text to provide a native hover tooltip.
+
+## 2024-06-27 - Required Field Indicators in Modals
+**Learning:** Adding visual required indicators (like asterisks) to mandatory form fields is a crucial UX pattern. However, for accessibility, these visual cues must be hidden from screen readers (using `aria-hidden="true"`) if the input itself already uses the HTML5 `required` attribute. This prevents redundant announcements while maintaining clear visual guidance for sighted users.
+**Action:** Always pair visual required indicators (e.g., `<span aria-hidden="true">*</span>`) with the semantic `required` attribute on the corresponding input element.
