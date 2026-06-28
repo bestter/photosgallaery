@@ -101,7 +101,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                     
                     {/* Select Group */}
                     <div className="bg-surface-container-low rounded-lg p-4 mb-4 border-l-4 border-primary/50">
-                         <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1 block">{t('components.invite_modal.group_label')}</label>
+                         <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1 block">{t('components.invite_modal.group_label')} <span className="text-red-500" aria-hidden="true">*</span></label>
                          <select
                             className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-2 pl-3 pr-4 text-[16px] font-bold text-primary transition-all outline-none"
                             value={selectedGroupId}
@@ -123,7 +123,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                     <div className="grid grid-cols-2 gap-4">
                         {/* First Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="firstName">{t('components.invite_modal.first_name')}</label>
+                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="firstName">{t('components.invite_modal.first_name')} <span className="text-red-500" aria-hidden="true">*</span></label>
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 px-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="firstName" 
@@ -137,7 +137,7 @@ const InviteModal = ({ isOpen, onClose }) => {
 
                         {/* Last Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="lastName">{t('components.invite_modal.last_name')}</label>
+                            <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="lastName">{t('components.invite_modal.last_name')} <span className="text-red-500" aria-hidden="true">*</span></label>
                             <input
                                 className="w-full bg-slate-800 border-none focus:ring-2 focus:ring-primary rounded-lg py-3 px-4 text-on-surface placeholder:text-slate-600 transition-all outline-none"
                                 id="lastName" 
@@ -152,7 +152,7 @@ const InviteModal = ({ isOpen, onClose }) => {
 
                     {/* Input Group - Email */}
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="email">{t('components.invite_modal.email')}</label>
+                        <label className="text-xs font-semibold text-on-surface-variant ml-1" htmlFor="email">{t('components.invite_modal.email')} <span className="text-red-500" aria-hidden="true">*</span></label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
                                 <span aria-hidden="true" className="material-symbols-outlined text-lg">mail</span>
