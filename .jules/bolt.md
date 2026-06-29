@@ -94,3 +94,8 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2026-06-26 - Seed Denormalized EF Core Columns
 **Learning:** When denormalizing a column (like `LikesCount`) in Entity Framework Core by removing `[NotMapped]`, the structural migration alone will leave existing records with empty/zero values, creating a severe data inconsistency in production.
 **Action:** Always follow up a structural denormalization migration with a data migration (using `dotnet ef migrations add` and `migrationBuilder.Sql()`) to explicitly calculate and backfill the new column for all existing records.
+## $(date +%Y-%m-%d) - Thread Pool Starvation from DbContext Task.WhenAll
+
+**Learning:** `DbContext` is not thread-safe. Executing multiple asynchronous Entity Framework Core queries concurrently on the same context instance using `Task.WhenAll` (e.g., `await Task.WhenAll(query1, query2)`) can cause internal concurrency conflicts, state corruption, and `InvalidOperationException`. Furthermore, it can exhaust the database connection pool under load, degrading performance.
+
+**Action:** Always `await` EF Core `IQueryable` operations sequentially (e.g., `.ToListAsync()`) to ensure the `DbContext` and its underlying connection are used safely by a single thread at a time.
