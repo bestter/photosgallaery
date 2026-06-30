@@ -20,6 +20,11 @@ export default function Dashboard() {
   const currentUsername = getUsernameFromToken();
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
+  // ⚡ Bolt: Memoize the active creators count to avoid O(N) array filtering on every render
+  const activeCreatorsCount = useMemo(() => {
+    return (users || []).filter((u) => u.role === "Creator" || u.Role === "Creator").length;
+  }, [users]);
+
   // ⚡ Bolt: Server-side pagination replaces client-side filtering.
   const filteredUsers = users;
 
@@ -155,11 +160,7 @@ export default function Dashboard() {
               {t("admin.dashboard.active_creators")}
             </p>
             <h3 className="text-3xl font-bold mt-1 text-on-surface">
-              {loading
-                ? "-"
-                : users.filter(
-                    (u) => u.role === "Creator" || u.Role === "Creator",
-                  ).length}
+              {loading ? "-" : activeCreatorsCount}
             </h3>
           </div>
         </div>
