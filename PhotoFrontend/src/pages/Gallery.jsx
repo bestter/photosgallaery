@@ -699,6 +699,21 @@ export default function Gallery() {
                     ? t("gallery.try_filters")
                     : t("gallery.empty_space")}
                 </p>
+                {(searchQuery || selectedTag || selectedAuthor) && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedTag(null);
+                      setSelectedAuthor(null);
+                    }}
+                    className="flex items-center gap-2 bg-slate-800 text-slate-300 px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-all hover:bg-slate-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+                  >
+                    <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                      filter_list_off
+                    </span>
+                    {t("gallery.clear_search", "Effacer la recherche")}
+                  </button>
+                )}
                 {canUpload &&
                   !searchQuery &&
                   !selectedTag &&
