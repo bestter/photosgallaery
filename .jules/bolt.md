@@ -99,3 +99,6 @@ Instead of checking for existence row by row in a loop, query all related existi
 **Learning:** `DbContext` is not thread-safe. Executing multiple asynchronous Entity Framework Core queries concurrently on the same context instance using `Task.WhenAll` (e.g., `await Task.WhenAll(query1, query2)`) can cause internal concurrency conflicts, state corruption, and `InvalidOperationException`. Furthermore, it can exhaust the database connection pool under load, degrading performance.
 
 **Action:** Always `await` EF Core `IQueryable` operations sequentially (e.g., `.ToListAsync()`) to ensure the `DbContext` and its underlying connection are used safely by a single thread at a time.
+## 2026-06-30 - Extract inline array filtering in Dashboard.jsx
+**Learning:** Performing inline `.filter()` operations inside a React component's render function (like for counting active users) forces an O(N) array scan on every render, blocking the main thread and slowing down responsiveness.
+**Action:** Extract inline array filtering logic (such as `users.filter(...)`) into a memoized variable using `useMemo` so the O(N) scan only occurs when the dependencies (like the array itself) change, making render cycles much faster.
