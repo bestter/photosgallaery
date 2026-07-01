@@ -532,8 +532,9 @@ export default function Gallery() {
                         {photo.title || `Captured by @${author}`}
                       </h2>
                       <div className="flex items-center gap-4 mt-3">
-                        <div
-                          className="flex items-center gap-2 text-slate-300 text-[12px] font-semibold hover:text-cyan-400"
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 text-slate-300 text-[12px] font-semibold hover:text-cyan-400 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAuthor(author);
@@ -547,7 +548,7 @@ export default function Gallery() {
                             person
                           </span>{" "}
                           @{author}
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -590,8 +591,9 @@ export default function Gallery() {
                         {photoTags[0] || t("gallery.without_categories")}
                       </div>
                     </div>
-                    <div
-                      className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors"
+                    <button
+                      type="button"
+                      className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedAuthor(author);
@@ -605,7 +607,7 @@ export default function Gallery() {
                         person
                       </span>{" "}
                       {author}
-                    </div>
+                    </button>
                   </div>
                 );
               }
