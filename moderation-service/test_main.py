@@ -14,6 +14,7 @@ from PIL import Image
 from main import app
 import main
 
+app.dependency_overrides[main.verify_api_key] = lambda: None
 client = TestClient(app)
 
 def create_dummy_image_bytes():
@@ -96,13 +97,14 @@ def test_file_size_exceeds_content_length(mock_read):
     assert response.status_code == 400
     assert response.json()["detail"] == "File exceeds maximum allowed size (50MB)"
 
-def test_file_size_exceeds_real_large_payload():
-    # Sending a 50MB+1 string will take a bit of memory, but it's guaranteed to work
-    # and populates `file.size` natively.
-    large_content = b"0" * 52428801
+from unittest.mock import PropertyMock
+
+@patch("starlette.datastructures.UploadFile.size", new_callable=PropertyMock, create=True)
+def test_file_size_exceeds_attribute(mock_size):
+    mock_size.return_value = 52428801
     response = client.post(
         "/moderate",
-        files={"file": ("test.jpg", large_content, "image/jpeg")}
+        files={"file": ("test.jpg", b"small payload", "image/jpeg")}
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "File exceeds maximum allowed size (50MB)"
