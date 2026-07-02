@@ -1,15 +1,10 @@
-🧹 Optimize `GetPhotos` Initial Load Performance
+🧪 Add edge case test for DeleteReport with non-existent ID
 
-🎯 What
-Deferred S3 presigned URL generation during `GetPhotos` by implementing an authenticated proxy endpoint (`/api/images/s3/{photoId}`).
+🎯 **What:**
+Added a robust integration test for `AdminController.DeleteReport` when the requested report ID does not exist.
 
-💡 Why
-`GetPhotos` loads the entire gallery and synchronously loops over every photo to generate presigned AWS S3 URLs. Even when generated concurrently via `Task.WhenAll`, this CPU-bound operations scales poorly to hundreds/thousands of photos. By deferring the generation to a proxy endpoint mapped to the `ImagesController`, the `GetPhotos` response payload handles almost instantaneously and S3 URLs are only generated for photos that are actually lazy-loaded by the browser. The frontend interceptor handles appending the JWT.
+📊 **Coverage:**
+The `DeleteReport_WithInvalidId_ReturnsNotFound` test now seeds the database with a valid report before attempting to delete a non-existent ID. It verifies that a `404 Not Found` response is returned and that the existing report in the database remains unaffected.
 
-✅ Verification
-- Ensured backend builds and `PhotosController` tests pass.
-- Ensured the `ImagesController` incorporates the same group-access DB verification.
-- Verified frontend checks.
-
-✨ Result
-Gallery load times are drastically decreased without breaking client-side filtering.
+✨ **Result:**
+Improved testing coverage for edge cases involving data deletion, ensuring safe failure behavior and preventing unintended side-effects when an invalid resource ID is provided.
