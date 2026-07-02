@@ -321,13 +321,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
                             if (!tagTranslationsDict.has(tagId)) {
                                 const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                                let frTranslation = tagTranslations[0];
-                                for (let i = 0; i < tagTranslations.length; i++) {
-                                    if (tagTranslations[i].language === 0 || tagTranslations[i].Language === 0) {
-                                        frTranslation = tagTranslations[i];
-                                        break;
-                                    }
-                                }
+                                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
                                 tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
                             }
                         });
