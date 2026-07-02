@@ -21,7 +21,7 @@ namespace PhotoAppApi.Controllers
 
         [HttpPost]
         [EnableRateLimiting("ContactLimiter")]
-        public async Task<IActionResult> SubmitContactForm([FromBody] ContactRequestDto request)
+        public async Task<IActionResult> SubmitContactForm([FromBody] ContactRequestDto request, CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
             {
@@ -43,7 +43,7 @@ namespace PhotoAppApi.Controllers
 
             try
             {
-                await _emailService.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message);
+                await _emailService.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message, cancellationToken);
                 return Ok(new { message = "Votre message a été envoyé avec succès." });
             }
             catch (Exception ex)
