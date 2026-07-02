@@ -9,6 +9,9 @@ import torch
 
 app = FastAPI(title="NSFW Moderation Service")
 
+# Prevent Decompression Bomb DoS
+Image.MAX_IMAGE_PIXELS = 10_000_000
+
 MODERATION_API_KEY = os.environ.get("MODERATION_API_KEY", "")
 
 
@@ -78,6 +81,8 @@ async def moderate_image(
             "label": results[0]["label"]
         }
 
+    except Image.DecompressionBombError:
+        raise HTTPException(status_code=400, detail="Image exceeds maximum allowed dimensions")
     except HTTPException:
         raise
     except Exception as e:

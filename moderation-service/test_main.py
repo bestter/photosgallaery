@@ -15,6 +15,11 @@ from main import app
 import main
 
 client = TestClient(app)
+client.headers.update({"X-API-Key": "test-key"})
+import os
+os.environ["MODERATION_API_KEY"] = "test-key"
+import main
+main.MODERATION_API_KEY = "test-key"
 
 def create_dummy_image_bytes():
     image = Image.new('RGB', (10, 10))
@@ -106,3 +111,14 @@ def test_file_size_exceeds_real_large_payload():
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "File exceeds maximum allowed size (50MB)"
+
+@patch("main.asyncio.to_thread", new_callable=AsyncMock)
+def test_decompression_bomb(mock_to_thread):
+    mock_to_thread.side_effect = Image.DecompressionBombError("Image size exceeds limit")
+
+    response = client.post(
+        "/moderate",
+        files={"file": ("test.jpg", create_dummy_image_bytes(), "image/jpeg")}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Image exceeds maximum allowed dimensions"
