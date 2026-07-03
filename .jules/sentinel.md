@@ -118,3 +118,8 @@
 **Vulnerability:** Synchronous execution of CPU-bound tasks like `BCrypt.HashPassword` and `BCrypt.Verify` in ASP.NET Core controllers blocks the thread pool, leading to thread starvation and a potential Denial of Service (DoS) when subjected to concurrent requests.
 **Learning:** Even if a library does not provide native asynchronous methods for computationally heavy tasks, they must not be executed synchronously on the request thread.
 **Prevention:** Always offload computationally expensive, synchronous CPU-bound work to the ThreadPool using `await Task.Run(...)` to free up request threads.
+
+## 2026-06-25 - Fix Unbounded Memory Read / Decompression Bomb Risk
+**Vulnerability:** The Python moderation service endpoint using PIL (`Image.open`) was susceptible to a decompression bomb attack, where a maliciously crafted image could consume massive amounts of memory leading to an Out-Of-Memory (OOM) Denial-of-Service condition. In addition, an unhandled exception generated a 500 error instead of failing validation gracefully.
+**Learning:** External un-trusted images can expand infinitely into memory without pixel limits. The default behavior in older PIL/Pillow or without limits can be lethal. Pillow does throw a `DecompressionBombError` under some conditions, but it wasn't caught safely in the API.
+**Prevention:** Always restrict pixel counts when decoding user-provided images (e.g., `Image.MAX_IMAGE_PIXELS = 10000000`). Make sure validation errors are explicitly caught (like `except Image.DecompressionBombError`) and return 400 Bad Request to indicate an invalid file rather than crashing or throwing 500s.

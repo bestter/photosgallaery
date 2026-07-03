@@ -11,9 +11,10 @@ from fastapi.testclient import TestClient
 import io
 from PIL import Image
 
-from main import app
+from main import app, verify_api_key
 import main
 
+app.dependency_overrides[verify_api_key] = lambda: None
 client = TestClient(app)
 
 def create_dummy_image_bytes():
@@ -106,3 +107,15 @@ def test_file_size_exceeds_real_large_payload():
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "File exceeds maximum allowed size (50MB)"
+
+@patch("main.asyncio.to_thread", new_callable=AsyncMock)
+def test_decompression_bomb(mock_to_thread):
+    # Simulate a DecompressionBombError when load_image is called in to_thread
+    mock_to_thread.side_effect = Image.DecompressionBombError("Image size exceeds limit")
+
+    response = client.post(
+        "/moderate",
+        files={"file": ("test.jpg", create_dummy_image_bytes(), "image/jpeg")}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Image dimensions exceed maximum allowed size"
