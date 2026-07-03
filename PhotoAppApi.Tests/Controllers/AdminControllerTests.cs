@@ -523,6 +523,17 @@ namespace PhotoAppApi.Tests.Controllers
             // Arrange
             using var context = GetDbContext();
 
+            // Add an existing report to ensure we don't accidentally affect other rows
+            var existingReport = new ImageReport
+            {
+                Id = 1,
+                PhotoId = 1,
+                Reason = "Test report",
+                Status = "Pending"
+            };
+            context.ImageReports.Add(existingReport);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
             var httpContext = new DefaultHttpContext();
             var controllerContext = new ControllerContext()
             {
@@ -533,13 +544,17 @@ namespace PhotoAppApi.Tests.Controllers
                 ControllerContext = controllerContext
             };
 
-
             // Act
             // Verify that deleting a non-existent report ID correctly yields a 404 Not Found response
             var result = await controller.DeleteReport(999, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<NotFoundResult>(result);
+
+            // Verify the existing report was NOT modified
+            var dbReport = await context.ImageReports.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
+            Assert.NotNull(dbReport);
+            Assert.Equal("Pending", dbReport.Status);
         }
 
         [Fact]

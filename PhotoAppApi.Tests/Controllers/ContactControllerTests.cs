@@ -29,11 +29,11 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await _controller.SubmitContactForm(request);
+            var result = await _controller.SubmitContactForm(request, default);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            _mockEmailService.Verify(x => x.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message), Times.Once);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message, It.IsAny<CancellationToken>()), Times.Once);
 
             // Check anonymous object property
             var messageProp = okResult.Value.GetType().GetProperty("message");
@@ -67,24 +67,24 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await _controller.SubmitContactForm(request);
+            var result = await _controller.SubmitContactForm(request, default);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Tous les champs sont requis.", badRequestResult.Value);
-            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task SubmitContactForm_NullRequest_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.SubmitContactForm(null);
+            var result = await _controller.SubmitContactForm(null, default);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Requête invalide.", badRequestResult.Value);
-            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -101,11 +101,11 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await _controller.SubmitContactForm(request);
+            var result = await _controller.SubmitContactForm(request, default);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
-            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockEmailService.Verify(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -137,11 +137,11 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             _mockEmailService
-                .Setup(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.SendContactEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Test email exception"));
 
             // Act
-            var result = await _controller.SubmitContactForm(request);
+            var result = await _controller.SubmitContactForm(request, default);
 
             // Assert
             var objectResult = Assert.IsType<ObjectResult>(result);
