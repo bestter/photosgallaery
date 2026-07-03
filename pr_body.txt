@@ -1,5 +1,3 @@
-🎯 **What:** Fixed an incomplete JWT secret length validation in `PhotoAppApi/Program.cs`. The previous code threw an exception mentioning a 64-character minimum but failed to actually enforce this length check.
-
-⚠️ **Risk:** Without a length check, weak or extremely short JWT secrets could be used, drastically reducing the cryptographic strength of the tokens. This makes the application susceptible to offline brute-force attacks, allowing malicious actors to forge valid JWTs and gain unauthorized access to any account.
-
-🛡️ **Solution:** Appended a `secretKey.Length < 64` check to the existing validation condition. The check leverages C#'s short-circuit evaluation, ensuring it is only executed if the `secretKey` is not null or whitespace, preventing potential null reference exceptions.
+🎯 **What:** The moderation-service was susceptible to a decompression bomb attack where a tiny file payload could decode into massive RAM consumption. An explicit size limit has been configured using `Image.MAX_IMAGE_PIXELS` to prevent large images from being processed.
+⚠️ **Risk:** The potential impact if left unfixed is severe - a malicious actor could send small malicious images that crash the service with Out-Of-Memory (OOM) errors, taking down the entire API via Denial-of-Service.
+🛡️ **Solution:** The fix limits the max allowed pixels to 10,000,000 and adds an explicit try/catch block for `Image.DecompressionBombError` to immediately drop the request and return a 400 Bad Request instead of an unhandled 500 error. The unbounded `file.read()` issue highlighted in the prompt was already mitigated with a `while` loop that chunks memory locally.
