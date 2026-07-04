@@ -768,7 +768,7 @@ namespace PhotoAppApi.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/backfill-hashes")]
         [EnableRateLimiting("AdminLimiter")]
-        public async Task<IActionResult> BackfillHashes()
+        public async Task<IActionResult> BackfillHashes(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -777,7 +777,7 @@ namespace PhotoAppApi.Controllers
                 // 1. Récupérer toutes les photos qui n'ont pas encore de Hash
                 var photosSansHash = await _context.Photos
                     .Where(p => string.IsNullOrEmpty(p.FileHash))
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 if (photosSansHash.Count == 0)
                 {
@@ -793,7 +793,7 @@ namespace PhotoAppApi.Controllers
                 var maxDegrees = Environment.ProcessorCount;
                 var hashResults = new System.Collections.Concurrent.ConcurrentBag<(Photo Photo, string? Hash, bool Exists, string FilePath)>();
 
-                await Parallel.ForEachAsync(photosSansHash, new ParallelOptions { MaxDegreeOfParallelism = maxDegrees }, async (photo, ct) =>
+                await Parallel.ForEachAsync(photosSansHash, new ParallelOptions { MaxDegreeOfParallelism = maxDegrees, CancellationToken = cancellationToken }, async (photo, ct) =>
                 {
                     var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                     var filePath = Path.Combine(rootPath, "images", safeFileName);
@@ -825,7 +825,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // 4. Sauvegarder toutes les modifications d'un coup dans MariaDB
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new
                 {
@@ -852,7 +852,7 @@ namespace PhotoAppApi.Controllers
                 log.Debug($"In {nameof(ReportPhoto)} for photo ID: {id}");
 
                 // 1. Vérifier si l'image existe toujours
-                var photo = await _context.Photos.FindAsync(id);
+                var photo = await _context.Photos.FindAsync(new object[] { id }, cancellationToken);
                 if (photo == null)
                 {
                     return NotFound(new { message = "L'image que vous essayez de signaler n'existe plus." });
@@ -910,7 +910,7 @@ namespace PhotoAppApi.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/generate-thumbnails")]
         [EnableRateLimiting("AdminLimiter")]
-        public async Task<IActionResult> GenerateMissingThumbnails()
+        public async Task<IActionResult> GenerateMissingThumbnails(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -922,7 +922,7 @@ namespace PhotoAppApi.Controllers
                     .AsNoTracking()
                     .Where(p => p.FileName != null)
                     .Select(p => p.FileName!)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var uploadsFolder = Path.Combine(rootPath, "images");
@@ -933,7 +933,7 @@ namespace PhotoAppApi.Controllers
                 int generatedCount = 0;
                 int missingOriginalsCount = 0;
 
-                await Parallel.ForEachAsync(fileNames, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (fileName, ct) =>
+                await Parallel.ForEachAsync(fileNames, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken }, async (fileName, ct) =>
                 {
                     var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
                     var originalPath = Path.Combine(uploadsFolder, safeFileName);
@@ -985,19 +985,19 @@ namespace PhotoAppApi.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost("maintenance/migrate-closed-loop")]
         [EnableRateLimiting("AdminLimiter")]
-        public async Task<IActionResult> MigrateClosedLoop()
+        public async Task<IActionResult> MigrateClosedLoop(CancellationToken cancellationToken = default)
         {
             try
             {
                 log.Debug($"In {nameof(MigrateClosedLoop)}");
 
                 // 1. Créer ou récupérer le Groupe par Défaut
-                var defaultGroup = await _context.Groups.FirstOrDefaultAsync(g => g.Name == "Cercle Initial");
+                var defaultGroup = await _context.Groups.FirstOrDefaultAsync(g => g.Name == "Cercle Initial", cancellationToken);
                 if (defaultGroup == null)
                 {
                     defaultGroup = new Group { Name = "Cercle Initial", ShortName = "cercle-initial", Description = "Groupe par défaut pour les utilisateurs existants" };
                     _context.Groups.Add(defaultGroup);
-                    await _context.SaveChangesAsync(); // Sauvegarder pour avoir l'ID généré
+                    await _context.SaveChangesAsync(cancellationToken); // Sauvegarder pour avoir l'ID généré
                 }
 
                 // 2. Assigner tous les utilisateurs existants à ce groupe
@@ -1005,7 +1005,7 @@ namespace PhotoAppApi.Controllers
                 var missingUserIds = await _context.Users
                     .Where(u => !_context.UserGroups.Any(ug => ug.GroupId == defaultGroup.Id && ug.UserId == u.Id))
                     .Select(u => u.Id)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var missingMemberships = missingUserIds.Select(userId => new UserGroup { UserId = userId, GroupId = defaultGroup.Id }).ToList();
 
@@ -1024,13 +1024,13 @@ namespace PhotoAppApi.Controllers
                 var newThumbPath = Path.Combine(newRootPath, "thumbnails");
                 if (!Directory.Exists(newThumbPath)) Directory.CreateDirectory(newThumbPath);
 
-                var allPhotos = await _context.Photos.ToListAsync();
+                var allPhotos = await _context.Photos.ToListAsync(cancellationToken);
                 int migratedImages = 0;
 
                 // ⚡ Bolt: Replace unbounded Task.Run with Parallel.ForEachAsync for bounded concurrency,
                 // preventing thread pool starvation and file descriptor exhaustion.
                 var results = new (Photo photo, int localMigratedImages, string? newUrl)[allPhotos.Count];
-                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken };
 
                 await Parallel.ForEachAsync(Enumerable.Range(0, allPhotos.Count), options, async (i, ct) =>
                 {
@@ -1079,7 +1079,7 @@ namespace PhotoAppApi.Controllers
                     migratedImages += localMigratedImages;
                 }
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return Ok(new { message = "Migration Closed Loop complétée.", uploadedFiles = migratedImages, defaultGroupId = defaultGroup.Id });
             }
