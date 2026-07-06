@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     if (!groups || groups.length === 0) {
-        return null; // Pas de groupe disponible
+        return null;
     }
 
     const activeGroup = groups.find(g => (g.id || g.Id) === activeGroupId) || groups[0];
@@ -19,14 +32,24 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     }
 
     return (
-        <div className="relative group">
-            <button className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">
+        <div className="relative" ref={dropdownRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
+                aria-haspopup="menu"
+                className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"
+            >
                 <span aria-hidden="true" className="material-symbols-outlined text-[18px]">groups</span>
                 <span>{activeGroup.name || activeGroup.Name}</span>
-                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+                <span aria-hidden="true" className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>keyboard_arrow_down</span>
             </button>
             {/* Dropdown Menu */}
-            <div className="absolute left-0 top-full mt-2 w-56 bg-surface-container-high rounded-lg shadow-2xl border border-outline-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
+            <div
+                className={`absolute left-0 top-full mt-2 w-56 bg-surface-container-high rounded-lg shadow-2xl border border-outline-variant/40 transition-all duration-200 overflow-hidden z-50 ${
+                    isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+                }`}
+                role="menu"
+            >
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-surface-container-highest/50">
                     {t("components.group_selector.your_collectives")}
                 </div>
@@ -38,7 +61,11 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                     return (
                         <button
                             key={groupId}
-                            onClick={() => onGroupSelect(groupId)}
+                            role="menuitem"
+                            onClick={() => {
+                                onGroupSelect(groupId);
+                                setIsOpen(false);
+                            }}
                             className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset ${
                                 isActive 
                                     ? 'text-cyan-400 bg-cyan-400/10' 

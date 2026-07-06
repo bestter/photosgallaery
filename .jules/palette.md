@@ -71,3 +71,7 @@
 ## 2024-06-27 - Required Field Indicators in Modals
 **Learning:** Adding visual required indicators (like asterisks) to mandatory form fields is a crucial UX pattern. However, for accessibility, these visual cues must be hidden from screen readers (using `aria-hidden="true"`) if the input itself already uses the HTML5 `required` attribute. This prevents redundant announcements while maintaining clear visual guidance for sighted users.
 **Action:** Always pair visual required indicators (e.g., `<span aria-hidden="true">*</span>`) with the semantic `required` attribute on the corresponding input element.
+
+## 2024-05-18 - Avoid CSS Hover Dropdowns
+**Learning:** Hover-only dropdowns (e.g., using `group-hover:opacity-100`) completely break keyboard navigation because they cannot be reliably triggered by focusing the toggle button. They also create a poor user experience on touch devices where hover states are unpredictable.
+**Action:** Always implement dropdowns using click/keyboard-driven state (like a React `isOpen` state) rather than CSS-only hover, and ensure the toggle button uses `aria-expanded` and `aria-haspopup` for proper accessibility across all devices.
