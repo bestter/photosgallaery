@@ -54,12 +54,14 @@ export default function Contact() {
       {/* Header - Actual Menu Design */}
       <header className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-cyan-400/10 shadow-xl shadow-black/20 flex justify-between items-center px-4 md:px-6 py-3">
         <div className="flex items-center gap-4 md:gap-8">
-          <div
-            className="text-xl font-black tracking-tight text-cyan-400 cursor-pointer active:scale-95 transition-transform flex items-center"
-            onClick={() => window.location.href = '/'}
+          <a
+            href="/"
+            className="text-xl font-black tracking-tight text-cyan-400 cursor-pointer active:scale-95 transition-transform flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323] rounded"
+            aria-label="PixelLyra Home"
+            title="PixelLyra Home"
           >
             <img alt="PixelLyra Logo" className="h-8 w-auto object-contain" src="/Byla3.jpg" />
-          </div>
+          </a>
           <nav className="hidden md:flex items-center gap-6 font-sans text-sm font-medium tracking-tight">
             <a href="/" className="text-slate-400 hover:text-cyan-400 transition-colors">{t('gallery.gallery_title')}</a>
             <a href="/contact" className="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1">{t('contact.nav_title')}</a>

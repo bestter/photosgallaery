@@ -219,16 +219,19 @@ export default function Gallery() {
       <header className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-cyan-400/10 shadow-xl shadow-black/20 flex justify-between items-center px-4 md:px-6 py-3">
         <div className="flex items-center gap-4 md:gap-8">
           {/* Brand Logo */}
-          <div
-            className="text-xl font-black tracking-tight text-cyan-400 cursor-pointer active:scale-95 transition-transform"
+          <button
+            type="button"
+            className="text-xl font-black tracking-tight text-cyan-400 cursor-pointer active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323] rounded"
             onClick={() => window.location.reload()}
+            aria-label="PixelLyra Home"
+            title="PixelLyra Home"
           >
             <img
               alt="PixelLyra Logo"
               className="h-8 w-auto object-contain"
               src="/Byla3.jpg"
             />
-          </div>
+          </button>
           {/* Navigation & Group Switcher */}
           <nav className="hidden md:flex items-center gap-6 font-sans text-sm font-medium tracking-tight">
             <GroupSelector
