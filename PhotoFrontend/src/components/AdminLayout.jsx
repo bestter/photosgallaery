@@ -24,13 +24,18 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
         <div className="bg-background text-on-background font-body h-screen flex overflow-hidden antialiased selection:bg-primary/30 selection:text-primary-fixed dark">
             {/* SideNavBar */}
             <aside className="fixed left-0 top-0 h-full w-64 z-50 border-r border-cyan-400/10 bg-slate-950 flex flex-col py-6">
-                <div className="px-6 mb-8 flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = '/'}>
+                <a
+                    href="/"
+                    className="px-6 mb-8 flex items-center gap-3 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset rounded"
+                    aria-label="PixelLyra Home"
+                    title="PixelLyra Home"
+                >
                     <img alt="Cyanide Glass Logo" className="h-8 w-8 rounded object-cover" src="/Byla3.jpg" />
                     <div>
                         <h1 className="text-cyan-400 font-black uppercase tracking-widest text-xs font-['Inter']">Admin Core</h1>
                         <p className="text-slate-500 text-[10px] font-medium tracking-wider uppercase mt-0.5">System Control</p>
                     </div>
-                </div>
+                </a>
                 <nav className="flex-1 space-y-1 font-['Inter'] text-sm font-medium tracking-wide">
                     {navLinks.map((link) => {
                         const isActive = currentPath === link.path;
