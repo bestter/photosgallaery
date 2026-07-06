@@ -203,8 +203,8 @@
       "loading": "Chargement des requêtes...",
       "no_requests": "Aucune requête en attente.",
       "action": {
-        "reject": "Reject",
-        "accept": "Accept"
+        "reject": "Rejeter",
+        "accept": "Accepter"
       },
       "accept_aria": "Accepter la requête du groupe {{name}}",
       "reject_aria": "Rejeter la requête du groupe {{name}}"
