@@ -217,11 +217,18 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 <span aria-hidden="true" className="material-symbols-outlined text-2xl">person</span>
                             </div>
                             <div>
-                                <h3
-                                    className="text-slate-100 font-bold text-lg leading-tight hover:text-primary cursor-pointer transition-colors"
-                                    onClick={() => onAuthorClick && onAuthorClick(author)}
-                                >
-                                    {author}
+                                <h3>
+                                    {onAuthorClick ? (
+                                        <button
+                                            type="button"
+                                            className="text-slate-100 font-bold text-lg leading-tight hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                                            onClick={() => onAuthorClick(author)}
+                                        >
+                                            {author}
+                                        </button>
+                                    ) : (
+                                        <span className="text-slate-100 font-bold text-lg leading-tight">{author}</span>
+                                    )}
                                 </h3>
                                 <p className="text-primary text-xs uppercase tracking-wider font-semibold">{t("components.image_modal.photographer")}</p>
                             </div>
@@ -333,11 +340,19 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                     {tags.map((tagObj, idx) => {
                                         const tagName = tagTranslationsDict.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
 
-                                        return (
+                                        return onTagClick ? (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                                onClick={() => onTagClick(tagName)}
+                                            >
+                                                {tagName}
+                                            </button>
+                                        ) : (
                                             <span
                                                 key={idx}
-                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer"
-                                                onClick={() => onTagClick && onTagClick(tagName)}
+                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
                                             >
                                                 {tagName}
                                             </span>
