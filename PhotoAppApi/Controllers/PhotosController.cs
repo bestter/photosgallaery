@@ -301,7 +301,8 @@ namespace PhotoAppApi.Controllers
 
 
                 var theFiles = request.Files == null ? new List<IFormFile>() : new List<IFormFile>(request.Files);
-                if (!theFiles.Any())
+                // ⚡ Bolt: Use .Count == 0 instead of .Any() on a List to avoid enumerator allocation overhead
+                if (theFiles.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
                 if (moderationService == null && _moderationService == null)
@@ -1009,7 +1010,8 @@ namespace PhotoAppApi.Controllers
 
                 var missingMemberships = missingUserIds.Select(userId => new UserGroup { UserId = userId, GroupId = defaultGroup.Id }).ToList();
 
-                if (missingMemberships.Any())
+                // ⚡ Bolt: Use .Count != 0 instead of .Any() on a List to avoid enumerator allocation overhead
+                if (missingMemberships.Count != 0)
                 {
                     _context.UserGroups.AddRange(missingMemberships);
                 }
