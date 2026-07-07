@@ -94,7 +94,7 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2026-06-26 - Seed Denormalized EF Core Columns
 **Learning:** When denormalizing a column (like `LikesCount`) in Entity Framework Core by removing `[NotMapped]`, the structural migration alone will leave existing records with empty/zero values, creating a severe data inconsistency in production.
 **Action:** Always follow up a structural denormalization migration with a data migration (using `dotnet ef migrations add` and `migrationBuilder.Sql()`) to explicitly calculate and backfill the new column for all existing records.
-## $(date +%Y-%m-%d) - Thread Pool Starvation from DbContext Task.WhenAll
+## 2024-07-07 - Thread Pool Starvation from DbContext Task.WhenAll
 
 **Learning:** `DbContext` is not thread-safe. Executing multiple asynchronous Entity Framework Core queries concurrently on the same context instance using `Task.WhenAll` (e.g., `await Task.WhenAll(query1, query2)`) can cause internal concurrency conflicts, state corruption, and `InvalidOperationException`. Furthermore, it can exhaust the database connection pool under load, degrading performance.
 
@@ -102,3 +102,10 @@ Instead of checking for existence row by row in a loop, query all related existi
 ## 2026-06-30 - Extract inline array filtering in Dashboard.jsx
 **Learning:** Performing inline `.filter()` operations inside a React component's render function (like for counting active users) forces an O(N) array scan on every render, blocking the main thread and slowing down responsiveness.
 **Action:** Extract inline array filtering logic (such as `users.filter(...)`) into a memoized variable using `useMemo` so the O(N) scan only occurs when the dependencies (like the array itself) change, making render cycles much faster.
+## 2024-07-07 - Eliminate N+1 proxy requests for S3 presigned URLs
+
+**Learning:**
+Deferring S3 presigned URL generation to a local proxy endpoint (e.g. `/api/images/s3/{id}`) for items returned in a bulk API response (like a gallery) creates a massive N+1 performance bottleneck. It forces the frontend to make N additional HTTP requests to the proxy, and forces the backend to perform N additional database queries to re-verify permissions and retrieve object keys before generating the URL. Since AWS SDK presigned URL generation operates entirely locally and requires no network I/O, this deferral is unnecessary and harmful.
+
+**Action:**
+Pre-generate presigned S3 URLs directly in the bulk list endpoint (like `GetPhotos`) using `await _storage.GetPresignedUrlAsync(objectKey)` for all authorized records before returning the JSON payload. This entirely eliminates the N+1 network requests and N+1 database queries.
