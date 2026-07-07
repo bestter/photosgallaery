@@ -53,11 +53,6 @@ namespace PhotoAppApi.Controllers
             _moderationService = moderationService;
         }
 
-        public string GetImageUrl(int photoId, bool isThumb)
-        {
-            return $"/api/images/s3/{photoId}?isThumb={isThumb.ToString().ToLower()}";
-        }
-
         // GET: api/photos (Sécurisé pour récupérer selon les groupes)
         [HttpGet]
         [Authorize]
@@ -183,11 +178,11 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
-                // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
+                // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
                 foreach (var photo in photos)
                 {
-                    photo.Url = GetImageUrl(photo.Id, false);
-                    photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
+                    if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
+                    if (!string.IsNullOrEmpty(photo.ThumbnailUrl)) photo.ThumbnailUrl = await _storage.GetPresignedUrlAsync(photo.ThumbnailUrl, TimeSpan.FromHours(1));
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
                 }
@@ -1243,11 +1238,11 @@ namespace PhotoAppApi.Controllers
                     currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
-                // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
+                // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
                 foreach (var photo in userPhotos)
                 {
-                    photo.Url = GetImageUrl(photo.Id, false);
-                    photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
+                    if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
+                    if (!string.IsNullOrEmpty(photo.ThumbnailUrl)) photo.ThumbnailUrl = await _storage.GetPresignedUrlAsync(photo.ThumbnailUrl, TimeSpan.FromHours(1));
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
                 }
@@ -1329,11 +1324,11 @@ namespace PhotoAppApi.Controllers
                     currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                 }
 
-                // ⚡ Bolt: Defer S3 URL generation by assigning a fast local proxy endpoint route.
+                // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
                 foreach (var photo in photos)
                 {
-                    photo.Url = GetImageUrl(photo.Id, false);
-                    photo.ThumbnailUrl = GetImageUrl(photo.Id, true);
+                    if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
+                    if (!string.IsNullOrEmpty(photo.ThumbnailUrl)) photo.ThumbnailUrl = await _storage.GetPresignedUrlAsync(photo.ThumbnailUrl, TimeSpan.FromHours(1));
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                 }
 
