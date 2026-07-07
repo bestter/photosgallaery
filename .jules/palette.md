@@ -75,3 +75,7 @@
 ## 2024-05-18 - Avoid CSS Hover Dropdowns
 **Learning:** Hover-only dropdowns (e.g., using `group-hover:opacity-100`) completely break keyboard navigation because they cannot be reliably triggered by focusing the toggle button. They also create a poor user experience on touch devices where hover states are unpredictable.
 **Action:** Always implement dropdowns using click/keyboard-driven state (like a React `isOpen` state) rather than CSS-only hover, and ensure the toggle button uses `aria-expanded` and `aria-haspopup` for proper accessibility across all devices.
+
+## 2024-07-07 - Semantic Elements for Interactive Actions
+**Learning:** Found non-interactive elements like `<h3>` and `<span>` using `onClick` handlers and `cursor-pointer` to trigger in-page actions (e.g., author clicks and tag clicks in `ImageModal.jsx`). This degrades keyboard accessibility because these elements cannot be focused via the Tab key and screen readers do not announce them as actionable controls.
+**Action:** Always use semantic `<button type="button">` elements for interactive on-page actions, rather than attaching `onClick` events to text or container elements like `div`, `span`, or `h3`.
