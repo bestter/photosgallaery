@@ -543,6 +543,7 @@ export default function Gallery() {
                             setSelectedAuthor(author);
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
+                          aria-label={t("gallery.view_profile_of", { author })}
                         >
                           <span
                             aria-hidden="true"
@@ -602,6 +603,7 @@ export default function Gallery() {
                         setSelectedAuthor(author);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
+                      aria-label={t("gallery.view_profile_of", { author })}
                     >
                       <span
                         aria-hidden="true"

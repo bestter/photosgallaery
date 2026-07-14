@@ -79,3 +79,6 @@
 ## 2024-07-07 - Semantic Elements for Interactive Actions
 **Learning:** Found non-interactive elements like `<h3>` and `<span>` using `onClick` handlers and `cursor-pointer` to trigger in-page actions (e.g., author clicks and tag clicks in `ImageModal.jsx`). This degrades keyboard accessibility because these elements cannot be focused via the Tab key and screen readers do not announce them as actionable controls.
 **Action:** Always use semantic `<button type="button">` elements for interactive on-page actions, rather than attaching `onClick` events to text or container elements like `div`, `span`, or `h3`.
+## 2024-05-24 - Accessibility on Partially Descriptive Text Buttons
+**Learning:** Buttons that contain visible text but lack full context (like a user's `@username` inside a photo grid) are ambiguous to screen reader users who might just hear "username, button" without knowing what clicking it will do.
+**Action:** While `aria-label` is commonly reserved for icon-only buttons, it is crucial to apply descriptive `aria-labels` (e.g., `View profile of {author}`) to buttons containing visible text if that text alone doesn't adequately describe the button's action.
