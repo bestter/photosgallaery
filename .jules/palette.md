@@ -79,3 +79,7 @@
 ## 2024-07-07 - Semantic Elements for Interactive Actions
 **Learning:** Found non-interactive elements like `<h3>` and `<span>` using `onClick` handlers and `cursor-pointer` to trigger in-page actions (e.g., author clicks and tag clicks in `ImageModal.jsx`). This degrades keyboard accessibility because these elements cannot be focused via the Tab key and screen readers do not announce them as actionable controls.
 **Action:** Always use semantic `<button type="button">` elements for interactive on-page actions, rather than attaching `onClick` events to text or container elements like `div`, `span`, or `h3`.
+
+## 2024-07-13 - Fix visually hidden interactive elements during keyboard navigation
+**Learning:** Using `opacity-0 group-hover:opacity-100` on interactive elements or their containers makes them inaccessible to keyboard users because elements remain visually hidden even when receiving keyboard focus.
+**Action:** Always complement `group-hover:opacity-100` with `focus-within:opacity-100` (and `group-focus-visible:opacity-100` if the container itself is focusable) to ensure interactive elements are visible when they or their children receive keyboard focus.
