@@ -82,3 +82,7 @@
 ## 2024-07-14 - Semantic Buttons for Interactive Elements
 **Learning:** Using `<span>` or `<div>` with custom `onKeyDown`, `role="button"`, and `tabIndex` attributes for complex interactions is brittle and requires manual event handling (e.g., listening for Space/Enter keys).
 **Action:** When a child element (like an author tag) requires interaction, use a semantic `<button type="button">`. This inherently provides native keyboard navigability and correct screen reader support without manual event wiring.
+
+## 2024-07-11 - Required Field Indicators and Accessibility
+**Learning:** When adding visual required indicators (like an asterisk *) to form labels for sighted users, the indicator must be hidden from screen readers using `aria-hidden="true"` (e.g. `<span aria-hidden="true">*</span>`). Additionally, the associated input or textarea must have the standard HTML `required` attribute. This ensures screen readers announce the field as required exactly once without reading out "star" or "asterisk".
+**Action:** Always combine the `required` attribute on input fields with an `aria-hidden="true"` visually styled asterisk in the associated label to ensure an accessible and clear UX for both sighted and non-sighted users.
