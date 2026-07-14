@@ -82,6 +82,3 @@
 ## 2024-07-14 - Semantic Buttons for Interactive Elements
 **Learning:** Using `<span>` or `<div>` with custom `onKeyDown`, `role="button"`, and `tabIndex` attributes for complex interactions is brittle and requires manual event handling (e.g., listening for Space/Enter keys).
 **Action:** When a child element (like an author tag) requires interaction, use a semantic `<button type="button">`. This inherently provides native keyboard navigability and correct screen reader support without manual event wiring.
-## 2024-05-24 - Accessibility on Partially Descriptive Text Buttons
-**Learning:** Buttons that contain visible text but lack full context (like a user's `@username` inside a photo grid) are ambiguous to screen reader users who might just hear "username, button" without knowing what clicking it will do.
-**Action:** While `aria-label` is commonly reserved for icon-only buttons, it is crucial to apply descriptive `aria-labels` (e.g., `View profile of {author}`) to buttons containing visible text if that text alone doesn't adequately describe the button's action.
