@@ -79,3 +79,6 @@
 ## 2024-07-07 - Semantic Elements for Interactive Actions
 **Learning:** Found non-interactive elements like `<h3>` and `<span>` using `onClick` handlers and `cursor-pointer` to trigger in-page actions (e.g., author clicks and tag clicks in `ImageModal.jsx`). This degrades keyboard accessibility because these elements cannot be focused via the Tab key and screen readers do not announce them as actionable controls.
 **Action:** Always use semantic `<button type="button">` elements for interactive on-page actions, rather than attaching `onClick` events to text or container elements like `div`, `span`, or `h3`.
+## 2024-07-14 - Semantic Buttons for Interactive Elements
+**Learning:** Using `<span>` or `<div>` with custom `onKeyDown`, `role="button"`, and `tabIndex` attributes for complex interactions is brittle and requires manual event handling (e.g., listening for Space/Enter keys).
+**Action:** When a child element (like an author tag) requires interaction, use a semantic `<button type="button">`. This inherently provides native keyboard navigability and correct screen reader support without manual event wiring.
