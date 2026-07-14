@@ -95,7 +95,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
                 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1"
                 htmlFor="reason"
               >
-                Reason
+                Reason <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <textarea
                 id="reason"
@@ -104,6 +104,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
                 className="w-full bg-[#244545]/50 border-none rounded-lg p-4 text-sm text-slate-100 placeholder:text-slate-400/40 focus:ring-2 focus:ring-primary focus:bg-[#244545] transition-all outline-none resize-none"
                 placeholder="Explain why this content violates our terms..."
                 rows="4"
+                required
               ></textarea>
             </div>
 
