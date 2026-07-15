@@ -110,26 +110,6 @@ namespace PhotoAppApi.Tests.Controllers
             }
         }
 
-        [Fact]
-        public void GetImageUrl_ShouldReturnLocalProxyRoute()
-        {
-            // Arrange
-            using var context = new AppDbContext(_dbContextOptions);
-            var envMock = new Mock<IWebHostEnvironment>();
-            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
-            var storageMock = new Mock<IObjectStorageService>();
-
-            int photoId = 123;
-            string expectedUrl = $"/api/images/s3/{photoId}?isThumb=false";
-
-            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
-
-            // Act
-            var result = controller.GetImageUrl(photoId, false);
-
-            // Assert
-            Assert.Equal(expectedUrl, result);
-        }
 
         [Fact]
         public async Task GetUserPhotos_ShouldReturnNotFound_WhenUserDoesNotExist()

@@ -109,6 +109,10 @@ Deferring S3 presigned URL generation to a local proxy endpoint (e.g. `/api/imag
 
 **Action:**
 Pre-generate presigned S3 URLs directly in the bulk list endpoint (like `GetPhotos`) using `await _storage.GetPresignedUrlAsync(objectKey)` for all authorized records before returning the JSON payload. This entirely eliminates the N+1 network requests and N+1 database queries.
+
+## 2024-06-28 - Bulk S3 Presigned URL Generation
+**Learning:** Generating multiple S3 presigned URLs sequentially in a `foreach` loop introduces significant latency, especially for endpoints returning large lists of items (e.g., photo galleries). Because the AWS SDK is thread-safe and generating presigned URLs does not interact with the non-thread-safe Entity Framework Core `DbContext`, these operations can and should be parallelized.
+**Action:** Always use `Task.WhenAll` alongside a `Select` projection to generate S3 presigned URLs concurrently when processing collections, to eliminate sequential processing bottlenecks and reduce overall API response times.
 ## 2024-07-08 - Optimize Rendering by Memoizing Dictionary and Array Map inside Render
 **Learning:**
 Performing an inline array loop (like building a `Map` cache and then iterating to `.find()`) inside the return block of a React component creates unnecessary dictionary allocations and forces an O(N) internal loop to run on every render.
