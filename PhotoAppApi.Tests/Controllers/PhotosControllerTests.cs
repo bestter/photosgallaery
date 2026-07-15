@@ -110,6 +110,7 @@ namespace PhotoAppApi.Tests.Controllers
             }
         }
 
+
         [Fact]
         public async Task GetUserPhotos_ShouldReturnNotFound_WhenUserDoesNotExist()
         {
