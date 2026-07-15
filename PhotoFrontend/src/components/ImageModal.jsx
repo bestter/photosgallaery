@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import ReportModal from './ReportModal';
@@ -65,6 +65,30 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const longitude = photo.longitude ?? photo.Longitude;
     const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
     const tags = photo.tags || photo.Tags || [];
+
+    // ⚡ Bolt: Build dictionary to make lookups O(1) inside useMemo to avoid O(N*M) calculation during every render
+    const resolvedTags = useMemo(() => {
+        if (!tags || tags.length === 0) return [];
+        const tagTranslationsDict = new Map();
+
+        tags.forEach((tagObj) => {
+            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+            if (!tagTranslationsDict.has(tagId)) {
+                const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
+                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
+            }
+        });
+
+        return tags.map((tagObj) => {
+            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+            const tagName = tagTranslationsDict.get(tagId);
+            return {
+                ...tagObj,
+                resolvedName: tagName
+            };
+        });
+    }, [tags]);
 
 
     const currentUser = getUsernameFromToken();
@@ -320,48 +344,34 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     </div>
 
                     {/* Tags */}
-                    {tags && tags.length > 0 && (() => {
-                        // ⚡ Bolt: Build dictionary BEFORE the loop to make lookups O(1)
-                        const tagTranslationsDict = new Map();
+                    {resolvedTags && resolvedTags.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {resolvedTags.map((tagObj, idx) => {
+                                    const tagName = tagObj.resolvedName;
 
-                        tags.forEach((tagObj) => {
-                            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
-                            if (!tagTranslationsDict.has(tagId)) {
-                                const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
-                                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
-                            }
-                        });
-
-                        return (
-                            <div className="space-y-3">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {tags.map((tagObj, idx) => {
-                                        const tagName = tagTranslationsDict.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
-
-                                        return onTagClick ? (
-                                            <button
-                                                key={idx}
-                                                type="button"
-                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                                onClick={() => onTagClick(tagName)}
-                                            >
-                                                {tagName}
-                                            </button>
-                                        ) : (
-                                            <span
-                                                key={idx}
-                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
-                                            >
-                                                {tagName}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
+                                    return onTagClick ? (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                            onClick={() => onTagClick(tagName)}
+                                        >
+                                            {tagName}
+                                        </button>
+                                    ) : (
+                                        <span
+                                            key={idx}
+                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
+                                        >
+                                            {tagName}
+                                        </span>
+                                    );
+                                })}
                             </div>
-                        );
-                    })()}
+                        </div>
+                    )}
 
                     {/* Location */}
                     {latitude != null && longitude != null && (

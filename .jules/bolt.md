@@ -109,3 +109,8 @@ Deferring S3 presigned URL generation to a local proxy endpoint (e.g. `/api/imag
 
 **Action:**
 Pre-generate presigned S3 URLs directly in the bulk list endpoint (like `GetPhotos`) using `await _storage.GetPresignedUrlAsync(objectKey)` for all authorized records before returning the JSON payload. This entirely eliminates the N+1 network requests and N+1 database queries.
+## 2024-07-08 - Optimize Rendering by Memoizing Dictionary and Array Map inside Render
+**Learning:**
+Performing an inline array loop (like building a `Map` cache and then iterating to `.find()`) inside the return block of a React component creates unnecessary dictionary allocations and forces an O(N) internal loop to run on every render.
+**Action:**
+Extract the dictionary creation and array mapping logic outside of the return statement and into a `useMemo` hook, ensuring it only executes when the dependencies (e.g., the raw tags array) change.
