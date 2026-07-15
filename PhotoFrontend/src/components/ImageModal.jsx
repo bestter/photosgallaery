@@ -53,29 +53,18 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         };
     }, [onClose, onPrev, onNext]);
 
-    if (!photo) return null;
-
-    // Formatting date safely
-    const dateTaken = photo.dateTaken || photo.DateTaken ? new Date(photo.dateTaken || photo.DateTaken).toLocaleDateString() : t("components.image_modal.no_date");
-    const uploadedAt = photo.uploadedAt || photo.UploadedAt ? new Date(photo.uploadedAt || photo.UploadedAt).toLocaleDateString() : t("components.image_modal.new_photo");
-
-    // Metadata
-    const cameraModel = photo.cameraModel || photo.CameraModel || t("components.image_modal.unknown_camera");
-    const latitude = photo.latitude ?? photo.Latitude;
-    const longitude = photo.longitude ?? photo.Longitude;
-    const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
-    const tags = photo.tags || photo.Tags || [];
-
-    // ⚡ Bolt: Build dictionary to make lookups O(1) inside useMemo to avoid O(N*M) calculation during every render
+    // Stable source reference (avoid `|| []` outside the memo, which forces recomputation every render)
+    const rawTags = photo?.tags ?? photo?.Tags;
     const resolvedTags = useMemo(() => {
-        if (!tags || tags.length === 0) return [];
+        const tags = rawTags || [];
+        if (tags.length === 0) return [];
         const tagTranslationsDict = new Map();
 
         tags.forEach((tagObj) => {
             const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
             if (!tagTranslationsDict.has(tagId)) {
                 const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
+                const frTranslation = tagTranslations.find(tr => tr.language === 0 || tr.Language === 0) || tagTranslations[0];
                 tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
             }
         });
@@ -88,8 +77,19 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 resolvedName: tagName
             };
         });
-    }, [tags]);
+    }, [rawTags]);
 
+    if (!photo) return null;
+
+    // Formatting date safely
+    const dateTaken = photo.dateTaken || photo.DateTaken ? new Date(photo.dateTaken || photo.DateTaken).toLocaleDateString() : t("components.image_modal.no_date");
+    const uploadedAt = photo.uploadedAt || photo.UploadedAt ? new Date(photo.uploadedAt || photo.UploadedAt).toLocaleDateString() : t("components.image_modal.new_photo");
+
+    // Metadata
+    const cameraModel = photo.cameraModel || photo.CameraModel || t("components.image_modal.unknown_camera");
+    const latitude = photo.latitude ?? photo.Latitude;
+    const longitude = photo.longitude ?? photo.Longitude;
+    const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
 
     const currentUser = getUsernameFromToken();
     const isMyPhoto = currentUser && currentUser === author;
