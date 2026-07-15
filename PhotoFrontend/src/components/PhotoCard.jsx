@@ -24,6 +24,7 @@ export default function PhotoCard({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       aria-label={t('gallery.view_photo_by', { author })}
+      title={t('gallery.view_photo_by', { author })}
     >
       <div className="overflow-hidden rounded-lg">
         <img
@@ -46,6 +47,7 @@ export default function PhotoCard({
                 onAuthorClick(authorName);
               }}
               aria-label={t('gallery.view_profile_of', { author })}
+              title={t('gallery.view_profile_of', { author })}
             >
               {author}
             </button>
