@@ -86,3 +86,7 @@
 ## 2024-07-11 - Required Field Indicators and Accessibility
 **Learning:** When adding visual required indicators (like an asterisk *) to form labels for sighted users, the indicator must be hidden from screen readers using `aria-hidden="true"` (e.g. `<span aria-hidden="true">*</span>`). Additionally, the associated input or textarea must have the standard HTML `required` attribute. This ensures screen readers announce the field as required exactly once without reading out "star" or "asterisk".
 **Action:** Always combine the `required` attribute on input fields with an `aria-hidden="true"` visually styled asterisk in the associated label to ensure an accessible and clear UX for both sighted and non-sighted users.
+
+## 2024-07-13 - Fix visually hidden interactive elements during keyboard navigation
+**Learning:** Using `opacity-0 group-hover:opacity-100` on interactive elements or their containers makes them inaccessible to keyboard users because elements remain visually hidden even when receiving keyboard focus.
+**Action:** Always complement `group-hover:opacity-100` with `focus-within:opacity-100` (and `group-focus-visible:opacity-100` if the container itself is focusable) to ensure interactive elements are visible when they or their children receive keyboard focus.
