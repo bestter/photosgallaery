@@ -72,7 +72,12 @@ export default function AdminGroupRequests() {
                     <tbody className="divide-y divide-outline-variant/20 text-sm">
                         {loading ? (
                             <tr>
-                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">{t("admin.group_requests.loading")}</td>
+                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                                        {t("admin.group_requests.loading")}
+                                    </div>
+                                </td>
                             </tr>
                         ) : requests.length === 0 ? (
                             <tr>
