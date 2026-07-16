@@ -35,6 +35,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("login")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("LoginLimiter")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request, CancellationToken cancellationToken = default)
         {
@@ -116,6 +117,7 @@ namespace PhotoAppApi.Controllers
 
 
         [HttpPost("logout")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("LoginLimiter")]
         public IActionResult Logout()
         {
@@ -124,6 +126,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("register")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("RegisterLimiter")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
@@ -205,6 +208,14 @@ namespace PhotoAppApi.Controllers
                 log.Error($"An error occured in {nameof(Register)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors de l'enregistrement." });
             }
+        }
+
+        [HttpGet("csrf-token")]
+        [IgnoreAntiforgeryToken]
+        public IActionResult GetCsrfToken([FromServices] Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery)
+        {
+            var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+            return Ok(new { token = tokens.RequestToken });
         }
 
         [HttpGet("groups")]
