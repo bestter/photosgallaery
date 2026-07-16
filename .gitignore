@@ -58,3 +58,4 @@ __pycache__/
 PERFORMANCE_OPPORTUNITIES.md
 SECURITY_VULNERABILITIES.md
 Documentation/security_report.html
+Documentation/doctor.json
