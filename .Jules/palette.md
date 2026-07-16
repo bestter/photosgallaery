@@ -90,3 +90,6 @@
 ## 2024-07-13 - Fix visually hidden interactive elements during keyboard navigation
 **Learning:** Using `opacity-0 group-hover:opacity-100` on interactive elements or their containers makes them inaccessible to keyboard users because elements remain visually hidden even when receiving keyboard focus.
 **Action:** Always complement `group-hover:opacity-100` with `focus-within:opacity-100` (and `group-focus-visible:opacity-100` if the container itself is focusable) to ensure interactive elements are visible when they or their children receive keyboard focus.
+## 2026-07-15 - Native tooltips for interactive components
+**Learning:** Found that the main container and author button in `PhotoCard.jsx` had `aria-label`s for accessibility but lacked `title` attributes. Sighted mouse users didn't get native hover tooltips to understand the explicit action associated with these elements.
+**Action:** When creating or fixing icon-only buttons or interactive elements where visual context might be insufficient, always ensure that both `aria-label` (for screen readers) and `title` (to provide a native hover tooltip for sighted users) attributes are present and contain the same translated text.
