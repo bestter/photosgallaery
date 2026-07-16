@@ -79,17 +79,3 @@
 ## 2024-07-07 - Semantic Elements for Interactive Actions
 **Learning:** Found non-interactive elements like `<h3>` and `<span>` using `onClick` handlers and `cursor-pointer` to trigger in-page actions (e.g., author clicks and tag clicks in `ImageModal.jsx`). This degrades keyboard accessibility because these elements cannot be focused via the Tab key and screen readers do not announce them as actionable controls.
 **Action:** Always use semantic `<button type="button">` elements for interactive on-page actions, rather than attaching `onClick` events to text or container elements like `div`, `span`, or `h3`.
-## 2024-07-14 - Semantic Buttons for Interactive Elements
-**Learning:** Using `<span>` or `<div>` with custom `onKeyDown`, `role="button"`, and `tabIndex` attributes for complex interactions is brittle and requires manual event handling (e.g., listening for Space/Enter keys).
-**Action:** When a child element (like an author tag) requires interaction, use a semantic `<button type="button">`. This inherently provides native keyboard navigability and correct screen reader support without manual event wiring.
-
-## 2024-07-11 - Required Field Indicators and Accessibility
-**Learning:** When adding visual required indicators (like an asterisk *) to form labels for sighted users, the indicator must be hidden from screen readers using `aria-hidden="true"` (e.g. `<span aria-hidden="true">*</span>`). Additionally, the associated input or textarea must have the standard HTML `required` attribute. This ensures screen readers announce the field as required exactly once without reading out "star" or "asterisk".
-**Action:** Always combine the `required` attribute on input fields with an `aria-hidden="true"` visually styled asterisk in the associated label to ensure an accessible and clear UX for both sighted and non-sighted users.
-
-## 2024-07-13 - Fix visually hidden interactive elements during keyboard navigation
-**Learning:** Using `opacity-0 group-hover:opacity-100` on interactive elements or their containers makes them inaccessible to keyboard users because elements remain visually hidden even when receiving keyboard focus.
-**Action:** Always complement `group-hover:opacity-100` with `focus-within:opacity-100` (and `group-focus-visible:opacity-100` if the container itself is focusable) to ensure interactive elements are visible when they or their children receive keyboard focus.
-## 2026-07-15 - Native tooltips for interactive components
-**Learning:** Found that the main container and author button in `PhotoCard.jsx` had `aria-label`s for accessibility but lacked `title` attributes. Sighted mouse users didn't get native hover tooltips to understand the explicit action associated with these elements.
-**Action:** When creating or fixing icon-only buttons or interactive elements where visual context might be insufficient, always ensure that both `aria-label` (for screen readers) and `title` (to provide a native hover tooltip for sighted users) attributes are present and contain the same translated text.
