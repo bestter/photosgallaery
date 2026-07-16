@@ -72,7 +72,12 @@ export default function AdminGroupRequests() {
                     <tbody className="divide-y divide-outline-variant/20 text-sm">
                         {loading ? (
                             <tr>
-                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">{t("admin.group_requests.loading")}</td>
+                                <td colSpan="4" className="py-8 text-center text-on-surface-variant">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                                        {t("admin.group_requests.loading")}
+                                    </div>
+                                </td>
                             </tr>
                         ) : requests.length === 0 ? (
                             <tr>
@@ -104,7 +109,7 @@ export default function AdminGroupRequests() {
                                     </div>
                                 </td>
                                 <td className="py-4 px-6 text-right">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                         <button
                                             onClick={() => handleReject(req.id)}
                                             className="px-3 py-1.5 text-xs font-label font-bold text-error hover:bg-error/10 rounded transition-colors"

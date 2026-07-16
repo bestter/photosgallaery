@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import ReportModal from './ReportModal';
@@ -53,6 +53,32 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         };
     }, [onClose, onPrev, onNext]);
 
+    // Stable source reference (avoid `|| []` outside the memo, which forces recomputation every render)
+    const rawTags = photo?.tags ?? photo?.Tags;
+    const resolvedTags = useMemo(() => {
+        const tags = rawTags || [];
+        if (tags.length === 0) return [];
+        const tagTranslationsDict = new Map();
+
+        tags.forEach((tagObj) => {
+            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+            if (!tagTranslationsDict.has(tagId)) {
+                const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                const frTranslation = tagTranslations.find(tr => tr.language === 0 || tr.Language === 0) || tagTranslations[0];
+                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
+            }
+        });
+
+        return tags.map((tagObj) => {
+            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+            const tagName = tagTranslationsDict.get(tagId);
+            return {
+                ...tagObj,
+                resolvedName: tagName
+            };
+        });
+    }, [rawTags]);
+
     if (!photo) return null;
 
     // Formatting date safely
@@ -64,8 +90,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const latitude = photo.latitude ?? photo.Latitude;
     const longitude = photo.longitude ?? photo.Longitude;
     const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
-    const tags = photo.tags || photo.Tags || [];
-
 
     const currentUser = getUsernameFromToken();
     const isMyPhoto = currentUser && currentUser === author;
@@ -217,11 +241,18 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 <span aria-hidden="true" className="material-symbols-outlined text-2xl">person</span>
                             </div>
                             <div>
-                                <h3
-                                    className="text-slate-100 font-bold text-lg leading-tight hover:text-primary cursor-pointer transition-colors"
-                                    onClick={() => onAuthorClick && onAuthorClick(author)}
-                                >
-                                    {author}
+                                <h3>
+                                    {onAuthorClick ? (
+                                        <button
+                                            type="button"
+                                            className="text-slate-100 font-bold text-lg leading-tight hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                                            onClick={() => onAuthorClick(author)}
+                                        >
+                                            {author}
+                                        </button>
+                                    ) : (
+                                        <span className="text-slate-100 font-bold text-lg leading-tight">{author}</span>
+                                    )}
                                 </h3>
                                 <p className="text-primary text-xs uppercase tracking-wider font-semibold">{t("components.image_modal.photographer")}</p>
                             </div>
@@ -313,40 +344,34 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     </div>
 
                     {/* Tags */}
-                    {tags && tags.length > 0 && (() => {
-                        // ⚡ Bolt: Build dictionary BEFORE the loop to make lookups O(1)
-                        const tagTranslationsDict = new Map();
+                    {resolvedTags && resolvedTags.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {resolvedTags.map((tagObj, idx) => {
+                                    const tagName = tagObj.resolvedName;
 
-                        tags.forEach((tagObj) => {
-                            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
-                            if (!tagTranslationsDict.has(tagId)) {
-                                const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
-                                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
-                            }
-                        });
-
-                        return (
-                            <div className="space-y-3">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {tags.map((tagObj, idx) => {
-                                        const tagName = tagTranslationsDict.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
-
-                                        return (
-                                            <span
-                                                key={idx}
-                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer"
-                                                onClick={() => onTagClick && onTagClick(tagName)}
-                                            >
-                                                {tagName}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
+                                    return onTagClick ? (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                            onClick={() => onTagClick(tagName)}
+                                        >
+                                            {tagName}
+                                        </button>
+                                    ) : (
+                                        <span
+                                            key={idx}
+                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
+                                        >
+                                            {tagName}
+                                        </span>
+                                    );
+                                })}
                             </div>
-                        );
-                    })()}
+                        </div>
+                    )}
 
                     {/* Location */}
                     {latitude != null && longitude != null && (

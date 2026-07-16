@@ -16,15 +16,6 @@ export default function PhotoCard({
     }
   };
 
-  const handleAuthorKeyDown = (e) => {
-    if (onAuthorClick && (e.key === "Enter" || e.key === " ")) {
-      e.preventDefault();
-      e.stopPropagation();
-      const authorName = author.startsWith("@") ? author.slice(1) : author;
-      onAuthorClick(authorName);
-    }
-  };
-
   return (
     <div
       className="masonry-item relative group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark rounded-lg"
@@ -33,6 +24,7 @@ export default function PhotoCard({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       aria-label={t('gallery.view_photo_by', { author })}
+      title={t('gallery.view_photo_by', { author })}
     >
       <div className="overflow-hidden rounded-lg">
         <img
@@ -41,26 +33,29 @@ export default function PhotoCard({
           alt={alt}
         />
       </div>
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 rounded-lg">
+      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col justify-end p-4 rounded-lg">
         <div className="flex items-center justify-between">
-          <span
-            className={`text-white text-xs font-medium ${onAuthorClick ? "hover:text-primary transition-colors hover:underline z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1" : ""}`}
-            onClick={(e) => {
-              if (onAuthorClick) {
+          {onAuthorClick ? (
+            <button
+              type="button"
+              className="text-white text-xs font-medium hover:text-primary transition-colors hover:underline z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
+              onClick={(e) => {
                 e.stopPropagation();
                 const authorName = author.startsWith("@")
                   ? author.slice(1)
                   : author;
                 onAuthorClick(authorName);
-              }
-            }}
-            role={onAuthorClick ? "button" : undefined}
-            tabIndex={onAuthorClick ? 0 : undefined}
-            onKeyDown={onAuthorClick ? handleAuthorKeyDown : undefined}
-            aria-label={onAuthorClick ? t('gallery.view_profile_of', { author }) : undefined}
-          >
-            {author}
-          </span>
+              }}
+              aria-label={t('gallery.view_profile_of', { author })}
+              title={t('gallery.view_profile_of', { author })}
+            >
+              {author}
+            </button>
+          ) : (
+            <span className="text-white text-xs font-medium">
+              {author}
+            </span>
+          )}
         </div>
       </div>
     </div>
