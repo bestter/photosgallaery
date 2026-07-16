@@ -511,6 +511,7 @@ export default function Gallery() {
                     role="button"
                     tabIndex={0}
                     aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                    title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -544,6 +545,7 @@ export default function Gallery() {
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
                           aria-label={t("gallery.view_profile_of", { author })}
+                          title={t("gallery.view_profile_of", { author })}
                         >
                           <span
                             aria-hidden="true"
@@ -568,6 +570,7 @@ export default function Gallery() {
                     role="button"
                     tabIndex={0}
                     aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                    title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -604,6 +607,7 @@ export default function Gallery() {
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       aria-label={t("gallery.view_profile_of", { author })}
+                      title={t("gallery.view_profile_of", { author })}
                     >
                       <span
                         aria-hidden="true"
@@ -625,6 +629,7 @@ export default function Gallery() {
                   role="button"
                   tabIndex={0}
                   aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                  title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
