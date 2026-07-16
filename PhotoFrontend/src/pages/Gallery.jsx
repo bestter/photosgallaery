@@ -5,7 +5,7 @@ import InviteModal from "../components/InviteModal";
 import GroupRequestModal from "../components/GroupRequestModal";
 import GroupSelector from "../components/GroupSelector";
 import { useDebounce } from "../hooks/useDebounce";
-import { getUserRole, clearUserSession, isTokenExpired, getUsernameFromToken } from "../authHelper";
+import { getUserRole, clearUserSession, isTokenExpired } from "../authHelper";
 import api from "../api";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
