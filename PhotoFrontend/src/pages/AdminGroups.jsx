@@ -254,14 +254,7 @@ export default function AdminGroups() {
                                         </thead>
                                         <tbody className="divide-y divide-outline-variant/20 text-sm">
                                             {loading ? (
-                                                <tr>
-                                                    <td colSpan="4" className="text-center py-4 text-on-surface-variant">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
-                                                            {t("admin.groups.loading")}
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                                                <tr><td colSpan="4" className="text-center py-4 text-on-surface-variant">{t("admin.groups.loading")}</td></tr>
                                             ) : groups.map(group => {
                                                 const dateStr = new Date(group.createdAt || group.CreatedAt).toLocaleDateString();
                                                 return (

@@ -210,7 +210,7 @@ namespace PhotoAppApi.Controllers
         [HttpGet("groups")]
         [Microsoft.AspNetCore.Authorization.Authorize]
         [EnableRateLimiting("PhotosGetLimiter")]
-        public async Task<IActionResult> GetUserGroups(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetUserGroups()
         {
             log.Debug($"In {nameof(GetUserGroups)}");
             try
@@ -220,7 +220,7 @@ namespace PhotoAppApi.Controllers
                 if (!int.TryParse(userIdString, out int userId)) return Unauthorized();
 
                 // 🛡️ Sentinel: Verify user is still active and exists in the database
-                var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+                var user = await _context.Users.FindAsync(new object[] { userId });
                 if (user == null || user.Role == UserRole.Forbidden) return Unauthorized();
 
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
@@ -235,7 +235,7 @@ namespace PhotoAppApi.Controllers
                         ug.Group.ShortName,
                         ug.Group.InviteToken
                     })
-                    .ToListAsync(cancellationToken);
+                    .ToListAsync();
 
                 // Si Admin, retourner tous les groupes
                 if (user.Role == UserRole.Admin)
@@ -250,7 +250,7 @@ namespace PhotoAppApi.Controllers
                            g.ShortName,
                            g.InviteToken
                        })
-                       .ToListAsync(cancellationToken);
+                       .ToListAsync();
                 }
 
                 return Ok(groups);

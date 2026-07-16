@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
+using PhotoAppApi.DTOs;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
-using PhotoAppApi.DTOs;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -298,8 +298,7 @@ namespace PhotoAppApi.Controllers
 
 
                 var theFiles = request.Files == null ? new List<IFormFile>() : new List<IFormFile>(request.Files);
-                // ⚡ Bolt: Use .Count == 0 instead of .Any() on a List to avoid enumerator allocation overhead
-                if (theFiles.Count == 0)
+                if (!theFiles.Any())
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
                 if (moderationService == null && _moderationService == null)
@@ -1007,8 +1006,7 @@ namespace PhotoAppApi.Controllers
 
                 var missingMemberships = missingUserIds.Select(userId => new UserGroup { UserId = userId, GroupId = defaultGroup.Id }).ToList();
 
-                // ⚡ Bolt: Use .Count != 0 instead of .Any() on a List to avoid enumerator allocation overhead
-                if (missingMemberships.Count != 0)
+                if (missingMemberships.Any())
                 {
                     _context.UserGroups.AddRange(missingMemberships);
                 }
@@ -1164,12 +1162,12 @@ namespace PhotoAppApi.Controllers
         // GET: api/photos/user/{username}
         [HttpGet("user/{username}")]
         [EnableRateLimiting("PhotosGetLimiter")]
-        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR)
         {
             try
             {
                 // 1. Trouver l'utilisateur cible
-                var targetUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == username, cancellationToken);
+                var targetUser = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
                 if (targetUser == null) return NotFound(new { message = "Utilisateur introuvable." });
 
                 var currentUserIdStringForAccess = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -1204,11 +1202,11 @@ namespace PhotoAppApi.Controllers
 
                 // 2. Chercher toutes ses photos publiées
                 // ⚡ Bolt: Apply pagination on the server-side to limit payload size and improve latency
-                var totalCount = await query.CountAsync(cancellationToken);
+                var totalCount = await query.CountAsync();
                 query = query.Skip((page - 1) * pageSize).Take(pageSize);
 
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var userPhotos = await query.ToListAsync(cancellationToken);
+                var userPhotos = await query.ToListAsync();
 
                 if (userPhotos.Count == 0)
                 {
@@ -1231,12 +1229,12 @@ namespace PhotoAppApi.Controllers
                     var likedIds = await _context.PhotoLikes
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
-                        .ToListAsync(cancellationToken);
+                        .ToListAsync();
 
                     var reportedIds = await _context.ImageReports
                         .Where(r => photoIds.Contains(r.PhotoId) && r.ReporterUsername == currentUsername)
                         .Select(r => r.PhotoId)
-                        .ToListAsync(cancellationToken);
+                        .ToListAsync();
 
                     currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                     currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
@@ -1268,7 +1266,7 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("PhotosGetLimiter")]
         public async Task<ActionResult<IEnumerable<Photo>>> GetMostViewedPhotos(
             [FromQuery] int count = 10,
-            [FromQuery] Language lang = Language.FR, CancellationToken cancellationToken = default)
+            [FromQuery] Language lang = Language.FR)
         {
             try
             {
@@ -1308,7 +1306,7 @@ namespace PhotoAppApi.Controllers
                              .Take(count);
 
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var photos = await query.ToListAsync(cancellationToken);
+                var photos = await query.ToListAsync();
 
                 if (photos.Count == 0) return Ok(photos);
 
@@ -1326,7 +1324,7 @@ namespace PhotoAppApi.Controllers
                     var likedIds = await _context.PhotoLikes
                         .Where(l => photoIds.Contains(l.PhotoId) && l.UserId == currentUserId.Value)
                         .Select(l => l.PhotoId)
-                        .ToListAsync(cancellationToken);
+                        .ToListAsync();
                     currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                 }
 
@@ -1353,7 +1351,7 @@ namespace PhotoAppApi.Controllers
         [HttpPost("{id}/view")]
         [AllowAnonymous] // On permet aux anonymes d'incrémenter les vues
         [EnableRateLimiting("ViewLimiter")]
-        public async Task<IActionResult> RecordView(int id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> RecordView(int id)
         {
             // Note: Pour ne pas ralentir cette route ultra-rapide, on évite d'interroger la base
             // pour résoudre l'utilisateur. Si l'ID de l'utilisateur est dans les Claims (JWT),
@@ -1379,7 +1377,7 @@ namespace PhotoAppApi.Controllers
                 UserAgent = Request.Headers.UserAgent.ToString()
             };
             // Écriture asynchrone dans le Thread Channel (non bloquant sur l'I/O DB)
-            await _viewChannelWriter.WriteAsync(viewEvent, cancellationToken);
+            await _viewChannelWriter.WriteAsync(viewEvent);
             // Retourner "202 Accepted" : "Requête acceptée, je la traite en arrière-plan !"
             return Accepted();
         }

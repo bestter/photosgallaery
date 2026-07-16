@@ -123,7 +123,6 @@ builder.Services.AddAuthentication(options =>
         {
             // On cherche l'ID de l'utilisateur dans son jeton
             var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var roleClaim = context.Principal?.FindFirst(ClaimTypes.Role)?.Value;
 
             // 👇 AJOUTE CETTE LIGNE POUR L'ESPIONNAGE
             log.Info($"[VIDEUR] Vérification du jeton. ID trouvé : {userIdClaim ?? "AUCUN !!"}");
@@ -131,45 +130,25 @@ builder.Services.AddAuthentication(options =>
             if (int.TryParse(userIdClaim, out int userId))
             {
                 var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-                // 🛡️ Sentinel: Use a new cache key to store a tuple of (IsForbidden, CurrentRole)
-                string cacheKey = $"UserValidV2_{userId}";
+                string cacheKey = $"UserValid_{userId}";
 
-                if (!memoryCache.TryGetValue(cacheKey, out (bool IsForbidden, string CurrentRole) cacheResult))
+                if (!memoryCache.TryGetValue(cacheKey, out bool isForbidden))
                 {
                     var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
                     // On vérifie en direct s'il a été banni depuis sa dernière connexion
                     var user = await dbContext.Users.FindAsync(userId);
-
-                    bool isForbidden = (user == null || user.Role == UserRole.Forbidden);
-                    string currentRole = string.Empty;
-
-                    if (user != null)
-                    {
-                        currentRole = user.Role.ToString();
-                        // Mapping explicitly as done in CreateToken
-                        if (currentRole == "9999") currentRole = UserRole.Admin.ToString();
-                        else if (currentRole == "1") currentRole = UserRole.Creator.ToString();
-                        else if (currentRole == "0") currentRole = UserRole.User.ToString();
-                    }
-
-                    cacheResult = (isForbidden, currentRole);
+                    isForbidden = (user == null || user.Role == UserRole.Forbidden);
 
                     // On garde le résultat en cache pour 5 minutes
                     var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
-                    memoryCache.Set(cacheKey, cacheResult, cacheEntryOptions);
+                    memoryCache.Set(cacheKey, isForbidden, cacheEntryOptions);
                 }
 
-                if (cacheResult.IsForbidden)
+                if (isForbidden)
                 {
                     // Boum ! On invalide son bracelet JWT immédiatement.
                     // Cela va retourner une erreur 401 Unauthorized à React.
                     context.Fail("Ce compte a été suspendu par l'administration.");
-                }
-                else if (roleClaim != null && roleClaim != cacheResult.CurrentRole)
-                {
-                    // 🛡️ Sentinel: Fix Stale JWT Claims Authorization Bypass
-                    // Reject token if the user's role has changed since token issuance
-                    context.Fail("Les permissions de ce compte ont été modifiées. Veuillez vous reconnecter.");
                 }
             }
         },

@@ -71,22 +71,3 @@
 ## 2024-06-27 - Required Field Indicators in Modals
 **Learning:** Adding visual required indicators (like asterisks) to mandatory form fields is a crucial UX pattern. However, for accessibility, these visual cues must be hidden from screen readers (using `aria-hidden="true"`) if the input itself already uses the HTML5 `required` attribute. This prevents redundant announcements while maintaining clear visual guidance for sighted users.
 **Action:** Always pair visual required indicators (e.g., `<span aria-hidden="true">*</span>`) with the semantic `required` attribute on the corresponding input element.
-
-## 2024-05-18 - Avoid CSS Hover Dropdowns
-**Learning:** Hover-only dropdowns (e.g., using `group-hover:opacity-100`) completely break keyboard navigation because they cannot be reliably triggered by focusing the toggle button. They also create a poor user experience on touch devices where hover states are unpredictable.
-**Action:** Always implement dropdowns using click/keyboard-driven state (like a React `isOpen` state) rather than CSS-only hover, and ensure the toggle button uses `aria-expanded` and `aria-haspopup` for proper accessibility across all devices.
-
-## 2024-07-07 - Semantic Elements for Interactive Actions
-**Learning:** Found non-interactive elements like `<h3>` and `<span>` using `onClick` handlers and `cursor-pointer` to trigger in-page actions (e.g., author clicks and tag clicks in `ImageModal.jsx`). This degrades keyboard accessibility because these elements cannot be focused via the Tab key and screen readers do not announce them as actionable controls.
-**Action:** Always use semantic `<button type="button">` elements for interactive on-page actions, rather than attaching `onClick` events to text or container elements like `div`, `span`, or `h3`.
-## 2024-07-14 - Semantic Buttons for Interactive Elements
-**Learning:** Using `<span>` or `<div>` with custom `onKeyDown`, `role="button"`, and `tabIndex` attributes for complex interactions is brittle and requires manual event handling (e.g., listening for Space/Enter keys).
-**Action:** When a child element (like an author tag) requires interaction, use a semantic `<button type="button">`. This inherently provides native keyboard navigability and correct screen reader support without manual event wiring.
-
-## 2024-07-11 - Required Field Indicators and Accessibility
-**Learning:** When adding visual required indicators (like an asterisk *) to form labels for sighted users, the indicator must be hidden from screen readers using `aria-hidden="true"` (e.g. `<span aria-hidden="true">*</span>`). Additionally, the associated input or textarea must have the standard HTML `required` attribute. This ensures screen readers announce the field as required exactly once without reading out "star" or "asterisk".
-**Action:** Always combine the `required` attribute on input fields with an `aria-hidden="true"` visually styled asterisk in the associated label to ensure an accessible and clear UX for both sighted and non-sighted users.
-
-## 2024-07-13 - Fix visually hidden interactive elements during keyboard navigation
-**Learning:** Using `opacity-0 group-hover:opacity-100` on interactive elements or their containers makes them inaccessible to keyboard users because elements remain visually hidden even when receiving keyboard focus.
-**Action:** Always complement `group-hover:opacity-100` with `focus-within:opacity-100` (and `group-focus-visible:opacity-100` if the container itself is focusable) to ensure interactive elements are visible when they or their children receive keyboard focus.

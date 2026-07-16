@@ -50,8 +50,7 @@ namespace PhotoAppApi.Services
                 }
 
                 // 2. Traiter le batch s'il contient des vues
-                // ⚡ Bolt: Use .Count != 0 instead of .Any() on a List to avoid enumerator allocation overhead
-                if (batch.Count != 0)
+                if (batch.Any())
                 {
                     await ProcessBatchAsync(batch, stoppingToken);
                 }
