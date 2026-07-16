@@ -80,7 +80,7 @@ export default function Contact() {
                 <button onClick={() => window.location.href = '/register'} className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]">{t('gallery.subscribe')}</button>
               </>
             ) : (
-              <button onClick={async () => { try { await api.post('/auth/logout'); } catch(e) { /* empty */ } clearUserSession(); window.location.href = '/login'; }} className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]" aria-label={t('gallery.logout_tooltip')} title={t('gallery.logout_tooltip')}>
+              <button onClick={async () => { try { await api.post('/auth/logout'); } catch(e) { console.error('Logout failed:', e); } clearUserSession(); window.location.href = '/login'; }} className="text-slate-400 hover:text-error hover:bg-error/10 p-2 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]" aria-label={t('gallery.logout_tooltip')} title={t('gallery.logout_tooltip')}>
                 <span className="material-symbols-outlined" aria-hidden="true">logout</span>
               </button>
             )}
