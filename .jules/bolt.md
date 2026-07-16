@@ -118,3 +118,6 @@ Pre-generate presigned S3 URLs directly in the bulk list endpoint (like `GetPhot
 Performing an inline array loop (like building a `Map` cache and then iterating to `.find()`) inside the return block of a React component creates unnecessary dictionary allocations and forces an O(N) internal loop to run on every render.
 **Action:**
 Extract the dictionary creation and array mapping logic outside of the return statement and into a `useMemo` hook, ensuring it only executes when the dependencies (e.g., the raw tags array) change.
+## 2024-05-14 - Parallelize S3 Presigned URL Generation
+**Learning:** Sequential await operations within loops (like `foreach`) can cause significant N+1 bottlenecks, especially when performing I/O operations such as generating S3 presigned URLs for each item in a collection.
+**Action:** Replaced sequential `foreach` loops with LINQ `.Select()` to create a collection of async Tasks, and awaited them concurrently using `Task.WhenAll`. This allows the I/O operations to execute in parallel, substantially reducing overall execution time and improving endpoint latency.
