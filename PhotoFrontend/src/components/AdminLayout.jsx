@@ -4,7 +4,7 @@ import React from 'react';
 import Footer from './Footer';
 
 const handleLogout = async () => {
-    try { await api.post('/auth/logout'); } catch(e) {/* empty */}
+    try { await api.post('/auth/logout'); } catch(e) { console.error('Logout failed:', e); }
     clearUserSession();
     window.location.href = '/login';
 };
