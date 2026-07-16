@@ -93,7 +93,3 @@
 ## 2026-07-15 - Native tooltips for interactive components
 **Learning:** Found that the main container and author button in `PhotoCard.jsx` had `aria-label`s for accessibility but lacked `title` attributes. Sighted mouse users didn't get native hover tooltips to understand the explicit action associated with these elements.
 **Action:** When creating or fixing icon-only buttons or interactive elements where visual context might be insufficient, always ensure that both `aria-label` (for screen readers) and `title` (to provide a native hover tooltip for sighted users) attributes are present and contain the same translated text.
-
-## 2026-07-16 - Native tooltips for interactive photo cards
-**Learning:** Found several dynamic elements like the 'open photo' div and 'view profile of' button in `Gallery.jsx` using localized `aria-label`s for screen readers but lacking corresponding `title` attributes. This deprives sighted users of native hover tooltips which are crucial for immediate context, especially when visual cues are limited.
-**Action:** When implementing or modifying dynamic interactive elements (like photo cards or icon buttons), always ensure that both `aria-label` and `title` attributes are present and contain the same translated text (using the `t()` function) to guarantee an accessible and clear UX for both sighted and non-sighted users.

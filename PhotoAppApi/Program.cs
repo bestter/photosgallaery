@@ -259,7 +259,15 @@ builder.Services.AddAuthorizationBuilder()
         policy.RequireRole("Admin", "Creator"));
 
 builder.Services.AddMemoryCache();
-builder.Services.AddControllers();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.SuppressXFrameOptionsHeader = false;
+});
+
+builder.Services.AddControllers(options => {
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+});
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
@@ -516,6 +524,7 @@ app.UseAuthorization();
 
 app.UseRateLimiter();
 
+app.UseAntiforgery();
 app.MapControllers();
 
 //https://gemini.google.com/app/387a36e26323a68d?hl=fr

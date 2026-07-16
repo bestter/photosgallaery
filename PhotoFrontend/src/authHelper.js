@@ -24,6 +24,9 @@ export const saveUserSession = (token) => {
 };
 
 export const clearUserSession = () => {
+    localStorage.removeItem('user_info');
+    // The CSRF token isn't stored locally across sessions (it's in-memory in api.js or HTTP Only)
+    // It will be reset on reload.
     localStorage.removeItem("user_info");
 };
 
