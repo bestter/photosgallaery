@@ -138,7 +138,7 @@ builder.Services.AddAuthentication(options =>
                 {
                     var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
                     // On vérifie en direct s'il a été banni depuis sa dernière connexion
-                    var user = await dbContext.Users.FindAsync(userId);
+                    var user = await dbContext.Users.FindAsync(new object[] { userId }, context.HttpContext.RequestAborted);
 
                     bool isForbidden = (user == null || user.Role == UserRole.Forbidden);
                     string currentRole = string.Empty;
