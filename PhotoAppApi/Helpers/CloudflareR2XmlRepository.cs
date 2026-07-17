@@ -181,7 +181,8 @@ namespace PhotoAppApi.Helpers
                 .Select(name => new KeyVersion { Key = $"{_prefix}{name}.xml" })
                 .ToList();
 
-            if (!keysToDelete.Any())
+            // ⚡ Bolt: Use .Count == 0 instead of .Any() on a List to avoid enumerator allocation overhead
+            if (keysToDelete.Count == 0)
                 return success;
 
             // AWS S3 DeleteObjects allows up to 1000 keys per request
@@ -198,7 +199,8 @@ namespace PhotoAppApi.Helpers
 
                     var response = await _s3Client.DeleteObjectsAsync(deleteRequest, cancellationToken);
 
-                    if (response.DeleteErrors != null && response.DeleteErrors.Any())
+                    // ⚡ Bolt: Use .Count != 0 instead of .Any() on a List to avoid enumerator allocation overhead
+                    if (response.DeleteErrors != null && response.DeleteErrors.Count != 0)
                     {
                         foreach (var error in response.DeleteErrors)
                         {
@@ -207,7 +209,8 @@ namespace PhotoAppApi.Helpers
                         success = false;
                     }
 
-                    if (response.DeletedObjects != null && response.DeletedObjects.Any())
+                    // ⚡ Bolt: Use .Count != 0 instead of .Any() on a List to avoid enumerator allocation overhead
+                    if (response.DeletedObjects != null && response.DeletedObjects.Count != 0)
                     {
                         foreach (var deleted in response.DeletedObjects)
                         {

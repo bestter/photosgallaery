@@ -118,3 +118,6 @@ Pre-generate presigned S3 URLs directly in the bulk list endpoint (like `GetPhot
 Performing an inline array loop (like building a `Map` cache and then iterating to `.find()`) inside the return block of a React component creates unnecessary dictionary allocations and forces an O(N) internal loop to run on every render.
 **Action:**
 Extract the dictionary creation and array mapping logic outside of the return statement and into a `useMemo` hook, ensuring it only executes when the dependencies (e.g., the raw tags array) change.
+## 2024-05-24 - Avoid Any() on Lists
+**Learning:** Using `.Any()` on a materialized collection (like `List<T>`) creates unnecessary enumerator allocation overhead.
+**Action:** Always prefer using `.Count == 0` or `.Count != 0` when checking if a `List<T>` has elements.
