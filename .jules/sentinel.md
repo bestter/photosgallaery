@@ -151,3 +151,10 @@
 **Vulnerability:** Several endpoints in `AuthController` and `PhotosController` executed long-running Entity Framework Core database operations (`FindAsync`, `ToListAsync`, `CountAsync`) and asynchronous channel writes (`WriteAsync`) without passing a `CancellationToken`. This allowed the operations to continue consuming database connections, memory, and thread pool resources even after a client abruptly disconnected, potentially leading to resource exhaustion and Denial-of-Service (DoS).
 **Learning:** For endpoints returning large collections or performing background processing, graceful cancellation is critical to conserve server resources when subjected to unexpected or malicious disconnects.
 **Prevention:** Consistently inject a `CancellationToken cancellationToken = default` parameter into ASP.NET Core API controller methods and thread it through to all async data access and processing operations.
+## 2024-05-24 - Pagination Limits to Prevent DoS
+
+**Vulnerability:** API endpoints (`GetPhotos`, `GetUserPhotos`, `GetMostViewedPhotos`, `GetAllUsers`, `GetReports`) lacked maximum boundary constraints on parameters like `pageSize` and `count`, allowing malicious actors to request unbounded result sets (e.g., `count=1000000`), causing excessive database load and Out-Of-Memory (OOM) vulnerabilities.
+
+**Learning:** Relying solely on default parameter values (e.g., `count = 10`) is insufficient. Client-provided inputs can override these defaults and must be strictly clamped before executing database operations, particularly those involving `.Skip()` and `.Take()`.
+
+**Prevention:** Consistently apply `Math.Clamp()` and `Math.Max()` to pagination and count variables prior to constructing Entity Framework Core queries. Ensure that rate limiting is accompanied by input length constraints to fully mitigate Denial-of-Service risks.
