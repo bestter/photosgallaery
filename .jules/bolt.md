@@ -121,3 +121,6 @@ Extract the dictionary creation and array mapping logic outside of the return st
 ## 2024-05-24 - Avoid Any() on Lists
 **Learning:** Using `.Any()` on a materialized collection (like `List<T>`) creates unnecessary enumerator allocation overhead.
 **Action:** Always prefer using `.Count == 0` or `.Count != 0` when checking if a `List<T>` has elements.
+## 2024-07-09 - Remove Redundant Include before Select in EF Core Projections
+**Learning:** In Entity Framework Core, when a query ends with a `.Select()` projection, the framework automatically generates the necessary SQL `JOIN`s for any navigation properties referenced inside the projection block. Calling `.Include()` explicitly before `.Select()` is entirely redundant. It degrades performance by forcing EF Core to spend CPU cycles and memory parsing and building larger query expression trees and tracking metadata that are ultimately ignored by the SQL projection translator.
+**Action:** Always omit `.Include()` or `.ThenInclude()` calls if the query ends in a `.Select()` projection that maps the necessary nested properties, saving query compilation and tracking overhead.
