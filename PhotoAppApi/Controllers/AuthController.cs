@@ -235,10 +235,10 @@ namespace PhotoAppApi.Controllers
                 if (user == null || user.Role == UserRole.Forbidden) return Unauthorized();
 
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
+                // ⚡ Bolt: Removed redundant .Include(ug => ug.Group) because .Select() handles the necessary SQL JOINs automatically, saving query compilation overhead.
                 var groups = await _context.UserGroups
                     .AsNoTracking()
                     .Where(ug => ug.UserId == userId)
-                    .Include(ug => ug.Group)
                     .Select(ug => new
                     {
                         ug.Group.Id,
