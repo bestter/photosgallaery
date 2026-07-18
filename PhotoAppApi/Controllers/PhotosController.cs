@@ -66,6 +66,10 @@ namespace PhotoAppApi.Controllers
             [FromQuery] Language lang = Language.FR,
             [FromQuery] Guid? groupId = null, CancellationToken cancellationToken = default)
         {
+            // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            page = Math.Max(1, page);
+
             log.Debug($"In {nameof(GetPhotos)}");
             try
             {
@@ -1166,6 +1170,10 @@ namespace PhotoAppApi.Controllers
         [EnableRateLimiting("PhotosGetLimiter")]
         public async Task<IActionResult> GetUserPhotos(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Language lang = Language.FR, CancellationToken cancellationToken = default)
         {
+            // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            page = Math.Max(1, page);
+
             try
             {
                 // 1. Trouver l'utilisateur cible
@@ -1272,6 +1280,9 @@ namespace PhotoAppApi.Controllers
         {
             try
             {
+                // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+                count = Math.Clamp(count, 1, 50);
+
                 log.Debug($"In {nameof(GetMostViewedPhotos)} with count: {count}");
 
                 // 1. On récupère les N photos les plus vues (> 0 vues)
