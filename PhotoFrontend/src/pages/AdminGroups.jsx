@@ -287,7 +287,7 @@ export default function AdminGroups() {
                                                             <button
                                                                 onClick={() => handleDeleteGroup(group.id || group.Id)}
                                                                 className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors align-middle"
-                                                                title={t("admin.groups.action.delete_group_tooltip")}
+                                                                title={t("admin.groups.action.delete_group_aria", { name: group.name || group.Name })}
                                                                 aria-label={t("admin.groups.action.delete_group_aria", { name: group.name || group.Name })}
                                                             >
                                                                 <span aria-hidden="true" className="material-symbols-outlined">delete</span>
