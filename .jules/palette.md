@@ -1,0 +1,3 @@
+## 2024-05-17 - Drag and Drop Upload Visual Feedback Pattern
+**Learning:** When implementing interactive drag-and-drop zones in React (like file uploads), if child elements inside the drop zone do not have `pointer-events: none` applied, dragging a file over them will trigger `onDragLeave` on the parent container. This creates a rapid flickering of the visual state (e.g. flashing borders/backgrounds) which actively degrades the UX instead of enhancing it.
+**Action:** Always add a utility class like `pointer-events-none` to non-interactive child elements (like icons and text paragraphs) inside a drag-and-drop target to ensure smooth `onDragOver` tracking at the container level.

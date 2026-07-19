@@ -1,0 +1,17 @@
+--- PhotoFrontend/src/components/UploadPhoto.jsx
++++ PhotoFrontend/src/components/UploadPhoto.jsx
+@@ -282,14 +282,14 @@
+             aria-label={t("components.upload.browse_files")}
+             title={t("components.upload.browse_files")}
+           />
+-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
++          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform pointer-events-none">
+             <span aria-hidden="true" className="material-symbols-outlined text-4xl">
+               cloud_upload
+             </span>
+           </div>
+-          <div className="flex flex-col gap-2">
++          <div className="flex flex-col gap-2 pointer-events-none">
+             <p className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">
+               {selectedFile
+                 ? selectedFile.name
