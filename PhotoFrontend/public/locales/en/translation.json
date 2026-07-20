@@ -270,7 +270,9 @@
       "logout": "Logout"
     },
     "group_selector": {
-      "your_collectives": "Your Collectives"
+      "your_collectives": "Your Collectives",
+      "toggle_aria": "Select a group: {{name}}",
+      "toggle_title": "Select a group"
     },
     "image_modal": {
       "download": {
