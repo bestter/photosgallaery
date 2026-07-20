@@ -149,32 +149,30 @@ export default function Gallery() {
     }
   }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag]);
 
-  // Keep URL in sync
-  useEffect(() => {
-    if (activeGroupId) {
-      // Maintenir l'URL synchronisée avec le groupe actif
-      if (userGroups && userGroups.length > 0) {
-        const activeGroup = userGroups.find(
-          (g) => (g.id || g.Id) === activeGroupId,
-        );
-        if (activeGroup && (activeGroup.shortName || activeGroup.ShortName)) {
-          const url = new URL(window.location.href);
-          url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
-          url.searchParams.delete("groupId");
-          window.history.replaceState({}, "", url);
-        }
-      }
-    }
+  // ⚡ Bolt: Memoize the active group lookup to avoid multiple O(N) array scans during every render or state update.
+  const activeGroup = useMemo(() => {
+    if (!userGroups || userGroups.length === 0 || !activeGroupId) return null;
+    return userGroups.find((g) => (g.id || g.Id) === activeGroupId);
   }, [activeGroupId, userGroups]);
 
-
+  // Keep URL in sync
+  useEffect(() => {
+    if (activeGroupId && activeGroup) {
+      // Maintenir l'URL synchronisée avec le groupe actif
+      if (activeGroup.shortName || activeGroup.ShortName) {
+        const url = new URL(window.location.href);
+        url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
+        url.searchParams.delete("groupId");
+        window.history.replaceState({}, "", url);
+      }
+    }
+  }, [activeGroupId, activeGroup]);
 
   // ⚡ Bolt: Memoize the active group name to avoid executing an O(N) array lookup twice during every render.
   const activeGroupName = useMemo(() => {
-    if (!activeGroupId) return t("gallery.gallery_title");
-    const group = userGroups.find((g) => (g.id || g.Id) === activeGroupId);
-    return group?.name || group?.Name || t("gallery.gallery_title");
-  }, [activeGroupId, userGroups, t]);
+    if (!activeGroup) return t("gallery.gallery_title");
+    return activeGroup.name || activeGroup.Name || t("gallery.gallery_title");
+  }, [activeGroup, t]);
 
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
