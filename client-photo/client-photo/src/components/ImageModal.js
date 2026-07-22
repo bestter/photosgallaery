@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 // --- NOUVEAUX IMPORTS POUR LEAFLET ---
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
 
 // -------------------------------------
