@@ -95,7 +95,7 @@ namespace PhotoAppApi.Controllers
 
                 if (request.RequestId.HasValue)
                 {
-                    var groupRequest = await _context.GroupRequests.FindAsync(request.RequestId.Value, cancellationToken);
+                    var groupRequest = await _context.GroupRequests.FindAsync(new object[] { request.RequestId.Value }, cancellationToken);
                     if (groupRequest != null)
                     {
                         _context.GroupRequests.Remove(groupRequest);
