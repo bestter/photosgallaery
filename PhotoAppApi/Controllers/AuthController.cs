@@ -35,6 +35,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("login")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("LoginLimiter")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request, CancellationToken cancellationToken = default)
         {
@@ -116,6 +117,7 @@ namespace PhotoAppApi.Controllers
 
 
         [HttpPost("logout")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("LoginLimiter")]
         public IActionResult Logout()
         {
@@ -124,6 +126,7 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("register")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("RegisterLimiter")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
@@ -207,6 +210,14 @@ namespace PhotoAppApi.Controllers
             }
         }
 
+        [HttpGet("csrf-token")]
+        [IgnoreAntiforgeryToken]
+        public IActionResult GetCsrfToken([FromServices] Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery)
+        {
+            var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+            return Ok(new { token = tokens.RequestToken });
+        }
+
         [HttpGet("groups")]
         [Microsoft.AspNetCore.Authorization.Authorize]
         [EnableRateLimiting("PhotosGetLimiter")]
@@ -224,10 +235,10 @@ namespace PhotoAppApi.Controllers
                 if (user == null || user.Role == UserRole.Forbidden) return Unauthorized();
 
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
+                // ⚡ Bolt: Removed redundant .Include(ug => ug.Group) because .Select() handles the necessary SQL JOINs automatically, saving query compilation overhead.
                 var groups = await _context.UserGroups
                     .AsNoTracking()
                     .Where(ug => ug.UserId == userId)
-                    .Include(ug => ug.Group)
                     .Select(ug => new
                     {
                         ug.Group.Id,

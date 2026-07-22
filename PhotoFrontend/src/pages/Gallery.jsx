@@ -5,7 +5,7 @@ import InviteModal from "../components/InviteModal";
 import GroupRequestModal from "../components/GroupRequestModal";
 import GroupSelector from "../components/GroupSelector";
 import { useDebounce } from "../hooks/useDebounce";
-import { getUserRole, clearUserSession, isTokenExpired, getUsernameFromToken } from "../authHelper";
+import { getUserRole, clearUserSession, isTokenExpired } from "../authHelper";
 import api from "../api";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
@@ -149,32 +149,30 @@ export default function Gallery() {
     }
   }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag]);
 
-  // Keep URL in sync
-  useEffect(() => {
-    if (activeGroupId) {
-      // Maintenir l'URL synchronisée avec le groupe actif
-      if (userGroups && userGroups.length > 0) {
-        const activeGroup = userGroups.find(
-          (g) => (g.id || g.Id) === activeGroupId,
-        );
-        if (activeGroup && (activeGroup.shortName || activeGroup.ShortName)) {
-          const url = new URL(window.location.href);
-          url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
-          url.searchParams.delete("groupId");
-          window.history.replaceState({}, "", url);
-        }
-      }
-    }
+  // ⚡ Bolt: Memoize the active group lookup to avoid multiple O(N) array scans during every render or state update.
+  const activeGroup = useMemo(() => {
+    if (!userGroups || userGroups.length === 0 || !activeGroupId) return null;
+    return userGroups.find((g) => (g.id || g.Id) === activeGroupId);
   }, [activeGroupId, userGroups]);
 
-
+  // Keep URL in sync
+  useEffect(() => {
+    if (activeGroupId && activeGroup) {
+      // Maintenir l'URL synchronisée avec le groupe actif
+      if (activeGroup.shortName || activeGroup.ShortName) {
+        const url = new URL(window.location.href);
+        url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
+        url.searchParams.delete("groupId");
+        window.history.replaceState({}, "", url);
+      }
+    }
+  }, [activeGroupId, activeGroup]);
 
   // ⚡ Bolt: Memoize the active group name to avoid executing an O(N) array lookup twice during every render.
   const activeGroupName = useMemo(() => {
-    if (!activeGroupId) return t("gallery.gallery_title");
-    const group = userGroups.find((g) => (g.id || g.Id) === activeGroupId);
-    return group?.name || group?.Name || t("gallery.gallery_title");
-  }, [activeGroupId, userGroups, t]);
+    if (!activeGroup) return t("gallery.gallery_title");
+    return activeGroup.name || activeGroup.Name || t("gallery.gallery_title");
+  }, [activeGroup, t]);
 
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
@@ -511,6 +509,7 @@ export default function Gallery() {
                     role="button"
                     tabIndex={0}
                     aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                    title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -544,6 +543,7 @@ export default function Gallery() {
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
                           aria-label={t("gallery.view_profile_of", { author })}
+                          title={t("gallery.view_profile_of", { author })}
                         >
                           <span
                             aria-hidden="true"
@@ -568,6 +568,7 @@ export default function Gallery() {
                     role="button"
                     tabIndex={0}
                     aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                    title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -604,6 +605,7 @@ export default function Gallery() {
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       aria-label={t("gallery.view_profile_of", { author })}
+                      title={t("gallery.view_profile_of", { author })}
                     >
                       <span
                         aria-hidden="true"
@@ -625,6 +627,7 @@ export default function Gallery() {
                   role="button"
                   tabIndex={0}
                   aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                  title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();

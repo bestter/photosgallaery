@@ -35,6 +35,10 @@ namespace PhotoAppApi.Controllers
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
+            // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            page = Math.Max(1, page);
+
             log.Debug($"In {nameof(GetAllUsers)}");
             try
             {
@@ -107,6 +111,10 @@ namespace PhotoAppApi.Controllers
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
+            // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            page = Math.Max(1, page);
+
             log.Debug($"In {nameof(GetReports)}");
             try
             {

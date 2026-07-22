@@ -283,12 +283,12 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
             aria-label={t("components.upload.browse_files")}
             title={t("components.upload.browse_files")}
           />
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform pointer-events-none">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
             <span aria-hidden="true" className="material-symbols-outlined text-4xl">
               cloud_upload
             </span>
           </div>
-          <div className="flex flex-col gap-2 pointer-events-none">
+          <div className="flex flex-col gap-2">
             <p className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">
               {selectedFile
                 ? selectedFile.name
