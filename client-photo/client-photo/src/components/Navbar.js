@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'; // Ajout de useCallback
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { getUserRole, getUsernameFromToken } from './authHelper';
+import { getUserRole, getUsernameFromToken, clearUserSession } from './authHelper';
 import Button from './Button';
 import ThemeSwitcher from './ThemeSwitcher';
 import api from '../api';

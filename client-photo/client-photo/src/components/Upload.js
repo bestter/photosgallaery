@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import api from '../api';
 import Button from './Button';
 import toast from 'react-hot-toast';
-import { isTokenExpired, getUserRole } from './authHelper';
+import { isTokenExpired, getUserRole, clearUserSession } from './authHelper';
 
 const Upload = ({ onUploadSuccess, token, setToken }) => {
     const [files, setFiles] = useState([]); 
