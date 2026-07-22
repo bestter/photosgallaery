@@ -1,6 +1,0 @@
-## 2024-05-17 - Drag and Drop Upload Visual Feedback Pattern
-**Learning:** When implementing interactive drag-and-drop zones in React (like file uploads), if child elements inside the drop zone do not have `pointer-events: none` applied, dragging a file over them will trigger `onDragLeave` on the parent container. This creates a rapid flickering of the visual state (e.g. flashing borders/backgrounds) which actively degrades the UX instead of enhancing it.
-**Action:** Always add a utility class like `pointer-events-none` to non-interactive child elements (like icons and text paragraphs) inside a drag-and-drop target to ensure smooth `onDragOver` tracking at the container level.
-## 2024-05-24 - Do Not Override Dynamic Content with Static ARIA Labels
-**Learning:** Adding a static `aria-label` to a button that visually displays dynamic text (like a dropdown showing the currently selected group) overwrites the content for screen readers. This hides crucial state information and violates WCAG 2.5.3 (Label in Name).
-**Action:** Always include the dynamic text within the `aria-label` (e.g., using string interpolation and translation frameworks correctly) or rely on `aria-expanded` combined with the native text content.
