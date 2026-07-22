@@ -162,7 +162,7 @@ namespace PhotoAppApi.Tests
             var controller = new GroupsController(context);
 
             // Act
-            var result = await controller.GetAllGroups(TestContext.Current.CancellationToken);
+            var result = await controller.GetAllGroups(1, 20, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -208,7 +208,7 @@ namespace PhotoAppApi.Tests
             var controller = new GroupsController(context);
 
             // Act
-            var result = await controller.GetAllGroups(TestContext.Current.CancellationToken);
+            var result = await controller.GetAllGroups(1, 20, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
