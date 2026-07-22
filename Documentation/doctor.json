@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 3,
+  "mode": "baseline",
+  "baseline": {
+    "baseRef": "95b1870295da2c569c4a85f68c3309342c11a20f",
+    "newCount": 1,
+    "fixedCount": 1,
+    "baseTotalCount": 5
+  },
+  "reactDetected": true,
+  "version": "0.7.8",
+  "ok": true,
+  "directory": "C:\\Users\\marti\\source\\repos\\PhotoApp\\PhotoFrontend",
+  "diff": {
+    "baseBranch": "main",
+    "currentBranch": "fix/swallowed-exceptions-18047149737467203588",
+    "changedFileCount": 3,
+    "isCurrentChanges": false
+  },
+  "projects": [
+    {
+      "directory": "C:\\Users\\marti\\source\\repos\\PhotoApp\\PhotoFrontend",
+      "packageRoot": "C:\\Users\\marti\\source\\repos\\PhotoApp\\PhotoFrontend",
+      "framework": "vite",
+      "project": {
+        "rootDirectory": "C:\\Users\\marti\\source\\repos\\PhotoApp\\PhotoFrontend",
+        "projectName": "photofrontend",
+        "reactVersion": "^19.2.4",
+        "reactMajorVersion": 19,
+        "tailwindVersion": "^4.2.2",
+        "zodVersion": null,
+        "zodMajorVersion": null,
+        "framework": "vite",
+        "hasTypeScript": false,
+        "hasReactCompiler": false,
+        "hasTanStackQuery": false,
+        "hasSsrDependency": false,
+        "preactVersion": null,
+        "preactMajorVersion": null,
+        "hasReactNativeWorkspace": false,
+        "nextjsVersion": null,
+        "nextjsMajorVersion": null,
+        "expoVersion": null,
+        "shopifyFlashListVersion": null,
+        "shopifyFlashListMajorVersion": null,
+        "hasReanimated": false,
+        "reanimatedVersion": null,
+        "isPreES2023Target": false,
+        "isStaticExport": false,
+        "sourceFileCount": 35
+      },
+      "diagnostics": [
+        {
+          "filePath": "src/pages/Contact.jsx",
+          "plugin": "react-doctor",
+          "rule": "button-has-type",
+          "severity": "warning",
+          "title": "Button missing explicit type",
+          "message": "Your users can submit the form by accident because a `<button>` with no `type` defaults to submit.",
+          "help": "Set an explicit button `type` so plain buttons do not submit forms by accident: `type=\"button\"`, `\"submit\"`, or `\"reset\"`.",
+          "line": 83,
+          "column": 16,
+          "offset": 4309,
+          "length": 6,
+          "endLine": 83,
+          "category": "Bugs",
+          "id": "src/pages/Contact.jsx::83:16::react-doctor/button-has-type::fbae0ef5afb2ad4ca943c43a2e079461602077aee0e3724c94e8806eb01ab0ad",
+          "normalizedFilePath": "src/pages/Contact.jsx",
+          "tags": []
+        }
+      ],
+      "score": {
+        "score": 79,
+        "label": "Needs work",
+        "rules": {
+          "react-doctor/prefer-module-scope-static-value": {
+            "priority": 38,
+            "tier": "P3"
+          },
+          "react-doctor/button-has-type": {
+            "priority": 46,
+            "tier": "P3"
+          }
+        }
+      },
+      "skippedChecks": [],
+      "analyzedFiles": [
+        "src/components/AdminLayout.jsx",
+        "src/pages/Contact.jsx"
+      ],
+      "analyzedFileCount": 2,
+      "complete": true,
+      "scannedFileCount": 2,
+      "elapsedMilliseconds": 1618.944
+    }
+  ],
+  "diagnostics": [
+    {
+      "filePath": "src/pages/Contact.jsx",
+      "plugin": "react-doctor",
+      "rule": "button-has-type",
+      "severity": "warning",
+      "title": "Button missing explicit type",
+      "message": "Your users can submit the form by accident because a `<button>` with no `type` defaults to submit.",
+      "help": "Set an explicit button `type` so plain buttons do not submit forms by accident: `type=\"button\"`, `\"submit\"`, or `\"reset\"`.",
+      "line": 83,
+      "column": 16,
+      "offset": 4309,
+      "length": 6,
+      "endLine": 83,
+      "category": "Bugs",
+      "id": "src/pages/Contact.jsx::83:16::react-doctor/button-has-type::fbae0ef5afb2ad4ca943c43a2e079461602077aee0e3724c94e8806eb01ab0ad",
+      "normalizedFilePath": "src/pages/Contact.jsx",
+      "tags": []
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warningCount": 1,
+    "affectedFileCount": 1,
+    "totalDiagnosticCount": 1,
+    "score": 79,
+    "scoreLabel": "Needs work"
+  },
+  "elapsedMilliseconds": 1784.3418000000001,
+  "error": null
+}
