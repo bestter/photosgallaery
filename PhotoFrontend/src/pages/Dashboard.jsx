@@ -254,11 +254,15 @@ export default function Dashboard() {
                         <td className="px-6 py-4">
                           {groups && groups.length > 0 ? (
                             groups.length > 2 ? (
-                              <div className="group relative inline-block cursor-pointer">
-                                <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors">
+                              <div
+                                className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+                                tabIndex={0}
+                                aria-label={`Groupes: ${groups.join(", ")}`}
+                              >
+                                <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors group-focus:bg-surface-container-highest">
                                   Groupes ({groups.length})
                                 </span>
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
                                   <div className="flex flex-col gap-1 items-center">
                                     {groups.map((g, i) => (
                                       <span
