@@ -158,3 +158,8 @@
 **Learning:** Relying solely on default parameter values (e.g., `count = 10`) is insufficient. Client-provided inputs can override these defaults and must be strictly clamped before executing database operations, particularly those involving `.Skip()` and `.Take()`.
 
 **Prevention:** Consistently apply `Math.Clamp()` and `Math.Max()` to pagination and count variables prior to constructing Entity Framework Core queries. Ensure that rate limiting is accompanied by input length constraints to fully mitigate Denial-of-Service risks.
+
+## 2026-07-22 - Fix Bcrypt Hash Denial of Service (DoS)
+**Vulnerability:** The application was vulnerable to Bcrypt Hash Denial of Service (DoS) as DTO objects allowed passwords up to 100 characters in length. Because Bcrypt natively truncates inputs over 72 bytes, exceptionally long strings could be processed unsafely, potentially causing high CPU overhead during hashing and contributing to truncation-related security vulnerabilities.
+**Learning:** Relying on generic string lengths (like `[StringLength(100)]`) for password inputs is insufficient when using Bcrypt. Bcrypt has a hard limit of 72 bytes.
+**Prevention:** Always enforce a strict maximum length limit of 72 characters (`[StringLength(72)]`) on password fields in DTOs to align with Bcrypt's native truncation limit and prevent potential DoS through excessive string parsing before hashing.
