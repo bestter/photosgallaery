@@ -27,16 +27,24 @@ namespace PhotoAppApi.Controllers
         [HttpGet]
         [Authorize(Roles = "Admin")]
         [EnableRateLimiting("AdminLimiter")]
-        public async Task<IActionResult> GetAllGroupRequests(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetAllGroupRequests([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default)
         {
+            // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            page = Math.Max(1, page);
+
             log.Debug($"In {nameof(GetAllGroupRequests)}");
             try
             {
+                var query = _context.GroupRequests.AsNoTracking().AsQueryable();
+                var totalCount = await query.CountAsync(cancellationToken);
+
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
                 // ⚡ Bolt: Removed redundant .Include(r => r.Requester) because .Select() handles the necessary SQL JOINs automatically, saving query compilation overhead.
-                var requests = await _context.GroupRequests
-                    .AsNoTracking()
+                var requests = await query
                     .OrderByDescending(r => r.RequestedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(r => new
                     {
                         r.Id,
@@ -51,6 +59,11 @@ namespace PhotoAppApi.Controllers
                         }
                     })
                     .ToListAsync(cancellationToken);
+
+                if (HttpContext != null)
+                {
+                    Response.Headers.Append("X-Total-Count", totalCount.ToString());
+                }
 
                 return Ok(requests);
             }

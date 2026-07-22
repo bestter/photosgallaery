@@ -27,15 +27,23 @@ namespace PhotoAppApi.Controllers
 
         // GET: api/admin/groups
         [HttpGet]
-        public async Task<IActionResult> GetAllGroups(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetAllGroups([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default)
         {
+            // 🛡️ Sentinel: Enforce maximum limits to prevent DoS via large DB queries and OOM.
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            page = Math.Max(1, page);
+
             log.Debug($"In {nameof(GetAllGroups)}");
             try
             {
+                var query = _context.Groups.AsNoTracking().AsQueryable();
+                var totalCount = await query.CountAsync(cancellationToken);
+
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.
-                var groups = await _context.Groups
-                    .AsNoTracking()
+                var groups = await query
                     .OrderByDescending(g => g.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(g => new
                     {
                         g.Id,
@@ -47,6 +55,11 @@ namespace PhotoAppApi.Controllers
                         PhotoCount = g.Photos.Count
                     })
                     .ToListAsync(cancellationToken);
+
+                if (HttpContext != null)
+                {
+                    Response.Headers.Append("X-Total-Count", totalCount.ToString());
+                }
 
                 return Ok(groups);
             }
