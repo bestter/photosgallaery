@@ -167,3 +167,8 @@
 **Vulnerability:** A minor DoS/crash vector where `FindAsync` incorrectly interpreted `CancellationToken` as a key property because it was passed alongside a single primary key without being wrapped in an object array (e.g. `FindAsync(request.RequestId.Value, cancellationToken)`).
 **Learning:** EF Core's `FindAsync(params object[] keyValues)` will consume the `CancellationToken` as a second key parameter if the first parameter is just a single ID, which bypasses the intended `FindAsync(object[] keyValues, CancellationToken cancellationToken)` overload.
 **Prevention:** Always wrap the key values in an object array when passing a `CancellationToken`, like this: `await _context.Entity.FindAsync(new object[] { id }, cancellationToken);`.
+
+## 2026-07-23 - Fix missing authorization on tags search endpoint
+**Vulnerability:** Missing authentication on the `/api/tags/search` endpoint.
+**Learning:** Unprotected API endpoints, even those seemingly innocuous like tag searches, can allow unauthenticated users to enumerate internal data structures. This can lead to information disclosure or be chained into larger attacks by mapping out valid internal parameters.
+**Prevention:** Always verify that every controller endpoint exposing application state or data requires authentication (e.g., via the `[Authorize]` attribute) unless explicitly intended for public access.
