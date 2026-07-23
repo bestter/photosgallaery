@@ -70,16 +70,14 @@ export default function Gallery() {
       const url = `/photos?${params.toString()}`;
       const response = await api.get(url);
 
-      setPhotos((prev) => {
-        const newPhotos = append ? [...prev, ...response.data] : response.data;
-        const totalCount = response.headers["x-total-count"];
-        if (totalCount) {
-          setHasMore(newPhotos.length < parseInt(totalCount, 10));
-        } else {
-          setHasMore(response.data.length === 20);
-        }
-        return newPhotos;
-      });
+      setPhotos((prev) => (append ? [...prev, ...response.data] : response.data));
+      const totalCount = response.headers["x-total-count"];
+      if (totalCount) {
+        const totalLoaded = (currentPage - 1) * 20 + response.data.length;
+        setHasMore(totalLoaded < parseInt(totalCount, 10));
+      } else {
+        setHasMore(response.data.length === 20);
+      }
     } catch (error) {
       console.error("Erreur lors de la récupération des photos :", error);
     } finally {
@@ -195,9 +193,10 @@ export default function Gallery() {
     // Second Pass: Use O(1) dictionary lookup instead of mapping arrays
     return photos.map((photo) => {
       const photoTagsRaw = photo.tags || photo.Tags || [];
-      const _displayTags = photoTagsRaw
-        .map((tagObj) => translationsMap.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj)))
-        .filter(Boolean);
+      const _displayTags = photoTagsRaw.flatMap((tagObj) => {
+        const translated = translationsMap.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
+        return translated ? [translated] : [];
+      });
 
       return { ...photo, _displayTags };
     });

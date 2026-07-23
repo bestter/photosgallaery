@@ -30,6 +30,7 @@ export default function Dashboard() {
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
+    let isCancelled = false;
 
     if (isTokenExpired() || getUserRole() !== "Admin") {
       window.location.href = "/";
@@ -45,26 +46,32 @@ export default function Dashboard() {
         if (deferredSearchTerm) params.append("search", deferredSearchTerm);
 
         const response = await api.get(`/admin/users?${params.toString()}`);
-        setUsers((prev) => {
-          const newUsers = append ? [...prev, ...response.data] : response.data;
-          const totalCount = response.headers["x-total-count"];
-          if (totalCount) {
-            setHasMore(newUsers.length < parseInt(totalCount, 10));
-          } else {
-            setHasMore(response.data.length === 20);
-          }
-          return newUsers;
-        });
+        if (isCancelled) return;
+        setUsers((prev) => (append ? [...prev, ...response.data] : response.data));
+        const totalCount = response.headers["x-total-count"];
+        if (totalCount) {
+          const totalLoaded = (currentPage - 1) * 20 + response.data.length;
+          setHasMore(totalLoaded < parseInt(totalCount, 10));
+        } else {
+          setHasMore(response.data.length === 20);
+        }
       } catch (error) {
+        if (isCancelled) return;
         console.error("Error fetching users:", error);
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
     fetchUsers(1, false);
+
+    return () => {
+      isCancelled = true;
+    };
   }, [deferredSearchTerm]);
 
   const handleRoleUpdate = async (userId, newRole) => {
