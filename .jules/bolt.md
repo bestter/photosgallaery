@@ -127,3 +127,8 @@ Extract the dictionary creation and array mapping logic outside of the return st
 ## 2024-07-10 - Avoid redundant O(N) Array Lookups in Gallery
 **Learning:** Performing `userGroups.find` in multiple separate hooks (like `useEffect` and `useMemo`) using the exact same dependencies means the O(N) loop is executed multiple times per render cycle, which could slow down the main thread if the list of groups is long.
 **Action:** Extract repeated inline array lookups into a single memoized variable (like `const activeGroup = useMemo(...)`) and reuse that value across other `useEffect` or `useMemo` hooks.
+## 2024-05-18 - Concurrent Task Execution for Pre-Signed URLs
+
+**Learning:** When using `Task.WhenAll` on an `IEnumerable<Task>` created by `.Select(async ...)`, the asynchronous lambda executes synchronously until the first real `await` that yields control back to the caller. If the awaited method completes synchronously (e.g. `AmazonS3Client.GetPreSignedURLAsync` which is typically just CPU-bound crypto signing and string building, rather than a true network IO call), the `.Select` executes sequentially and blocks the thread, completely defeating the purpose of `Task.WhenAll`.
+
+**Action:** Replaced `.Select(async photo => ...)` with `.Select(photo => Task.Run(async () => ...))` for S3 presigned URL generation. This explicitly queues the CPU-bound work on the thread pool, allowing `Task.WhenAll` to actually run them concurrently and significantly reducing response latency for endpoints returning lists of photos.
