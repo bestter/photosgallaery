@@ -167,3 +167,8 @@
 **Vulnerability:** A minor DoS/crash vector where `FindAsync` incorrectly interpreted `CancellationToken` as a key property because it was passed alongside a single primary key without being wrapped in an object array (e.g. `FindAsync(request.RequestId.Value, cancellationToken)`).
 **Learning:** EF Core's `FindAsync(params object[] keyValues)` will consume the `CancellationToken` as a second key parameter if the first parameter is just a single ID, which bypasses the intended `FindAsync(object[] keyValues, CancellationToken cancellationToken)` overload.
 **Prevention:** Always wrap the key values in an object array when passing a `CancellationToken`, like this: `await _context.Entity.FindAsync(new object[] { id }, cancellationToken);`.
+
+## 2026-07-23 - Prevent Admin Lockout Vulnerability
+**Vulnerability:** An administrator could modify their own role via the `/api/admin/users/{id}/role` endpoint, potentially demoting themselves and causing an admin lockout.
+**Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
+**Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints.

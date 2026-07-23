@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace PhotoAppApi.Controllers
 {
@@ -85,6 +86,14 @@ namespace PhotoAppApi.Controllers
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateDto request, CancellationToken cancellationToken = default)
         {
             log.Debug($"In {nameof(UpdateUserRole)} with id: {id}");
+
+            // 🛡️ Sentinel: Prevent Admin Lockout by ensuring users cannot modify their own role
+            var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(currentUserIdString, out int currentUserId) && currentUserId == id)
+            {
+                return BadRequest("Vous ne pouvez pas modifier votre propre rôle.");
+            }
+
             // 1. Trouver l'utilisateur
             var user = await _context.Users.FindAsync(new object[] { id }, cancellationToken);
             if (user == null)
