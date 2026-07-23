@@ -1,23 +1,9 @@
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
-using Microsoft.Extensions.Caching.Memory;
-using Moq;
 using Moq;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
@@ -85,7 +71,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -128,7 +114,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -159,7 +145,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -186,7 +172,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -253,7 +239,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -306,7 +292,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -334,7 +320,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -383,7 +369,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -427,7 +413,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -463,7 +449,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -504,7 +490,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -547,7 +533,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };
@@ -582,7 +568,7 @@ namespace PhotoAppApi.Tests.Controllers
             {
                 HttpContext = httpContext
             };
-            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object)
+            var controller = new AdminController(context, new Mock<ILogger<AdminController>>().Object, new MemoryCache(new MemoryCacheOptions()))
             {
                 ControllerContext = controllerContext
             };

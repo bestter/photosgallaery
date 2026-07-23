@@ -39,15 +39,16 @@ export default function Moderation() {
         if (deferredSearchTerm) params.append("search", deferredSearchTerm);
 
         const response = await api.get(`/admin/reports?${params.toString()}`);
-        setReports((prev) =>
-          append ? [...prev, ...response.data] : response.data,
-        );
-        const totalCount = response.headers["x-total-count"];
-        if (totalCount) {
-          setHasMore((append ? reports.length : 0) + response.data.length < parseInt(totalCount, 10));
-        } else {
-          setHasMore(response.data.length === 20);
-        }
+        setReports((prev) => {
+          const newReports = append ? [...prev, ...response.data] : response.data;
+          const totalCount = response.headers["x-total-count"];
+          if (totalCount) {
+            setHasMore(newReports.length < parseInt(totalCount, 10));
+          } else {
+            setHasMore(response.data.length === 20);
+          }
+          return newReports;
+        });
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des signalements:",

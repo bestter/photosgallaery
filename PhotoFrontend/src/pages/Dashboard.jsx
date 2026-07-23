@@ -45,15 +45,16 @@ export default function Dashboard() {
         if (deferredSearchTerm) params.append("search", deferredSearchTerm);
 
         const response = await api.get(`/admin/users?${params.toString()}`);
-        setUsers((prev) =>
-          append ? [...prev, ...response.data] : response.data,
-        );
-        const totalCount = response.headers["x-total-count"];
-        if (totalCount) {
-          setHasMore((append ? users.length : 0) + response.data.length < parseInt(totalCount, 10));
-        } else {
-          setHasMore(response.data.length === 20);
-        }
+        setUsers((prev) => {
+          const newUsers = append ? [...prev, ...response.data] : response.data;
+          const totalCount = response.headers["x-total-count"];
+          if (totalCount) {
+            setHasMore(newUsers.length < parseInt(totalCount, 10));
+          } else {
+            setHasMore(response.data.length === 20);
+          }
+          return newUsers;
+        });
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {

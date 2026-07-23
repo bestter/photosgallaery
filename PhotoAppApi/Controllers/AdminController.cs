@@ -29,7 +29,6 @@ namespace PhotoAppApi.Controllers
             _context = context;
             _logger = logger;
             _memoryCache = memoryCache;
-            _memoryCache = memoryCache;
         }
 
         // GET: api/admin/users
@@ -110,7 +109,6 @@ namespace PhotoAppApi.Controllers
             {
                 user.Role = newRoleEnum;
                 await _context.SaveChangesAsync(cancellationToken);
-                _memoryCache.Remove($"UserValidV2_{user.Id}");
                 _memoryCache.Remove($"UserValidV2_{user.Id}");
                 return Ok(new { message = $"Le rôle de {user.Username} est maintenant {user.Role}." });
             }

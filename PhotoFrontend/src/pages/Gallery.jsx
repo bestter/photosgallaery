@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import UploadPhoto from "../components/UploadPhoto";
 import ImageModal from "../components/ImageModal";
 import InviteModal from "../components/InviteModal";
@@ -12,18 +12,9 @@ import { useTranslation } from "react-i18next";
 
 const getImageUrl = (url) => {
   if (!url) return "";
-  let fullUrl = url;
-  if (!url.startsWith("http")) {
-    const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
-    fullUrl = backendRoot + url;
-  }
-
-  // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
-  if (!isTokenExpired()) {
-    const separator = fullUrl.includes("?") ? "&" : "?";
-    fullUrl += `${separator}access_(!isTokenExpired())=${(!isTokenExpired())}`;
-  }
-  return fullUrl;
+  if (url.startsWith("http")) return url;
+  const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
+  return backendRoot + url;
 };
 
 export default function Gallery() {
@@ -48,9 +39,8 @@ export default function Gallery() {
   const [userGroups, setUserGroups] = useState([]);
   const [activeGroupId, setActiveGroupId] = useState(null);
 
-  // Vérification de la session via le (!isTokenExpired())
-
-  const isLoggedIn = (!isTokenExpired()) && !isTokenExpired();
+  // Vérification de la session
+  const isLoggedIn = !isTokenExpired();
   const userRole = isLoggedIn ? getUserRole() : null;
 
   // Permissions
@@ -59,7 +49,7 @@ export default function Gallery() {
   const canSeeDashboard = isLoggedIn && userRole === "Admin";
 
   // Récupération des photos depuis l'API, dépendante du groupe sélectionné
-  const fetchPhotos = async (groupId, currentPage = 1, append = false) => {
+  const fetchPhotos = useCallback(async (groupId, currentPage = 1, append = false) => {
     try {
       if (append) {
         setIsFetchingMore(true);
@@ -80,20 +70,23 @@ export default function Gallery() {
       const url = `/photos?${params.toString()}`;
       const response = await api.get(url);
 
-      setPhotos(prev => append ? [...prev, ...response.data] : response.data);
-      const totalCount = response.headers["x-total-count"];
-      if (totalCount) {
-        setHasMore((append ? photos.length : 0) + response.data.length < parseInt(totalCount, 10));
-      } else {
-        setHasMore(response.data.length === 20);
-      }
+      setPhotos((prev) => {
+        const newPhotos = append ? [...prev, ...response.data] : response.data;
+        const totalCount = response.headers["x-total-count"];
+        if (totalCount) {
+          setHasMore(newPhotos.length < parseInt(totalCount, 10));
+        } else {
+          setHasMore(response.data.length === 20);
+        }
+        return newPhotos;
+      });
     } catch (error) {
       console.error("Erreur lors de la récupération des photos :", error);
     } finally {
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  };
+  }, [debouncedSearchQuery, selectedAuthor, selectedTag]);
 
   // Récupérer les groupes
   useEffect(() => {
@@ -138,16 +131,15 @@ export default function Gallery() {
           fetchPhotos(null, 1, false);
         });
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchPhotos]);
 
   useEffect(() => {
     if (activeGroupId) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPage(1);
       fetchPhotos(activeGroupId, 1, false);
     }
-  }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag]);
+  }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag, fetchPhotos]);
 
   // ⚡ Bolt: Memoize the active group lookup to avoid multiple O(N) array scans during every render or state update.
   const activeGroup = useMemo(() => {
