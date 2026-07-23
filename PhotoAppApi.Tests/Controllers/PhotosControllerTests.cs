@@ -129,7 +129,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.GetUserPhotos("nonexistentuser", 1, 20);
+            var result = await controller.GetUserPhotos("nonexistentuser", 1, 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<NotFoundObjectResult>(result);
@@ -177,7 +177,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act: request page 2, page size 10
-            var result = await controller.GetUserPhotos("targetuser", page: 2, pageSize: 10);
+            var result = await controller.GetUserPhotos("targetuser", page: 2, pageSize: 10, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -232,7 +232,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+            var result = await controller.GetUserPhotos("targetuser", 1, 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -288,7 +288,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+            var result = await controller.GetUserPhotos("targetuser", 1, 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -338,7 +338,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+            var result = await controller.GetUserPhotos("targetuser", 1, 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -400,7 +400,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+            var result = await controller.GetUserPhotos("targetuser", 1, 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -447,7 +447,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await controller.GetUserPhotos("targetuser", 1, 20);
+            var result = await controller.GetUserPhotos("targetuser", 1, 20, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -492,7 +492,7 @@ namespace PhotoAppApi.Tests.Controllers
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             // Act
-            var result = await controller.ToggleLike(1);
+            var result = await controller.ToggleLike(1, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<ForbidResult>(result);
@@ -533,7 +533,7 @@ namespace PhotoAppApi.Tests.Controllers
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             // Act
-            var result = await controller.ToggleLike(1);
+            var result = await controller.ToggleLike(1, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -571,7 +571,7 @@ namespace PhotoAppApi.Tests.Controllers
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             // Act
-            var result = await controller.ToggleLike(1);
+            var result = await controller.ToggleLike(1, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -622,7 +622,7 @@ namespace PhotoAppApi.Tests.Controllers
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             // Act
-            var result = await controller.GenerateMissingThumbnails();
+            var result = await controller.GenerateMissingThumbnails(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -680,7 +680,7 @@ namespace PhotoAppApi.Tests.Controllers
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             // Act
-            var result = await controller.GenerateMissingThumbnails();
+            var result = await controller.GenerateMissingThumbnails(TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -735,7 +735,7 @@ namespace PhotoAppApi.Tests.Controllers
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             // Act
-            var result = await controller.GenerateMissingThumbnails();
+            var result = await controller.GenerateMissingThumbnails(TestContext.Current.CancellationToken);
 
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);

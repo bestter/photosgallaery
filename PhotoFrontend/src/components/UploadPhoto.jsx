@@ -53,10 +53,12 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
     // Charger les groupes de l'utilisateur
     const fetchGroups = async () => {
       try {
         const response = await api.get("/auth/groups");
+        if (isCancelled) return;
         setUserGroups(response.data);
 
         if (
@@ -68,7 +70,8 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
           setSelectedGroupId(response.data[0].id || response.data[0].Id);
         }
       } catch (error) {
-        console.error("Erreur lors du chargement des groupes", error);
+        if (isCancelled) return;
+        console.error("Erreur lors de la récupération des groupes", error);
         toast.error(t("components.upload.error.load_groups"));
       }
     };

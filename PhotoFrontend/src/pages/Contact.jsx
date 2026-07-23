@@ -16,8 +16,7 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Vérification de la session
-
-  const isLoggedIn = (!isTokenExpired()) && !isTokenExpired();
+  const isLoggedIn = !isTokenExpired();
   const canSeeDashboard = isLoggedIn && getUserRole() === "Admin";
 
   const handleChange = (e) => {

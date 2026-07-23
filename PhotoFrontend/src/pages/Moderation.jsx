@@ -23,6 +23,7 @@ export default function Moderation() {
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
+    let isCancelled = false;
 
     if (isTokenExpired() || getUserRole() !== "Admin") {
       window.location.href = "/";
@@ -39,22 +40,25 @@ export default function Moderation() {
         if (deferredSearchTerm) params.append("search", deferredSearchTerm);
 
         const response = await api.get(`/admin/reports?${params.toString()}`);
-        setReports((prev) =>
-          append ? [...prev, ...response.data] : response.data,
-        );
+        if (isCancelled) return;
+        setReports((prev) => (append ? [...prev, ...response.data] : response.data));
         const totalCount = response.headers["x-total-count"];
         if (totalCount) {
-          setHasMore((append ? reports.length : 0) + response.data.length < parseInt(totalCount, 10));
+          const totalLoaded = (currentPage - 1) * 20 + response.data.length;
+          setHasMore(totalLoaded < parseInt(totalCount, 10));
         } else {
           setHasMore(response.data.length === 20);
         }
       } catch (error) {
+        if (isCancelled) return;
         console.error(
           "Erreur lors de la récupération des signalements:",
           error,
         );
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
@@ -64,12 +68,20 @@ export default function Moderation() {
     const fetchStats = async () => {
       try {
         const response = await api.get("/admin/reports/stats");
-        setStats(response.data);
+        if (!isCancelled) {
+          setStats(response.data);
+        }
       } catch (error) {
-        console.error("Erreur lors de la récupération des stats:", error);
+        if (!isCancelled) {
+          console.error("Erreur lors de la récupération des stats:", error);
+        }
       }
     };
     fetchStats();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [deferredSearchTerm]);
 
 
@@ -353,29 +365,32 @@ export default function Moderation() {
           {hasMore && !loading && filteredReportsList.length > 0 && (
             <div className="p-6 border-t border-outline-variant/30 flex items-center justify-center bg-surface-container/30">
               <button
-                onClick={() => {
+                onClick={async () => {
                   const nextPage = page + 1;
                   setPage(nextPage);
                   setLoading(true);
-                  const params = new URLSearchParams({
-                    page: nextPage,
-                    pageSize: 20,
-                  });
-                  if (deferredSearchTerm)
-                    params.append("search", deferredSearchTerm);
+                  try {
+                    const params = new URLSearchParams({
+                      page: nextPage,
+                      pageSize: 20,
+                    });
+                    if (deferredSearchTerm)
+                      params.append("search", deferredSearchTerm);
 
-                  api
-                    .get(`/admin/reports?${params.toString()}`)
-                    .then((response) => {
-                      setReports((prev) => [...prev, ...response.data]);
-                      const totalCount = response.headers["x-total-count"];
-                      if (totalCount) {
-                        setHasMore(reports.length + response.data.length < parseInt(totalCount, 10));
-                      } else {
-                        setHasMore(response.data.length === 20);
-                      }
-                    })
-                    .finally(() => setLoading(false));
+                    const response = await api.get(`/admin/reports?${params.toString()}`);
+                    setReports((prev) => [...prev, ...response.data]);
+                    const totalCount = response.headers["x-total-count"];
+                    if (totalCount) {
+                      const totalLoaded = (nextPage - 1) * 20 + response.data.length;
+                      setHasMore(totalLoaded < parseInt(totalCount, 10));
+                    } else {
+                      setHasMore(response.data.length === 20);
+                    }
+                  } catch (error) {
+                    console.error("Erreur lors du chargement des signalements suivants:", error);
+                  } finally {
+                    setLoading(false);
+                  }
                 }}
                 className="px-6 py-2 bg-primary text-background-dark font-bold rounded-lg text-sm hover:brightness-110 transition-all"
               >
