@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,14 @@ namespace PhotoAppApi.Controllers
 
         private readonly AppDbContext _context;
         private readonly ILogger<AdminController> _logger;
+        private readonly IMemoryCache _memoryCache;
 
-        public AdminController(AppDbContext context, ILogger<AdminController> logger)
+        public AdminController(AppDbContext context, ILogger<AdminController> logger, IMemoryCache memoryCache)
         {
             _context = context;
             _logger = logger;
+            _memoryCache = memoryCache;
+            _memoryCache = memoryCache;
         }
 
         // GET: api/admin/users
@@ -106,6 +110,8 @@ namespace PhotoAppApi.Controllers
             {
                 user.Role = newRoleEnum;
                 await _context.SaveChangesAsync(cancellationToken);
+                _memoryCache.Remove($"UserValidV2_{user.Id}");
+                _memoryCache.Remove($"UserValidV2_{user.Id}");
                 return Ok(new { message = $"Le rôle de {user.Username} est maintenant {user.Role}." });
             }
 

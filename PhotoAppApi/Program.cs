@@ -165,7 +165,7 @@ builder.Services.AddAuthentication(options =>
                     // Cela va retourner une erreur 401 Unauthorized à React.
                     context.Fail("Ce compte a été suspendu par l'administration.");
                 }
-                else if (roleClaim != null && roleClaim != cacheResult.CurrentRole)
+                else if (roleClaim != cacheResult.CurrentRole)
                 {
                     // 🛡️ Sentinel: Fix Stale JWT Claims Authorization Bypass
                     // Reject token if the user's role has changed since token issuance
