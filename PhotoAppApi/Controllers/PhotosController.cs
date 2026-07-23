@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
+using PhotoAppApi.DTOs;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
-using PhotoAppApi.DTOs;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -800,13 +800,13 @@ namespace PhotoAppApi.Controllers
                     var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                     var filePath = Path.Combine(rootPath, "images", safeFileName);
 
-                    if (System.IO.File.Exists(filePath))
+                    try
                     {
                         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
                         var hashBytes = await SHA512.HashDataAsync(stream, ct);
                         hashResults.Add((Photo: photo, Hash: Convert.ToHexStringLower(hashBytes), Exists: true, FilePath: filePath));
                     }
-                    else
+                    catch (Exception ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
                     {
                         hashResults.Add((Photo: photo, Hash: null, Exists: false, FilePath: filePath));
                     }

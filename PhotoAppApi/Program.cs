@@ -265,7 +265,8 @@ builder.Services.AddAntiforgery(options =>
     options.SuppressXFrameOptionsHeader = false;
 });
 
-builder.Services.AddControllers(options => {
+builder.Services.AddControllers(options =>
+{
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 });
 builder.Services.AddEndpointsApiExplorer();
