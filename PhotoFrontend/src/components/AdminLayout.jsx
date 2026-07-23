@@ -9,16 +9,15 @@ const handleLogout = async () => {
     window.location.href = '/login';
 };
 
+const NAV_LINKS = [
+    { path: '/dashboard', icon: 'person', label: 'Gestion des usagers' },
+    { path: '/admin-groups', icon: 'group', label: 'Gestion des groupes' },
+    { path: '/admin-group-requests', icon: 'group_add', label: 'Requêtes de Groupes', iconStyle: { fontVariationSettings: "'FILL' 1" } },
+    { path: '/moderation', icon: 'shield', label: 'Modération' }
+];
+
 export default function AdminLayout({ children, title, subtitle, topActions }) {
     const currentPath = window.location.pathname;
-
-
-    const navLinks = [
-        { path: '/dashboard', icon: 'person', label: 'Gestion des usagers' },
-        { path: '/admin-groups', icon: 'group', label: 'Gestion des groupes' },
-        { path: '/admin-group-requests', icon: 'group_add', label: 'Requêtes de Groupes', iconStyle: { fontVariationSettings: "'FILL' 1" } },
-        { path: '/moderation', icon: 'shield', label: 'Modération' }
-    ];
 
     return (
         <div className="bg-background text-on-background font-body h-screen flex overflow-hidden antialiased selection:bg-primary/30 selection:text-primary-fixed dark">
@@ -37,7 +36,7 @@ export default function AdminLayout({ children, title, subtitle, topActions }) {
                     </div>
                 </a>
                 <nav className="flex-1 space-y-1 font-['Inter'] text-sm font-medium tracking-wide">
-                    {navLinks.map((link) => {
+                    {NAV_LINKS.map((link) => {
                         const isActive = currentPath === link.path;
                         return (
                             <a 

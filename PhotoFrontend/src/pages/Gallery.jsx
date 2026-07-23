@@ -491,31 +491,31 @@ export default function Gallery() {
               const isLarge = index % 4 === 0;
               const isWide = index % 4 === 3;
 
+              const openPhotoLabel = photo.title
+                ? t("gallery.open_photo", { title: photo.title })
+                : t("gallery.photo_by", { author });
+
               if (isLarge) {
                 return (
                   <div
                     key={photoId}
-                    onClick={() => setSelectedPhotoIndex(index)}
-                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-                    title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedPhotoIndex(index);
-                      }
-                    }}
+                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
                   >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className="absolute inset-0 z-[1] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+                      aria-label={openPhotoLabel}
+                      title={openPhotoLabel}
+                    />
                     <img
                       alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
                       src={thumbnailUrl || originalUrl}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90"></div>
-                    <div className="absolute bottom-0 left-0 p-6 w-full">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 p-6 w-full z-[2] pointer-events-none">
                       {photoTags.length > 0 && (
                         <span className="bg-cyan-400 text-[#0f2323] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-3 inline-block">
                           {photoTags[0]}
@@ -524,12 +524,11 @@ export default function Gallery() {
                       <h2 className="text-2xl font-bold text-white mb-1 truncate">
                         {photo.title || `Captured by @${author}`}
                       </h2>
-                      <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-4 mt-3 pointer-events-auto">
                         <button
                           type="button"
                           className="flex items-center gap-2 text-slate-300 text-[12px] font-semibold hover:text-cyan-400 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             setSelectedAuthor(author);
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
@@ -554,44 +553,35 @@ export default function Gallery() {
                 return (
                   <div
                     key={photoId}
-                    onClick={() => setSelectedPhotoIndex(index)}
-                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-                    title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedPhotoIndex(index);
-                      }
-                    }}
+                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
                   >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className="absolute inset-0 z-[1] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+                      aria-label={openPhotoLabel}
+                      title={openPhotoLabel}
+                    />
                     <img
                       alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                       src={thumbnailUrl || originalUrl}
                     />
-                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 focus-within:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-                      <button
-                        className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
-                        tabIndex={-1}
-                        aria-hidden="true"
-                      >
+                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm pointer-events-none z-[1]">
+                      <span className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                         {t("gallery.view_image")}
-                      </button>
+                      </span>
                     </div>
-                    <div className="absolute top-4 left-4">
+                    <div className="absolute top-4 left-4 z-[2] pointer-events-none">
                       <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold text-cyan-400 uppercase tracking-widest border border-cyan-400/20">
                         {photoTags[0] || t("gallery.without_categories")}
                       </div>
                     </div>
                     <button
                       type="button"
-                      className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      className="absolute bottom-4 right-4 z-[2] bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                      onClick={() => {
                         setSelectedAuthor(author);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}

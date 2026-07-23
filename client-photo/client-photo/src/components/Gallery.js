@@ -7,6 +7,10 @@ import PhotoTag from './PhotoTag';
 import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 
+const getFileName = (url) => {
+    if (!url) return '';
+    return url.split('/').pop();
+};
 
 const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Galerie Publique", hideUpload = false }) => {
     const [photos, setPhotos] = useState([]);
@@ -54,11 +58,6 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
 
     const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
-    const getFileName = (url) => {
-        if (!url) return '';
-        return url.split('/').pop();
-    };
-    
     const handleUserClick = (photo) => {    
     navigate(`/user/${photo.uploaderUsername}`); // 2. On change de page
 };

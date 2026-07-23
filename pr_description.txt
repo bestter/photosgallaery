@@ -1,7 +1,7 @@
-💡 What: Replaced a verbose `for` loop used for finding the correct tag translation with the native `Array.prototype.find()` method.
+🎯 **What:** The login endpoint mitigated timing attacks by verifying passwords against a dummy hash when the user was not found. However, this is a known vulnerability pattern because underlying string comparison methods (like those used in standard `BCrypt.Verify` libraries) may not be perfectly constant-time (e.g. failing early on character mismatch), creating a slight, measurable timing difference between processing valid hashes and dummy hashes.
 
-🎯 Why: The original code used a C-style `for` loop to iterate over an array of translations, which is unnecessarily verbose for JavaScript and can be harder to read. The `find()` method natively handles the search and early return behavior, resulting in more concise and idiomatic code.
+⚠️ **Risk:** Attackers could measure these micro-second differences and perform statistical timing attacks to enumerate valid accounts in the system.
 
-📊 Impact: The change improves code readability and maintainability.
+🛡️ **Solution:** Implemented a robust constant-time comparison by manually computing the hash using `BCrypt.HashPassword(password, hashToVerify)` (which forces identical computational work) and then exclusively using `CryptographicOperations.FixedTimeEquals` on the resulting UTF-8 bytes to ensure the comparison itself never leaks timing information.
 
-🔬 Measurement: I ran a local benchmark simulating 1,000 tags with 10 translations each over 10,000 iterations. The performance difference between the manual loop (993ms) and `Array.prototype.find()` (1013ms) was negligible (-2.02%). While not a measurable speed improvement, this change is a net positive because it drastically simplifies the code without introducing any significant performance overhead, improving readability and maintainability.
+✅ **Verification:** Validated that authentication still works successfully and unit tests pass.

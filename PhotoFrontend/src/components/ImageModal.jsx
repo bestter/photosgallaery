@@ -349,12 +349,13 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         <div className="space-y-3">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
                             <div className="flex flex-wrap gap-2">
-                                {resolvedTags.map((tagObj, idx) => {
+                                {resolvedTags.map((tagObj) => {
                                     const tagName = tagObj.resolvedName;
+                                    const tagKey = tagObj.id || tagObj.Id || tagName;
 
                                     return onTagClick ? (
                                         <button
-                                            key={idx}
+                                            key={tagKey}
                                             type="button"
                                             className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                             onClick={() => onTagClick(tagName)}
@@ -363,7 +364,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                         </button>
                                     ) : (
                                         <span
-                                            key={idx}
+                                            key={tagKey}
                                             className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
                                         >
                                             {tagName}

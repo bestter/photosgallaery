@@ -236,9 +236,9 @@ const Upload = ({ onUploadSuccess, token, setToken }) => {
                     {/* La boîte de suggestions flottante */}
                     {suggestions.length > 0 && (
                         <ul className="absolute z-10 bg-primary border border-accent/20 shadow-lg mt-16 rounded w-64 max-h-48 overflow-y-auto">
-                            {suggestions.map((s, index) => (
+                            {suggestions.map((s) => (
                                 <li 
-                                    key={index}
+                                    key={typeof s === 'string' ? s : (s.id || s.Id || s.name || s.Name || JSON.stringify(s))}
                                     onClick={() => addTagToList(s)}
                                     className="p-2 hover:bg-secondary/20 cursor-pointer text-text-color"
                                 >
