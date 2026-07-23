@@ -1,7 +1,9 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
@@ -32,7 +34,15 @@ namespace PhotoAppApi.Tests.Controllers
                 .AddJsonStream(new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes("{\"FrontendUrl\": \"http://localhost:5173\"}")))
                 .Build();
 
-            var controller = new InvitationsController(context, emailService, configuration);
+            var serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
+            var serviceScopeMock = new Mock<IServiceScope>();
+            var serviceProviderMock = new Mock<IServiceProvider>();
+
+            serviceProviderMock.Setup(sp => sp.GetService(typeof(IEmailService))).Returns(emailService);
+            serviceScopeMock.Setup(s => s.ServiceProvider).Returns(serviceProviderMock.Object);
+            serviceScopeFactoryMock.Setup(f => f.CreateScope()).Returns(serviceScopeMock.Object);
+
+            var controller = new InvitationsController(context, emailService, configuration, serviceScopeFactoryMock.Object);
 
             if (userId.HasValue || username != null || role != null)
             {
@@ -197,7 +207,7 @@ namespace PhotoAppApi.Tests.Controllers
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<CancellationToken>()), Times.Never());
+                It.IsAny<CancellationToken>()), Times.Never()); // Wait for background task
         }
 
         [Fact]
@@ -271,6 +281,7 @@ namespace PhotoAppApi.Tests.Controllers
             Assert.Equal("Pending", invitation.Status);
             Assert.Equal(1, invitation.InviterId);
 
+            await Task.Delay(100); // Give the background task time to run
             // Verify email WAS sent
             emailServiceMock.Verify(x => x.SendInvitationEmailAsync(
                 dto.Email,
@@ -281,7 +292,7 @@ namespace PhotoAppApi.Tests.Controllers
                 dto.Message,
                 It.Is<string>(url => url.Contains(invitation.InviteToken.ToString())),
                 It.IsAny<CancellationToken>()
-            ), Times.Once());
+            ), Times.Exactly(1)); // The task will run async, but Moq might evaluate too early. In memory execution usually is fast enough, but if it fails we need to wait
         }
 
         [Fact]
@@ -321,11 +332,10 @@ namespace PhotoAppApi.Tests.Controllers
             var result = await controller.CreateInvitation(dto, TestContext.Current.CancellationToken);
 
             // Assert
-            var statusCodeResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(500, statusCodeResult.StatusCode);
-            var value = statusCodeResult.Value;
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = okResult.Value;
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
-            Assert.Equal("Erreur interne lors de l'envoi de l'invitation.", message);
+            Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
         }
     }
 }
