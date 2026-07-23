@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Data;
+using PhotoAppApi.DTOs;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
-using PhotoAppApi.DTOs;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -184,13 +184,13 @@ namespace PhotoAppApi.Controllers
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
                 // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
                 // ⚡ Bolt: Generate S3 URLs concurrently to avoid sequential await bottleneck.
-                var urlTasks = photos.Select(async photo =>
+                var urlTasks = photos.Select(photo => Task.Run(async () =>
                 {
                     if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
                     if (!string.IsNullOrEmpty(photo.ThumbnailUrl)) photo.ThumbnailUrl = await _storage.GetPresignedUrlAsync(photo.ThumbnailUrl, TimeSpan.FromHours(1));
                     photo.IsLikedByCurrentUser = userLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = userReportedPhotoIds.Contains(photo.Id);
-                });
+                }));
                 await Task.WhenAll(urlTasks);
 
                 // On retourne tes photos enrichies !
@@ -800,13 +800,13 @@ namespace PhotoAppApi.Controllers
                     var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
                     var filePath = Path.Combine(rootPath, "images", safeFileName);
 
-                    if (System.IO.File.Exists(filePath))
+                    try
                     {
                         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
                         var hashBytes = await SHA512.HashDataAsync(stream, ct);
                         hashResults.Add((Photo: photo, Hash: Convert.ToHexStringLower(hashBytes), Exists: true, FilePath: filePath));
                     }
-                    else
+                    catch (Exception ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
                     {
                         hashResults.Add((Photo: photo, Hash: null, Exists: false, FilePath: filePath));
                     }
@@ -1252,13 +1252,13 @@ namespace PhotoAppApi.Controllers
 
                 // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
                 // ⚡ Bolt: Generate S3 URLs concurrently to avoid sequential await bottleneck.
-                var urlTasks = userPhotos.Select(async photo =>
+                var urlTasks = userPhotos.Select(photo => Task.Run(async () =>
                 {
                     if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
                     if (!string.IsNullOrEmpty(photo.ThumbnailUrl)) photo.ThumbnailUrl = await _storage.GetPresignedUrlAsync(photo.ThumbnailUrl, TimeSpan.FromHours(1));
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
                     photo.IsReportedByCurrentUser = currentUserReportedPhotoIds.Contains(photo.Id);
-                });
+                }));
                 await Task.WhenAll(urlTasks);
 
                 Response.Headers.Append("X-Total-Count", totalCount.ToString());
@@ -1343,12 +1343,12 @@ namespace PhotoAppApi.Controllers
 
                 // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
                 // ⚡ Bolt: Generate S3 URLs concurrently to avoid sequential await bottleneck.
-                var urlTasks = photos.Select(async photo =>
+                var urlTasks = photos.Select(photo => Task.Run(async () =>
                 {
                     if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
                     if (!string.IsNullOrEmpty(photo.ThumbnailUrl)) photo.ThumbnailUrl = await _storage.GetPresignedUrlAsync(photo.ThumbnailUrl, TimeSpan.FromHours(1));
                     photo.IsLikedByCurrentUser = currentUserLikedPhotoIds.Contains(photo.Id);
-                });
+                }));
                 await Task.WhenAll(urlTasks);
 
                 return Ok(photos);

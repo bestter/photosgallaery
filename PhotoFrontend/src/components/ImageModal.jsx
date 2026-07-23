@@ -109,6 +109,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         try {
             toast.loading(t("components.image_modal.download.preparing"), { id: "download" });
             const response = await fetch(imgSrc);
+            if (!response.ok) throw new Error("Failed to fetch image");
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
 

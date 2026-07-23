@@ -173,6 +173,11 @@
 **Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
 **Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints.
 
+## 2026-07-23 - Fix User Enumeration vulnerability in CreateInvitation
+**Vulnerability:** The `CreateInvitation` endpoint was vulnerable to a timing-based User Enumeration attack. The response time was significantly slower when an invitation email was successfully sent (existing user without a group or new user) compared to when the user was already in the group or had a pending invite. Attackers could measure the response time to determine if an email address was registered.
+**Learning:** In HTTP endpoints, time-consuming side-effects (like sending emails) should be offloaded to asynchronous background tasks to equalize response times across all logic branches, preventing side-channel timing leaks.
+**Prevention:** Use `Task.Run` combined with `IServiceScopeFactory` to safely dispatch slow operations asynchronously outside the main HTTP request thread pool loop. Ensure you handle exceptions in the background thread to avoid silent failures.
+
 ## 2026-06-25 - [HIGH] Fix User Enumeration Timing Attack via BCrypt String Comparison
 **Vulnerability:** The login endpoint attempted to mitigate timing attacks by using `BCrypt.Verify(password, _dummyHash)` when a user was not found. However, this is a known vulnerability pattern because `BCrypt.Verify` may rely on variable-time string comparisons internally (or string `==` operators), causing slight timing differences between valid hashes and dummy hashes when characters mismatch early. This allowed attackers to perform statistical timing attacks to enumerate valid usernames.
 **Learning:** Standard library or third-party cryptographic methods (like `BCrypt.Verify`) might not use perfect constant-time string comparisons, and matching against dummy hashes can still leak timing differences during the comparison phase.
