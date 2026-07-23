@@ -302,5 +302,155 @@ namespace PhotoAppApi.Tests
             Assert.NotNull(updatedUserGroup);
             Assert.Equal(GroupUserRole.Admin, updatedUserGroup.Role);
         }
+
+        [Fact]
+        public async Task GetGroupMembers_ReturnsOkResult_WithMembers()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+
+            var group = new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = "Test Group",
+                ShortName = "test-group",
+                Description = "A test group"
+            };
+            var user = new User
+            {
+                Id = 1,
+                Username = "testuser",
+                Email = "test@example.com",
+                PasswordHash = "hash",
+                Role = UserRole.User
+            };
+            var userGroup = new UserGroup
+            {
+                GroupId = group.Id,
+                Group = group,
+                UserId = user.Id,
+                User = user,
+                Role = GroupUserRole.Admin,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            // Memory Rule check EF Core edge cases: seed with unrelated records
+            var unrelatedGroup = new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = "Unrelated Group",
+                ShortName = "unrelated-group",
+                Description = "Unrelated"
+            };
+            var unrelatedUser = new User
+            {
+                Id = 2,
+                Username = "unrelated",
+                Email = "unrelated@example.com",
+                PasswordHash = "hash",
+                Role = UserRole.User
+            };
+            var unrelatedUserGroup = new UserGroup
+            {
+                GroupId = unrelatedGroup.Id,
+                Group = unrelatedGroup,
+                UserId = unrelatedUser.Id,
+                User = unrelatedUser,
+                Role = GroupUserRole.Member,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            context.Groups.AddRange(group, unrelatedGroup);
+            context.Users.AddRange(user, unrelatedUser);
+            context.UserGroups.AddRange(userGroup, unrelatedUserGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+
+            // Act
+            var result = await controller.GetGroupMembers(group.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = okResult.Value;
+            Assert.NotNull(resultValue);
+
+            var enumerable = resultValue as System.Collections.IEnumerable;
+            Assert.NotNull(enumerable);
+
+            var resultList = new List<object>();
+            foreach (var item in enumerable)
+            {
+                resultList.Add(item);
+            }
+
+            Assert.Single(resultList);
+            var firstItem = resultList[0];
+            var firstItemUserId = (int)(firstItem.GetType().GetProperty("UserId")?.GetValue(firstItem, null) ?? 0);
+            var firstItemUsername = firstItem.GetType().GetProperty("Username")?.GetValue(firstItem, null) as string;
+            var firstItemEmail = firstItem.GetType().GetProperty("Email")?.GetValue(firstItem, null) as string;
+            var firstItemRole = (GroupUserRole)(firstItem.GetType().GetProperty("Role")?.GetValue(firstItem, null) ?? GroupUserRole.Member);
+
+            Assert.Equal(1, firstItemUserId);
+            Assert.Equal("testuser", firstItemUsername);
+            Assert.Equal("test@example.com", firstItemEmail);
+            Assert.Equal(GroupUserRole.Admin, firstItemRole);
+        }
+
+        [Fact]
+        public async Task GetGroupMembers_ReturnsOkResult_WhenNoMembersExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+
+            // Memory Rule check EF Core edge cases: seed with unrelated records
+            var unrelatedGroup = new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = "Unrelated Group",
+                ShortName = "unrelated-group",
+                Description = "Unrelated"
+            };
+            var unrelatedUser = new User
+            {
+                Id = 2,
+                Username = "unrelated",
+                Email = "unrelated@example.com",
+                PasswordHash = "hash",
+                Role = UserRole.User
+            };
+            var unrelatedUserGroup = new UserGroup
+            {
+                GroupId = unrelatedGroup.Id,
+                Group = unrelatedGroup,
+                UserId = unrelatedUser.Id,
+                User = unrelatedUser,
+                Role = GroupUserRole.Member,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            context.Groups.Add(unrelatedGroup);
+            context.Users.Add(unrelatedUser);
+            context.UserGroups.Add(unrelatedUserGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            var groupId = Guid.NewGuid(); // non-existent or no members
+
+            // Act
+            var result = await controller.GetGroupMembers(groupId, TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = okResult.Value;
+            Assert.NotNull(resultValue);
+
+            var enumerable = resultValue as System.Collections.IEnumerable;
+            var resultList = new List<object>();
+            if (enumerable != null) {
+                foreach(var item in enumerable) { resultList.Add(item); }
+            }
+            Assert.Empty(resultList);
+        }
     }
 }
