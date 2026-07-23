@@ -172,3 +172,8 @@
 **Vulnerability:** An administrator could modify their own role via the `/api/admin/users/{id}/role` endpoint, potentially demoting themselves and causing an admin lockout.
 **Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
 **Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints.
+
+## 2026-07-23 - Fix User Enumeration vulnerability in CreateInvitation
+**Vulnerability:** The `CreateInvitation` endpoint was vulnerable to a timing-based User Enumeration attack. The response time was significantly slower when an invitation email was successfully sent (existing user without a group or new user) compared to when the user was already in the group or had a pending invite. Attackers could measure the response time to determine if an email address was registered.
+**Learning:** In HTTP endpoints, time-consuming side-effects (like sending emails) should be offloaded to asynchronous background tasks to equalize response times across all logic branches, preventing side-channel timing leaks.
+**Prevention:** Use `Task.Run` combined with `IServiceScopeFactory` to safely dispatch slow operations asynchronously outside the main HTTP request thread pool loop. Ensure you handle exceptions in the background thread to avoid silent failures.
