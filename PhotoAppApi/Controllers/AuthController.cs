@@ -48,7 +48,11 @@ namespace PhotoAppApi.Controllers
                 // Always verify the password against a hash so the execution time remains constant regardless of whether the user exists or not.
                 string hashToVerify = user != null ? user.PasswordHash : _dummyHash;
 
-                bool isPasswordValid = await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.Password, hashToVerify));
+                string computedHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password, hashToVerify));
+                bool isPasswordValid = System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                    System.Text.Encoding.UTF8.GetBytes(computedHash),
+                    System.Text.Encoding.UTF8.GetBytes(hashToVerify)
+                );
 
                 if (user == null || !isPasswordValid)
                 {

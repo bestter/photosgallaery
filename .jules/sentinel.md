@@ -172,3 +172,8 @@
 **Vulnerability:** An administrator could modify their own role via the `/api/admin/users/{id}/role` endpoint, potentially demoting themselves and causing an admin lockout.
 **Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
 **Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints.
+
+## 2026-06-25 - [HIGH] Fix User Enumeration Timing Attack via BCrypt String Comparison
+**Vulnerability:** The login endpoint attempted to mitigate timing attacks by using `BCrypt.Verify(password, _dummyHash)` when a user was not found. However, this is a known vulnerability pattern because `BCrypt.Verify` may rely on variable-time string comparisons internally (or string `==` operators), causing slight timing differences between valid hashes and dummy hashes when characters mismatch early. This allowed attackers to perform statistical timing attacks to enumerate valid usernames.
+**Learning:** Standard library or third-party cryptographic methods (like `BCrypt.Verify`) might not use perfect constant-time string comparisons, and matching against dummy hashes can still leak timing differences during the comparison phase.
+**Prevention:** To implement a robust constant-time comparison, manually compute the hash using `BCrypt.HashPassword(password, hashToVerify)` to ensure the CPU work is identical, and then strictly use `CryptographicOperations.FixedTimeEquals` on the byte arrays of the computed and expected hashes.
