@@ -168,7 +168,7 @@
 **Learning:** EF Core's `FindAsync(params object[] keyValues)` will consume the `CancellationToken` as a second key parameter if the first parameter is just a single ID, which bypasses the intended `FindAsync(object[] keyValues, CancellationToken cancellationToken)` overload.
 **Prevention:** Always wrap the key values in an object array when passing a `CancellationToken`, like this: `await _context.Entity.FindAsync(new object[] { id }, cancellationToken);`.
 
-## 2026-07-23 - Fix missing authorization on tags search endpoint
-**Vulnerability:** Missing authentication on the `/api/tags/search` endpoint.
-**Learning:** Unprotected API endpoints, even those seemingly innocuous like tag searches, can allow unauthenticated users to enumerate internal data structures. This can lead to information disclosure or be chained into larger attacks by mapping out valid internal parameters.
-**Prevention:** Always verify that every controller endpoint exposing application state or data requires authentication (e.g., via the `[Authorize]` attribute) unless explicitly intended for public access.
+## 2026-07-23 - Prevent Admin Lockout Vulnerability
+**Vulnerability:** An administrator could modify their own role via the `/api/admin/users/{id}/role` endpoint, potentially demoting themselves and causing an admin lockout.
+**Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
+**Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints.

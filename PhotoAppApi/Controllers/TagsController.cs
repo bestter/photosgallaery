@@ -1,5 +1,4 @@
 using log4net;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,6 @@ namespace PhotoAppApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class TagsController : ControllerBase
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(TagsController));
