@@ -2,23 +2,28 @@ import React, { useEffect } from 'react';
 
 import { useTranslation } from 'react-i18next';
 
+/** Session-only handoff for group invite codes between /join and /register. */
+const PENDING_INVITE_KEY = 'pendingInvite';
+
 export default function Join() {
     const { t } = useTranslation();
-    // Dans l'URL, ce sera /join/:inviteToken
-    // Toutefois, si on n'utilise pas react-router-dom useParams, on peut lire depuis pathname
-    // Si l'appli n'a pas react-router-dom (et utilise window.location), on le récupérera via Split
-    
+    // Path is /join/:inviteCode — stash briefly in sessionStorage (tab-scoped)
+    // so it is not a durable localStorage secret and not re-read as a privileged URL param.
+
     useEffect(() => {
         const pathParts = window.location.pathname.split('/');
-        // ex: ["", "join", "uuid"]
+        // e.g. ["", "join", "uuid"]
         if (pathParts.length >= 3 && pathParts[1] === 'join') {
-            const token = pathParts[2];
-            if (token) {
-                localStorage.setItem('inviteToken', token);
+            const inviteCode = pathParts[2];
+            if (inviteCode) {
+                try {
+                    sessionStorage.setItem(PENDING_INVITE_KEY, inviteCode);
+                } catch {
+                    // Ignore quota / private-mode failures; registration still works without invite.
+                }
             }
         }
-        
-        // Rediriger vers l'inscription
+
         window.location.href = '/register';
     }, []);
 

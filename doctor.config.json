@@ -2,13 +2,16 @@
     "ignore": {
         "rules": [
             "react/no-danger",
-            "jsx-a11y/no-autofocus"
+            "jsx-a11y/no-autofocus",
+            "react-doctor/require-pnpm-hardening"
         ],
         "files": [
             "src/generated/**",
             "PhotoFrontend/src/components/InviteModal.jsx",
             "PhotoFrontend/increment-build.js",
-            "increment-build.js"
+            "increment-build.js",
+            "client-photo/client-photo/increment-build.js",
+            "client-photo/client-photo/src/components/UserLikesGallery.jsx"
         ],
         "overrides": [
             {

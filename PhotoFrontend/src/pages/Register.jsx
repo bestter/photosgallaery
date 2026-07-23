@@ -4,6 +4,9 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import Footer from "../components/Footer";
 
+/** Must match the key written by Join.jsx for invite handoff. */
+const PENDING_INVITE_KEY = "pendingInvite";
+
 const Register = () => {
   const { t } = useTranslation();
   const [username, setUsername] = useState("");
@@ -30,17 +33,24 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      const inviteToken = localStorage.getItem("inviteToken");
+      let inviteToken;
+      try {
+        inviteToken = sessionStorage.getItem(PENDING_INVITE_KEY) || undefined;
+      } catch {
+        inviteToken = undefined;
+      }
 
       await api.post("/auth/register", {
         username,
         email,
         password,
-        inviteToken: inviteToken || undefined,
+        inviteToken,
       });
 
-      if (inviteToken) {
-        localStorage.removeItem("inviteToken");
+      try {
+        sessionStorage.removeItem(PENDING_INVITE_KEY);
+      } catch {
+        // ignore
       }
 
       toast.success(t("auth.register.success"));

@@ -14,6 +14,21 @@ import 'leaflet/dist/leaflet.css';
 
 // -------------------------------------
 
+const formatBytes = (bytes, decimals = 2) => {
+  if (!+bytes) return '0 Octets';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Octets', 'Ko', 'Mo', 'Go', 'To', 'Po', 'Eo', 'Zo', 'Yo'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return null;
+  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return new Date(dateString).toLocaleDateString('fr-FR', options);
+};
+
 const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const navigate = useNavigate();
@@ -119,22 +134,6 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
   };
 
   const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
-
-
-  const formatBytes = (bytes, decimals = 2) => {
-    if (!+bytes) return '0 Octets';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Octets', 'Ko', 'Mo', 'Go', 'To', 'Po', 'Eo', 'Zo', 'Yo'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return null;
-    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('fr-FR', options);
-  };
 
   return (
     <div
@@ -285,8 +284,8 @@ const ImageModal = ({ picture, onClose, token, onDeleteSuccess }) => {
             <div className="border-t border-accent/20 pt-5">
               <h3 className="text-xs font-bold opacity-60 mb-3 tracking-wider uppercase">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {picture.tags?.map((tag, index) => (
-                  <PhotoTag key={index} tag={tag} onClick={onClose} />
+                {picture.tags?.map((tag) => (
+                  <PhotoTag key={tag.id || tag.Id || tag.name || tag.Name || tag} tag={tag} onClick={onClose} />
                 ))}
               </div>
             </div>

@@ -305,13 +305,9 @@ export default function Moderation() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <a
-                          className="text-primary font-medium hover:underline text-sm"
-                          href="#"
-                          onClick={(e) => e.preventDefault()}
-                        >
+                        <span className="text-primary font-medium text-sm">
                           {t("admin.moderation.photo_num", { id: photoId })}
-                        </a>
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">

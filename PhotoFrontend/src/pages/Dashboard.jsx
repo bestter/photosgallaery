@@ -272,9 +272,9 @@ export default function Dashboard() {
                                 </span>
                                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
                                   <div className="flex flex-col gap-1 items-center">
-                                    {groups.map((g, i) => (
+                                    {groups.map((g) => (
                                       <span
-                                        key={i}
+                                        key={g}
                                         className="whitespace-nowrap font-medium"
                                       >
                                         {g}
@@ -285,9 +285,9 @@ export default function Dashboard() {
                               </div>
                             ) : (
                               <div className="flex flex-wrap gap-1">
-                                {groups.map((g, i) => (
+                                {groups.map((g) => (
                                   <span
-                                    key={i}
+                                    key={g}
                                     className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30"
                                   >
                                     {g}
