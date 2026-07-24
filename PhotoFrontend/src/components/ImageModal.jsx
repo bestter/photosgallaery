@@ -11,6 +11,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
     const [isLiking, setIsLiking] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
     const [hasReported, setHasReported] = useState(false);
 
@@ -106,6 +107,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
     // HANDLERS DES BOUTONS --------------------------
     const handleDownload = async () => {
+        setIsDownloading(true);
         try {
             toast.loading(t("components.image_modal.download.preparing"), { id: "download" });
             const response = await fetch(imgSrc);
@@ -124,6 +126,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             toast.success(t("components.image_modal.download.success"), { id: "download" });
         } catch (err) {
             toast.error(t("components.image_modal.download.error"), { id: "download" });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -266,8 +270,13 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="grid grid-cols-4 gap-3">
                         <button
                             onClick={handleDownload}
-                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
-                            <span className="material-symbols-outlined" aria-hidden="true">download</span>
+                            disabled={isDownloading}
+                            className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
+                            {isDownloading ? (
+                                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                            ) : (
+                                <span className="material-symbols-outlined" aria-hidden="true">download</span>
+                            )}
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
                         </button>
 
@@ -282,7 +291,11 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             title={isMyPhoto ? t("components.image_modal.cant_like_own") : ""}
                         >
                             {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
-                            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                            {isLiking ? (
+                                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                            ) : (
+                                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                            )}
                             <span className="text-[10px] font-bold uppercase">
                                 {t("components.image_modal.button_likes", { count: likesCount })}
                             </span>
