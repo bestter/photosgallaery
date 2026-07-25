@@ -250,7 +250,7 @@ export default function Moderation() {
                   </button>
                 )}
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
                 <span
                   aria-hidden="true"
                   className="material-symbols-outlined text-sm"
@@ -328,12 +328,14 @@ export default function Moderation() {
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
+                          type="button"
                           className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide"
                           aria-label={t("admin.moderation.action.delete")}
                         >
                           {t("admin.moderation.action.delete")}
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDismiss(rId)}
                           className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide border border-outline-variant/30"
                           aria-label={t("admin.moderation.action.dismiss")}
@@ -361,6 +363,7 @@ export default function Moderation() {
           {hasMore && !loading && filteredReportsList.length > 0 && (
             <div className="p-6 border-t border-outline-variant/30 flex items-center justify-center bg-surface-container/30">
               <button
+                type="button"
                 onClick={async () => {
                   const nextPage = page + 1;
                   setPage(nextPage);

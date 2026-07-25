@@ -38,6 +38,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
                 aria-label={t("components.group_selector.toggle_aria", { name: activeGroup.name || activeGroup.Name, defaultValue: "Select a group: {{name}}" })}
@@ -66,6 +67,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
 
                     return (
                         <button
+                            type="button"
                             key={groupId}
                             role="menuitem"
                             onClick={() => {

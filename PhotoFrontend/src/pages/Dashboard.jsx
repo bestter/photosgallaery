@@ -179,7 +179,7 @@ export default function Dashboard() {
               {t("admin.dashboard.user_list")}
             </h4>
             <div className="flex gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
                 <span
                   className="material-symbols-outlined text-sm"
                   aria-hidden="true"
@@ -188,7 +188,7 @@ export default function Dashboard() {
                 </span>{" "}
                 {t("admin.dashboard.filter")}
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
                 <span
                   className="material-symbols-outlined text-sm"
                   aria-hidden="true"
@@ -329,6 +329,7 @@ export default function Dashboard() {
                             {role !== "Admin" &&
                               (role === "Creator" ? (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleRoleUpdate(userId, "User")
                                   }
@@ -343,6 +344,7 @@ export default function Dashboard() {
                                 </button>
                               ) : (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleRoleUpdate(userId, "Creator")
                                   }
@@ -359,6 +361,7 @@ export default function Dashboard() {
                             {role === "Admin" ? (
                               isCurrentUser ? (
                                 <button
+                                  type="button"
                                   disabled
                                   className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                                   title={t(
@@ -369,6 +372,7 @@ export default function Dashboard() {
                                 </button>
                               ) : (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleRoleUpdate(userId, "User")
                                   }
@@ -384,6 +388,7 @@ export default function Dashboard() {
                               )
                             ) : (
                               <button
+                                type="button"
                                 onClick={() =>
                                   handleRoleUpdate(userId, "Admin")
                                 }
@@ -398,6 +403,7 @@ export default function Dashboard() {
                               </button>
                             )}
                             <button
+                              type="button"
                               disabled={isCurrentUser || updatingUserId === userId}
                               onClick={() => {
                                 if (!isCurrentUser) {
@@ -455,6 +461,7 @@ export default function Dashboard() {
             </p>
             <div className="flex gap-1">
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.previous_page", "Page précédente")}
                 title={t("common.previous_page", "Page précédente")}
@@ -467,6 +474,7 @@ export default function Dashboard() {
                 </span>
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-current="page"
                 aria-label={t("common.page", "Page 1", { page: 1 })}
@@ -475,6 +483,7 @@ export default function Dashboard() {
                 1
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
                 title={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
@@ -482,6 +491,7 @@ export default function Dashboard() {
                 2
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
                 title={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
@@ -489,6 +499,7 @@ export default function Dashboard() {
                 3
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.next_page", "Page suivante")}
                 title={t("common.next_page", "Page suivante")}

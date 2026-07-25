@@ -208,6 +208,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             >
                 {/* Close Button (Top Right) */}
                 <button
+                    type="button"
                     onClick={onClose}
                     aria-label={t("common.close", "Close")}
                     title={t("common.close", "Close")}
@@ -225,12 +226,12 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Navigation Arrows */}
                     {onPrev && (
-                        <button onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                        <button type="button" onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                         </button>
                     )}
                     {onNext && (
-                        <button onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                        <button type="button" onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
@@ -269,6 +270,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     {/* Action Buttons */}
                     <div className="grid grid-cols-4 gap-3">
                         <button
+                            type="button"
                             onClick={handleDownload}
                             disabled={isDownloading}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
@@ -281,6 +283,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         </button>
 
                         <button
+                            type="button"
                             onClick={handleLike}
                             aria-pressed={isLiked}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
@@ -302,6 +305,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         </button>
 
                         <button
+                            type="button"
                             onClick={handleShare}
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                             <span className="material-symbols-outlined" aria-hidden="true">share</span>
@@ -310,6 +314,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                         {hasReported ? (
                             <button
+                                type="button"
                                 disabled
                                 className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                                 <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
@@ -317,6 +322,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             </button>
                         ) : (
                             <button
+                                type="button"
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
                                 title={isMyPhoto ? t("components.image_modal.cant_report_own") : ""}
@@ -398,6 +404,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 </span>
                             </div>
                             <button
+                                type="button"
                                 className="text-xs font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
                             >

@@ -44,7 +44,7 @@ describe("AdminLayout", () => {
   });
 
   it("renders topActions when provided", () => {
-    const topActions = <button data-testid="top-action">Save</button>;
+    const topActions = <button type="button" data-testid="top-action">Save</button>;
 
     render(
       <AdminLayout topActions={topActions}>
