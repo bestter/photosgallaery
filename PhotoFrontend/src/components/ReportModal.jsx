@@ -55,6 +55,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label={t("common.close", "Close")}
             title={t("common.close", "Close")}
@@ -127,6 +128,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="w-full bg-primary text-[#0f2323] font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
@@ -149,6 +151,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
               )}
             </button>
             <button
+              type="button"
               onClick={onClose}
               disabled={isSubmitting}
               className="w-full bg-transparent border border-[#1e293b] text-slate-400 font-bold py-3 px-6 rounded-lg hover:bg-[#1c3838] hover:text-slate-100 transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"

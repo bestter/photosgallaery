@@ -271,6 +271,7 @@ export default function Gallery() {
         <div className="flex items-center gap-2 md:gap-4">
           {isLoggedIn && (
             <button
+              type="button"
               onClick={() => setIsGroupRequestOpen(true)}
               className="hidden md:block border border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
             >
@@ -279,6 +280,7 @@ export default function Gallery() {
           )}
           {canUpload && (
             <button
+              type="button"
               onClick={() => setIsUploadOpen(true)}
               className="hidden md:block bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
             >
@@ -288,6 +290,7 @@ export default function Gallery() {
           <div className="flex items-center gap-1 md:gap-3">
             {canSeeDashboard && (
               <button
+                type="button"
                 onClick={() => (window.location.href = "/dashboard")}
                 className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 aria-label={t("gallery.dashboard_tooltip")}
@@ -300,6 +303,7 @@ export default function Gallery() {
             )}
             {isLoggedIn && (
               <button
+                type="button"
                 onClick={() => setIsInviteOpen(true)}
                 className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 aria-label={t("gallery.invite_tooltip")}
@@ -313,12 +317,14 @@ export default function Gallery() {
             {!isLoggedIn && (
               <>
                 <button
+                  type="button"
                   onClick={() => (window.location.href = "/login")}
                   className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 px-3 py-1.5 rounded font-bold text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 >
                   {t("gallery.login")}
                 </button>
                 <button
+                  type="button"
                   onClick={() => (window.location.href = "/register")}
                   className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 >
@@ -328,6 +334,7 @@ export default function Gallery() {
             )}
             {isLoggedIn && (
               <button
+                type="button"
                 onClick={() => {
                   clearUserSession();
                   window.location.reload();
@@ -393,6 +400,7 @@ export default function Gallery() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
+              type="button"
               onClick={() => {
                 setSelectedTag(null);
                 setSelectedAuthor(null);
@@ -409,6 +417,7 @@ export default function Gallery() {
             </button>
             {selectedTag && (
               <button
+                type="button"
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 onClick={() => setSelectedTag(null)}
                 aria-label={
@@ -437,6 +446,7 @@ export default function Gallery() {
             )}
             {selectedAuthor && (
               <button
+                type="button"
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 onClick={() => setSelectedAuthor(null)}
                 aria-label={
@@ -654,6 +664,7 @@ export default function Gallery() {
             {filteredPhotos.length > 0 && hasMore && !isLoading && (
               <div className="col-span-full flex justify-center mt-8">
                 <button
+                  type="button"
                   onClick={() => {
                     const nextPage = page + 1;
                     setPage(nextPage);
@@ -692,6 +703,7 @@ export default function Gallery() {
                 </p>
                 {(searchQuery || selectedTag || selectedAuthor) && (
                   <button
+                    type="button"
                     onClick={() => {
                       setSearchQuery("");
                       setSelectedTag(null);
@@ -710,6 +722,7 @@ export default function Gallery() {
                   !selectedTag &&
                   !selectedAuthor && (
                     <button
+                      type="button"
                       onClick={() => setIsUploadOpen(true)}
                       className="bg-cyan-400 text-[#0f2323] px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform hover:brightness-110 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                     >
@@ -731,6 +744,7 @@ export default function Gallery() {
       {/* Contextual FAB for Upload */}
       {canUpload && (
         <button
+          type="button"
           onClick={() => setIsUploadOpen(true)}
           className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
           aria-label={t("common.upload_photo", "Upload a photo")}
