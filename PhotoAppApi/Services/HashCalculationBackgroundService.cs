@@ -31,6 +31,7 @@ public class HashCalculationBackgroundService : BackgroundService
 
                     var photosWithoutHash = await dbContext.Photos
                         .Where(p => p.FileHash == null || p.FileHash == string.Empty)
+                        .OrderBy(p => p.Id)
                         .Take(50)
                         .ToListAsync(stoppingToken);
 
