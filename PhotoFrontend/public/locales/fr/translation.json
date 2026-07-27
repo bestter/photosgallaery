@@ -270,7 +270,9 @@
       "logout": "Déconnexion"
     },
     "group_selector": {
-      "your_collectives": "Vos Collectifs"
+      "your_collectives": "Vos Collectifs",
+      "toggle_aria": "Sélectionner un groupe: {{name}}",
+      "toggle_title": "Sélectionner un groupe"
     },
     "image_modal": {
       "download": {

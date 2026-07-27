@@ -55,19 +55,30 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YO
 
 // Dans ton Program.cs
 builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    ServerVersion serverVersion;
+    try
+    {
+        serverVersion = ServerVersion.AutoDetect(connectionString);
+    }
+    catch
+    {
+        serverVersion = new MariaDbServerVersion(new Version(10, 11, 0));
+    }
+
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString),
+        serverVersion,
         mySqlOptions =>
         {
-            // C'est ici qu'on ajoute la résilience suggérée par l'erreur !
             mySqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 3,
                 maxRetryDelay: TimeSpan.FromSeconds(5),
                 errorNumbersToAdd: null
             );
         }
-    ));
+    );
+});
 
 // 2. Configuration CORS
 builder.Services.AddCors(options =>
@@ -138,7 +149,7 @@ builder.Services.AddAuthentication(options =>
                 {
                     var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
                     // On vérifie en direct s'il a été banni depuis sa dernière connexion
-                    var user = await dbContext.Users.FindAsync(userId);
+                    var user = await dbContext.Users.FindAsync(new object[] { userId }, context.HttpContext.RequestAborted);
 
                     bool isForbidden = (user == null || user.Role == UserRole.Forbidden);
                     string currentRole = string.Empty;
@@ -165,7 +176,7 @@ builder.Services.AddAuthentication(options =>
                     // Cela va retourner une erreur 401 Unauthorized à React.
                     context.Fail("Ce compte a été suspendu par l'administration.");
                 }
-                else if (roleClaim != null && roleClaim != cacheResult.CurrentRole)
+                else if (roleClaim != cacheResult.CurrentRole)
                 {
                     // 🛡️ Sentinel: Fix Stale JWT Claims Authorization Bypass
                     // Reject token if the user's role has changed since token issuance
@@ -259,7 +270,16 @@ builder.Services.AddAuthorizationBuilder()
         policy.RequireRole("Admin", "Creator"));
 
 builder.Services.AddMemoryCache();
-builder.Services.AddControllers();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.SuppressXFrameOptionsHeader = false;
+});
+
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+});
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
@@ -516,6 +536,7 @@ app.UseAuthorization();
 
 app.UseRateLimiter();
 
+app.UseAntiforgery();
 app.MapControllers();
 
 //https://gemini.google.com/app/387a36e26323a68d?hl=fr

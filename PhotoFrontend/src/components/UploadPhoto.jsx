@@ -31,6 +31,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   const [tagInput, setTagInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [title, setTitle] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const [description, setDescription] = useState("");
 
   const selectedFile = files.length > 0 ? files[0] : null;
@@ -52,10 +53,12 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
     // Charger les groupes de l'utilisateur
     const fetchGroups = async () => {
       try {
         const response = await api.get("/auth/groups");
+        if (isCancelled) return;
         setUserGroups(response.data);
 
         if (
@@ -67,7 +70,8 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
           setSelectedGroupId(response.data[0].id || response.data[0].Id);
         }
       } catch (error) {
-        console.error("Erreur lors du chargement des groupes", error);
+        if (isCancelled) return;
+        console.error("Erreur lors de la récupération des groupes", error);
         toast.error(t("components.upload.error.load_groups"));
       }
     };
@@ -121,9 +125,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
-  const handleFileChange = (event) => {
-    const selectedFiles = Array.from(event.target.files);
-
+  const processFiles = (selectedFiles) => {
     if (selectedFiles.length > 0) {
       const totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
 
@@ -137,6 +139,30 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
       toast.success(t("components.upload.success", { count: selectedFiles.length }), {
         icon: "📸",
       });
+    }
+  };
+
+  const handleFileChange = (event) => {
+    const selectedFiles = Array.from(event.target.files);
+    processFiles(selectedFiles);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      processFiles(droppedFiles);
     }
   };
 
@@ -244,7 +270,14 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
         </div>
 
         {/* Zone de Drag & Drop (Glisser-déposer) */}
-        <label className="flex flex-col bg-slate-100/50 dark:bg-primary/5 rounded-xl border-2 border-dashed border-primary/30 p-8 lg:p-14 text-center items-center gap-6 group hover:border-primary focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-all cursor-pointer relative">
+        <label
+          className={`flex flex-col rounded-xl border-2 border-dashed p-8 lg:p-14 text-center items-center gap-6 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-all cursor-pointer relative ${
+            isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : 'bg-slate-100/50 dark:bg-primary/5 border-primary/30 hover:border-primary'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <input
             type="file"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -253,12 +286,12 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
             aria-label={t("components.upload.browse_files")}
             title={t("components.upload.browse_files")}
           />
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform pointer-events-none">
             <span aria-hidden="true" className="material-symbols-outlined text-4xl">
               cloud_upload
             </span>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 pointer-events-none">
             <p className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">
               {selectedFile
                 ? selectedFile.name

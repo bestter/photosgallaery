@@ -113,3 +113,29 @@ Pre-generate presigned S3 URLs directly in the bulk list endpoint (like `GetPhot
 ## 2024-06-28 - Bulk S3 Presigned URL Generation
 **Learning:** Generating multiple S3 presigned URLs sequentially in a `foreach` loop introduces significant latency, especially for endpoints returning large lists of items (e.g., photo galleries). Because the AWS SDK is thread-safe and generating presigned URLs does not interact with the non-thread-safe Entity Framework Core `DbContext`, these operations can and should be parallelized.
 **Action:** Always use `Task.WhenAll` alongside a `Select` projection to generate S3 presigned URLs concurrently when processing collections, to eliminate sequential processing bottlenecks and reduce overall API response times.
+## 2024-07-08 - Optimize Rendering by Memoizing Dictionary and Array Map inside Render
+**Learning:**
+Performing an inline array loop (like building a `Map` cache and then iterating to `.find()`) inside the return block of a React component creates unnecessary dictionary allocations and forces an O(N) internal loop to run on every render.
+**Action:**
+Extract the dictionary creation and array mapping logic outside of the return statement and into a `useMemo` hook, ensuring it only executes when the dependencies (e.g., the raw tags array) change.
+## 2024-05-24 - Avoid Any() on Lists
+**Learning:** Using `.Any()` on a materialized collection (like `List<T>`) creates unnecessary enumerator allocation overhead.
+**Action:** Always prefer using `.Count == 0` or `.Count != 0` when checking if a `List<T>` has elements.
+## 2024-07-09 - Remove Redundant Include before Select in EF Core Projections
+**Learning:** In Entity Framework Core, when a query ends with a `.Select()` projection, the framework automatically generates the necessary SQL `JOIN`s for any navigation properties referenced inside the projection block. Calling `.Include()` explicitly before `.Select()` is entirely redundant. It degrades performance by forcing EF Core to spend CPU cycles and memory parsing and building larger query expression trees and tracking metadata that are ultimately ignored by the SQL projection translator.
+**Action:** Always omit `.Include()` or `.ThenInclude()` calls if the query ends in a `.Select()` projection that maps the necessary nested properties, saving query compilation and tracking overhead.
+## 2024-07-10 - Avoid redundant O(N) Array Lookups in Gallery
+**Learning:** Performing `userGroups.find` in multiple separate hooks (like `useEffect` and `useMemo`) using the exact same dependencies means the O(N) loop is executed multiple times per render cycle, which could slow down the main thread if the list of groups is long.
+**Action:** Extract repeated inline array lookups into a single memoized variable (like `const activeGroup = useMemo(...)`) and reuse that value across other `useEffect` or `useMemo` hooks.
+## 2024-05-18 - Concurrent Task Execution for Pre-Signed URLs
+
+**Learning:** When using `Task.WhenAll` on an `IEnumerable<Task>` created by `.Select(async ...)`, the asynchronous lambda executes synchronously until the first real `await` that yields control back to the caller. If the awaited method completes synchronously (e.g. `AmazonS3Client.GetPreSignedURLAsync` which is typically just CPU-bound crypto signing and string building, rather than a true network IO call), the `.Select` executes sequentially and blocks the thread, completely defeating the purpose of `Task.WhenAll`.
+
+**Action:** Replaced `.Select(async photo => ...)` with `.Select(photo => Task.Run(async () => ...))` for S3 presigned URL generation. This explicitly queues the CPU-bound work on the thread pool, allowing `Task.WhenAll` to actually run them concurrently and significantly reducing response latency for endpoints returning lists of photos.
+
+## 2026-07-23 - Bolt: Replaced synchronous File.Exists with async-compatible exception handling
+
+**Learning:** `System.IO.File.Exists` is a synchronous, blocking I/O operation. Calling it inside a `Parallel.ForEachAsync` tight loop can lead to thread pool starvation and reduces the benefits of async I/O. Furthermore, checking for file existence immediately before trying to open it introduces a Time-Of-Check to Time-Of-Use (TOCTOU) race condition. Using a `try/catch` block handling `FileNotFoundException` and `DirectoryNotFoundException` safely avoids both the TOCTOU issue and the blocking I/O call, yielding a measurable performance improvement for existing files.
+
+**Action:** Replaced `System.IO.File.Exists` with a `try/catch` block around `new FileStream` for missing files inside the `Parallel.ForEachAsync` block in `PhotosController.MigrateHashAsync` to speed up processing.
+

@@ -34,8 +34,11 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
+                aria-label={t("components.group_selector.toggle_aria", { name: activeGroup.name || activeGroup.Name, defaultValue: "Select a group: {{name}}" })}
+                title={t("components.group_selector.toggle_title", "Select a group")}
                 aria-haspopup="menu"
                 className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"
             >
@@ -60,6 +63,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
 
                     return (
                         <button
+                            type="button"
                             key={groupId}
                             role="menuitem"
                             onClick={() => {

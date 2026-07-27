@@ -1,16 +1,46 @@
-# React + Vite
+# PixelLyra Frontend 🌌
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+PixelLyra Frontend est l'interface utilisateur de la plateforme de gestion et partage de photos. Elle est construite avec React 19 et Vite, et intègre un système de design personnalisé "Cyanide Glass" au style Cyberpunk Glassmorphic fondé sur Tailwind CSS v4.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Fonctionnalités Principales
 
-## React Compiler
+- **Galerie & Modale Photo** : Affichage immersif des photos avec navigation fluide, réactions (likes optimistes), extraction EXIF/GPS et intégration de la carte interactive Leaflet.
+- **Téléversement & Tags** : Envoi d'images par glisser-déposer (dropzone), prévisualisation instantanée, catégorisation par groupes et système de mots-clés.
+- **Gestion des Groupes & Invitations** : Création de groupes, demande d'accès, modales d'invitation et gestion administrative des membres.
+- **Espace Administrateur & Modération** : Interface d'administration pour la validation des demandes de groupe et le traitement des rapports d'images signalées.
+- **Internationalisation (i18n)** : Support bilingue dynamique (Français / Anglais) via `react-i18next`.
+- **Authentification Sécurisée** : Session par cookies HttpOnly JWT, protection anti-CSRF (`X-CSRF-TOKEN`) et gestion automatique du rafraîchissement d'état.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🎨 Design System : Cyanide Glass
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Le design du frontend respecte rigoureusement la charte spécifiée dans `PhotoFrontend/DESIGN.md` :
+- **Fond principal** : Dark Slate / Cyanide Tint (`#0e1515`, `#161d1d`).
+- **Accents** : Electric Cyan (`#00ced1`, `#47eaed`) avec effets lumineux (neon drop-shadow).
+- **Effets de profondeur** : Couches translucides et flou d'arrière-plan (`backdrop-blur-md`).
+- **Typographie** : Famille Inter avec variations d'épaisseur et d'espacement (letter-spacing).
+
+---
+
+## 📦 Scripts Disponibles
+
+Dans le répertoire `PhotoFrontend`, vous pouvez exécuter :
+
+### `npm run dev`
+Démarre le serveur de développement Vite sur `http://localhost:5173`.
+
+### `npm run build`
+Exécute la compilation de production et génère le paquet statique dans le dossier `dist`.
+
+### `npm run test` (ou `npm run test -- --run`)
+Lance les tests unitaires et de composants avec Vitest et React Testing Library.
+
+### `npm run lint`
+Vérifie la qualité du code avec ESLint.
+
+### `npx react-doctor@latest --scope changed`
+Audite les composants modifiés pour détecter les régressions de performance, d'accessibilité et de hooks.
+

@@ -142,3 +142,44 @@
 **Vulnerability:** The endpoints `GetUserPhotos`, `GetMostViewedPhotos` (in `PhotosController.cs`) and `GetUserGroups` (in `AuthController.cs`) executed Entity Framework Core database operations (e.g. `FindAsync`, `CountAsync`, `ToListAsync`, `SingleOrDefaultAsync`) without accepting or passing a `CancellationToken`. This created a Denial of Service (DoS) vulnerability via resource exhaustion, as database queries would continue running even if the client disconnected prematurely.
 **Learning:** Any endpoint that performs I/O bound operations, particularly multiple database queries or large aggregations, must be able to cancel those operations when the client disconnects to prevent wasting database connections and thread pool threads.
 **Prevention:** Consistently inject a `CancellationToken cancellationToken = default` parameter into ASP.NET Core API controller method signatures and thread it down into all asynchronous Entity Framework Core operations. Also ensure the tests are updated to provide `default` or `TestContext.Current.CancellationToken` where necessary to avoid breaking tests or generating analyzer warnings.
+## 2026-06-25 - [MEDIUM] Fix missing CancellationToken
+**Vulnerability:** Endpoints such as `GetUserPhotos`, `GetMostViewedPhotos`, `RecordView`, and `GetUserGroups` were executing Entity Framework Core database operations (like `ToListAsync`, `SingleOrDefaultAsync`, `CountAsync`) and asynchronous channel writes (`WriteAsync`) without accepting or passing a `CancellationToken`. This allowed operations to continue consuming database connections, thread pool threads, and server resources even if the client disconnected or cancelled the request early, potentially leading to resource exhaustion and a Denial-of-Service (DoS) condition.
+**Learning:** For endpoints returning large collections of entities (e.g. photos or groups) or modifying states (recording views), always support graceful cancellation to conserve server resources when subjected to unexpected or malicious disconnects.
+**Prevention:** Ensure all `[HttpGet]`, `[HttpPost]`, and similar ASP.NET Core endpoints are defined with a `CancellationToken cancellationToken = default` parameter, and consistently thread this token through to all async data access and processing operations.
+
+## 2026-06-25 - [MEDIUM] Fix missing CancellationToken in GetUserGroups, GetUserPhotos, GetMostViewedPhotos, and RecordView
+**Vulnerability:** Several endpoints in `AuthController` and `PhotosController` executed long-running Entity Framework Core database operations (`FindAsync`, `ToListAsync`, `CountAsync`) and asynchronous channel writes (`WriteAsync`) without passing a `CancellationToken`. This allowed the operations to continue consuming database connections, memory, and thread pool resources even after a client abruptly disconnected, potentially leading to resource exhaustion and Denial-of-Service (DoS).
+**Learning:** For endpoints returning large collections or performing background processing, graceful cancellation is critical to conserve server resources when subjected to unexpected or malicious disconnects.
+**Prevention:** Consistently inject a `CancellationToken cancellationToken = default` parameter into ASP.NET Core API controller methods and thread it through to all async data access and processing operations.
+## 2024-05-24 - Pagination Limits to Prevent DoS
+
+**Vulnerability:** API endpoints (`GetPhotos`, `GetUserPhotos`, `GetMostViewedPhotos`, `GetAllUsers`, `GetReports`) lacked maximum boundary constraints on parameters like `pageSize` and `count`, allowing malicious actors to request unbounded result sets (e.g., `count=1000000`), causing excessive database load and Out-Of-Memory (OOM) vulnerabilities.
+
+**Learning:** Relying solely on default parameter values (e.g., `count = 10`) is insufficient. Client-provided inputs can override these defaults and must be strictly clamped before executing database operations, particularly those involving `.Skip()` and `.Take()`.
+
+**Prevention:** Consistently apply `Math.Clamp()` and `Math.Max()` to pagination and count variables prior to constructing Entity Framework Core queries. Ensure that rate limiting is accompanied by input length constraints to fully mitigate Denial-of-Service risks.
+
+## 2026-07-22 - Fix Bcrypt Hash Denial of Service (DoS)
+**Vulnerability:** The application was vulnerable to Bcrypt Hash Denial of Service (DoS) as DTO objects allowed passwords up to 100 characters in length. Because Bcrypt natively truncates inputs over 72 bytes, exceptionally long strings could be processed unsafely, potentially causing high CPU overhead during hashing and contributing to truncation-related security vulnerabilities.
+**Learning:** Relying on generic string lengths (like `[StringLength(100)]`) for password inputs is insufficient when using Bcrypt. Bcrypt has a hard limit of 72 bytes.
+**Prevention:** Always enforce a strict maximum length limit of 72 characters (`[StringLength(72)]`) on password fields in DTOs to align with Bcrypt's native truncation limit and prevent potential DoS through excessive string parsing before hashing.
+## 2025-02-27 - Fix Entity Framework Core FindAsync Overload Resolution Bug
+**Vulnerability:** A minor DoS/crash vector where `FindAsync` incorrectly interpreted `CancellationToken` as a key property because it was passed alongside a single primary key without being wrapped in an object array (e.g. `FindAsync(request.RequestId.Value, cancellationToken)`).
+**Learning:** EF Core's `FindAsync(params object[] keyValues)` will consume the `CancellationToken` as a second key parameter if the first parameter is just a single ID, which bypasses the intended `FindAsync(object[] keyValues, CancellationToken cancellationToken)` overload.
+**Prevention:** Always wrap the key values in an object array when passing a `CancellationToken`, like this: `await _context.Entity.FindAsync(new object[] { id }, cancellationToken);`.
+
+## 2026-07-23 - Prevent Admin Lockout Vulnerability
+**Vulnerability:** An administrator could modify their own role via the `/api/admin/users/{id}/role` endpoint, potentially demoting themselves and causing an admin lockout.
+**Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
+**Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints.
+
+## 2026-07-23 - Fix User Enumeration vulnerability in CreateInvitation
+**Vulnerability:** The `CreateInvitation` endpoint was vulnerable to a timing-based User Enumeration attack. The response time was significantly slower when an invitation email was successfully sent (existing user without a group or new user) compared to when the user was already in the group or had a pending invite. Attackers could measure the response time to determine if an email address was registered.
+**Learning:** In HTTP endpoints, time-consuming side-effects (like sending emails) should be offloaded to asynchronous background tasks to equalize response times across all logic branches, preventing side-channel timing leaks.
+**Prevention:** Use `Task.Run` combined with `IServiceScopeFactory` to safely dispatch slow operations asynchronously outside the main HTTP request thread pool loop. Ensure you handle exceptions in the background thread to avoid silent failures.
+
+## 2026-06-25 - [HIGH] Fix User Enumeration Timing Attack via BCrypt String Comparison
+**Vulnerability:** The login endpoint attempted to mitigate timing attacks by using `BCrypt.Verify(password, _dummyHash)` when a user was not found. However, this is a known vulnerability pattern because `BCrypt.Verify` may rely on variable-time string comparisons internally (or string `==` operators), causing slight timing differences between valid hashes and dummy hashes when characters mismatch early. This allowed attackers to perform statistical timing attacks to enumerate valid usernames.
+**Learning:** Standard library or third-party cryptographic methods (like `BCrypt.Verify`) might not use perfect constant-time string comparisons, and matching against dummy hashes can still leak timing differences during the comparison phase.
+**Prevention:** To implement a robust constant-time comparison, manually compute the hash using `BCrypt.HashPassword(password, hashToVerify)` to ensure the CPU work is identical, and then strictly use `CryptographicOperations.FixedTimeEquals` on the byte arrays of the computed and expected hashes.
+

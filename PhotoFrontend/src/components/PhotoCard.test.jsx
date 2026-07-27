@@ -72,65 +72,23 @@ describe('PhotoCard', () => {
         };
         render(<PhotoCard {...propsWithoutAuthorClick} />);
 
-        const author = screen.getByText('author');
-        fireEvent.click(author);
-
-        // onClick shouldn't fire if stopPropagation wasn't called (actually the original onClick doesn't check onAuthorClick for stopping propagation unless it's defined,
-        // wait, looking at the code:
-        // So if onAuthorClick is undefined, stopPropagation is NOT called, meaning onClick SHOULD be triggered!
+        // Author is a non-interactive span; open control remains the main button.
+        expect(screen.getByText('author').tagName).toBe('SPAN');
+        fireEvent.click(screen.getByRole('button', { name: 'gallery.view_photo_by' }));
         expect(propsWithoutAuthorClick.onClick).toHaveBeenCalledTimes(1);
     });
 
-
-    it('triggers onClick on main card keydown Enter', () => {
+    it('triggers onClick when the open button is activated', () => {
         render(<PhotoCard {...defaultProps} />);
         const card = screen.getByRole('button', { name: `gallery.view_photo_by` });
-        fireEvent.keyDown(card, { key: 'Enter', code: 'Enter' });
+        fireEvent.click(card);
         expect(defaultProps.onClick).toHaveBeenCalledTimes(1);
     });
 
-    it('triggers onClick on main card keydown Space', () => {
-        render(<PhotoCard {...defaultProps} />);
-        const card = screen.getByRole('button', { name: `gallery.view_photo_by` });
-        fireEvent.keyDown(card, { key: ' ', code: 'Space' });
-        expect(defaultProps.onClick).toHaveBeenCalledTimes(1);
-    });
-
-    it('ignores other keys on main card keydown', () => {
-        render(<PhotoCard {...defaultProps} />);
-        const card = screen.getByRole('button', { name: `gallery.view_photo_by` });
-        fireEvent.keyDown(card, { key: 'a', code: 'KeyA' });
-        expect(defaultProps.onClick).not.toHaveBeenCalled();
-    });
-
-    it('triggers onAuthorClick on author keydown Enter', () => {
-        render(<PhotoCard {...defaultProps} />);
-        const authorBtn = screen.getByRole('button', { name: `gallery.view_profile_of` });
-        fireEvent.keyDown(authorBtn, { key: 'Enter', code: 'Enter' });
-        expect(defaultProps.onAuthorClick).toHaveBeenCalledTimes(1);
-        expect(defaultProps.onAuthorClick).toHaveBeenCalledWith('Test Author');
-    });
-
-    it('triggers onAuthorClick on author keydown Space', () => {
-        const propsWithAtAuthor = { ...defaultProps, author: '@cooluser' };
-        render(<PhotoCard {...propsWithAtAuthor} />);
-        const authorBtn = screen.getByRole('button', { name: `gallery.view_profile_of` });
-        fireEvent.keyDown(authorBtn, { key: ' ', code: 'Space' });
-        expect(propsWithAtAuthor.onAuthorClick).toHaveBeenCalledTimes(1);
-        expect(propsWithAtAuthor.onAuthorClick).toHaveBeenCalledWith('cooluser');
-    });
-
-    it('ignores other keys on author keydown', () => {
-        render(<PhotoCard {...defaultProps} />);
-        const authorBtn = screen.getByRole('button', { name: `gallery.view_profile_of` });
-        fireEvent.keyDown(authorBtn, { key: 'Escape', code: 'Escape' });
-        expect(defaultProps.onAuthorClick).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger onClick if not provided on keydown', () => {
+    it('does not throw when onClick is not provided', () => {
         const propsNoOnClick = { ...defaultProps, onClick: undefined };
         render(<PhotoCard {...propsNoOnClick} />);
         const card = screen.getByRole('button', { name: `gallery.view_photo_by` });
-        fireEvent.keyDown(card, { key: 'Enter', code: 'Enter' });
+        fireEvent.click(card);
     });
 });

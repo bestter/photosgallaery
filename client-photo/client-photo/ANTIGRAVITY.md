@@ -1,15 +1,13 @@
-# Directives IA : Projet Galerie Photo
+# Directives IA : Client Photo Legacy / Module Secondaire
 
-## 1. Règles Globales (Valide pour tout le projet)
+## 1. Règles Globales
 * Ne jamais indexer, lire ou analyser les dossiers `node_modules`, `bin` ou `obj`.
-* Limiter les réponses au code modifié, utiliser `// ... reste du code ...` pour économiser les tokens.
+* Respecter l'organisation du code et éviter toute régression.
 
-## 2. Règles BACKEND (C# / .NET / MariaDB)
-* **Application :** Ces règles s'appliquent à tout ce qui se trouve dans le dossier `/BACKEND`.
-* **Traitement d'images :** Pour toute manipulation (redimensionnement, conversion WebP), utilise systématiquement la bibliothèque `SixLabors.ImageSharp`.
-* **Base de données :** Optimise les requêtes pour MariaDB. Garde les contrôleurs d'API légers et place la logique métier dans des services dédiés.
+## 2. Règles Backend (C# / .NET / MariaDB)
+* Traitement d'images via `SixLabors.ImageSharp`.
+* Intégration légère des contrôleurs et délégation de la logique métier aux services d'application.
 
-## 3. Règles FRONTEND (React)
-* **Application :** Ces règles s'appliquent à tout ce qui se trouve dans le dossier `/FRONTEND`.
-* **Composants :** Privilégie les composants fonctionnels purs et les Hooks.
-* **Communication API :** Assure-toi que toutes les requêtes vers le backend gèrent correctement les états de chargement (loading spinners) et d'erreur pour une bonne expérience utilisateur.
+## 3. Règles Frontend (React)
+* Composants fonctionnels purs et hooks.
+* Gestion rigoureuse des états de chargement, d'erreur et des retours API.

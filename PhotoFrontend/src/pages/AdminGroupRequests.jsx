@@ -106,6 +106,7 @@ export default function AdminGroupRequests() {
                                 <td className="py-4 px-6 text-right">
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
+                                            type="button"
                                             onClick={() => handleReject(req.id)}
                                             className="px-3 py-1.5 text-xs font-label font-bold text-error hover:bg-error/10 rounded transition-colors"
                                             aria-label={t("admin.group_requests.reject_aria", { name: req.name })}
@@ -113,6 +114,7 @@ export default function AdminGroupRequests() {
                                             {t("admin.group_requests.action.reject")}
                                         </button>
                                         <button
+                                            type="button"
                                             onClick={() => handleAccept(req)}
                                             className="px-4 py-1.5 text-xs font-label font-bold bg-primary text-on-primary hover:bg-primary-fixed-dim rounded transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)]"
                                             aria-label={t("admin.group_requests.accept_aria", { name: req.name })}

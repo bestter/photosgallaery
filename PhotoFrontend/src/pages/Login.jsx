@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api";
+import api, { fetchCsrfToken } from "../api";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { saveUserSession } from "../authHelper";
@@ -20,6 +20,7 @@ const Login = () => {
       const response = await api.post("/auth/login", { username, password });
       if (response.data && response.data.token) {
         saveUserSession(response.data.token);
+        await fetchCsrfToken();
         toast.success(t("auth.login.success"));
         window.location.href = "/";
       }

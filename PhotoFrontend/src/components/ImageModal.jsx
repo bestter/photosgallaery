@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import ReportModal from './ReportModal';
@@ -11,6 +11,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
     const [isLiking, setIsLiking] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
     const [hasReported, setHasReported] = useState(false);
 
@@ -53,6 +54,32 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         };
     }, [onClose, onPrev, onNext]);
 
+    // Stable source reference (avoid `|| []` outside the memo, which forces recomputation every render)
+    const rawTags = photo?.tags ?? photo?.Tags;
+    const resolvedTags = useMemo(() => {
+        const tags = rawTags || [];
+        if (tags.length === 0) return [];
+        const tagTranslationsDict = new Map();
+
+        tags.forEach((tagObj) => {
+            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+            if (!tagTranslationsDict.has(tagId)) {
+                const tagTranslations = tagObj.translations || tagObj.Translations || [];
+                const frTranslation = tagTranslations.find(tr => tr.language === 0 || tr.Language === 0) || tagTranslations[0];
+                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
+            }
+        });
+
+        return tags.map((tagObj) => {
+            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
+            const tagName = tagTranslationsDict.get(tagId);
+            return {
+                ...tagObj,
+                resolvedName: tagName
+            };
+        });
+    }, [rawTags]);
+
     if (!photo) return null;
 
     // Formatting date safely
@@ -64,8 +91,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const latitude = photo.latitude ?? photo.Latitude;
     const longitude = photo.longitude ?? photo.Longitude;
     const author = photo.uploaderUsername || photo.UploaderUsername || t("components.image_modal.unknown_author");
-    const tags = photo.tags || photo.Tags || [];
-
 
     const currentUser = getUsernameFromToken();
     const isMyPhoto = currentUser && currentUser === author;
@@ -82,9 +107,11 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
     // HANDLERS DES BOUTONS --------------------------
     const handleDownload = async () => {
+        setIsDownloading(true);
         try {
             toast.loading(t("components.image_modal.download.preparing"), { id: "download" });
             const response = await fetch(imgSrc);
+            if (!response.ok) throw new Error("Failed to fetch image");
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
 
@@ -99,6 +126,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             toast.success(t("components.image_modal.download.success"), { id: "download" });
         } catch (err) {
             toast.error(t("components.image_modal.download.error"), { id: "download" });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -179,6 +208,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             >
                 {/* Close Button (Top Right) */}
                 <button
+                    type="button"
                     onClick={onClose}
                     aria-label={t("common.close", "Close")}
                     title={t("common.close", "Close")}
@@ -196,12 +226,12 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Navigation Arrows */}
                     {onPrev && (
-                        <button onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                        <button type="button" onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                         </button>
                     )}
                     {onNext && (
-                        <button onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                        <button type="button" onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
@@ -240,13 +270,20 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     {/* Action Buttons */}
                     <div className="grid grid-cols-4 gap-3">
                         <button
+                            type="button"
                             onClick={handleDownload}
-                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
-                            <span className="material-symbols-outlined" aria-hidden="true">download</span>
+                            disabled={isDownloading}
+                            className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
+                            {isDownloading ? (
+                                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                            ) : (
+                                <span className="material-symbols-outlined" aria-hidden="true">download</span>
+                            )}
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
                         </button>
 
                         <button
+                            type="button"
                             onClick={handleLike}
                             aria-pressed={isLiked}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
@@ -257,13 +294,18 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             title={isMyPhoto ? t("components.image_modal.cant_like_own") : ""}
                         >
                             {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
-                            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                            {isLiking ? (
+                                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                            ) : (
+                                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                            )}
                             <span className="text-[10px] font-bold uppercase">
                                 {t("components.image_modal.button_likes", { count: likesCount })}
                             </span>
                         </button>
 
                         <button
+                            type="button"
                             onClick={handleShare}
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                             <span className="material-symbols-outlined" aria-hidden="true">share</span>
@@ -272,6 +314,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                         {hasReported ? (
                             <button
+                                type="button"
                                 disabled
                                 className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                                 <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
@@ -279,6 +322,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             </button>
                         ) : (
                             <button
+                                type="button"
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
                                 title={isMyPhoto ? t("components.image_modal.cant_report_own") : ""}
@@ -320,48 +364,35 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     </div>
 
                     {/* Tags */}
-                    {tags && tags.length > 0 && (() => {
-                        // ⚡ Bolt: Build dictionary BEFORE the loop to make lookups O(1)
-                        const tagTranslationsDict = new Map();
+                    {resolvedTags && resolvedTags.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {resolvedTags.map((tagObj) => {
+                                    const tagName = tagObj.resolvedName;
+                                    const tagKey = tagObj.id || tagObj.Id || tagName;
 
-                        tags.forEach((tagObj) => {
-                            const tagId = tagObj.id || tagObj.Id || JSON.stringify(tagObj);
-                            if (!tagTranslationsDict.has(tagId)) {
-                                const tagTranslations = tagObj.translations || tagObj.Translations || [];
-                                const frTranslation = tagTranslations.find(t => t.language === 0 || t.Language === 0) || tagTranslations[0];
-                                tagTranslationsDict.set(tagId, frTranslation ? frTranslation.name || frTranslation.Name : 'Tag');
-                            }
-                        });
-
-                        return (
-                            <div className="space-y-3">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {tags.map((tagObj, idx) => {
-                                        const tagName = tagTranslationsDict.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
-
-                                        return onTagClick ? (
-                                            <button
-                                                key={idx}
-                                                type="button"
-                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                                onClick={() => onTagClick(tagName)}
-                                            >
-                                                {tagName}
-                                            </button>
-                                        ) : (
-                                            <span
-                                                key={idx}
-                                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
-                                            >
-                                                {tagName}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
+                                    return onTagClick ? (
+                                        <button
+                                            key={tagKey}
+                                            type="button"
+                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                            onClick={() => onTagClick(tagName)}
+                                        >
+                                            {tagName}
+                                        </button>
+                                    ) : (
+                                        <span
+                                            key={tagKey}
+                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
+                                        >
+                                            {tagName}
+                                        </span>
+                                    );
+                                })}
                             </div>
-                        );
-                    })()}
+                        </div>
+                    )}
 
                     {/* Location */}
                     {latitude != null && longitude != null && (
@@ -373,6 +404,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 </span>
                             </div>
                             <button
+                                type="button"
                                 className="text-xs font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
                             >

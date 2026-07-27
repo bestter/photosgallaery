@@ -29,7 +29,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await _controller.SubmitContactForm(request, default);
+            var result = await _controller.SubmitContactForm(request, TestContext.Current.CancellationToken);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
@@ -67,7 +67,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await _controller.SubmitContactForm(request, default);
+            var result = await _controller.SubmitContactForm(request, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -79,7 +79,7 @@ namespace PhotoAppApi.Tests.Controllers
         public async Task SubmitContactForm_NullRequest_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.SubmitContactForm(null, default);
+            var result = await _controller.SubmitContactForm(null, TestContext.Current.CancellationToken);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -101,7 +101,7 @@ namespace PhotoAppApi.Tests.Controllers
             };
 
             // Act
-            var result = await _controller.SubmitContactForm(request, default);
+            var result = await _controller.SubmitContactForm(request, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
@@ -141,7 +141,7 @@ namespace PhotoAppApi.Tests.Controllers
                 .ThrowsAsync(new Exception("Test email exception"));
 
             // Act
-            var result = await _controller.SubmitContactForm(request, default);
+            var result = await _controller.SubmitContactForm(request, TestContext.Current.CancellationToken);
 
             // Assert
             var objectResult = Assert.IsType<ObjectResult>(result);

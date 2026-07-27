@@ -30,6 +30,7 @@ export default function Dashboard() {
 
   // Vérification de la session et du rôle via le token
   useEffect(() => {
+    let isCancelled = false;
 
     if (isTokenExpired() || getUserRole() !== "Admin") {
       window.location.href = "/";
@@ -45,25 +46,32 @@ export default function Dashboard() {
         if (deferredSearchTerm) params.append("search", deferredSearchTerm);
 
         const response = await api.get(`/admin/users?${params.toString()}`);
-        setUsers((prev) =>
-          append ? [...prev, ...response.data] : response.data,
-        );
+        if (isCancelled) return;
+        setUsers((prev) => (append ? [...prev, ...response.data] : response.data));
         const totalCount = response.headers["x-total-count"];
         if (totalCount) {
-          setHasMore((append ? users.length : 0) + response.data.length < parseInt(totalCount, 10));
+          const totalLoaded = (currentPage - 1) * 20 + response.data.length;
+          setHasMore(totalLoaded < parseInt(totalCount, 10));
         } else {
           setHasMore(response.data.length === 20);
         }
       } catch (error) {
+        if (isCancelled) return;
         console.error("Error fetching users:", error);
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
     fetchUsers(1, false);
+
+    return () => {
+      isCancelled = true;
+    };
   }, [deferredSearchTerm]);
 
   const handleRoleUpdate = async (userId, newRole) => {
@@ -171,7 +179,7 @@ export default function Dashboard() {
               {t("admin.dashboard.user_list")}
             </h4>
             <div className="flex gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
                 <span
                   className="material-symbols-outlined text-sm"
                   aria-hidden="true"
@@ -180,7 +188,7 @@ export default function Dashboard() {
                 </span>{" "}
                 {t("admin.dashboard.filter")}
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
                 <span
                   className="material-symbols-outlined text-sm"
                   aria-hidden="true"
@@ -254,15 +262,19 @@ export default function Dashboard() {
                         <td className="px-6 py-4">
                           {groups && groups.length > 0 ? (
                             groups.length > 2 ? (
-                              <div className="group relative inline-block cursor-pointer">
-                                <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors">
+                              <div
+                                className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+                                tabIndex={0}
+                                aria-label={`Groupes: ${groups.join(", ")}`}
+                              >
+                                <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors group-focus:bg-surface-container-highest">
                                   Groupes ({groups.length})
                                 </span>
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
                                   <div className="flex flex-col gap-1 items-center">
-                                    {groups.map((g, i) => (
+                                    {groups.map((g) => (
                                       <span
-                                        key={i}
+                                        key={g}
                                         className="whitespace-nowrap font-medium"
                                       >
                                         {g}
@@ -273,9 +285,9 @@ export default function Dashboard() {
                               </div>
                             ) : (
                               <div className="flex flex-wrap gap-1">
-                                {groups.map((g, i) => (
+                                {groups.map((g) => (
                                   <span
-                                    key={i}
+                                    key={g}
                                     className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30"
                                   >
                                     {g}
@@ -317,6 +329,7 @@ export default function Dashboard() {
                             {role !== "Admin" &&
                               (role === "Creator" ? (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleRoleUpdate(userId, "User")
                                   }
@@ -331,6 +344,7 @@ export default function Dashboard() {
                                 </button>
                               ) : (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleRoleUpdate(userId, "Creator")
                                   }
@@ -347,6 +361,7 @@ export default function Dashboard() {
                             {role === "Admin" ? (
                               isCurrentUser ? (
                                 <button
+                                  type="button"
                                   disabled
                                   className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                                   title={t(
@@ -357,6 +372,7 @@ export default function Dashboard() {
                                 </button>
                               ) : (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleRoleUpdate(userId, "User")
                                   }
@@ -372,6 +388,7 @@ export default function Dashboard() {
                               )
                             ) : (
                               <button
+                                type="button"
                                 onClick={() =>
                                   handleRoleUpdate(userId, "Admin")
                                 }
@@ -386,6 +403,7 @@ export default function Dashboard() {
                               </button>
                             )}
                             <button
+                              type="button"
                               disabled={isCurrentUser || updatingUserId === userId}
                               onClick={() => {
                                 if (!isCurrentUser) {
@@ -443,6 +461,7 @@ export default function Dashboard() {
             </p>
             <div className="flex gap-1">
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.previous_page", "Page précédente")}
                 title={t("common.previous_page", "Page précédente")}
@@ -455,6 +474,7 @@ export default function Dashboard() {
                 </span>
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-current="page"
                 aria-label={t("common.page", "Page 1", { page: 1 })}
@@ -463,6 +483,7 @@ export default function Dashboard() {
                 1
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
                 title={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
@@ -470,6 +491,7 @@ export default function Dashboard() {
                 2
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
                 title={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
@@ -477,6 +499,7 @@ export default function Dashboard() {
                 3
               </button>
               <button
+                type="button"
                 className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
                 aria-label={t("common.next_page", "Page suivante")}
                 title={t("common.next_page", "Page suivante")}

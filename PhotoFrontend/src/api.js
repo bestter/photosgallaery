@@ -6,6 +6,16 @@ const baseURL = process.env.NODE_ENV === 'development'
     ? 'http://127.0.0.1:5020/api'  // 💻 Sur ton PC de développement (Port C#)
     : '/api';                      // 🌍 Sur ton serveur Linux Mint (Via Apache)
 
+let csrfToken = null;
+export const fetchCsrfToken = async () => {
+    try {
+        const response = await axios.get(`${baseURL}/Auth/csrf-token`, { withCredentials: true });
+        csrfToken = response.data.token;
+    } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+    }
+};
+
 const axiosInstance = axios.create({
     baseURL: baseURL,
     withCredentials: true // 🛡️ Important pour envoyer les cookies HttpOnly automatiquement
@@ -14,6 +24,9 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
     // 🛡️ Securité de base pour identifier que la requête vient bien de l'app React
     config.headers['X-App-Client'] = 'PhotoApp-Web';
+    if (csrfToken) {
+        config.headers['X-CSRF-TOKEN'] = csrfToken;
+    }
 
     // The JWT token is now handled via HttpOnly cookie,
     // so we don't attach it to the Authorization header from localStorage here.

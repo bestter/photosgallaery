@@ -11,6 +11,7 @@ import Join from './pages/Join';
 import Contact from './pages/Contact';
 import { isTokenExpired } from './authHelper';
 import { useEffect } from 'react';
+import { fetchCsrfToken } from './api';
 
 function App() {
   const currentPath = window.location.pathname;
@@ -20,6 +21,10 @@ function App() {
 
 
   const isPublicRoute = currentPath === '/login' || currentPath === '/register' || currentPath.startsWith('/join') || currentPath === '/contact';
+
+  useEffect(() => {
+    fetchCsrfToken();
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn && !isPublicRoute) {

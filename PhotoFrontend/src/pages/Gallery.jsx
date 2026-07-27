@@ -1,29 +1,20 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import UploadPhoto from "../components/UploadPhoto";
 import ImageModal from "../components/ImageModal";
 import InviteModal from "../components/InviteModal";
 import GroupRequestModal from "../components/GroupRequestModal";
 import GroupSelector from "../components/GroupSelector";
 import { useDebounce } from "../hooks/useDebounce";
-import { getUserRole, clearUserSession, isTokenExpired, getUsernameFromToken } from "../authHelper";
+import { getUserRole, clearUserSession, isTokenExpired } from "../authHelper";
 import api from "../api";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
 
 const getImageUrl = (url) => {
   if (!url) return "";
-  let fullUrl = url;
-  if (!url.startsWith("http")) {
-    const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
-    fullUrl = backendRoot + url;
-  }
-
-  // Ajouter le jeton aux requêtes d'images pour passer l'autorisation côté backend
-  if (!isTokenExpired()) {
-    const separator = fullUrl.includes("?") ? "&" : "?";
-    fullUrl += `${separator}access_(!isTokenExpired())=${(!isTokenExpired())}`;
-  }
-  return fullUrl;
+  if (url.startsWith("http")) return url;
+  const backendRoot = api.defaults.baseURL.replace(/\/api$/, "");
+  return backendRoot + url;
 };
 
 export default function Gallery() {
@@ -48,9 +39,8 @@ export default function Gallery() {
   const [userGroups, setUserGroups] = useState([]);
   const [activeGroupId, setActiveGroupId] = useState(null);
 
-  // Vérification de la session via le (!isTokenExpired())
-
-  const isLoggedIn = (!isTokenExpired()) && !isTokenExpired();
+  // Vérification de la session
+  const isLoggedIn = !isTokenExpired();
   const userRole = isLoggedIn ? getUserRole() : null;
 
   // Permissions
@@ -59,7 +49,7 @@ export default function Gallery() {
   const canSeeDashboard = isLoggedIn && userRole === "Admin";
 
   // Récupération des photos depuis l'API, dépendante du groupe sélectionné
-  const fetchPhotos = async (groupId, currentPage = 1, append = false) => {
+  const fetchPhotos = useCallback(async (groupId, currentPage = 1, append = false) => {
     try {
       if (append) {
         setIsFetchingMore(true);
@@ -80,10 +70,11 @@ export default function Gallery() {
       const url = `/photos?${params.toString()}`;
       const response = await api.get(url);
 
-      setPhotos(prev => append ? [...prev, ...response.data] : response.data);
+      setPhotos((prev) => (append ? [...prev, ...response.data] : response.data));
       const totalCount = response.headers["x-total-count"];
       if (totalCount) {
-        setHasMore((append ? photos.length : 0) + response.data.length < parseInt(totalCount, 10));
+        const totalLoaded = (currentPage - 1) * 20 + response.data.length;
+        setHasMore(totalLoaded < parseInt(totalCount, 10));
       } else {
         setHasMore(response.data.length === 20);
       }
@@ -93,7 +84,7 @@ export default function Gallery() {
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  };
+  }, [debouncedSearchQuery, selectedAuthor, selectedTag]);
 
   // Récupérer les groupes
   useEffect(() => {
@@ -138,43 +129,40 @@ export default function Gallery() {
           fetchPhotos(null, 1, false);
         });
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchPhotos]);
 
   useEffect(() => {
     if (activeGroupId) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPage(1);
       fetchPhotos(activeGroupId, 1, false);
     }
-  }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag]);
+  }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag, fetchPhotos]);
+
+  // ⚡ Bolt: Memoize the active group lookup to avoid multiple O(N) array scans during every render or state update.
+  const activeGroup = useMemo(() => {
+    if (!userGroups || userGroups.length === 0 || !activeGroupId) return null;
+    return userGroups.find((g) => (g.id || g.Id) === activeGroupId);
+  }, [activeGroupId, userGroups]);
 
   // Keep URL in sync
   useEffect(() => {
-    if (activeGroupId) {
+    if (activeGroupId && activeGroup) {
       // Maintenir l'URL synchronisée avec le groupe actif
-      if (userGroups && userGroups.length > 0) {
-        const activeGroup = userGroups.find(
-          (g) => (g.id || g.Id) === activeGroupId,
-        );
-        if (activeGroup && (activeGroup.shortName || activeGroup.ShortName)) {
-          const url = new URL(window.location.href);
-          url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
-          url.searchParams.delete("groupId");
-          window.history.replaceState({}, "", url);
-        }
+      if (activeGroup.shortName || activeGroup.ShortName) {
+        const url = new URL(window.location.href);
+        url.pathname = `/group/${activeGroup.shortName || activeGroup.ShortName}`;
+        url.searchParams.delete("groupId");
+        window.history.replaceState({}, "", url);
       }
     }
-  }, [activeGroupId, userGroups]);
-
-
+  }, [activeGroupId, activeGroup]);
 
   // ⚡ Bolt: Memoize the active group name to avoid executing an O(N) array lookup twice during every render.
   const activeGroupName = useMemo(() => {
-    if (!activeGroupId) return t("gallery.gallery_title");
-    const group = userGroups.find((g) => (g.id || g.Id) === activeGroupId);
-    return group?.name || group?.Name || t("gallery.gallery_title");
-  }, [activeGroupId, userGroups, t]);
+    if (!activeGroup) return t("gallery.gallery_title");
+    return activeGroup.name || activeGroup.Name || t("gallery.gallery_title");
+  }, [activeGroup, t]);
 
   // ⚡ Bolt: Memoize filteredPhotos to avoid O(n) re-calculation on every render when unrelated state changes
   // such as modal opening/closing or hover effects. This reduces main thread blocking during fast typing in search.
@@ -205,9 +193,10 @@ export default function Gallery() {
     // Second Pass: Use O(1) dictionary lookup instead of mapping arrays
     return photos.map((photo) => {
       const photoTagsRaw = photo.tags || photo.Tags || [];
-      const _displayTags = photoTagsRaw
-        .map((tagObj) => translationsMap.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj)))
-        .filter(Boolean);
+      const _displayTags = photoTagsRaw.flatMap((tagObj) => {
+        const translated = translationsMap.get(tagObj.id || tagObj.Id || JSON.stringify(tagObj));
+        return translated ? [translated] : [];
+      });
 
       return { ...photo, _displayTags };
     });
@@ -282,6 +271,7 @@ export default function Gallery() {
         <div className="flex items-center gap-2 md:gap-4">
           {isLoggedIn && (
             <button
+              type="button"
               onClick={() => setIsGroupRequestOpen(true)}
               className="hidden md:block border border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
             >
@@ -290,6 +280,7 @@ export default function Gallery() {
           )}
           {canUpload && (
             <button
+              type="button"
               onClick={() => setIsUploadOpen(true)}
               className="hidden md:block bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
             >
@@ -299,6 +290,7 @@ export default function Gallery() {
           <div className="flex items-center gap-1 md:gap-3">
             {canSeeDashboard && (
               <button
+                type="button"
                 onClick={() => (window.location.href = "/dashboard")}
                 className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 aria-label={t("gallery.dashboard_tooltip")}
@@ -311,6 +303,7 @@ export default function Gallery() {
             )}
             {isLoggedIn && (
               <button
+                type="button"
                 onClick={() => setIsInviteOpen(true)}
                 className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 p-2 rounded transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 aria-label={t("gallery.invite_tooltip")}
@@ -324,12 +317,14 @@ export default function Gallery() {
             {!isLoggedIn && (
               <>
                 <button
+                  type="button"
                   onClick={() => (window.location.href = "/login")}
                   className="text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 px-3 py-1.5 rounded font-bold text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 >
                   {t("gallery.login")}
                 </button>
                 <button
+                  type="button"
                   onClick={() => (window.location.href = "/register")}
                   className="bg-cyan-400 text-[#0f2323] px-4 py-1.5 rounded text-sm font-bold active:scale-95 transition-transform hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 >
@@ -339,6 +334,7 @@ export default function Gallery() {
             )}
             {isLoggedIn && (
               <button
+                type="button"
                 onClick={() => {
                   clearUserSession();
                   window.location.reload();
@@ -404,6 +400,7 @@ export default function Gallery() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
+              type="button"
               onClick={() => {
                 setSelectedTag(null);
                 setSelectedAuthor(null);
@@ -420,6 +417,7 @@ export default function Gallery() {
             </button>
             {selectedTag && (
               <button
+                type="button"
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 onClick={() => setSelectedTag(null)}
                 aria-label={
@@ -448,6 +446,7 @@ export default function Gallery() {
             )}
             {selectedAuthor && (
               <button
+                type="button"
                 className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                 onClick={() => setSelectedAuthor(null)}
                 aria-label={
@@ -502,30 +501,31 @@ export default function Gallery() {
               const isLarge = index % 4 === 0;
               const isWide = index % 4 === 3;
 
+              const openPhotoLabel = photo.title
+                ? t("gallery.open_photo", { title: photo.title })
+                : t("gallery.photo_by", { author });
+
               if (isLarge) {
                 return (
                   <div
                     key={photoId}
-                    onClick={() => setSelectedPhotoIndex(index)}
-                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedPhotoIndex(index);
-                      }
-                    }}
+                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
                   >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className="absolute inset-0 z-[1] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+                      aria-label={openPhotoLabel}
+                      title={openPhotoLabel}
+                    />
                     <img
                       alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
                       src={thumbnailUrl || originalUrl}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90"></div>
-                    <div className="absolute bottom-0 left-0 p-6 w-full">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 p-6 w-full z-[2] pointer-events-none">
                       {photoTags.length > 0 && (
                         <span className="bg-cyan-400 text-[#0f2323] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-3 inline-block">
                           {photoTags[0]}
@@ -534,15 +534,16 @@ export default function Gallery() {
                       <h2 className="text-2xl font-bold text-white mb-1 truncate">
                         {photo.title || `Captured by @${author}`}
                       </h2>
-                      <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-4 mt-3 pointer-events-auto">
                         <button
                           type="button"
                           className="flex items-center gap-2 text-slate-300 text-[12px] font-semibold hover:text-cyan-400 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             setSelectedAuthor(author);
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
+                          aria-label={t("gallery.view_profile_of", { author })}
+                          title={t("gallery.view_profile_of", { author })}
                         >
                           <span
                             aria-hidden="true"
@@ -562,46 +563,40 @@ export default function Gallery() {
                 return (
                   <div
                     key={photoId}
-                    onClick={() => setSelectedPhotoIndex(index)}
-                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedPhotoIndex(index);
-                      }
-                    }}
+                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
                   >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className="absolute inset-0 z-[1] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+                      aria-label={openPhotoLabel}
+                      title={openPhotoLabel}
+                    />
                     <img
                       alt={t("gallery.photo_by", { author })}
                       loading="lazy"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                       src={thumbnailUrl || originalUrl}
                     />
-                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-                      <button
-                        className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
-                        tabIndex={-1}
-                        aria-hidden="true"
-                      >
+                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm pointer-events-none z-[1]">
+                      <span className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                         {t("gallery.view_image")}
-                      </button>
+                      </span>
                     </div>
-                    <div className="absolute top-4 left-4">
+                    <div className="absolute top-4 left-4 z-[2] pointer-events-none">
                       <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold text-cyan-400 uppercase tracking-widest border border-cyan-400/20">
                         {photoTags[0] || t("gallery.without_categories")}
                       </div>
                     </div>
                     <button
                       type="button"
-                      className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      className="absolute bottom-4 right-4 z-[2] bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-300 flex items-center gap-1 hover:text-cyan-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                      onClick={() => {
                         setSelectedAuthor(author);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
+                      aria-label={t("gallery.view_profile_of", { author })}
+                      title={t("gallery.view_profile_of", { author })}
                     >
                       <span
                         aria-hidden="true"
@@ -623,6 +618,7 @@ export default function Gallery() {
                   role="button"
                   tabIndex={0}
                   aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
+                  title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
@@ -668,6 +664,7 @@ export default function Gallery() {
             {filteredPhotos.length > 0 && hasMore && !isLoading && (
               <div className="col-span-full flex justify-center mt-8">
                 <button
+                  type="button"
                   onClick={() => {
                     const nextPage = page + 1;
                     setPage(nextPage);
@@ -706,6 +703,7 @@ export default function Gallery() {
                 </p>
                 {(searchQuery || selectedTag || selectedAuthor) && (
                   <button
+                    type="button"
                     onClick={() => {
                       setSearchQuery("");
                       setSelectedTag(null);
@@ -724,6 +722,7 @@ export default function Gallery() {
                   !selectedTag &&
                   !selectedAuthor && (
                     <button
+                      type="button"
                       onClick={() => setIsUploadOpen(true)}
                       className="bg-cyan-400 text-[#0f2323] px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform hover:brightness-110 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                     >
@@ -745,6 +744,7 @@ export default function Gallery() {
       {/* Contextual FAB for Upload */}
       {canUpload && (
         <button
+          type="button"
           onClick={() => setIsUploadOpen(true)}
           className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
           aria-label={t("common.upload_photo", "Upload a photo")}

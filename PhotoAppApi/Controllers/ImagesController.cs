@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
+using PhotoAppApi.Services;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using PhotoAppApi.Services;
 
 namespace PhotoAppApi.Controllers
 {

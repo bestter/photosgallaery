@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
@@ -20,13 +21,15 @@ namespace PhotoAppApi.Controllers
         private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
 
-        public InvitationsController(AppDbContext context, IEmailService emailService, IConfiguration configuration)
+        public InvitationsController(AppDbContext context, IEmailService emailService, IConfiguration configuration, IServiceScopeFactory serviceScopeFactory)
         {
             _context = context;
             _emailService = emailService;
             _configuration = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         [HttpPost]
@@ -100,16 +103,30 @@ namespace PhotoAppApi.Controllers
                 var frontendUrl = _configuration.GetValue<string>("FrontendUrl"); // On pourrait l'injecter depuis appsettings
                 var inviteUrl = $"{frontendUrl}/join/{invitation.InviteToken}";
 
-                await _emailService.SendInvitationEmailAsync(
-                    email: invitation.Email,
-                    firstName: invitation.FirstName,
-                    lastName: invitation.LastName,
-                    inviterName: inviterUsername,
-                    groupName: group.Name,
-                    message: invitation.Message ?? "",
-                    inviteUrl: inviteUrl,
-                    cancellationToken
-                );
+                // 🛡️ Sentinel: Fix User Enumeration vulnerability
+                // Send the email in a fire-and-forget task to equalize response times
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                        await emailService.SendInvitationEmailAsync(
+                     email: invitation.Email,
+                     firstName: invitation.FirstName,
+                     lastName: invitation.LastName,
+                     inviterName: inviterUsername,
+                     groupName: group.Name,
+                     message: invitation.Message ?? "",
+                     inviteUrl: inviteUrl,
+                            CancellationToken.None
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Erreur d'arrière-plan lors de l'envoi de l'invitation", ex);
+                    }
+                });
 
                 return Ok(new { message = genericSuccessMessage });
             }

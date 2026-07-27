@@ -31,6 +31,7 @@ public class HashCalculationBackgroundService : BackgroundService
 
                     var photosWithoutHash = await dbContext.Photos
                         .Where(p => p.FileHash == null || p.FileHash == string.Empty)
+                        .OrderBy(p => p.Id)
                         .Take(50)
                         .ToListAsync(stoppingToken);
 
@@ -47,6 +48,13 @@ public class HashCalculationBackgroundService : BackgroundService
                         // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) to parallelize CPU/IO bound hashing operations.
                         await Parallel.ForEachAsync(photosWithoutHash, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = stoppingToken }, async (photo, ct) =>
                         {
+                            if (string.IsNullOrEmpty(photo.FileName))
+                            {
+                                log.Warn($"File not found for photo {photo.Id}: null or empty filename");
+                                photo.FileHash = "FILE_MISSING";
+                                return;
+                            }
+
                             var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
                             var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
                             var publicFilePath = Path.Combine(publicImagesFolder, safeFileName);

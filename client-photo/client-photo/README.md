@@ -1,8 +1,9 @@
-# Getting Started with Create React App
+# Client Photo (Legacy App)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Projet client React d'origine pour la galerie photo.
 
-## Available Scripts
+## Scripts disponibles
+
 
 In the project directory, you can run:
 

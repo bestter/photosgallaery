@@ -189,7 +189,7 @@ export default function AdminGroups() {
     const topActions = (
         <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto">
             {selectedGroup && (
-                <button onClick={handleBackToGroups} className="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors flex items-center gap-2" aria-label={t("admin.groups.back")} title={t("admin.groups.back")}>
+                <button type="button" onClick={handleBackToGroups} className="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors flex items-center gap-2" aria-label={t("admin.groups.back")} title={t("admin.groups.back")}>
                     <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
                     {t("admin.groups.back")}
                 </button>
@@ -272,15 +272,17 @@ export default function AdminGroups() {
                                                         <td className="px-6 py-4 text-on-surface-variant">{group.userCount || group.UserCount || 0}</td>
                                                         <td className="px-6 py-4 text-right">
                                                             <button
+                                                                type="button"
                                                                 onClick={() => handleManageMembers(group)}
                                                                 className="px-3 py-1.5 mr-2 text-primary bg-primary/10 hover:bg-primary/20 font-bold rounded-lg transition-colors text-sm"
                                                             >
                                                                 Membres
                                                             </button>
                                                             <button
+                                                                type="button"
                                                                 onClick={() => handleDeleteGroup(group.id || group.Id)}
                                                                 className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors align-middle"
-                                                                title={t("admin.groups.action.delete_group_tooltip")}
+                                                                title={t("admin.groups.action.delete_group_aria", { name: group.name || group.Name })}
                                                                 aria-label={t("admin.groups.action.delete_group_aria", { name: group.name || group.Name })}
                                                             >
                                                                 <span aria-hidden="true" className="material-symbols-outlined">delete</span>
@@ -375,6 +377,7 @@ export default function AdminGroups() {
                                                         <td className="px-6 py-4 text-on-surface-variant">{joinedDate}</td>
                                                         <td className="px-6 py-4 text-right">
                                                             <button
+                                                                type="button"
                                                                 onClick={() => handleRemoveMember(member.userId || member.UserId)}
                                                                 className="px-3 py-1.5 text-xs font-bold text-error border border-error/50 hover:bg-error/10 rounded-lg transition-colors"
                                                                 aria-label={t("admin.groups.action.remove_member_aria", { name: member.username || member.Username || member.userId || member.UserId })}

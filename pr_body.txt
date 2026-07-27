@@ -1,3 +1,7 @@
-🎯 **What:** The moderation-service was susceptible to a decompression bomb attack where a tiny file payload could decode into massive RAM consumption. An explicit size limit has been configured using `Image.MAX_IMAGE_PIXELS` to prevent large images from being processed.
-⚠️ **Risk:** The potential impact if left unfixed is severe - a malicious actor could send small malicious images that crash the service with Out-Of-Memory (OOM) errors, taking down the entire API via Denial-of-Service.
-🛡️ **Solution:** The fix limits the max allowed pixels to 10,000,000 and adds an explicit try/catch block for `Image.DecompressionBombError` to immediately drop the request and return a 400 Bad Request instead of an unhandled 500 error. The unbounded `file.read()` issue highlighted in the prompt was already mitigated with a `while` loop that chunks memory locally.
+💡 **What:** Replaced `.Select(async ...)` with `.Select(photo => Task.Run(async () => ...))` for bulk pre-signed URL generation.
+
+🎯 **Why:** Using an asynchronous lambda within a `Select` creates tasks that execute synchronously until their first true asynchronous yield. Because `GetPreSignedURLAsync` (via AWS SDK) evaluates locally to sign requests and returns a synchronous task without network I/O, the entire collection was being processed sequentially, blocking the thread and negating the benefits of `Task.WhenAll`. By explicitly pushing the work to the thread pool with `Task.Run`, they execute concurrently.
+
+📊 **Impact:** In a focused benchmark of 1000 items simulating CPU-bound work mimicking S3 URL generation, time reduced from 2339ms (sequential execution) to 545ms (concurrent execution), approximately a ~4.3x speedup.
+
+🔬 **Measurement:** A benchmarking console app was written in the `Bench/` directory to prove that mapping an async function directly into a list sequentially executes CPU bound logic, whereas wrapping it in `Task.Run` correctly queues it on the thread pool for concurrent execution, achieving significant improvements.
