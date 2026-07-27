@@ -543,5 +543,96 @@ namespace PhotoAppApi.Tests
             Assert.NotNull(roleClaim);
             Assert.Equal("Creator", roleClaim.Value);
         }
+
+        [Fact]
+        public async Task GetUserGroups_Unauthenticated_ReturnsUnauthorized()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            controller.ControllerContext = new ControllerContext { HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext() };
+
+            // Act
+            var result = await controller.GetUserGroups(TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(result);
+        }
+
+        [Fact]
+        public async Task GetUserGroups_NormalUser_ReturnsOnlyMemberGroups()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var config = GetConfiguration();
+
+            var user = new User { Id = 10, Username = "memberuser", Email = "member@example.com", PasswordHash = "hash", Role = UserRole.User };
+            var group1 = new Group { Id = Guid.NewGuid(), Name = "Group 1", ShortName = "g1", Description = "Desc 1" };
+            var group2 = new Group { Id = Guid.NewGuid(), Name = "Group 2", ShortName = "g2", Description = "Desc 2" };
+
+            context.Users.Add(user);
+            context.Groups.AddRange(group1, group2);
+            context.UserGroups.Add(new UserGroup { UserId = user.Id, GroupId = group1.Id, Role = GroupUserRole.Member });
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new AuthController(context, config);
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, "10"),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "memberuser")
+            };
+            httpContext.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(claims, "TestAuth"));
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act
+            var result = await controller.GetUserGroups(TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var groups = okResult.Value as System.Collections.IEnumerable;
+            Assert.NotNull(groups);
+            var groupList = System.Linq.Enumerable.ToList(groups.Cast<object>());
+            Assert.Single(groupList);
+        }
+
+        [Fact]
+        public async Task GetUserGroups_AdminUser_ReturnsAllGroups()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var config = GetConfiguration();
+
+            var admin = new User { Id = 99, Username = "adminuser", Email = "admin@example.com", PasswordHash = "hash", Role = UserRole.Admin };
+            var group1 = new Group { Id = Guid.NewGuid(), Name = "Group 1", ShortName = "g1", Description = "Desc 1" };
+            var group2 = new Group { Id = Guid.NewGuid(), Name = "Group 2", ShortName = "g2", Description = "Desc 2" };
+
+            context.Users.Add(admin);
+            context.Groups.AddRange(group1, group2);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new AuthController(context, config);
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, "99"),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "adminuser"),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Admin")
+            };
+            httpContext.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(claims, "TestAuth"));
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act
+            var result = await controller.GetUserGroups(TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var groups = okResult.Value as System.Collections.IEnumerable;
+            Assert.NotNull(groups);
+            var groupList = System.Linq.Enumerable.ToList(groups.Cast<object>());
+            Assert.Equal(2, groupList.Count);
+        }
     }
 }
