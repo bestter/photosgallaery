@@ -70,8 +70,7 @@ export default function AdminGroups() {
 
     const handleCreateGroup = async (e) => {
         e.preventDefault();
-        if (!newGroupName.trim()) return;
-
+        if (!newGroupName.trim() || isCreating) return;
         setIsCreating(true);
 
         try {
@@ -144,7 +143,7 @@ export default function AdminGroups() {
 
     const handleAddMember = async (e) => {
         e.preventDefault();
-        if (!selectedUserId) return;
+        if (!selectedUserId || isAddingMember) return;
         setIsAddingMember(true);
         const groupId = selectedGroup.id || selectedGroup.Id;
         try {
