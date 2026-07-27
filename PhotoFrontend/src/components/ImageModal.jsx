@@ -199,7 +199,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 }
             `}</style>
 
-            <img id="printable-image" src={imgSrc} alt="Image à imprimer" className="hidden print:block" />
+            <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />
 
             {/* Modal Container */}
             <div
