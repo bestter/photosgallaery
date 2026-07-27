@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Services;
@@ -8,12 +9,29 @@ namespace PhotoAppApi.Tests.Controllers
     public class ContactControllerTests
     {
         private readonly Mock<IEmailService> _mockEmailService;
+        private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        private readonly Mock<IServiceScope> _mockServiceScope;
+        private readonly Mock<IServiceProvider> _mockServiceProvider;
         private readonly ContactController _controller;
 
         public ContactControllerTests()
         {
             _mockEmailService = new Mock<IEmailService>();
-            _controller = new ContactController(_mockEmailService.Object);
+
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider
+                .Setup(x => x.GetService(typeof(IEmailService)))
+                .Returns(_mockEmailService.Object);
+
+            _mockServiceScope = new Mock<IServiceScope>();
+            _mockServiceScope.Setup(x => x.ServiceProvider).Returns(_mockServiceProvider.Object);
+
+            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockServiceScopeFactory
+                .Setup(x => x.CreateScope())
+                .Returns(_mockServiceScope.Object);
+
+            _controller = new ContactController(_mockEmailService.Object, _mockServiceScopeFactory.Object);
         }
 
         [Fact]
@@ -33,6 +51,10 @@ namespace PhotoAppApi.Tests.Controllers
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
+
+            // Add delay for fire-and-forget background task to complete before verification
+            await Task.Delay(100);
+
             _mockEmailService.Verify(x => x.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message, It.IsAny<CancellationToken>()), Times.Once);
 
             // Check anonymous object property
@@ -125,7 +147,7 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
-        public async Task SubmitContactForm_ServiceThrowsException_Returns500AndLogs()
+        public async Task SubmitContactForm_ServiceThrowsException_ReturnsOkAndLogsInBackground()
         {
             // Arrange
             var request = new ContactRequestDto
@@ -144,9 +166,16 @@ namespace PhotoAppApi.Tests.Controllers
             var result = await _controller.SubmitContactForm(request, TestContext.Current.CancellationToken);
 
             // Assert
-            var objectResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(500, objectResult.StatusCode);
-            Assert.Equal("Une erreur s'est produite lors de l'envoi du message.", objectResult.Value);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+
+            // Add delay for fire-and-forget background task to complete
+            await Task.Delay(100);
+
+            // Check anonymous object property
+            var messageProp = okResult.Value.GetType().GetProperty("message");
+            Assert.NotNull(messageProp);
+            var messageValue = messageProp.GetValue(okResult.Value);
+            Assert.Equal("Votre message a été envoyé avec succès.", messageValue);
         }
     }
 }

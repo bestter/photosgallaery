@@ -13,10 +13,12 @@ namespace PhotoAppApi.Controllers
         private static readonly ILog log = LogManager.GetLogger(typeof(ContactController));
 
         private readonly IEmailService _emailService;
-        public ContactController(IEmailService emailService)
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+
+        public ContactController(IEmailService emailService, IServiceScopeFactory serviceScopeFactory)
         {
             _emailService = emailService;
-
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         [HttpPost]
@@ -43,7 +45,28 @@ namespace PhotoAppApi.Controllers
 
             try
             {
-                await _emailService.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message, cancellationToken);
+                // 🛡️ Sentinel: Fix User Enumeration / Timing vulnerability
+                // Send the email in a fire-and-forget task to equalize response times
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                        await emailService.SendContactEmailAsync(
+                            request.Name,
+                            request.Email,
+                            request.Subject,
+                            request.Message,
+                            CancellationToken.None
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Erreur d'arrière-plan lors de l'envoi du formulaire de contact", ex);
+                    }
+                });
+
                 return Ok(new { message = "Votre message a été envoyé avec succès." });
             }
             catch (Exception ex)
