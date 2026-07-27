@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +8,7 @@ using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
-using System;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace PhotoAppApi.Tests.Controllers
 {
@@ -281,7 +276,7 @@ namespace PhotoAppApi.Tests.Controllers
             Assert.Equal("Pending", invitation.Status);
             Assert.Equal(1, invitation.InviterId);
 
-            await Task.Delay(100); // Give the background task time to run
+            await Task.Delay(100, TestContext.Current.CancellationToken); // Give the background task time to run
             // Verify email WAS sent
             emailServiceMock.Verify(x => x.SendInvitationEmailAsync(
                 dto.Email,
