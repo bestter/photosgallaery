@@ -1316,6 +1316,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 query = query.OrderByDescending(p => p.ViewsCount)
+                             .ThenByDescending(p => p.Id)
                              .Take(count);
 
                 // ⚡ Bolt: Adding AsNoTracking to eliminate change tracking overhead for read-only entities, reducing memory usage and CPU cycles by ~30% for this query.

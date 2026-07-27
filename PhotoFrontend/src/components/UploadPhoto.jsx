@@ -79,6 +79,10 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     if (isSessionValid()) {
       fetchGroups();
     }
+
+    return () => {
+      isCancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGroupId, isSessionValid]);
 

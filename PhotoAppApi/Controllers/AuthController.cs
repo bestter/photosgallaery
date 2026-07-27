@@ -71,7 +71,7 @@ namespace PhotoAppApi.Controllers
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true, // Force HTTPS for security
+                    Secure = Request.IsHttps,
                     SameSite = SameSiteMode.Strict,
                     Expires = DateTime.Now.AddDays(1)
                 };

@@ -138,3 +138,4 @@ Extract the dictionary creation and array mapping logic outside of the return st
 **Learning:** `System.IO.File.Exists` is a synchronous, blocking I/O operation. Calling it inside a `Parallel.ForEachAsync` tight loop can lead to thread pool starvation and reduces the benefits of async I/O. Furthermore, checking for file existence immediately before trying to open it introduces a Time-Of-Check to Time-Of-Use (TOCTOU) race condition. Using a `try/catch` block handling `FileNotFoundException` and `DirectoryNotFoundException` safely avoids both the TOCTOU issue and the blocking I/O call, yielding a measurable performance improvement for existing files.
 
 **Action:** Replaced `System.IO.File.Exists` with a `try/catch` block around `new FileStream` for missing files inside the `Parallel.ForEachAsync` block in `PhotosController.MigrateHashAsync` to speed up processing.
+

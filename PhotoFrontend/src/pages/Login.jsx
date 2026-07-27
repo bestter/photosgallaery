@@ -176,7 +176,7 @@ const Login = () => {
       {/* Aesthetic Layer: Subdued background image for depth */}
       <div className="fixed inset-0 -z-10 opacity-10 pointer-events-none">
         <img
-          alt="Aesthetic depth image"
+          alt=""
           className="w-full h-full object-cover grayscale mix-blend-overlay"
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkddj18PimOapu8gM8vrh4Sux73NOpEf9tG5oxaWzWvJx61B33wB26tGj86YJpIEqkGJE3GJuoP70INRdBGPArOPIFz_bqp0HkdJyQ8XvLd2QvI5slEwJZY70i14DVIDRQcUQrCykqRZbUKCV4Z7kWIUzqdWpa89J1etA2dNp_vclW163tB-4RtC7VmFJX8GxDpT-QprYO4xiw0UDpcttcjbwduQZKycfPmXoUsLjIAJRBypw4Dep_D_NDwACY5y43KfMhTUaXcnE"
         />
