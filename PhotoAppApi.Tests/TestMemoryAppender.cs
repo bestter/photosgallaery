@@ -6,7 +6,7 @@ namespace PhotoAppApi.Tests
 {
     public class TestMemoryAppender : MemoryAppender
     {
-        public IReadOnlyList<LoggingEvent> GetEvents()
+        public new IReadOnlyList<LoggingEvent> GetEvents()
         {
             return m_eventsList.ToArray();
         }

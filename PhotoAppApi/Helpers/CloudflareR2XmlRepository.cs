@@ -91,7 +91,7 @@ namespace PhotoAppApi.Helpers
 
                 elements.AddRange(results.Where(x => x != null)!);
 
-                continuationToken = response.NextContinuationToken;
+                continuationToken = response?.NextContinuationToken;
             }
             while (!string.IsNullOrEmpty(continuationToken));
 
