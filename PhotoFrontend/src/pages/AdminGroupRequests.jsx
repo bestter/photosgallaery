@@ -104,7 +104,7 @@ export default function AdminGroupRequests() {
                                     </div>
                                 </td>
                                 <td className="py-4 px-6 text-right">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                         <button
                                             type="button"
                                             onClick={() => handleReject(req.id)}
