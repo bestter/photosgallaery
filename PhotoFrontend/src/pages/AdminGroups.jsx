@@ -9,10 +9,12 @@ export default function AdminGroups() {
     const { t } = useTranslation();
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [newGroupName, setNewGroupName] = useState('');
-    const [newGroupDescription, setNewGroupDescription] = useState('');
-    const [requesterId, setRequesterId] = useState('');
-    const [requestId, setRequestId] = useState('');
+    const [createForm, setCreateForm] = useState({
+        name: '',
+        description: '',
+        requesterId: '',
+        requestId: ''
+    });
 
     // Member management state
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -56,10 +58,18 @@ export default function AdminGroups() {
                     }
                 }
 
-                if (params.get('createName')) setNewGroupName(params.get('createName'));
-                if (params.get('createDesc')) setNewGroupDescription(params.get('createDesc'));
-                if (params.get('requesterId')) setRequesterId(params.get('requesterId'));
-                if (params.get('requestId')) setRequestId(params.get('requestId'));
+                const createName = params.get('createName') || '';
+                const createDesc = params.get('createDesc') || '';
+                const reqId = params.get('requesterId') || '';
+                const rId = params.get('requestId') || '';
+                if (createName || createDesc || reqId || rId) {
+                    setCreateForm({
+                        name: createName,
+                        description: createDesc,
+                        requesterId: reqId,
+                        requestId: rId
+                    });
+                }
             } catch (error) {
                 toast.error("Erreur lors de la récupération des groupes.");
             } finally {
@@ -73,22 +83,19 @@ export default function AdminGroups() {
 
     const handleCreateGroup = async (e) => {
         e.preventDefault();
-        if (!newGroupName.trim() || isCreating || isCreatingRef.current) return;
+        if (!createForm.name.trim() || isCreating || isCreatingRef.current) return;
         isCreatingRef.current = true;
         setIsCreating(true);
 
         try {
-            const body = { name: newGroupName, description: newGroupDescription };
-            if (requesterId) body.requesterId = parseInt(requesterId);
-            if (requestId) body.requestId = requestId;
+            const body = { name: createForm.name, description: createForm.description };
+            if (createForm.requesterId) body.requesterId = parseInt(createForm.requesterId);
+            if (createForm.requestId) body.requestId = createForm.requestId;
 
             const response = await api.post('/admin/groups', body);
             setGroups([response.data, ...groups]);
             toast.success("Groupe créé avec succès.");
-            setNewGroupName('');
-            setNewGroupDescription('');
-            setRequesterId('');
-            setRequestId('');
+            setCreateForm({ name: '', description: '', requesterId: '', requestId: '' });
 
             // Clean up url
             const url = new URL(window.location.href);
@@ -215,7 +222,7 @@ export default function AdminGroups() {
                             {/* Create Group */}
                             <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 mb-8 max-w-2xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)]">
                                 <h3 className="text-lg font-bold mb-4 text-on-surface">{t("admin.groups.create_title")}</h3>
-                                {requesterId && (
+                                {createForm.requesterId && (
                                     <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl text-sm text-primary">
                                         Création d&apos;un groupe à partir d&apos;une demande. Le demandeur sera automatiquement ajouté en tant qu&apos;administrateur.
                                     </div>
@@ -224,8 +231,8 @@ export default function AdminGroups() {
                                     <div className="flex gap-4">
                                         <input
                                             type="text"
-                                            value={newGroupName}
-                                            onChange={(e) => setNewGroupName(e.target.value)}
+                                            value={createForm.name}
+                                            onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
                                             placeholder={t("admin.groups.table.name") + "..."}
                                             className="flex-1 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors text-on-surface"
                                             required
@@ -236,8 +243,8 @@ export default function AdminGroups() {
                                         </button>
                                     </div>
                                     <textarea
-                                        value={newGroupDescription}
-                                        onChange={(e) => setNewGroupDescription(e.target.value)}
+                                        value={createForm.description}
+                                        onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
                                         placeholder={t("groups.group_desc_placeholder")}
                                         className="w-full px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors resize-none h-20 text-on-surface"
                                     />

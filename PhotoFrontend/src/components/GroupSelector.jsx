@@ -48,7 +48,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
             </button>
             {/* Dropdown Menu */}
             <div
-                className={`absolute left-0 top-full mt-2 w-56 bg-surface-container-high rounded-lg shadow-2xl border border-outline-variant/40 transition-all duration-200 overflow-hidden z-50 ${
+                className={`absolute left-0 top-full mt-2 w-56 bg-surface-container-high rounded-lg shadow-2xl border border-outline-variant/40 transition-[opacity,transform] duration-200 overflow-hidden z-50 ${
                     isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
                 }`}
                 role="menu"
