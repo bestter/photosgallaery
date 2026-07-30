@@ -1,1 +1,1 @@
-🛡️ Sentinel: [HIGH] Fix IDOR in ToggleLike endpoint
+🧪 [testing improvement] Add error test for GroupsController.RemoveMember

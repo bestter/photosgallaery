@@ -1,0 +1,1 @@
+Ah, I need to use `sudo` or edit in a writable directory. But wait, I'm already in `/app` which is writable. Let's see: `ls -la pr_description.txt`
