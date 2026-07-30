@@ -1,32 +1,67 @@
 import sys
 from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
+import os
+import io
 
 mock_transformers = MagicMock()
 sys.modules['transformers'] = mock_transformers
 mock_torch = MagicMock()
 sys.modules['torch'] = mock_torch
 
-from fastapi.testclient import TestClient
-import io
 from PIL import Image
+from fastapi.testclient import TestClient
 
-from main import app, verify_api_key
 import main
+from main import app, verify_api_key
+
+os.environ["MODERATION_API_KEY"] = "test-key"
+main.MODERATION_API_KEY = "test-key"
 
 app.dependency_overrides[verify_api_key] = lambda: None
 client = TestClient(app)
-client.headers.update({"X-API-Key": "test-key"})
-import os
-os.environ["MODERATION_API_KEY"] = "test-key"
-import main
-main.MODERATION_API_KEY = "test-key"
 
 def create_dummy_image_bytes():
     image = Image.new('RGB', (10, 10))
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     return img_byte_arr.getvalue()
+
+def test_api_key_verification_valid():
+    real_client = TestClient(app)
+    app.dependency_overrides.clear()
+    with patch("main.asyncio.to_thread", new_callable=AsyncMock) as mock_to_thread:
+        mock_to_thread.return_value = [{"label": "normal", "score": 0.9}]
+        response = real_client.post(
+            "/moderate",
+            headers={"X-API-Key": "test-key"},
+            files={"file": ("test.jpg", create_dummy_image_bytes(), "image/jpeg")}
+        )
+        assert response.status_code == 200
+    app.dependency_overrides[verify_api_key] = lambda: None
+
+def test_api_key_verification_invalid():
+    real_client = TestClient(app)
+    app.dependency_overrides.clear()
+    response = real_client.post(
+        "/moderate",
+        headers={"X-API-Key": "wrong-key"},
+        files={"file": ("test.jpg", create_dummy_image_bytes(), "image/jpeg")}
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Unauthorized"
+    app.dependency_overrides[verify_api_key] = lambda: None
+
+def test_api_key_verification_missing_header():
+    real_client = TestClient(app)
+    app.dependency_overrides.clear()
+    response = real_client.post(
+        "/moderate",
+        files={"file": ("test.jpg", create_dummy_image_bytes(), "image/jpeg")}
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Unauthorized"
+    app.dependency_overrides[verify_api_key] = lambda: None
 
 def test_non_image_content_type():
     response = client.post(
@@ -93,7 +128,6 @@ def test_internal_server_error(mock_to_thread):
 
 @patch("starlette.datastructures.UploadFile.read", new_callable=AsyncMock)
 def test_file_size_exceeds_content_length(mock_read):
-    # Mock read to return slightly more than 50MB (52428800 bytes)
     mock_read.return_value = b"0" * 52428801
     response = client.post(
         "/moderate",
@@ -116,7 +150,6 @@ def test_file_size_exceeds_attribute(mock_size):
 
 @patch("main.asyncio.to_thread", new_callable=AsyncMock)
 def test_decompression_bomb(mock_to_thread):
-    # Simulate a DecompressionBombError when load_image is called in to_thread
     mock_to_thread.side_effect = Image.DecompressionBombError("Image size exceeds limit")
 
     response = client.post(
@@ -124,4 +157,4 @@ def test_decompression_bomb(mock_to_thread):
         files={"file": ("test.jpg", create_dummy_image_bytes(), "image/jpeg")}
     )
     assert response.status_code == 400
-    assert response.json()["detail"] == "Image dimensions exceed maximum allowed size"
+    assert response.json()["detail"] == "Image exceeds maximum allowed dimensions"
