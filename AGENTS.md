@@ -68,10 +68,11 @@
 
 ## 4. Tests et Validation
 
-* **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C# dans `PhotoAppApi.Tests`, **Vitest** pour le frontend React dans `PhotoFrontend`). Si la logique métier change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
+* **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C# dans `PhotoAppApi.Tests`, **Vitest** pour le frontend React dans `PhotoFrontend`, **Pytest** pour le microservice IA dans `moderation-service`). Si la logique métier change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
 * **Exécution systématique :**
-  - **Backend** : `dotnet test` (129 tests d'intégration et unitaires).
-  - **Frontend** : `npm run test -- --run` (35 tests unitaires).
+  - **Backend** : `dotnet test` (136 tests d'intégration, unitaires et contrats OpenAPI).
+  - **Frontend** : `npm run test -- --run` (40 tests unitaires et de contrat client).
+  - **Microservice IA** : `py -m pytest` (11 tests unitaires dans `moderation-service`).
 * **Validation stricte :** S'assurer que 100% de la suite de tests passe avec succès avant d'effectuer un commit ou de finaliser une PR.
 
 ---
@@ -82,7 +83,7 @@
 * **Pull Requests (PR) :** Tout changement doit obligatoirement passer par la création d'une Pull Request. Aucune fusion (merge) ne doit être effectuée sans une revue préalable.
 * **Commits atomiques :** Chaque commit doit représenter une unité de travail cohérente et complète. Évite les commits qui mélangent plusieurs changements non liés.
 * **Format des messages :** Utilise la spécification *Conventional Commits* (`feat:`, `fix:`, `refactor:`, `chore:`, etc.) pour structurer les titres de tes commits.
-* **Automation Git Hooks :** L'automatisation des hooks Git est configurée à la racine via **Husky** (`.husky/pre-commit`) et **lint-staged**. À chaque commit (`git commit`), `lint-staged` exécute automatiquement les outils de contrôle (ex: `eslint --fix`) sur les fichiers JS/JSX/TS/TSX staggés afin de prévenir l'introduction d'erreurs dans le dépôt.
+* **Automation Git Hooks :** L'automatisation des hooks Git est configurée à la racine via **Husky** (`.husky/pre-commit`) et **lint-staged**. À chaque commit (`git commit`), `lint-staged` exécute automatiquement les outils de contrôle (ex: `eslint --fix`) sur les fichiers JS/JSX/TS/TSX staggés et déclenche automatiquement `py -m pytest moderation-service` si des fichiers Python (`.py`) sont staggés.
 * **Signature de l'IA :** Signe toujours tes commits avec ton nom et ton nom de modèle exact à la fin de la description (ex: `Generated-by: Gemini 3.6 Flash`).
 * **Langue :** Conformément à la Règle Dorée #6, l'intégralité des messages de commit (titre et description) doit être rédigée **strictement en anglais**.
 

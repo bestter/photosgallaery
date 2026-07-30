@@ -1,2 +1,6 @@
 cd PhotoFrontend && node ./node_modules/lint-staged/bin/lint-staged.js
-
+cd ..
+if git diff --cached --name-only | grep -E '^moderation-service/.*\.py$' > /dev/null; then
+  echo "🐍 Running Python pytest for moderation-service..."
+  py -m pytest moderation-service || exit 1
+fi
