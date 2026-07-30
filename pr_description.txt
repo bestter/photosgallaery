@@ -1,7 +1,3 @@
-🎯 **What:** The login endpoint mitigated timing attacks by verifying passwords against a dummy hash when the user was not found. However, this is a known vulnerability pattern because underlying string comparison methods (like those used in standard `BCrypt.Verify` libraries) may not be perfectly constant-time (e.g. failing early on character mismatch), creating a slight, measurable timing difference between processing valid hashes and dummy hashes.
-
-⚠️ **Risk:** Attackers could measure these micro-second differences and perform statistical timing attacks to enumerate valid accounts in the system.
-
-🛡️ **Solution:** Implemented a robust constant-time comparison by manually computing the hash using `BCrypt.HashPassword(password, hashToVerify)` (which forces identical computational work) and then exclusively using `CryptographicOperations.FixedTimeEquals` on the resulting UTF-8 bytes to ensure the comparison itself never leaks timing information.
-
-✅ **Verification:** Validated that authentication still works successfully and unit tests pass.
+🎯 **What:** Added a missing error test for `GroupsController.RemoveMember` to verify that a 500 Internal Server Error is returned when an exception is thrown during database operations.
+📊 **Coverage:** The test simulates a database failure during `SaveChangesAsync` using a mocked `AppDbContext`, covering the error condition.
+✨ **Result:** Improved test reliability by ensuring the error path is thoroughly validated.
