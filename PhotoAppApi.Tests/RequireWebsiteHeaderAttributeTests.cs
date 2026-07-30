@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
 
@@ -47,6 +48,61 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
+        public void OnActionExecuting_WrongCaseHeaderValue_ReturnsBadRequest()
+        {
+            // Arrange
+            var attribute = new RequireWebsiteHeaderAttribute();
+            var context = CreateContext();
+            context.HttpContext.Request.Headers["X-App-Client"] = "photoapp-web"; // Wrong case
+
+            // Act
+            attribute.OnActionExecuting(context);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
+            var value = badRequestResult.Value;
+            var message = value?.GetType().GetProperty("message")?.GetValue(value, null);
+            Assert.Equal("Accès refusé. Seules les requêtes provenant du site web officiel sont autorisées.", message);
+        }
+
+        [Fact]
+        public void OnActionExecuting_MultipleHeaderValues_ReturnsBadRequest()
+        {
+            // Arrange
+            var attribute = new RequireWebsiteHeaderAttribute();
+            var context = CreateContext();
+            // StringValues handles multiple values
+            context.HttpContext.Request.Headers["X-App-Client"] = new StringValues(new[] { "PhotoApp-Web", "Another-Client" });
+
+            // Act
+            attribute.OnActionExecuting(context);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
+            var value = badRequestResult.Value;
+            var message = value?.GetType().GetProperty("message")?.GetValue(value, null);
+            Assert.Equal("Accès refusé. Seules les requêtes provenant du site web officiel sont autorisées.", message);
+        }
+
+        [Fact]
+        public void OnActionExecuting_EmptyHeaderValue_ReturnsBadRequest()
+        {
+            // Arrange
+            var attribute = new RequireWebsiteHeaderAttribute();
+            var context = CreateContext();
+            context.HttpContext.Request.Headers["X-App-Client"] = string.Empty;
+
+            // Act
+            attribute.OnActionExecuting(context);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
+            var value = badRequestResult.Value;
+            var message = value?.GetType().GetProperty("message")?.GetValue(value, null);
+            Assert.Equal("Accès refusé. Seules les requêtes provenant du site web officiel sont autorisées.", message);
+        }
+
+        [Fact]
         public void OnActionExecuting_ValidHeaderValue_DoesNotSetResult()
         {
             // Arrange
@@ -73,7 +129,7 @@ namespace PhotoAppApi.Tests
             return new ActionExecutingContext(
                 actionContext,
                 new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
+                new Dictionary<string, object?>(),
                 new Mock<Controller>().Object
             );
         }
