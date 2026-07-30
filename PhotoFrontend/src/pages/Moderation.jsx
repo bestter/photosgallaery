@@ -360,8 +360,8 @@ export default function Moderation() {
               <button
                 type="button"
                 onClick={async () => {
-                  const nextPage = page + 1;
-                  setPage(nextPage);
+                  const nextPage = pageRef.current + 1;
+                  pageRef.current = nextPage;
                   setLoading(true);
                   try {
                     const params = new URLSearchParams({

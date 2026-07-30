@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import UploadPhoto from "../components/UploadPhoto";
 import ImageModal from "../components/ImageModal";
 import InviteModal from "../components/InviteModal";
@@ -119,7 +119,7 @@ export default function Gallery() {
             setActiveGroupId(res.data[0].id || res.data[0].Id);
           } else {
             // S'il n'a pas de groupe
-            setPage(1);
+            pageRef.current = 1;
             fetchPhotos(null, 1, false);
           }
         })
@@ -134,6 +134,7 @@ export default function Gallery() {
   useEffect(() => {
     if (activeGroupId) {
       pageRef.current = 1;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchPhotos(activeGroupId, 1, false);
     }
   }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag, fetchPhotos]);
@@ -665,8 +666,8 @@ export default function Gallery() {
                 <button
                   type="button"
                   onClick={() => {
-                    const nextPage = page + 1;
-                    setPage(nextPage);
+                    const nextPage = pageRef.current + 1;
+                    pageRef.current = nextPage;
                     fetchPhotos(activeGroupId, nextPage, true);
                   }}
                   disabled={isFetchingMore}
@@ -779,7 +780,7 @@ export default function Gallery() {
                 initialGroupId={activeGroupId}
                 onUploadSuccess={() => {
                   setIsUploadOpen(false);
-                  setPage(1);
+                  pageRef.current = 1;
                   fetchPhotos(activeGroupId, 1, false); // Recharge les photos pour le groupe actif après Upload
                 }}
               />

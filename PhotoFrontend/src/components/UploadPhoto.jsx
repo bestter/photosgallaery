@@ -28,6 +28,8 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
   const [title, setTitle] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [description, setDescription] = useState("");
