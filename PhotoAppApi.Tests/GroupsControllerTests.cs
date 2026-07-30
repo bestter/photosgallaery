@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
-using Xunit;
+using System.Security.Claims;
 
 namespace PhotoAppApi.Tests
 {

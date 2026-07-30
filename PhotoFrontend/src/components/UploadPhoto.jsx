@@ -91,25 +91,6 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     }
   };
 
-  const addTagToList = (tagName) => {
-    if (!tags.includes(tagName) && tags.length < 12) {
-      setTags([...tags, tagName]);
-    }
-    setTagInput("");
-    setSuggestions([]);
-  };
-
-  const addTag = (e) => {
-    if (e.key === "Enter" && tagInput.trim() !== "") {
-      e.preventDefault();
-      addTagToList(tagInput.trim());
-    }
-  };
-
-  const removeTag = (tagToRemove) => {
-    setTags(tags.filter((t) => t !== tagToRemove));
-  };
-
   const processFiles = (selectedFiles) => {
     if (selectedFiles.length > 0) {
       const totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
@@ -256,7 +237,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
 
         {/* Zone de Drag & Drop (Glisser-déposer) */}
         <label
-          className={`flex flex-col rounded-xl border-2 border-dashed p-8 lg:p-14 text-center items-center gap-6 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-all cursor-pointer relative ${
+          className={`flex flex-col rounded-xl border-2 border-dashed p-8 lg:p-14 text-center items-center gap-6 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-colors cursor-pointer relative ${
             isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : 'bg-slate-100/50 dark:bg-primary/5 border-primary/30 hover:border-primary'
           }`}
           onDragOver={handleDragOver}

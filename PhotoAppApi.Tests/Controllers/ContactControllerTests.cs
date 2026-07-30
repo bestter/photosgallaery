@@ -53,7 +53,7 @@ namespace PhotoAppApi.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
 
             // Add delay for fire-and-forget background task to complete before verification
-            await Task.Delay(100);
+            await Task.Delay(100, TestContext.Current.CancellationToken);
 
             _mockEmailService.Verify(x => x.SendContactEmailAsync(request.Name, request.Email, request.Subject, request.Message, It.IsAny<CancellationToken>()), Times.Once);
 
@@ -169,7 +169,7 @@ namespace PhotoAppApi.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
 
             // Add delay for fire-and-forget background task to complete
-            await Task.Delay(100);
+            await Task.Delay(100, TestContext.Current.CancellationToken);
 
             // Check anonymous object property
             var messageProp = okResult.Value.GetType().GetProperty("message");

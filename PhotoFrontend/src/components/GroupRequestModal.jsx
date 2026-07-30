@@ -77,7 +77,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                         </h3>
                         <p className="text-sm text-slate-400 mb-4">Saisissez les adresses email des personnes que vous souhaitez inviter (séparées par des virgules).</p>
                         <input
-                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-all outline-none"
+                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-colors outline-none"
                             id="inviteEmails" name="inviteEmails" placeholder="email1@exemple.com, email2@exemple.com..."
                             type="text"
                             value={inviteEmails}

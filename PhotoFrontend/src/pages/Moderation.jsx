@@ -324,7 +324,7 @@ export default function Moderation() {
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
                           type="button"
-                          className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide"
+                          className="px-3 py-1.5 bg-error hover:bg-error/90 text-on-error text-xs font-bold rounded shadow-sm transition-colors uppercase tracking-wide"
                           aria-label={t("admin.moderation.action.delete")}
                         >
                           {t("admin.moderation.action.delete")}
@@ -332,7 +332,7 @@ export default function Moderation() {
                         <button
                           type="button"
                           onClick={() => handleDismiss(rId)}
-                          className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded shadow-sm transition-all uppercase tracking-wide border border-outline-variant/30"
+                          className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded shadow-sm transition-colors uppercase tracking-wide border border-outline-variant/30"
                           aria-label={t("admin.moderation.action.dismiss")}
                         >
                           {t("admin.moderation.action.dismiss")}
@@ -360,8 +360,8 @@ export default function Moderation() {
               <button
                 type="button"
                 onClick={async () => {
-                  const nextPage = page + 1;
-                  setPage(nextPage);
+                  const nextPage = pageRef.current + 1;
+                  pageRef.current = nextPage;
                   setLoading(true);
                   try {
                     const params = new URLSearchParams({
@@ -386,7 +386,7 @@ export default function Moderation() {
                     setLoading(false);
                   }
                 }}
-                className="px-6 py-2 bg-primary text-background-dark font-bold rounded-lg text-sm hover:brightness-110 transition-all"
+                className="px-6 py-2 bg-primary text-background-dark font-bold rounded-lg text-sm hover:brightness-110 transition-colors"
               >
                 {t("admin.moderation.load_more")}
               </button>

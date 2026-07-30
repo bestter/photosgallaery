@@ -38,12 +38,13 @@ Le projet met en œuvre des fonctionnalités avancées :
 * **Traitement d'images** : SixLabors.ImageSharp.
 * **Workers de Fond** : `PhotoViewProcessingWorker` (`BoundedChannel`) & `HashCalculationBackgroundService`.
 * **Logging** : Log4net (`AddLog4net`).
-* **Tests** : xUnit (129 tests unitaires et d'intégration).
+* **Tests** : xUnit (136 tests unitaires, d'intégration et de contrat OpenAPI).
 
 ### 3. Microservice de Modération (`moderation-service`)
 * **Framework** : FastAPI + Python 3.10+.
 * **Détection NSFW** : Pipeline Hugging Face Transformers avec le modèle `Falconsai/nsfw_image_detection`.
 * **Sécurité** : Protection anti-Decompression Bomb (`Image.MAX_IMAGE_PIXELS`), limite de taille de 50 Mo et validation d'en-tête `X-API-Key`.
+* **Tests** : Pytest (11 tests unitaires et d'authentification).
 
 ### 4. Infrastructure & Conteneurisation
 * **Docker** : Build multi-étapes combinant la compilation du frontend React et la publication du binaire ASP.NET Core servi via `wwwroot`.
@@ -98,6 +99,10 @@ Le projet met en œuvre des fonctionnalités avancées :
    ```bash
    uvicorn main:app --reload --port 8000
    ```
+4. Exécuter les tests du microservice :
+   ```bash
+   py -m pytest
+   ```
 
 ---
 
@@ -109,14 +114,31 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   ```bash
   dotnet test
   ```
+  *(Inclut 136 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
+
 * **Tests Frontend (Vitest)** :
   ```bash
   cd PhotoFrontend
   npm run test -- --run
   ```
+  *(Inclut 40 tests unitaires de composants et de contrat client API)*
+
+* **Tests Microservice IA (Pytest)** :
+  ```bash
+  cd moderation-service
+  py -m pytest
+  ```
+  *(Inclut 11 tests unitaires et de validation de l'authentification X-API-Key)*
+
 * **Linter Frontend (ESLint & React Doctor)** :
   ```bash
   cd PhotoFrontend
   npm run lint
   ```
+
+* **Git Hooks Automatisés (Husky & lint-staged)** :
+  Le dépôt utilise des hooks Git automatisés à la racine via **Husky** (`.husky/pre-commit`) et **lint-staged**. Lors de chaque `git commit` :
+  - Les fichiers JS/JSX/TS/TSX staggés sont automatiquement vérifiés et corrigés via `eslint --fix`.
+  - Les fichiers Python (`.py`) staggés déclenchent automatiquement la suite `py -m pytest moderation-service`.
+
 

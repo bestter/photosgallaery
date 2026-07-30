@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import UploadPhoto from "../components/UploadPhoto";
 import ImageModal from "../components/ImageModal";
 import InviteModal from "../components/InviteModal";
@@ -119,7 +119,7 @@ export default function Gallery() {
             setActiveGroupId(res.data[0].id || res.data[0].Id);
           } else {
             // S'il n'a pas de groupe
-            setPage(1);
+            pageRef.current = 1;
             fetchPhotos(null, 1, false);
           }
         })
@@ -134,6 +134,7 @@ export default function Gallery() {
   useEffect(() => {
     if (activeGroupId) {
       pageRef.current = 1;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchPhotos(activeGroupId, 1, false);
     }
   }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag, fetchPhotos]);
@@ -240,7 +241,7 @@ export default function Gallery() {
               search
             </span>
             <input
-              className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500"
+              className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500"
               name="search"
               aria-label={t("gallery.search_placeholder")}
               placeholder={t("gallery.search_placeholder")}
@@ -361,7 +362,7 @@ export default function Gallery() {
             search
           </span>
           <input
-            className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-all placeholder:text-slate-500 shadow-lg"
+            className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
             aria-label={t("gallery.search_mobile_placeholder")}
             placeholder={t("gallery.search_mobile_placeholder")}
@@ -508,7 +509,7 @@ export default function Gallery() {
                 return (
                   <div
                     key={photoId}
-                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
+                    className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-shadow duration-300"
                   >
                     <button
                       type="button"
@@ -520,7 +521,7 @@ export default function Gallery() {
                     <img
                       alt={t("gallery.photo_by", { author })}
                       loading="lazy"
-                      className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
+                      className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-[filter,transform] duration-700 scale-105 group-hover:scale-100"
                       src={thumbnailUrl || originalUrl}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#081414] via-transparent to-transparent opacity-90 pointer-events-none"></div>
@@ -562,7 +563,7 @@ export default function Gallery() {
                 return (
                   <div
                     key={photoId}
-                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-all duration-300"
+                    className="md:col-span-2 group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 shadow-lg hover:shadow-cyan-400/10 transition-shadow duration-300"
                   >
                     <button
                       type="button"
@@ -574,7 +575,7 @@ export default function Gallery() {
                     <img
                       alt={t("gallery.photo_by", { author })}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       src={thumbnailUrl || originalUrl}
                     />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm pointer-events-none z-[1]">
@@ -613,7 +614,7 @@ export default function Gallery() {
                 <div
                   key={photoId}
                   onClick={() => setSelectedPhotoIndex(index)}
-                  className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
+                  className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-shadow duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
                   role="button"
                   tabIndex={0}
                   aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
@@ -665,8 +666,8 @@ export default function Gallery() {
                 <button
                   type="button"
                   onClick={() => {
-                    const nextPage = page + 1;
-                    setPage(nextPage);
+                    const nextPage = pageRef.current + 1;
+                    pageRef.current = nextPage;
                     fetchPhotos(activeGroupId, nextPage, true);
                   }}
                   disabled={isFetchingMore}
@@ -708,7 +709,7 @@ export default function Gallery() {
                       setSelectedTag(null);
                       setSelectedAuthor(null);
                     }}
-                    className="flex items-center gap-2 bg-slate-800 text-slate-300 px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-all hover:bg-slate-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+                    className="flex items-center gap-2 bg-slate-800 text-slate-300 px-6 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-colors hover:bg-slate-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
                   >
                     <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                       filter_list_off
@@ -745,7 +746,7 @@ export default function Gallery() {
         <button
           type="button"
           onClick={() => setIsUploadOpen(true)}
-          className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+          className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
           aria-label={t("common.upload_photo", "Upload a photo")}
           title={t("common.upload_photo", "Upload a photo")}
         >
@@ -779,7 +780,7 @@ export default function Gallery() {
                 initialGroupId={activeGroupId}
                 onUploadSuccess={() => {
                   setIsUploadOpen(false);
-                  setPage(1);
+                  pageRef.current = 1;
                   fetchPhotos(activeGroupId, 1, false); // Recharge les photos pour le groupe actif après Upload
                 }}
               />

@@ -109,7 +109,7 @@ const Register = () => {
                   </span>
                 </div>
                 <input
-                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
+                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-colors placeholder:text-slate-600 outline-none"
                   id="full_name"
                   placeholder={t("auth.register.username_placeholder")}
                   type="text"
@@ -137,7 +137,7 @@ const Register = () => {
                   </span>
                 </div>
                 <input
-                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
+                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 py-3 focus:ring-2 focus:ring-primary transition-colors placeholder:text-slate-600 outline-none"
                   id="email"
                   placeholder={t("auth.register.email_placeholder")}
                   type="email"
@@ -164,7 +164,7 @@ const Register = () => {
                   </span>
                 </div>
                 <input
-                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
+                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary transition-colors placeholder:text-slate-600 outline-none"
                   id="password"
                   placeholder={t("auth.register.password_placeholder")}
                   type={showPassword ? "text" : "password"}
@@ -204,7 +204,7 @@ const Register = () => {
                   </span>
                 </div>
                 <input
-                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-600 outline-none"
+                  className="w-full bg-surface-container-lowest border-none text-on-surface text-sm rounded-lg pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary transition-colors placeholder:text-slate-600 outline-none"
                   id="confirm_password"
                   placeholder={t("auth.register.password_placeholder")}
                   type={showConfirmPassword ? "text" : "password"}
@@ -258,7 +258,7 @@ const Register = () => {
 
             {/* Primary Action Button */}
             <button
-              className="w-full bg-primary text-on-primary font-headline font-extrabold text-sm tracking-widest py-4 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-primary text-on-primary font-headline font-extrabold text-sm tracking-widest py-4 rounded-lg hover:brightness-110 active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
               type="submit"
               disabled={
                 isLoading ||
@@ -298,7 +298,7 @@ const Register = () => {
           <p className="text-sm text-on-surface-variant">
             {t("auth.register.already_have_account")}
             <a
-              className="text-primary font-bold hover:underline transition-all ml-1 underline-offset-4"
+              className="text-primary font-bold hover:underline transition-colors ml-1 underline-offset-4"
               href="/login"
             >
               {t("auth.register.login_link")}
