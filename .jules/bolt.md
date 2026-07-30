@@ -139,3 +139,7 @@ Extract the dictionary creation and array mapping logic outside of the return st
 
 **Action:** Replaced `System.IO.File.Exists` with a `try/catch` block around `new FileStream` for missing files inside the `Parallel.ForEachAsync` block in `PhotosController.MigrateHashAsync` to speed up processing.
 
+
+## $(date +%Y-%m-%d) - Thread-Safe DB Context and Parallel I/O
+**Learning:** When transitioning a sequential loop to a parallel one (`Parallel.ForEachAsync`), it is easy to inadvertently execute Entity Framework Core `DbContext` operations concurrently, which leads to immediate failures as `DbContext` is not thread-safe. Additionally, tracking state concurrently requires thread-safe collections (e.g. `ConcurrentBag<T>`) rather than `List<T>`.
+**Action:** When using `Parallel.ForEachAsync` for CPU/IO operations (like hashing, resizing, or S3 uploads), offload all DB write operations outside the loop. Collect entities into thread-safe structures like `ConcurrentBag<T>`, then convert to a standard List and use `.AddRange()` safely after the parallel operation completes. Use `lock` structures for thread-unsafe collections like `HashSet`.
