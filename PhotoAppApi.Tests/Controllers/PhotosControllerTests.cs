@@ -577,6 +577,59 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
 
+
+        [Fact]
+        public async Task GetPhotos_WithInvalidPagination_ShouldApplyClampAndMax()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+
+            // Create 105 photos
+            for (int i = 1; i <= 105; i++)
+            {
+                context.Photos.Add(new Photo
+                {
+                    Id = i,
+                    FileName = $"photo{i}.jpg",
+                    UploadedAt = DateTime.UtcNow.AddMinutes(i)
+                });
+            }
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { new Claim(ClaimTypes.Name, "testuser"), new Claim(ClaimTypes.NameIdentifier, "1"), new Claim(ClaimTypes.Role, "Admin") };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext { User = claimsPrincipal };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act 1: page = -5, pageSize = 500
+            // Expect: page = 1 (Math.Max), pageSize = 100 (Math.Clamp). Since order is descending, we get 105 to 6.
+            var result1 = await controller.GetPhotos(page: -5, pageSize: 500, cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert 1
+            var okResult1 = Assert.IsType<OkObjectResult>(result1.Result);
+            var photos1 = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult1.Value);
+            Assert.Equal(100, System.Linq.Enumerable.Count(photos1));
+
+            // Also verify total count header
+            Assert.Equal("105", httpContext.Response.Headers["X-Total-Count"].ToString());
+
+            // Act 2: page = 2, pageSize = 500
+            // Expect: page = 2, pageSize = 100. Should return remaining 5 items.
+            var result2 = await controller.GetPhotos(page: 2, pageSize: 500, cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert 2
+            var okResult2 = Assert.IsType<OkObjectResult>(result2.Result);
+            var photos2 = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult2.Value);
+            Assert.Equal(5, System.Linq.Enumerable.Count(photos2));
+        }
+
         [Fact]
         public async Task GenerateMissingThumbnails_ShouldGenerateThumbnails_WhenOriginalExistsAndThumbIsMissing()
         {
