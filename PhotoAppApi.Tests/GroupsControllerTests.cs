@@ -272,6 +272,107 @@ namespace PhotoAppApi.Tests
             Assert.Null(deletedGroup);
         }
 
+
+        [Fact]
+        public async Task AddMember_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+            var request = new AddMemberRequest { UserId = 1, Role = GroupUserRole.Member };
+
+            // Act
+            var result = await controller.AddMember(Guid.NewGuid(), request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
+            var messageProperty = notFoundResult.Value.GetType().GetProperty("message")?.GetValue(notFoundResult.Value, null) as string;
+            Assert.Equal("Utilisateur non trouvé.", messageProperty);
+        }
+
+        [Fact]
+        public async Task AddMember_ReturnsNotFound_WhenGroupDoesNotExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var user = new User { Id = 1, Username = "user", Email = "u@e.com", PasswordHash = "hash", Role = UserRole.User };
+            context.Users.Add(user);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+            var request = new AddMemberRequest { UserId = user.Id, Role = GroupUserRole.Member };
+
+            // Act
+            var result = await controller.AddMember(Guid.NewGuid(), request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
+            var messageProperty = notFoundResult.Value.GetType().GetProperty("message")?.GetValue(notFoundResult.Value, null) as string;
+            Assert.Equal("Groupe non trouvé.", messageProperty);
+        }
+
+        [Fact]
+        public async Task AddMember_ReturnsBadRequest_WhenUserAlreadyInGroup()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            var user = new User { Id = 1, Username = "user", Email = "u@e.com", PasswordHash = "hash", Role = UserRole.User };
+            var userGroup = new UserGroup { GroupId = group.Id, Group = group, UserId = user.Id, User = user, Role = GroupUserRole.Member };
+
+            context.Groups.Add(group);
+            context.Users.Add(user);
+            context.UserGroups.Add(userGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+            var request = new AddMemberRequest { UserId = user.Id, Role = GroupUserRole.Admin };
+
+            // Act
+            var result = await controller.AddMember(group.Id, request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
+            var messageProperty = badRequestResult.Value.GetType().GetProperty("message")?.GetValue(badRequestResult.Value, null) as string;
+            Assert.Equal("Cet utilisateur est déjà dans le groupe.", messageProperty);
+        }
+
+        [Fact]
+        public async Task AddMember_ReturnsOk_WhenValid()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            var user = new User { Id = 2, Username = "user2", Email = "u2@e.com", PasswordHash = "hash", Role = UserRole.User };
+
+            context.Groups.Add(group);
+            context.Users.Add(user);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+            var request = new AddMemberRequest { UserId = user.Id, Role = GroupUserRole.Admin };
+
+            // Act
+            var result = await controller.AddMember(group.Id, request, TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var messageProperty = okResult.Value.GetType().GetProperty("message")?.GetValue(okResult.Value, null) as string;
+            Assert.Equal("Membre ajouté avec succès.", messageProperty);
+
+            var userGroup = await context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == group.Id && ug.UserId == user.Id, TestContext.Current.CancellationToken);
+            Assert.NotNull(userGroup);
+            Assert.Equal(GroupUserRole.Admin, userGroup.Role);
+        }
+
         [Fact]
         public async Task UpdateMemberRole_ReturnsNotFound_WhenMemberDoesNotExist()
         {
@@ -475,6 +576,59 @@ namespace PhotoAppApi.Tests
                 foreach(var item in enumerable) { resultList.Add(item); }
             }
             Assert.Empty(resultList);
+        }
+
+        [Fact]
+        public async Task RemoveMember_ReturnsNotFound_WhenMemberDoesNotExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            context.Groups.Add(group);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+
+            // Act
+            var result = await controller.RemoveMember(group.Id, 999, TestContext.Current.CancellationToken);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
+            var messageProperty = notFoundResult.Value.GetType().GetProperty("message")?.GetValue(notFoundResult.Value, null) as string;
+            Assert.Equal("Membre non trouvé dans ce groupe.", messageProperty);
+        }
+
+        [Fact]
+        public async Task RemoveMember_ReturnsOk_WhenMemberExists()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            var user = new User { Id = 1, Username = "user", Email = "u@e.com", PasswordHash = "hash", Role = UserRole.User };
+            var userGroup = new UserGroup { GroupId = group.Id, Group = group, UserId = user.Id, User = user, Role = GroupUserRole.Member };
+
+            context.Groups.Add(group);
+            context.Users.Add(user);
+            context.UserGroups.Add(userGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+
+            // Act
+            var result = await controller.RemoveMember(group.Id, user.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var messageProperty = okResult.Value.GetType().GetProperty("message")?.GetValue(okResult.Value, null) as string;
+            Assert.Equal("Membre retiré du groupe.", messageProperty);
+
+            // Verify member was actually removed
+            var removedUserGroup = await context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == group.Id && ug.UserId == user.Id, TestContext.Current.CancellationToken);
+            Assert.Null(removedUserGroup);
         }
     }
 }

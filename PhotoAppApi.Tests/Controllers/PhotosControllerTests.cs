@@ -419,6 +419,46 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task ReportPhoto_ShouldReturn500_WhenDatabaseThrowsException()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var photo = new Photo { Id = 1001, FileName = "test.jpg", UploaderUsername = "someoneelse" };
+
+            using (var seedContext = new AppDbContext(options))
+            {
+                seedContext.Photos.Add(photo);
+                await seedContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var mockContext = new Mock<AppDbContext>(options) { CallBase = true };
+            mockContext
+                .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new DbUpdateException("Simulated database error during save."));
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var controller = new PhotosController(mockContext.Object, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, "1"), new Claim(ClaimTypes.Name, "testuser") }, "mock"));
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
+            var reportDto = new ReportDto { Reason = "Spam" };
+
+            // Act
+            var result = await controller.ReportPhoto(photo.Id, reportDto, TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
         public async Task GetUserPhotos_ShouldOnlyReturnPublicPhotos_WhenCallerIsUnauthenticated()
         {
             // Arrange
@@ -576,6 +616,59 @@ namespace PhotoAppApi.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
         }
 
+
+
+        [Fact]
+        public async Task GetPhotos_WithInvalidPagination_ShouldApplyClampAndMax()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+
+            // Create 105 photos
+            for (int i = 1; i <= 105; i++)
+            {
+                context.Photos.Add(new Photo
+                {
+                    Id = i,
+                    FileName = $"photo{i}.jpg",
+                    UploadedAt = DateTime.UtcNow.AddMinutes(i)
+                });
+            }
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var storageMock = new Mock<IObjectStorageService>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var claims = new[] { new Claim(ClaimTypes.Name, "testuser"), new Claim(ClaimTypes.NameIdentifier, "1"), new Claim(ClaimTypes.Role, "Admin") };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext { User = claimsPrincipal };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act 1: page = -5, pageSize = 500
+            // Expect: page = 1 (Math.Max), pageSize = 100 (Math.Clamp). Since order is descending, we get 105 to 6.
+            var result1 = await controller.GetPhotos(page: -5, pageSize: 500, cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert 1
+            var okResult1 = Assert.IsType<OkObjectResult>(result1.Result);
+            var photos1 = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult1.Value);
+            Assert.Equal(100, System.Linq.Enumerable.Count(photos1));
+
+            // Also verify total count header
+            Assert.Equal("105", httpContext.Response.Headers["X-Total-Count"].ToString());
+
+            // Act 2: page = 2, pageSize = 500
+            // Expect: page = 2, pageSize = 100. Should return remaining 5 items.
+            var result2 = await controller.GetPhotos(page: 2, pageSize: 500, cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert 2
+            var okResult2 = Assert.IsType<OkObjectResult>(result2.Result);
+            var photos2 = Assert.IsAssignableFrom<System.Collections.Generic.IEnumerable<Photo>>(okResult2.Value);
+            Assert.Equal(5, System.Linq.Enumerable.Count(photos2));
+        }
 
         [Fact]
         public async Task GenerateMissingThumbnails_ShouldGenerateThumbnails_WhenOriginalExistsAndThumbIsMissing()
@@ -745,5 +838,108 @@ namespace PhotoAppApi.Tests.Controllers
             Directory.Delete(tempDir, true);
         }
 
+
+        [Fact]
+        public async Task BackfillHashes_ShouldReturnOk_WhenAllPhotosAlreadyHaveHashes()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            var photo1 = new Photo { Id = 1001, FileName = "test1.jpg", FileHash = "somehash", Url = "url", ThumbnailUrl = "thumb" };
+            context.Photos.Add(photo1);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Act
+            var result = await controller.BackfillHashes(TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var messageProp = okResult.Value.GetType().GetProperty("message");
+            Assert.NotNull(messageProp);
+            var messageValue = (string)messageProp?.GetValue(okResult.Value, null)!;
+            Assert.Contains("Toutes les photos ont déjà un FileHash", messageValue);
+        }
+
+        [Fact]
+        public async Task BackfillHashes_ShouldUpdateHashes_WhenFilesExist()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            var photo1 = new Photo { Id = 1002, FileName = "to_hash1.jpg", FileHash = null, Url = "url1", ThumbnailUrl = "thumb1" };
+            var photo2 = new Photo { Id = 1003, FileName = "to_hash2.jpg", FileHash = "", Url = "url2", ThumbnailUrl = "thumb2" };
+            context.Photos.Add(photo1);
+            context.Photos.Add(photo2);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var imagesDir = Path.Combine(tempDir, "images");
+            Directory.CreateDirectory(imagesDir);
+            var file1Path = Path.Combine(imagesDir, "to_hash1.jpg");
+            var file2Path = Path.Combine(imagesDir, "to_hash2.jpg");
+
+            await File.WriteAllTextAsync(file1Path, "dummy content 1", TestContext.Current.CancellationToken);
+            await File.WriteAllTextAsync(file2Path, "dummy content 2", TestContext.Current.CancellationToken);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.WebRootPath).Returns(tempDir);
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Act
+            var result = await controller.BackfillHashes(TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var countProp = okResult.Value.GetType().GetProperty("photosMisesAJour");
+            Assert.NotNull(countProp);
+            var countValue = (int)countProp?.GetValue(okResult.Value, null)!;
+            Assert.Equal(2, countValue);
+
+            var updatedPhoto1 = await context.Photos.FindAsync(new object[] { 1002 }, TestContext.Current.CancellationToken);
+            var updatedPhoto2 = await context.Photos.FindAsync(new object[] { 1003 }, TestContext.Current.CancellationToken);
+            Assert.NotNull(updatedPhoto1?.FileHash);
+            Assert.NotNull(updatedPhoto2?.FileHash);
+
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+
+        [Fact]
+        public async Task BackfillHashes_ShouldHandleMissingFiles_WhenFileDoesNotExist()
+        {
+            // Arrange
+            using var context = new AppDbContext(_dbContextOptions);
+            var photo1 = new Photo { Id = 1004, FileName = "missing_file.jpg", FileHash = null, Url = "url", ThumbnailUrl = "thumb" };
+            context.Photos.Add(photo1);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.WebRootPath).Returns(tempDir);
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+            // Act
+            var result = await controller.BackfillHashes(TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var missingProp = okResult.Value.GetType().GetProperty("fichiersIntrouvables");
+            Assert.NotNull(missingProp);
+            var missingValue = (int)missingProp?.GetValue(okResult.Value, null)!;
+            Assert.Equal(1, missingValue);
+
+            var dbPhoto = await context.Photos.FindAsync(new object[] { 1004 }, TestContext.Current.CancellationToken);
+            Assert.Null(dbPhoto?.FileHash);
+        }
     }
 }
