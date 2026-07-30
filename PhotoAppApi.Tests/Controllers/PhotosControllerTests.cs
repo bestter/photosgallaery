@@ -419,6 +419,46 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task ReportPhoto_ShouldReturn500_WhenDatabaseThrowsException()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var photo = new Photo { Id = 1001, FileName = "test.jpg", UploaderUsername = "someoneelse" };
+
+            using (var seedContext = new AppDbContext(options))
+            {
+                seedContext.Photos.Add(photo);
+                await seedContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var mockContext = new Mock<AppDbContext>(options) { CallBase = true };
+            mockContext
+                .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new DbUpdateException("Simulated database error during save."));
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var controller = new PhotosController(mockContext.Object, envMock.Object, storageMock.Object, channelMock.Object);
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, "1"), new Claim(ClaimTypes.Name, "testuser") }, "mock"));
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
+            var reportDto = new ReportDto { Reason = "Spam" };
+
+            // Act
+            var result = await controller.ReportPhoto(photo.Id, reportDto, TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
         public async Task GetUserPhotos_ShouldOnlyReturnPublicPhotos_WhenCallerIsUnauthenticated()
         {
             // Arrange
