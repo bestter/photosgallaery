@@ -579,7 +579,7 @@ export default function Gallery() {
                       src={thumbnailUrl || originalUrl}
                     />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm pointer-events-none z-[1]">
-                      <span className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <span className="bg-white text-slate-950 font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 group-focus-within:translate-y-0 transition-transform duration-300">
                         {t("gallery.view_image")}
                       </span>
                     </div>
