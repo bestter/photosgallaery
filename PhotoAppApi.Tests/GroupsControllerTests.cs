@@ -1,3 +1,4 @@
+using Moq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,48 @@ namespace PhotoAppApi.Tests
 {
     public class GroupsControllerTests
     {
+
+        [Fact]
+        public async Task RemoveMember_ReturnsInternalServerError_WhenDatabaseThrowsException()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: dbName)
+                .Options;
+
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            var user = new User { Id = 1, Username = "user", Email = "u@e.com", PasswordHash = "hash", Role = UserRole.User };
+            var userGroup = new UserGroup { GroupId = group.Id, Group = group, UserId = user.Id, User = user, Role = GroupUserRole.Member };
+
+            using (var setupContext = new AppDbContext(options))
+            {
+                setupContext.Groups.Add(group);
+                setupContext.Users.Add(user);
+                setupContext.UserGroups.Add(userGroup);
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var mockContext = new Mock<AppDbContext>(options) { CallBase = true };
+            mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Simulated database exception"));
+
+            var controller = new GroupsController(mockContext.Object);
+            SetupControllerUser(controller);
+
+            // Act
+            var result = await controller.RemoveMember(group.Id, user.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            // Standard test reflection verification
+            Assert.NotNull(statusCodeResult.Value);
+            var messageProperty = statusCodeResult.Value.GetType().GetProperty("message")?.GetValue(statusCodeResult.Value, null) as string;
+            Assert.Equal("Erreur lors du retrait du membre.", messageProperty);
+        }
+
 
         private void SetupControllerUser(ControllerBase controller, string userId = "9999")
         {

@@ -638,6 +638,31 @@ namespace PhotoAppApi.Tests
         }
 
         [Fact]
+        public void Logout_ReturnsOkResult_DeletesCookie()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            // Act
+            var result = controller.Logout();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var message = okResult.Value?.GetType().GetProperty("message")?.GetValue(okResult.Value) as string;
+            Assert.Equal("Déconnexion réussie.", message);
+
+            var setCookieHeader = httpContext.Response.Headers.SetCookie.FirstOrDefault();
+            Assert.NotNull(setCookieHeader);
+            Assert.StartsWith("jwt_token=;", setCookieHeader);
+            Assert.Contains("expires=Thu, 01 Jan 1970 00:00:00 GMT", setCookieHeader);
+        }
+
+        [Fact]
         public void GetCsrfToken_ReturnsToken()
         {
             // Arrange

@@ -22,6 +22,8 @@ RUN dotnet publish PhotoAppApi.csproj -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build-back /PhotoAppApi/out .
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 # Remplace "MonApi.dll" par le nom exact de ton fichier de sortie C#
 CMD ["dotnet", "PhotoAppApi.dll"]

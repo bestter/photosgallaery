@@ -29,6 +29,122 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task MigrateClosedLoop_ShouldMigrateUsersPhotosAndFiles()
+        {
+            // Arrange
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var webRootPath = Path.Combine(tempDir, "wwwroot");
+            var oldRootPath = Path.Combine(webRootPath, "images");
+            var oldThumbPath = Path.Combine(oldRootPath, "thumbnails");
+            var contentRootPath = tempDir;
+            var newRootPath = Path.Combine(contentRootPath, "PrivateImages");
+            var newThumbPath = Path.Combine(newRootPath, "thumbnails");
+
+            Directory.CreateDirectory(oldRootPath);
+            Directory.CreateDirectory(oldThumbPath);
+
+            var oldFilePath = Path.Combine(oldRootPath, "test_migration.jpg");
+            var oldThumbFilePath = Path.Combine(oldThumbPath, "test_migration.jpg");
+            File.WriteAllText(oldFilePath, "dummy");
+            File.WriteAllText(oldThumbFilePath, "dummy");
+
+            try
+            {
+                using var context = new AppDbContext(_dbContextOptions);
+
+                var user1 = new User { Id = 10, Username = "user1", PasswordHash = "hash" };
+                var user2 = new User { Id = 11, Username = "user2", PasswordHash = "hash" };
+
+                var photo1 = new Photo
+                {
+                    Id = 10,
+                    FileName = "test_migration.jpg",
+                    UploaderUsername = "user1",
+                    Url = "/images/test_migration.jpg",
+                    GroupId = null
+                };
+
+                var photo2 = new Photo
+                {
+                    Id = 11,
+                    FileName = "missing_file.jpg",
+                    UploaderUsername = "user2",
+                    Url = "/api/images/missing_file.jpg", // already migrated url
+                    GroupId = null
+                };
+
+                context.Users.AddRange(user1, user2);
+                context.Photos.AddRange(photo1, photo2);
+                await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                var envMock = new Mock<IWebHostEnvironment>();
+                envMock.Setup(e => e.WebRootPath).Returns(webRootPath);
+                envMock.Setup(e => e.ContentRootPath).Returns(contentRootPath);
+
+                var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+                var storageMock = new Mock<IObjectStorageService>();
+
+                var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+
+                var claims = new[] { new Claim(ClaimTypes.Name, "admin"), new Claim(ClaimTypes.Role, "Admin") };
+                var identity = new ClaimsIdentity(claims, "TestAuthType");
+                var claimsPrincipal = new ClaimsPrincipal(identity);
+
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                };
+
+                // Act
+                var result = await controller.MigrateClosedLoop(TestContext.Current.CancellationToken);
+
+                // Assert
+                var okResult = Assert.IsType<OkObjectResult>(result);
+
+                using (var verifyContext = new AppDbContext(_dbContextOptions))
+                {
+                    // Check Group
+                    var defaultGroup = await verifyContext.Groups.FirstOrDefaultAsync(g => g.Name == "Cercle Initial", TestContext.Current.CancellationToken);
+                    Assert.NotNull(defaultGroup);
+
+                    // Check Users
+                    var userGroup1 = await verifyContext.UserGroups.FirstOrDefaultAsync(ug => ug.UserId == 10 && ug.GroupId == defaultGroup.Id, TestContext.Current.CancellationToken);
+                    Assert.NotNull(userGroup1);
+                    var userGroup2 = await verifyContext.UserGroups.FirstOrDefaultAsync(ug => ug.UserId == 11 && ug.GroupId == defaultGroup.Id, TestContext.Current.CancellationToken);
+                    Assert.NotNull(userGroup2);
+
+                    // Check Photos
+                    var dbPhoto1 = await verifyContext.Photos.FindAsync(new object[] { 10 }, TestContext.Current.CancellationToken);
+                    Assert.NotNull(dbPhoto1);
+                    Assert.Equal(defaultGroup.Id, dbPhoto1.GroupId);
+                    Assert.Equal("/api/images/test_migration.jpg", dbPhoto1.Url);
+
+                    var dbPhoto2 = await verifyContext.Photos.FindAsync(new object[] { 11 }, TestContext.Current.CancellationToken);
+                    Assert.NotNull(dbPhoto2);
+                    Assert.Equal(defaultGroup.Id, dbPhoto2.GroupId);
+                    Assert.Equal("/api/images/missing_file.jpg", dbPhoto2.Url);
+                }
+
+                // Check Files
+                Assert.False(File.Exists(oldFilePath), "Old file should be moved");
+                Assert.False(File.Exists(oldThumbFilePath), "Old thumbnail should be moved");
+
+                var newFilePath = Path.Combine(newRootPath, "test_migration.jpg");
+                var newThumbFilePath = Path.Combine(newThumbPath, "test_migration.jpg");
+
+                Assert.True(File.Exists(newFilePath), "File should exist in new location");
+                Assert.True(File.Exists(newThumbFilePath), "Thumbnail should exist in new location");
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    Directory.Delete(tempDir, true);
+                }
+            }
+        }
+
+	[Fact]
         public async Task DeletePhoto_ShouldDeleteFileAndRecord()
         {
             // Arrange
