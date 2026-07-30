@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -633,6 +635,33 @@ namespace PhotoAppApi.Tests
             Assert.NotNull(groups);
             var groupList = System.Linq.Enumerable.ToList(groups.Cast<object>());
             Assert.Equal(2, groupList.Count);
+        }
+
+        [Fact]
+        public void GetCsrfToken_ReturnsToken()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var config = GetConfiguration();
+            var controller = new AuthController(context, config);
+
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
+            var mockAntiforgery = new Mock<IAntiforgery>();
+            mockAntiforgery.Setup(a => a.GetAndStoreTokens(httpContext))
+                .Returns(new AntiforgeryTokenSet("expected_token", "cookie_token", "form_field_name", "header_name"));
+
+            // Act
+            var result = controller.GetCsrfToken(mockAntiforgery.Object);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var token = okResult.Value?.GetType().GetProperty("token")?.GetValue(okResult.Value, null);
+            Assert.Equal("expected_token", token);
         }
     }
 }
