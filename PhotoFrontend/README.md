@@ -36,7 +36,7 @@ Démarre le serveur de développement Vite sur `http://localhost:5173`.
 Exécute la compilation de production et génère le paquet statique dans le dossier `dist`.
 
 ### `npm run test` (ou `npm run test -- --run`)
-Lance les tests unitaires et de composants avec Vitest et React Testing Library.
+Lance la suite de 40 tests unitaires, de composants et de contrat d'API avec Vitest et React Testing Library.
 
 ### `npm run lint`
 Vérifie la qualité du code avec ESLint.
