@@ -1,1 +1,2 @@
-cd PhotoFrontend && npx lint-staged
+cd PhotoFrontend && node ./node_modules/lint-staged/bin/lint-staged.js
+
