@@ -183,6 +183,11 @@
 **Learning:** Standard library or third-party cryptographic methods (like `BCrypt.Verify`) might not use perfect constant-time string comparisons, and matching against dummy hashes can still leak timing differences during the comparison phase.
 **Prevention:** To implement a robust constant-time comparison, manually compute the hash using `BCrypt.HashPassword(password, hashToVerify)` to ensure the CPU work is identical, and then strictly use `CryptographicOperations.FixedTimeEquals` on the byte arrays of the computed and expected hashes.
 
+## 2026-07-25 - Prevent Admin Lockout Vulnerability
+**Vulnerability:** An administrator could modify their own role via the `/api/admin/groups/{id}/members/{userId}/role` endpoint in `GroupsController`, potentially demoting themselves from Group Admin and causing an admin lockout.
+**Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
+**Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints. Be careful not to apply this check to 'remove' endpoints if it breaks standard "leave group" functionality.
+
 ## 2026-07-26 - [MEDIUM] Fix Timing Leak in Contact Form
 **Vulnerability:** The `/api/contact` endpoint synchronously executed `_emailService.SendContactEmailAsync`, which could allow a malicious user to determine whether the email sending subsystem was up or down, or how long external APIs took, potentially contributing to a larger reconnaissance effort or tying up server resources during heavy load or external API latency.
 **Learning:** In HTTP endpoints, time-consuming side-effects (like sending emails) should be offloaded to asynchronous background tasks to equalize response times across all logic branches and avoid blocking requests, preventing side-channel timing leaks and resource exhaustion.
