@@ -476,5 +476,58 @@ namespace PhotoAppApi.Tests
             }
             Assert.Empty(resultList);
         }
+
+        [Fact]
+        public async Task RemoveMember_ReturnsNotFound_WhenMemberDoesNotExist()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            context.Groups.Add(group);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+
+            // Act
+            var result = await controller.RemoveMember(group.Id, 999, TestContext.Current.CancellationToken);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
+            var messageProperty = notFoundResult.Value.GetType().GetProperty("message")?.GetValue(notFoundResult.Value, null) as string;
+            Assert.Equal("Membre non trouvé dans ce groupe.", messageProperty);
+        }
+
+        [Fact]
+        public async Task RemoveMember_ReturnsOk_WhenMemberExists()
+        {
+            // Arrange
+            using var context = GetDatabaseContext();
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+            var user = new User { Id = 1, Username = "user", Email = "u@e.com", PasswordHash = "hash", Role = UserRole.User };
+            var userGroup = new UserGroup { GroupId = group.Id, Group = group, UserId = user.Id, User = user, Role = GroupUserRole.Member };
+
+            context.Groups.Add(group);
+            context.Users.Add(user);
+            context.UserGroups.Add(userGroup);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var controller = new GroupsController(context);
+            SetupControllerUser(controller);
+
+            // Act
+            var result = await controller.RemoveMember(group.Id, user.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var messageProperty = okResult.Value.GetType().GetProperty("message")?.GetValue(okResult.Value, null) as string;
+            Assert.Equal("Membre retiré du groupe.", messageProperty);
+
+            // Verify member was actually removed
+            var removedUserGroup = await context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == group.Id && ug.UserId == user.Id, TestContext.Current.CancellationToken);
+            Assert.Null(removedUserGroup);
+        }
     }
 }
