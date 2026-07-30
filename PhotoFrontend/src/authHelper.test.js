@@ -24,7 +24,7 @@ describe('authHelper', () => {
 
             saveUserSession('fake-token');
 
-            const userInfo = JSON.parse(localStorage.getItem('user_info'));
+            const userInfo = JSON.parse(localStorage.getItem('user_info:v1') || localStorage.getItem('user_info'));
             expect(userInfo).toEqual({
                 role: 'Admin',
                 username: 'testuser',
@@ -34,15 +34,15 @@ describe('authHelper', () => {
 
         it('should handle missing token safely', () => {
             saveUserSession(null);
-            expect(localStorage.getItem('user_info')).toBeNull();
+            expect(localStorage.getItem('user_info:v1')).toBeNull();
         });
     });
 
     describe('clearUserSession', () => {
         it('should remove user_info from localStorage', () => {
-            localStorage.setItem('user_info', JSON.stringify({ role: 'User' }));
+            localStorage.setItem('user_info:v1', JSON.stringify({ role: 'User' }));
             clearUserSession();
-            expect(localStorage.getItem('user_info')).toBeNull();
+            expect(localStorage.getItem('user_info:v1')).toBeNull();
         });
     });
 
@@ -52,7 +52,7 @@ describe('authHelper', () => {
         });
 
         it('should return role from user_info', () => {
-            localStorage.setItem('user_info', JSON.stringify({ role: 'Creator' }));
+            localStorage.setItem('user_info:v1', JSON.stringify({ role: 'Creator' }));
             expect(getUserRole()).toBe('Creator');
         });
     });
@@ -63,7 +63,7 @@ describe('authHelper', () => {
         });
 
         it('should return username from user_info', () => {
-            localStorage.setItem('user_info', JSON.stringify({ username: 'alice' }));
+            localStorage.setItem('user_info:v1', JSON.stringify({ username: 'alice' }));
             expect(getUsernameFromToken()).toBe('alice');
         });
     });
@@ -75,13 +75,13 @@ describe('authHelper', () => {
 
         it('should return true if token is expired', () => {
             const pastTime = (Date.now() / 1000) - 1000;
-            localStorage.setItem('user_info', JSON.stringify({ exp: pastTime }));
+            localStorage.setItem('user_info:v1', JSON.stringify({ exp: pastTime }));
             expect(isTokenExpired()).toBe(true);
         });
 
         it('should return false if token is not expired', () => {
             const futureTime = (Date.now() / 1000) + 1000;
-            localStorage.setItem('user_info', JSON.stringify({ exp: futureTime }));
+            localStorage.setItem('user_info:v1', JSON.stringify({ exp: futureTime }));
             expect(isTokenExpired()).toBe(false);
         });
     });

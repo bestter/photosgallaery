@@ -32,7 +32,7 @@ export default function Gallery() {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [page, setPage] = useState(1);
+  const pageRef = useRef(1);
   const [hasMore, setHasMore] = useState(true);
 
   // Nouveaux états pour les groupes
@@ -125,7 +125,7 @@ export default function Gallery() {
         })
         .catch((err) => {
           console.error("Erreur lors de la récupération des groupes", err);
-          setPage(1);
+          pageRef.current = 1;
           fetchPhotos(null, 1, false);
         });
     }
@@ -133,8 +133,7 @@ export default function Gallery() {
 
   useEffect(() => {
     if (activeGroupId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPage(1);
+      pageRef.current = 1;
       fetchPhotos(activeGroupId, 1, false);
     }
   }, [activeGroupId, debouncedSearchQuery, selectedAuthor, selectedTag, fetchPhotos]);
@@ -764,6 +763,7 @@ export default function Gallery() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8">
           <div className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl">
             <button
+              type="button"
               onClick={() => setIsUploadOpen(false)}
               className="absolute top-4 right-4 z-10 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
               aria-label={t("common.close", "Close")}

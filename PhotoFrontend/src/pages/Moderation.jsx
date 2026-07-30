@@ -11,10 +11,14 @@ const getImageUrl = (url) => {
   return backendRoot + url;
 };
 
+const TOP_ACTIONS = (
+  <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto"></div>
+);
+
 export default function Moderation() {
   const { t } = useTranslation();
   const [reports, setReports] = useState([]);
-  const [page, setPage] = useState(1);
+  const pageRef = React.useRef(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, pending: 0, processed: 0 });
@@ -56,14 +60,11 @@ export default function Moderation() {
           error,
         );
       } finally {
-        if (!isCancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1);
+    pageRef.current = 1;
     fetchReports(1, false);
     const fetchStats = async () => {
       try {
@@ -113,17 +114,11 @@ export default function Moderation() {
     }
   };
 
-
-
-  const topActions = (
-    <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto"></div>
-  );
-
   return (
     <AdminLayout
       title={t("admin.moderation.title")}
       subtitle={t("admin.moderation.subtitle")}
-      topActions={topActions}
+      topActions={TOP_ACTIONS}
     >
       <div className="space-y-8">
         {/* Stats Grid */}

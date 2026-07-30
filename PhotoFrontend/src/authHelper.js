@@ -1,5 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 
+const USER_INFO_KEY = "user_info:v1";
+
 export const saveUserSession = (token) => {
     if (!token) return;
     try {
@@ -17,22 +19,25 @@ export const saveUserSession = (token) => {
             exp: decoded.exp
         };
 
-        localStorage.setItem("user_info", JSON.stringify(userInfo));
+        localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
     } catch (error) {
         console.error("Error saving user session:", error);
     }
 };
 
 export const clearUserSession = () => {
-    localStorage.removeItem('user_info');
-    // The CSRF token isn't stored locally across sessions (it's in-memory in api.js or HTTP Only)
-    // It will be reset on reload.
+    localStorage.removeItem(USER_INFO_KEY);
+    // Remove legacy unversioned key if present
     localStorage.removeItem("user_info");
+};
+
+const getStoredUserInfoStr = () => {
+    return localStorage.getItem(USER_INFO_KEY) || localStorage.getItem("user_info");
 };
 
 export const getUserRole = () => {
     try {
-        const userInfoStr = localStorage.getItem("user_info");
+        const userInfoStr = getStoredUserInfoStr();
         if (!userInfoStr) return null;
         const userInfo = JSON.parse(userInfoStr);
         return userInfo.role;
@@ -43,7 +48,7 @@ export const getUserRole = () => {
 
 export const getUsernameFromToken = () => {
     try {
-        const userInfoStr = localStorage.getItem("user_info");
+        const userInfoStr = getStoredUserInfoStr();
         if (!userInfoStr) return null;
         const userInfo = JSON.parse(userInfoStr);
         return userInfo.username;
@@ -54,7 +59,7 @@ export const getUsernameFromToken = () => {
 
 export const isTokenExpired = () => {
     try {
-        const userInfoStr = localStorage.getItem("user_info");
+        const userInfoStr = getStoredUserInfoStr();
         if (!userInfoStr) return true;
 
         const userInfo = JSON.parse(userInfoStr);
@@ -67,3 +72,4 @@ export const isTokenExpired = () => {
         return true; 
     }
 };
+

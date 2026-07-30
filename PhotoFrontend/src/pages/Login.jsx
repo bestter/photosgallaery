@@ -77,7 +77,7 @@ const Login = () => {
                   </span>
                 </div>
                 <input
-                  className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
+                  className="block w-full pl-10 pr-3 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-colors outline-none"
                   id="username"
                   placeholder={t("auth.login.username_placeholder")}
                   type="text"
@@ -112,7 +112,7 @@ const Login = () => {
                   </span>
                 </div>
                 <input
-                  className="block w-full pl-10 pr-10 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-all outline-none"
+                  className="block w-full pl-10 pr-10 py-3 bg-surface-variant border-none rounded text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary focus:bg-surface-container-high transition-colors outline-none"
                   id="password"
                   placeholder={t("auth.login.password_placeholder")}
                   type={showPassword ? "text" : "password"}
@@ -138,7 +138,7 @@ const Login = () => {
 
             {/* Primary CTA */}
             <button
-              className="w-full bg-primary text-on-primary font-bold py-4 rounded uppercase tracking-widest text-xs hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-primary text-on-primary font-bold py-4 rounded uppercase tracking-widest text-xs hover:opacity-90 active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
               type="submit"
               disabled={isLoading || !username || !password}
               title={
