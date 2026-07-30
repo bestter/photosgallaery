@@ -251,6 +251,13 @@ namespace PhotoAppApi.Controllers
             log.Debug($"In {nameof(UpdateMemberRole)} with groupId: {id}, userId: {userId}, role: {request.Role}");
             try
             {
+                // 🛡️ Sentinel: Prevent Admin Lockout by ensuring users cannot modify their own role
+                var currentUserIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(currentUserIdString, out int currentUserId) && currentUserId == userId)
+                {
+                    return BadRequest(new { message = "Vous ne pouvez pas modifier votre propre rôle." });
+                }
+
                 var userGroup = await _context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == id && ug.UserId == userId, cancellationToken);
                 if (userGroup == null) return NotFound(new { message = "Membre non trouvé dans ce groupe." });
 
