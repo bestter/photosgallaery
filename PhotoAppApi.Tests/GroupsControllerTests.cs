@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using PhotoAppApi.Controllers;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
@@ -9,6 +12,18 @@ namespace PhotoAppApi.Tests
 {
     public class GroupsControllerTests
     {
+
+        private void SetupControllerUser(ControllerBase controller, string userId = "9999")
+        {
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+        }
+
         private AppDbContext GetDatabaseContext()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -25,6 +40,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var request = new CreateGroupRequest
             {
                 Name = string.Empty,
@@ -47,6 +63,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var request = new CreateGroupRequest
             {
                 Name = null!,
@@ -69,6 +86,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var request = new CreateGroupRequest
             {
                 Name = "   ",
@@ -91,6 +109,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var nonExistentId = Guid.NewGuid();
 
             // Act
@@ -160,6 +179,7 @@ namespace PhotoAppApi.Tests
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
 
             // Act
             var result = await controller.GetAllGroups(1, 20, TestContext.Current.CancellationToken);
@@ -206,6 +226,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
 
             // Act
             var result = await controller.GetAllGroups(1, 20, TestContext.Current.CancellationToken);
@@ -242,6 +263,7 @@ namespace PhotoAppApi.Tests
             context.Groups.Add(group);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
 
             // Act
             var result = await controller.DeleteGroup(group.Id, TestContext.Current.CancellationToken);
@@ -258,6 +280,7 @@ namespace PhotoAppApi.Tests
             // Arrange
             using var context = GetDatabaseContext();
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var request = new UpdateMemberRoleRequest
             {
                 Role = GroupUserRole.Admin
@@ -288,6 +311,7 @@ namespace PhotoAppApi.Tests
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var request = new UpdateMemberRoleRequest
             {
                 Role = GroupUserRole.Admin
@@ -366,6 +390,7 @@ namespace PhotoAppApi.Tests
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
 
             // Act
             var result = await controller.GetGroupMembers(group.Id, TestContext.Current.CancellationToken);
@@ -435,6 +460,7 @@ namespace PhotoAppApi.Tests
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var controller = new GroupsController(context);
+            SetupControllerUser(controller);
             var groupId = Guid.NewGuid(); // non-existent or no members
 
             // Act
