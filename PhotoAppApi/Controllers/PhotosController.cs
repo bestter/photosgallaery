@@ -429,8 +429,8 @@ namespace PhotoAppApi.Controllers
                     }
                 }
 
-                var uploadedPhotos = new List<Photo>();
-                var errors = new List<string>();
+                var uploadedPhotos = new System.Collections.Concurrent.ConcurrentBag<Photo>();
+                var errors = new System.Collections.Concurrent.ConcurrentBag<string>();
 
                 // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
                 // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
@@ -457,31 +457,40 @@ namespace PhotoAppApi.Controllers
 
                 var existingHashesSet = new HashSet<string>(existingHashes);
                 var seenInBatch = new HashSet<string>();
+                var seenInBatchLock = new object();
 
                 // 3. Boucler sur chaque fichier envoyé
-                foreach (var (file, fileHash) in fileHashes)
+                // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) instead of a sequential foreach loop to process images.
+                // This parallelizes CPU-intensive tasks (image resizing via ImageSharp) and network I/O-intensive tasks (S3 uploads).
+                await Parallel.ForEachAsync(fileHashes, new ParallelOptions { MaxDegreeOfParallelism = maxDegrees, CancellationToken = cancellationToken }, async (item, ct) =>
                 {
+                    var file = item.File;
+                    var fileHash = item.Hash;
+
                     // Vérification des doublons en base
                     if (existingHashesSet.Contains(fileHash))
                     {
                         errors.Add($"L'image '{file.FileName}' existe déjà dans la galerie.");
-                        continue;
+                        return;
                     }
 
                     // Vérification des doublons au sein du même batch
-                    if (seenInBatch.Contains(fileHash))
+                    lock (seenInBatchLock)
                     {
-                        errors.Add($"L'image '{file.FileName}' est présente en double dans cet envoi.");
-                        continue;
+                        if (seenInBatch.Contains(fileHash))
+                        {
+                            errors.Add($"L'image '{file.FileName}' est présente en double dans cet envoi. Hash: {fileHash}");
+                            return;
+                        }
+                        seenInBatch.Add(fileHash);
                     }
-                    seenInBatch.Add(fileHash);
 
                     // A. Validation des "Magic Bytes"
                     using var fileStream = file.OpenReadStream();
                     if (!FileSignatureValidator.IsValidImage(fileStream, out string validExtension))
                     {
                         errors.Add($"Le fichier '{file.FileName}' n'est pas une image valide ou son format n'est pas supporté (JPEG, PNG, WEBP, AVIF).");
-                        continue;
+                        return;
                     }
 
                     // On utilise le GUID + l'extension validée, ignorant complètement le nom/extension d'origine
@@ -497,7 +506,7 @@ namespace PhotoAppApi.Controllers
 
                     try
                     {
-                        using (var image = await Image.LoadAsync(fileStream, cancellationToken))
+                        using (var image = await Image.LoadAsync(fileStream, ct))
                         {
                             originalWidth = image.Width;
                             originalHeight = image.Height;
@@ -566,11 +575,11 @@ namespace PhotoAppApi.Controllers
 
                             // Encodage en mémoire de l'image originale "propre"
                             using var cleanMemoryStream = new MemoryStream();
-                            await image.SaveAsync(cleanMemoryStream, encoder, cancellationToken);
+                            await image.SaveAsync(cleanMemoryStream, encoder, ct);
                             cleanMemoryStream.Position = 0;
 
                             // 4. Sauvegarde directe dans S3 via Stream
-                            var key = await _storage.UploadImageAsync(cleanMemoryStream, contentType, uniqueFileName, "gallery", cancellationToken);
+                            var key = await _storage.UploadImageAsync(cleanMemoryStream, contentType, uniqueFileName, "gallery", ct);
                             photo.Url = key;
 
                             // Création de la miniature
@@ -581,16 +590,15 @@ namespace PhotoAppApi.Controllers
                             }));
 
                             using var thumbMemoryStream = new MemoryStream();
-                            await image.SaveAsync(thumbMemoryStream, encoder, cancellationToken);
+                            await image.SaveAsync(thumbMemoryStream, encoder, ct);
                             thumbMemoryStream.Position = 0;
 
-                            var thumbnailsKey = await _storage.UploadImageAsync(thumbMemoryStream, contentType, uniqueFileName, "thumbnails", cancellationToken);
+                            var thumbnailsKey = await _storage.UploadImageAsync(thumbMemoryStream, contentType, uniqueFileName, "thumbnails", ct);
                             photo.ThumbnailUrl = thumbnailsKey;
                         }
 
                         if (photo != null)
                         {
-                            _context.Photos.Add(photo);
                             uploadedPhotos.Add(photo);
                         }
                     }
@@ -598,21 +606,24 @@ namespace PhotoAppApi.Controllers
                     {
                         log.Error($"Échec du traitement de l'image {file.FileName}: non reconnue comme image valide par ImageSharp.", ex);
                         errors.Add($"Le fichier '{file.FileName}' est corrompu ou illisible.");
-                        continue;
+                        return;
                     }
-                }
+                });
 
-                if (uploadedPhotos.Count != 0)
+                // Convert ConcurrentBag to List and add to DbContext since DbContext operations are not thread-safe and must be done synchronously
+                var uploadedPhotosList = uploadedPhotos.ToList();
+                if (uploadedPhotosList.Count != 0)
                 {
+                    _context.Photos.AddRange(uploadedPhotosList);
                     await _context.SaveChangesAsync(cancellationToken);
                 }
 
                 // 7. Retourner un résumé clair au client React
                 return Ok(new
                 {
-                    message = $"{uploadedPhotos.Count} image(s) téléversée(s) avec succès.",
-                    photos = uploadedPhotos,
-                    erreurs = errors // React pourra afficher la liste des fichiers refusés
+                    message = $"{uploadedPhotosList.Count} image(s) téléversée(s) avec succès.",
+                    photos = uploadedPhotosList,
+                    erreurs = errors.ToList() // React pourra afficher la liste des fichiers refusés
                 });
             }
             catch (Exception e)
