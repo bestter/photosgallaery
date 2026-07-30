@@ -1,0 +1,3 @@
+## 2026-07-30 - ARIA Tooltip Accessibility
+**Learning:** When creating CSS-only informational tooltips, using `group-focus:block` might trigger the tooltip when the parent receives focus, but it lacks semantic meaning. Relying solely on `aria-label` on the parent to duplicate the tooltip text flattens the content and can lead to poor screen reader experiences. Using proper ARIA attributes like `role="tooltip"` with a unique ID and linking it via `aria-describedby` on the focusable trigger provides a robust and semantically correct experience.
+**Action:** Always implement semantic ARIA attributes (`role="tooltip"`, `aria-describedby`) for custom tooltips, even when using CSS-only hover/focus states to reveal them.
