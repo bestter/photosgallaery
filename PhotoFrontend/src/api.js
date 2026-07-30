@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Ajoute automatiquement le token JWT s'il existe
+// Automatically attaches the JWT token if present
 const baseURL = process.env.NODE_ENV === 'development' 
     ? 'http://127.0.0.1:5020/api'  // 💻 Sur ton PC de développement (Port C#)
     : '/api';                      // 🌍 Sur ton serveur Linux Mint (Via Apache)

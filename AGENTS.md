@@ -82,6 +82,7 @@
 * **Pull Requests (PR) :** Tout changement doit obligatoirement passer par la création d'une Pull Request. Aucune fusion (merge) ne doit être effectuée sans une revue préalable.
 * **Commits atomiques :** Chaque commit doit représenter une unité de travail cohérente et complète. Évite les commits qui mélangent plusieurs changements non liés.
 * **Format des messages :** Utilise la spécification *Conventional Commits* (`feat:`, `fix:`, `refactor:`, `chore:`, etc.) pour structurer les titres de tes commits.
+* **Automation Git Hooks :** L'automatisation des hooks Git est configurée à la racine via **Husky** (`.husky/pre-commit`) et **lint-staged**. À chaque commit (`git commit`), `lint-staged` exécute automatiquement les outils de contrôle (ex: `eslint --fix`) sur les fichiers JS/JSX/TS/TSX staggés afin de prévenir l'introduction d'erreurs dans le dépôt.
 * **Signature de l'IA :** Signe toujours tes commits avec ton nom et ton nom de modèle exact à la fin de la description (ex: `Generated-by: Gemini 3.6 Flash`).
 * **Langue :** Conformément à la Règle Dorée #6, l'intégralité des messages de commit (titre et description) doit être rédigée **strictement en anglais**.
 

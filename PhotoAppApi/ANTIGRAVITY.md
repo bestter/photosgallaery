@@ -16,6 +16,7 @@
 * **Compilation automatique :** Après des modifications complexes (services, contrôleurs, helpers EXIF/GPS, hachage d'images), exécute `dotnet build` pour valider l'absence d'erreurs de syntaxe ou de types.
 * **Tests unitaires et d'intégration :** Valide systématiquement les modifications avec `dotnet test` dans `PhotoAppApi.Tests` (129 tests unitaires et d'intégration).
 * **Serveur de développement :** Utilise `dotnet run` (ou `dotnet watch`) pour démarrer l'API en local.
+* **Git Hooks & Contrôle Qualité :** Le dépôt utilise Husky à la racine (`.husky/pre-commit`) pour exécuter `lint-staged`. Complète toujours avec `dotnet test` avant les commits modifiant la logique C#.
 
 ---
 

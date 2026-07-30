@@ -119,4 +119,6 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   cd PhotoFrontend
   npm run lint
   ```
+* **Git Hooks Automatisés (Husky & lint-staged)** :
+  Le dépôt utilise des hooks Git automatisés à la racine via **Husky** (`.husky/pre-commit`) et **lint-staged**. Lors de chaque `git commit`, les fichiers JS/JSX/TS/TSX staggés sont automatiquement vérifiés et corrigés via `eslint --fix` avant la création du commit.
 

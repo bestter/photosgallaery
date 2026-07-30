@@ -15,6 +15,7 @@
 * **Contrôle qualité & Linting :**
   - Exécute `npm run lint` pour la vérification ESLint.
   - Exécute `npx react-doctor@latest --scope changed` après des modifications substantielles de composants pour détecter les régressions d'accessibilité, de bundle ou de hooks.
+  - **Git Hooks & lint-staged :** Le hook `.husky/pre-commit` exécute automatiquement `lint-staged` (`eslint --fix`) sur les fichiers JS/JSX/TS/TSX staggés à chaque commit.
 * **Tests automatisés :** Exécute `npm run test -- --run` (Vitest) pour s'assurer que tous les tests de composants et d'aide (auth, api, cards, layout) passent avec succès.
 
 ---
