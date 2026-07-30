@@ -23,6 +23,9 @@ export default function AdminGroups() {
     const [isCreating, setIsCreating] = useState(false);
     const [isAddingMember, setIsAddingMember] = useState(false);
 
+    const isCreatingRef = React.useRef(false);
+    const isAddingMemberRef = React.useRef(false);
+
     // O(N) optimized filtering using a Set and useMemo to prevent unnecessary N*M computations on each render
     const availableUsers = useMemo(() => {
         const memberIds = new Set(members.map(m => m.userId || m.UserId));
@@ -70,8 +73,8 @@ export default function AdminGroups() {
 
     const handleCreateGroup = async (e) => {
         e.preventDefault();
-        if (!newGroupName.trim()) return;
-
+        if (!newGroupName.trim() || isCreating || isCreatingRef.current) return;
+        isCreatingRef.current = true;
         setIsCreating(true);
 
         try {
@@ -98,6 +101,7 @@ export default function AdminGroups() {
         } catch (error) {
             toast.error("Erreur lors de la création du groupe.");
         } finally {
+            isCreatingRef.current = false;
             setIsCreating(false);
         }
     };
@@ -144,7 +148,8 @@ export default function AdminGroups() {
 
     const handleAddMember = async (e) => {
         e.preventDefault();
-        if (!selectedUserId) return;
+        if (!selectedUserId || isAddingMember || isAddingMemberRef.current) return;
+        isAddingMemberRef.current = true;
         setIsAddingMember(true);
         const groupId = selectedGroup.id || selectedGroup.Id;
         try {
@@ -159,6 +164,7 @@ export default function AdminGroups() {
         } catch (error) {
             toast.error(error.response?.data?.message || "Erreur lors de l'ajout.");
         } finally {
+            isAddingMemberRef.current = false;
             setIsAddingMember(false);
         }
     };
@@ -221,7 +227,7 @@ export default function AdminGroups() {
                                             value={newGroupName}
                                             onChange={(e) => setNewGroupName(e.target.value)}
                                             placeholder={t("admin.groups.table.name") + "..."}
-                                            className="flex-1 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all text-on-surface"
+                                            className="flex-1 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors text-on-surface"
                                             required
                                         />
                                         <button type="submit" disabled={isCreating} className="px-6 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_15px_rgba(0,206,209,0.3)] disabled:opacity-50 flex items-center justify-center gap-2">
@@ -233,7 +239,7 @@ export default function AdminGroups() {
                                         value={newGroupDescription}
                                         onChange={(e) => setNewGroupDescription(e.target.value)}
                                         placeholder={t("groups.group_desc_placeholder")}
-                                        className="w-full px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all resize-none h-20 text-on-surface"
+                                        className="w-full px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors resize-none h-20 text-on-surface"
                                     />
                                 </form>
                             </div>
@@ -254,14 +260,7 @@ export default function AdminGroups() {
                                         </thead>
                                         <tbody className="divide-y divide-outline-variant/20 text-sm">
                                             {loading ? (
-                                                <tr>
-                                                    <td colSpan="4" className="text-center py-4 text-on-surface-variant">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
-                                                            {t("admin.groups.loading")}
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                                                <tr><td colSpan="4" className="text-center py-4 text-on-surface-variant">{t("admin.groups.loading")}</td></tr>
                                             ) : groups.map(group => {
                                                 const dateStr = new Date(group.createdAt || group.CreatedAt).toLocaleDateString();
                                                 return (
@@ -319,7 +318,8 @@ export default function AdminGroups() {
                                 <h3 className="text-lg font-bold mb-4 text-on-surface">{t("admin.groups.add_member")}</h3>
                                 <form onSubmit={handleAddMember} className="flex gap-4">
                                     <select
-                                        className="flex-1 px-4 py-2 bg-surface-container text-on-surface border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all"
+                                        aria-label={t("admin.groups.select_user")}
+                                        className="flex-1 px-4 py-2 bg-surface-container text-on-surface border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors"
                                         value={selectedUserId}
                                         onChange={(e) => setSelectedUserId(e.target.value)}
                                         required
@@ -332,7 +332,8 @@ export default function AdminGroups() {
                                         ))}
                                     </select>
                                     <select
-                                        className="px-4 py-2 bg-surface-container text-on-surface border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all w-32 focus:outline-none"
+                                        aria-label={t("admin.groups.members_table.role")}
+                                        className="px-4 py-2 bg-surface-container text-on-surface border-none rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors w-32 focus:outline-none"
                                         value={selectedRole}
                                         onChange={(e) => setSelectedRole(parseInt(e.target.value))}
                                     >
@@ -372,7 +373,8 @@ export default function AdminGroups() {
                                                         </td>
                                                         <td className="px-6 py-4 font-medium text-on-surface">
                                                             <select
-                                                                className="px-2 py-1 bg-transparent border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-sm transition-all outline-none"
+                                                                aria-label={t("admin.groups.members_table.role")}
+                                                                className="px-2 py-1 bg-transparent border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-sm transition-colors outline-none"
                                                                 value={member.role !== undefined ? member.role : member.Role}
                                                                 onChange={(e) => handleRoleChange(member.userId || member.UserId, parseInt(e.target.value))}
                                                             >

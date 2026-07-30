@@ -7,7 +7,6 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
     const [groupName, setGroupName] = useState('');
     const [groupGoal, setGroupGoal] = useState('');
-    const [inviteEmails, setInviteEmails] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen) return null;
@@ -25,7 +24,6 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
 
             setGroupName('');
             setGroupGoal('');
-            setInviteEmails('');
             onClose();
         } catch (err) {
             console.error("Group request error:", err);
@@ -51,7 +49,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                     <div>
                         <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupName">{t("components.group_request.group_name")} <span className="text-red-500" aria-hidden="true">*</span></label>
                         <input
-                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-all outline-none"
+                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-colors outline-none"
                             id="groupName" name="groupName" placeholder={t("components.group_request.group_name_placeholder")} required type="text"
                             value={groupName}
                             onChange={(e) => setGroupName(e.target.value)}
@@ -62,7 +60,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                     <div>
                         <label className="block text-sm font-semibold text-slate-100 mb-2" htmlFor="groupGoal">{t("components.group_request.description")} <span className="text-red-500" aria-hidden="true">*</span></label>
                         <textarea
-                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-all resize-none outline-none"
+                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-colors resize-none outline-none"
                             id="groupGoal" name="groupGoal"
                             placeholder={t("components.group_request.description_placeholder")}
                             required rows="4"

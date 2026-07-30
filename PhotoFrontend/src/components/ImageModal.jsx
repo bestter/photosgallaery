@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import ReportModal from './ReportModal';
@@ -11,6 +11,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
     const [isLiking, setIsLiking] = useState(false);
+    const isLikingRef = useRef(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
     const [hasReported, setHasReported] = useState(false);
@@ -36,14 +37,19 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         };
     }, [initialPhoto]);
 
+    const handlersRef = React.useRef({ onClose, onPrev, onNext });
+    useEffect(() => {
+        handlersRef.current = { onClose, onPrev, onNext };
+    });
+
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
-                onClose();
-            } else if (e.key === 'ArrowLeft' && onPrev) {
-                onPrev();
-            } else if (e.key === 'ArrowRight' && onNext) {
-                onNext();
+                handlersRef.current.onClose?.();
+            } else if (e.key === 'ArrowLeft' && handlersRef.current.onPrev) {
+                handlersRef.current.onPrev?.();
+            } else if (e.key === 'ArrowRight' && handlersRef.current.onNext) {
+                handlersRef.current.onNext?.();
             }
         };
 
@@ -52,7 +58,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [onClose, onPrev, onNext]);
+    }, []);
 
     // Stable source reference (avoid `|| []` outside the memo, which forces recomputation every render)
     const rawTags = photo?.tags ?? photo?.Tags;
@@ -153,8 +159,9 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
     const handleLike = async () => {
         const photoId = photo.id || photo.Id;
-        if (!photoId || isLiking) return;
+        if (!photoId || isLiking || isLikingRef.current) return;
 
+        isLikingRef.current = true;
         setIsLiking(true);
         try {
             const res = await api.post(`/photos/${photoId}/like`);
@@ -168,6 +175,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         } catch (err) {
             // L'erreur API devrait être captée par ton intercepteur ou retourner 401 si non connecté
         } finally {
+            isLikingRef.current = false;
             setIsLiking(false);
         }
     };
@@ -199,10 +207,11 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 }
             `}</style>
 
-            <img id="printable-image" src={imgSrc} alt="Image à imprimer" className="hidden print:block" />
+            <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />
 
             {/* Modal Container */}
             <div
+                role="presentation"
                 className="relative w-full h-full bg-slate-900/40 overflow-hidden flex flex-col md:flex-row print:hidden"
                 onClick={handleContentClick}
             >

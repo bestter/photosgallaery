@@ -187,3 +187,8 @@
 **Vulnerability:** An administrator could modify their own role via the `/api/admin/groups/{id}/members/{userId}/role` endpoint in `GroupsController`, potentially demoting themselves from Group Admin and causing an admin lockout.
 **Learning:** Privilege management endpoints must always prevent users from accidentally or maliciously modifying their own privileges to avoid losing access to the system.
 **Prevention:** Always implement a self-modification check (e.g., `currentUserId == targetUserId`) in role update endpoints. Be careful not to apply this check to 'remove' endpoints if it breaks standard "leave group" functionality.
+
+## 2026-07-26 - [MEDIUM] Fix Timing Leak in Contact Form
+**Vulnerability:** The `/api/contact` endpoint synchronously executed `_emailService.SendContactEmailAsync`, which could allow a malicious user to determine whether the email sending subsystem was up or down, or how long external APIs took, potentially contributing to a larger reconnaissance effort or tying up server resources during heavy load or external API latency.
+**Learning:** In HTTP endpoints, time-consuming side-effects (like sending emails) should be offloaded to asynchronous background tasks to equalize response times across all logic branches and avoid blocking requests, preventing side-channel timing leaks and resource exhaustion.
+**Prevention:** Use `Task.Run` combined with `IServiceScopeFactory` to safely dispatch slow operations asynchronously outside the main HTTP request thread pool loop. Ensure you handle exceptions in the background thread to avoid silent failures and pass `CancellationToken.None` so background tasks aren't cancelled if the HTTP request completes.

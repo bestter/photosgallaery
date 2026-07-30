@@ -96,16 +96,15 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
                 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1"
                 htmlFor="reason"
               >
-                Reason <span className="text-red-500" aria-hidden="true">*</span>
+                Reason
               </label>
               <textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full bg-[#244545]/50 border-none rounded-lg p-4 text-sm text-slate-100 placeholder:text-slate-400/40 focus:ring-2 focus:ring-primary focus:bg-[#244545] transition-all outline-none resize-none"
+                className="w-full bg-[#244545]/50 border-none rounded-lg p-4 text-sm text-slate-100 placeholder:text-slate-400/40 focus:ring-2 focus:ring-primary focus:bg-[#244545] transition-colors outline-none resize-none"
                 placeholder="Explain why this content violates our terms..."
                 rows="4"
-                required
               ></textarea>
             </div>
 
@@ -131,7 +130,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="w-full bg-primary text-[#0f2323] font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+              className="w-full bg-primary text-[#0f2323] font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-transform flex items-center justify-center space-x-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
             >
               {isSubmitting && (
                 <span className="material-symbols-outlined animate-spin text-base" aria-hidden="true">
@@ -154,7 +153,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="w-full bg-transparent border border-[#1e293b] text-slate-400 font-bold py-3 px-6 rounded-lg hover:bg-[#1c3838] hover:text-slate-100 transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+              className="w-full bg-transparent border border-[#1e293b] text-slate-400 font-bold py-3 px-6 rounded-lg hover:bg-[#1c3838] hover:text-slate-100 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
             >
               <span className="text-sm font-bold uppercase tracking-wider">
                 {t("common.cancel", "Cancel")}

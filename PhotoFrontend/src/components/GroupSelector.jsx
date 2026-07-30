@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
@@ -16,15 +16,11 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // ⚡ Bolt: Memoize the active group lookup to avoid O(N) array scans on every render cycle
-    const activeGroup = useMemo(() => {
-        if (!groups || groups.length === 0) return null;
-        return groups.find(g => (g.id || g.Id) === activeGroupId) || groups[0];
-    }, [groups, activeGroupId]);
-
     if (!groups || groups.length === 0) {
         return null;
     }
+
+    const activeGroup = groups.find(g => (g.id || g.Id) === activeGroupId) || groups[0];
 
     if (groups.length === 1) {
         return (

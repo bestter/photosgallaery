@@ -28,8 +28,6 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [tags, setTags] = useState([]);
-  const [tagInput, setTagInput] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const [title, setTitle] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [description, setDescription] = useState("");
@@ -79,25 +77,12 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     if (isSessionValid()) {
       fetchGroups();
     }
+
+    return () => {
+      isCancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGroupId, isSessionValid]);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (tagInput.length > 1) {
-        try {
-          const response = await api.get(`/tags/search?q=${tagInput}`);
-          setSuggestions(response.data);
-        } catch (err) {
-          console.error("Erreur lors de la recherche de tags", err);
-        }
-      } else {
-        setSuggestions([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [tagInput]);
 
   const handleClearSelection = () => {
     setFiles([]);
@@ -329,7 +314,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               </label>
               <input
                 id="photo-title"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
+                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
                 placeholder={t("components.upload.photo_title_placeholder")}
                 type="text"
                 value={title}
@@ -348,7 +333,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               </label>
               <textarea
                 id="photo-description"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
+                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
                 placeholder={t("components.upload.description_placeholder")}
                 rows="4"
                 value={description}
@@ -366,7 +351,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               </label>
               <input
                 id="photo-tags"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
+                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
                 placeholder={t("components.upload.tags_placeholder")}
                 type="text"
                 value={tags}
@@ -384,7 +369,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               </label>
               <select
                 id="photo-group"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-all"
+                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
                 required
@@ -405,7 +390,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               <input
                 id="geo-location"
                 type="checkbox"
-                className="w-5 h-5 rounded border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-primary focus:ring-primary focus:ring-offset-background-dark transition-all cursor-pointer"
+                className="w-5 h-5 rounded border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-primary focus:ring-primary focus:ring-offset-background-dark transition-colors cursor-pointer"
                 checked={includeGps}
                 onChange={(e) => setIncludeGps(e.target.checked)}
               />
@@ -432,7 +417,7 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
               type="submit"
               disabled={isUploading || files.length === 0}
               title={files.length === 0 ? t("components.upload.error.select_file") : ""}
-              className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
+              className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
             >
               {isUploading ? (
                 <>

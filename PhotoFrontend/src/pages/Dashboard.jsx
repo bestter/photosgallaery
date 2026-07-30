@@ -13,8 +13,8 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const pageRef = useRef(1);
+  const hasMoreRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const currentUsername = getUsernameFromToken();
@@ -51,9 +51,9 @@ export default function Dashboard() {
         const totalCount = response.headers["x-total-count"];
         if (totalCount) {
           const totalLoaded = (currentPage - 1) * 20 + response.data.length;
-          setHasMore(totalLoaded < parseInt(totalCount, 10));
+          hasMoreRef.current = totalLoaded < parseInt(totalCount, 10);
         } else {
-          setHasMore(response.data.length === 20);
+          hasMoreRef.current = response.data.length === 20;
         }
       } catch (error) {
         if (isCancelled) return;
@@ -65,8 +65,7 @@ export default function Dashboard() {
       }
     };
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1);
+    pageRef.current = 1;
     fetchUsers(1, false);
 
     return () => {
@@ -103,7 +102,7 @@ export default function Dashboard() {
           search
         </span>
         <input
-          className="w-full pl-11 pr-10 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-all text-on-surface placeholder:text-on-surface-variant"
+          className="w-full pl-11 pr-10 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors text-on-surface placeholder:text-on-surface-variant"
           placeholder={t("admin.dashboard.search_placeholder")}
           type="text"
           aria-label={t("admin.dashboard.search_placeholder")}
@@ -263,14 +262,18 @@ export default function Dashboard() {
                           {groups && groups.length > 0 ? (
                             groups.length > 2 ? (
                               <div
+                                role="button"
                                 className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
                                 tabIndex={0}
-                                aria-label={`Groupes: ${groups.join(", ")}`}
+                                aria-describedby={`tooltip-groups-${userId}`}
                               >
                                 <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors group-focus:bg-surface-container-highest">
                                   Groupes ({groups.length})
                                 </span>
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
+                                <div
+                                  id={`tooltip-groups-${userId}`}
+                                  role="tooltip"
+                                  className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
                                   <div className="flex flex-col gap-1 items-center">
                                     {groups.map((g) => (
                                       <span

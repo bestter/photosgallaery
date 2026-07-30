@@ -55,19 +55,30 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YO
 
 // Dans ton Program.cs
 builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    ServerVersion serverVersion;
+    try
+    {
+        serverVersion = ServerVersion.AutoDetect(connectionString);
+    }
+    catch
+    {
+        serverVersion = new MariaDbServerVersion(new Version(10, 11, 0));
+    }
+
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString),
+        serverVersion,
         mySqlOptions =>
         {
-            // C'est ici qu'on ajoute la résilience suggérée par l'erreur !
             mySqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 3,
                 maxRetryDelay: TimeSpan.FromSeconds(5),
                 errorNumbersToAdd: null
             );
         }
-    ));
+    );
+});
 
 // 2. Configuration CORS
 builder.Services.AddCors(options =>
@@ -265,7 +276,7 @@ builder.Services.AddAntiforgery(options =>
     options.SuppressXFrameOptionsHeader = false;
 });
 
-builder.Services.AddControllers(options =>
+builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 });
