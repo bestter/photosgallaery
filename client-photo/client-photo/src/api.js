@@ -11,9 +11,40 @@ const axiosInstance = axios.create({
     withCredentials: true
 });
 
-axiosInstance.interceptors.request.use((config) => {
+let csrfToken = null;
+let csrfTokenPromise = null;
+
+const fetchCsrfToken = async () => {
+    if (csrfTokenPromise) {
+        return csrfTokenPromise;
+    }
+    csrfTokenPromise = axios.get(`${baseURL}/Auth/csrf-token`, { withCredentials: true })
+        .then(response => {
+            csrfToken = response.data.token;
+            return csrfToken;
+        })
+        .catch(error => {
+            console.error("Erreur lors de la récupération du token CSRF", error);
+            csrfTokenPromise = null;
+            return null;
+        });
+    return csrfTokenPromise;
+};
+
+axiosInstance.interceptors.request.use(async (config) => {
     // 🛡️ Securité de base pour identifier que la requête vient bien de l'app React
     config.headers['X-App-Client'] = 'PhotoApp-Web';
+
+    const requiresCsrf = ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase());
+
+    if (requiresCsrf) {
+        if (!csrfToken) {
+            await fetchCsrfToken();
+        }
+        if (csrfToken) {
+            config.headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+    }
 
     // The JWT token is now handled via HttpOnly cookie,
     // so we don't attach it to the Authorization header from localStorage here.
