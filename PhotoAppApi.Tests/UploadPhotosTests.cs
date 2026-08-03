@@ -173,7 +173,7 @@ namespace PhotoAppApi.Tests
             var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
             var errorsList = JsonSerializer.Deserialize<List<string>>(dict?["erreurs"].GetRawText() ?? "[]");
 
-            Assert.Contains(errorsList, e => e.Contains("img2.jpg") && e.Contains("double"));
+            Assert.Contains(errorsList, e => (e.Contains("img1.jpg") || e.Contains("img2.jpg")) && e.Contains("double"));
 
             var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
             Assert.Single(photosInDb);

@@ -14,20 +14,21 @@ const axiosInstance = axios.create({
 let csrfToken = null;
 let csrfTokenPromise = null;
 
-const fetchCsrfToken = async () => {
-    if (csrfTokenPromise) {
-        return csrfTokenPromise;
-    }
+export const fetchCsrfToken = async () => {
+    if (csrfToken) return csrfToken;
+    if (csrfTokenPromise) return csrfTokenPromise;
+
     csrfTokenPromise = axios.get(`${baseURL}/Auth/csrf-token`, { withCredentials: true })
         .then(response => {
             csrfToken = response.data.token;
             return csrfToken;
         })
         .catch(error => {
-            console.error("Erreur lors de la récupération du token CSRF", error);
+            console.error("Failed to fetch CSRF token", error);
             csrfTokenPromise = null;
             return null;
         });
+
     return csrfTokenPromise;
 };
 
@@ -35,14 +36,11 @@ axiosInstance.interceptors.request.use(async (config) => {
     // 🛡️ Securité de base pour identifier que la requête vient bien de l'app React
     config.headers['X-App-Client'] = 'PhotoApp-Web';
 
-    const requiresCsrf = ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase());
-
-    if (requiresCsrf) {
-        if (!csrfToken) {
-            await fetchCsrfToken();
-        }
-        if (csrfToken) {
-            config.headers['X-CSRF-TOKEN'] = csrfToken;
+    // 🛡️ Sentinel: Attach CSRF token for mutating HTTP endpoints (POST/PUT/DELETE)
+    if (config.method && ['post', 'put', 'delete', 'patch'].includes(config.method.toLowerCase())) {
+        const token = await fetchCsrfToken();
+        if (token) {
+            config.headers['X-CSRF-TOKEN'] = token;
         }
     }
 
