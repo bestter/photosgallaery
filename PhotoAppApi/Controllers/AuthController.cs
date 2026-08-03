@@ -35,7 +35,6 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("login")]
-        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("LoginLimiter")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request, CancellationToken cancellationToken = default)
         {
@@ -121,7 +120,6 @@ namespace PhotoAppApi.Controllers
 
 
         [HttpPost("logout")]
-        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("LoginLimiter")]
         public IActionResult Logout()
         {
@@ -130,7 +128,6 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpPost("register")]
-        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("RegisterLimiter")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request, CancellationToken cancellationToken = default)
         {
