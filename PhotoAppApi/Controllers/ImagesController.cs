@@ -32,6 +32,8 @@ namespace PhotoAppApi.Controllers
 
         }
         [HttpGet("{fileName}")]
+        // ⚡ Bolt: Adding client-side response caching for immutable image assets to eliminate redundant network requests and DB authorization checks on subsequent loads.
+        [ResponseCache(Duration = 2592000, Location = ResponseCacheLocation.Client)]
         public Task<IActionResult> GetImage(string fileName, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(fileName) ||
@@ -53,6 +55,8 @@ namespace PhotoAppApi.Controllers
         }
 
         [HttpGet("thumbnails/{fileName}")]
+        // ⚡ Bolt: Adding client-side response caching for immutable image assets to eliminate redundant network requests and DB authorization checks on subsequent loads.
+        [ResponseCache(Duration = 2592000, Location = ResponseCacheLocation.Client)]
         public Task<IActionResult> GetThumbnail(string fileName, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(fileName) ||
