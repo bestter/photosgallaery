@@ -14,7 +14,7 @@
 ## 2. Comportement dans l'éditeur et le terminal
 
 * **Compilation automatique :** Après des modifications complexes (services, contrôleurs, helpers EXIF/GPS, hachage d'images), exécute `dotnet build` pour valider l'absence d'erreurs de syntaxe ou de types.
-* **Tests unitaires, d'intégration et de contrat :** Valide systématiquement les modifications avec `dotnet test` dans `PhotoAppApi.Tests` (136 tests unitaires, d'intégration et de contrat OpenAPI via `OpenApiContractTests.cs`).
+* **Tests unitaires, d'intégration et de contrat :** Valide systématiquement les modifications avec `dotnet test` dans `PhotoAppApi.Tests` (160 tests unitaires, d'intégration et de contrat OpenAPI via `OpenApiContractTests.cs`).
 * **Serveur de développement :** Utilise `dotnet run` (ou `dotnet watch`) pour démarrer l'API en local.
 * **Git Hooks & Contrôle Qualité :** Le dépôt utilise Husky à la racine (`.husky/pre-commit`) pour exécuter `lint-staged`. Complète toujours avec `dotnet test` avant les commits modifiant la logique C#.
 

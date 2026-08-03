@@ -18,7 +18,7 @@ export const fetchCsrfToken = async () => {
     if (csrfToken) return csrfToken;
     if (csrfTokenPromise) return csrfTokenPromise;
 
-    csrfTokenPromise = axios.get(`${baseURL}/auth/csrf-token`, { withCredentials: true })
+    csrfTokenPromise = axios.get(`${baseURL}/Auth/csrf-token`, { withCredentials: true })
         .then(response => {
             csrfToken = response.data.token;
             return csrfToken;
