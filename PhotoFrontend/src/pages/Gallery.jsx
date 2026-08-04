@@ -234,6 +234,9 @@ export default function Gallery() {
         {/* Search and Actions */}
         <div className="hidden md:flex items-center gap-6 flex-1 max-w-2xl px-8">
           <div className="relative w-full">
+            <label htmlFor="search" className="sr-only">
+              {t("gallery.search_placeholder")}
+            </label>
             <span
               aria-hidden="true"
               className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]"
@@ -241,9 +244,9 @@ export default function Gallery() {
               search
             </span>
             <input
+              id="search"
               className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500"
               name="search"
-              aria-label={t("gallery.search_placeholder")}
               placeholder={t("gallery.search_placeholder")}
               type="text"
               value={searchQuery}
@@ -355,6 +358,9 @@ export default function Gallery() {
       <main className="flex-grow pt-24 pb-12 px-4 md:px-6 max-w-[1600px] w-full mx-auto">
         {/* Search Bar for Mobile */}
         <div className="md:hidden relative w-full mb-6">
+          <label htmlFor="searchMobile" className="sr-only">
+            {t("gallery.search_mobile_placeholder")}
+          </label>
           <span
             aria-hidden="true"
             className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-[20px]"
@@ -362,9 +368,9 @@ export default function Gallery() {
             search
           </span>
           <input
+            id="searchMobile"
             className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
-            aria-label={t("gallery.search_mobile_placeholder")}
             placeholder={t("gallery.search_mobile_placeholder")}
             type="text"
             value={searchQuery}
