@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,20 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
   const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!photo) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [photo, onClose]);
+
 
   if (!photo) return null;
 

@@ -9,6 +9,18 @@ const InviteModal = ({ isOpen, onClose }) => {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, onClose]);
+
     const [isLoading, setIsLoading] = useState(false);
     
     // Group selection
@@ -91,9 +103,9 @@ const InviteModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-sm font-body text-on-surface">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-sm font-body text-on-surface" onClick={onClose}>
             {/* Modal Container */}
-            <div className="w-full max-w-lg bg-surface border border-outline-variant/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
+            <div className="w-full max-w-lg bg-surface border border-outline-variant/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50" onClick={(e) => e.stopPropagation()}>
                 {/* Modal Header */}
                 <div className="px-8 pt-8 pb-4">
                     <h2 className="text-[30px] font-black tracking-tight text-on-surface leading-none mb-1">{t('components.invite_modal.title')}</h2>

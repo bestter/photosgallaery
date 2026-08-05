@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,18 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
     const [groupName, setGroupName] = useState('');
     const [groupGoal, setGroupGoal] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, onClose]);
+
 
     if (!isOpen) return null;
 
@@ -34,8 +46,8 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#081414]/80 backdrop-blur-sm font-sans text-slate-100">
-            <div className="w-full max-w-2xl bg-[#0f2323] border border-slate-800/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50 p-8">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#081414]/80 backdrop-blur-sm font-sans text-slate-100" onClick={onClose}>
+            <div className="w-full max-w-2xl bg-[#0f2323] border border-slate-800/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50 p-8" onClick={(e) => e.stopPropagation()}>
                 <div className="mb-8 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-slate-100 mb-2">{t("components.group_request.title")}</h1>
