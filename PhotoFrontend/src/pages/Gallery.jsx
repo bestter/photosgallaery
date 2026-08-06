@@ -234,7 +234,7 @@ export default function Gallery() {
         {/* Search and Actions */}
         <div className="hidden md:flex items-center gap-6 flex-1 max-w-2xl px-8">
           <div className="relative w-full">
-            <label htmlFor="search" className="sr-only">
+            <label htmlFor="desktop-search" className="sr-only">
               {t("gallery.search_placeholder")}
             </label>
             <span
@@ -244,7 +244,7 @@ export default function Gallery() {
               search
             </span>
             <input
-              id="search"
+              id="desktop-search"
               className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500"
               name="search"
               placeholder={t("gallery.search_placeholder")}
@@ -358,7 +358,7 @@ export default function Gallery() {
       <main className="flex-grow pt-24 pb-12 px-4 md:px-6 max-w-[1600px] w-full mx-auto">
         {/* Search Bar for Mobile */}
         <div className="md:hidden relative w-full mb-6">
-          <label htmlFor="searchMobile" className="sr-only">
+          <label htmlFor="mobile-search" className="sr-only">
             {t("gallery.search_mobile_placeholder")}
           </label>
           <span
@@ -368,7 +368,7 @@ export default function Gallery() {
             search
           </span>
           <input
-            id="searchMobile"
+            id="mobile-search"
             className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
             placeholder={t("gallery.search_mobile_placeholder")}
@@ -424,7 +424,7 @@ export default function Gallery() {
             {selectedTag && (
               <button
                 type="button"
-                className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+                className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323] hover:brightness-110"
                 onClick={() => setSelectedTag(null)}
                 aria-label={
                   t("gallery.clear_search", "Effacer la recherche") +
@@ -444,7 +444,7 @@ export default function Gallery() {
                 {t("gallery.tag")}: {selectedTag}
                 <span
                   aria-hidden="true"
-                  className="material-symbols-outlined text-[14px] ml-1 hover:text-white"
+                  className="material-symbols-outlined text-[14px] ml-1 transition-transform hover:scale-125"
                 >
                   close
                 </span>
@@ -453,7 +453,7 @@ export default function Gallery() {
             {selectedAuthor && (
               <button
                 type="button"
-                className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
+                className="flex items-center gap-2 bg-cyan-400 text-[#0f2323] px-3 py-1.5 rounded text-[12px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323] hover:brightness-110"
                 onClick={() => setSelectedAuthor(null)}
                 aria-label={
                   t("gallery.clear_search", "Effacer la recherche") +
@@ -473,7 +473,7 @@ export default function Gallery() {
                 {selectedAuthor}
                 <span
                   aria-hidden="true"
-                  className="material-symbols-outlined text-[14px] ml-1 hover:text-white"
+                  className="material-symbols-outlined text-[14px] ml-1 transition-transform hover:scale-125"
                 >
                   close
                 </span>
