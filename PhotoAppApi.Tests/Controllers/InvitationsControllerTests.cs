@@ -33,7 +33,9 @@ namespace PhotoAppApi.Tests.Controllers
             var serviceScopeMock = new Mock<IServiceScope>();
             var serviceProviderMock = new Mock<IServiceProvider>();
 
+
             serviceProviderMock.Setup(sp => sp.GetService(typeof(IEmailService))).Returns(emailService);
+            serviceProviderMock.Setup(sp => sp.GetService(typeof(AppDbContext))).Returns(context);
             serviceScopeMock.Setup(s => s.ServiceProvider).Returns(serviceProviderMock.Object);
             serviceScopeFactoryMock.Setup(f => f.CreateScope()).Returns(serviceScopeMock.Object);
 
@@ -190,6 +192,7 @@ namespace PhotoAppApi.Tests.Controllers
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
             Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
 
+            await Task.Delay(500, TestContext.Current.CancellationToken); // Give the background task time to run
             var isMember = await context.UserGroups.AnyAsync(ug => ug.UserId == 2 && ug.GroupId == group.Id, TestContext.Current.CancellationToken);
             Assert.True(isMember);
 
@@ -271,6 +274,7 @@ namespace PhotoAppApi.Tests.Controllers
             var message = value?.GetType()?.GetProperty("message")?.GetValue(value, null) as string;
             Assert.Equal("Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.", message);
 
+            await Task.Delay(500, TestContext.Current.CancellationToken); // Give the background task time to run
             var invitation = await context.GroupInvitations.FirstOrDefaultAsync(i => i.Email == dto.Email, TestContext.Current.CancellationToken);
             Assert.NotNull(invitation);
             Assert.Equal("Pending", invitation.Status);
