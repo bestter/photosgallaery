@@ -282,6 +282,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             type="button"
                             onClick={handleDownload}
                             disabled={isDownloading}
+                            aria-label={t("components.image_modal.button_download")}
+                            title={t("components.image_modal.button_download")}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
                             {isDownloading ? (
                                 <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
@@ -295,12 +297,13 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             type="button"
                             onClick={handleLike}
                             aria-pressed={isLiked}
+                            aria-label={t("components.image_modal.button_likes", { count: likesCount })}
                             className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
                                 ? "bg-primary text-background-dark border-primary hover:opacity-90"
                                 : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
                                 } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
                             disabled={isLiking || isMyPhoto}
-                            title={isMyPhoto ? t("components.image_modal.cant_like_own") : ""}
+                            title={isMyPhoto ? t("components.image_modal.cant_like_own") : t("components.image_modal.button_likes", { count: likesCount })}
                         >
                             {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
                             {isLiking ? (
@@ -316,6 +319,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         <button
                             type="button"
                             onClick={handleShare}
+                            aria-label={t("components.image_modal.button_share")}
+                            title={t("components.image_modal.button_share")}
                             className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                             <span className="material-symbols-outlined" aria-hidden="true">share</span>
                             <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
@@ -325,6 +330,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             <button
                                 type="button"
                                 disabled
+                                aria-label={t("components.image_modal.reported")}
+                                title={t("components.image_modal.reported")}
                                 className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
                                 <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
                                 <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
@@ -334,7 +341,8 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                                 type="button"
                                 onClick={() => setIsReporting(true)}
                                 disabled={isMyPhoto}
-                                title={isMyPhoto ? t("components.image_modal.cant_report_own") : ""}
+                                aria-label={t("components.image_modal.report")}
+                                title={isMyPhoto ? t("components.image_modal.cant_report_own") : t("components.image_modal.report")}
                                 className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isMyPhoto
                                     ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
                                     : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
