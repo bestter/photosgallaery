@@ -247,7 +247,6 @@ export default function Gallery() {
               id="desktop-search"
               className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500"
               name="search"
-              aria-label={t("gallery.search_placeholder")}
               placeholder={t("gallery.search_placeholder")}
               type="text"
               value={searchQuery}
@@ -372,7 +371,6 @@ export default function Gallery() {
             id="mobile-search"
             className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-cyan-400 text-slate-100 transition-colors placeholder:text-slate-500 shadow-lg"
             name="searchMobile"
-            aria-label={t("gallery.search_mobile_placeholder")}
             placeholder={t("gallery.search_mobile_placeholder")}
             type="text"
             value={searchQuery}
