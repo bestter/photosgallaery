@@ -22,6 +22,216 @@ const canUpload = () => {
   return false;
 };
 
+function UploadDropZone({
+  isDragging,
+  selectedFile,
+  handleDragOver,
+  handleDragLeave,
+  handleDrop,
+  handleFileChange,
+  t
+}) {
+  return (
+    <label
+      className={`flex flex-col rounded-xl border-2 border-dashed p-8 lg:p-14 text-center items-center gap-6 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-colors cursor-pointer relative ${
+        isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : 'bg-slate-100/50 dark:bg-primary/5 border-primary/30 hover:border-primary'
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <input
+        type="file"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        onChange={handleFileChange}
+        accept="image/png, image/jpeg"
+        aria-label={t("components.upload.browse_files")}
+        title={t("components.upload.browse_files")}
+      />
+      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform pointer-events-none">
+        <span aria-hidden="true" className="material-symbols-outlined text-4xl">
+          cloud_upload
+        </span>
+      </div>
+      <div className="flex flex-col gap-2 pointer-events-none">
+        <p className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">
+          {selectedFile
+            ? selectedFile.name
+            : t("components.upload.drag_drop")}
+        </p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">
+          {selectedFile
+            ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
+            : t("components.upload.browse_files")}
+        </p>
+      </div>
+      {!selectedFile && (
+        <div className="flex items-center justify-center rounded-lg h-12 px-8 bg-primary text-background-dark font-bold text-base shadow-lg shadow-primary/20 pointer-events-none">
+          {t("components.upload.select_file_btn")}
+        </div>
+      )}
+    </label>
+  );
+}
+
+function UploadForm({
+  title,
+  setTitle,
+  description,
+  setDescription,
+  tags,
+  setTags,
+  selectedGroupId,
+  setSelectedGroupId,
+  userGroups,
+  includeGps,
+  setIncludeGps,
+  handleUpload,
+  onUploadSuccess,
+  isUploading,
+  filesCount,
+  t
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleUpload();
+      }}
+      className="grid grid-cols-1 gap-8"
+    >
+      <div className="flex flex-col gap-6">
+        {/* Titre */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="photo-title"
+            className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
+          >
+            {t("components.upload.photo_title")} <span className="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="photo-title"
+            className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
+            placeholder={t("components.upload.photo_title_placeholder")}
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Description */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="photo-description"
+            className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
+          >
+            {t("components.upload.description")}
+          </label>
+          <textarea
+            id="photo-description"
+            className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
+            placeholder={t("components.upload.description_placeholder")}
+            rows="4"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        {/* Tags simples */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="photo-tags"
+            className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
+          >
+            {t("components.upload.tags")}
+          </label>
+          <input
+            id="photo-tags"
+            className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
+            placeholder={t("components.upload.tags_placeholder")}
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+          />
+        </div>
+
+        {/* Cercle (Groupe) */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="photo-group"
+            className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
+          >
+            {t("components.upload.visibility")} <span className="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="photo-group"
+            className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
+            value={selectedGroupId}
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            required
+          >
+            {userGroups.map((group) => (
+              <option
+                key={group.id || group.Id}
+                value={group.id || group.Id}
+              >
+                {group.name || group.Name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Géolocalisation */}
+        <div className="flex items-center gap-3 mt-4 py-2 group cursor-pointer">
+          <input
+            id="geo-location"
+            type="checkbox"
+            className="w-5 h-5 rounded border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-primary focus:ring-primary focus:ring-offset-background-dark transition-colors cursor-pointer"
+            checked={includeGps}
+            onChange={(e) => setIncludeGps(e.target.checked)}
+          />
+          <label
+            className="text-slate-900 dark:text-slate-100 text-sm font-medium cursor-pointer select-none"
+            htmlFor="geo-location"
+          >
+            {t("components.upload.extract_gps")}
+          </label>
+        </div>
+      </div>
+
+      {/* Boutons d'action */}
+      <div className="flex items-center justify-end gap-4 pt-6 border-t border-primary/10 mb-20">
+        <button
+          type="button"
+          onClick={() => onUploadSuccess && onUploadSuccess()}
+          className="px-6 py-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+          disabled={isUploading}
+        >
+          {t("components.upload.cancel")}
+        </button>
+        <button
+          type="submit"
+          disabled={isUploading || filesCount === 0}
+          title={filesCount === 0 ? t("components.upload.error.select_file") : ""}
+          className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
+        >
+          {isUploading ? (
+            <>
+              <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
+                sync
+              </span>
+              {t("components.upload.uploading")}
+            </>
+          ) : (
+            t("components.upload.publish_btn")
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
   const { t } = useTranslation();
   const [files, setFiles] = useState([]);
@@ -132,8 +342,6 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     }
   };
 
-
-
   const handleUpload = async () => {
     if (!isSessionValid()) {
       toast.error(t("components.upload.error.session_expired"), {
@@ -170,10 +378,8 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     formData.append("title", title);
     formData.append("description", description);
 
-    // NOUVEAU: On ajoute la valeur de la case à cocher au formulaire envoyé au backend
     formData.append("includeGps", includeGps);
 
-    // Ajout du GroupId sélectionné (Closed Loop)
     if (selectedGroupId) {
       formData.append("groupId", selectedGroupId);
     } else {
@@ -213,15 +419,6 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
       });
   };
 
-  const handleCustomButtonClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const totalSizeDisplay = (
-    files.reduce((acc, file) => acc + file.size, 0) /
-    (1024 * 1024)
-  ).toFixed(2);
-
   return (
     <div className="flex flex-1 justify-center py-10 px-4 font-display">
       <div className="flex flex-col max-w-[800px] flex-1 gap-8">
@@ -235,187 +432,40 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
           </p>
         </div>
 
-        {/* Zone de Drag & Drop (Glisser-déposer) */}
-        <label
-          className={`flex flex-col rounded-xl border-2 border-dashed p-8 lg:p-14 text-center items-center gap-6 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-colors cursor-pointer relative ${
-            isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : 'bg-slate-100/50 dark:bg-primary/5 border-primary/30 hover:border-primary'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <input
-            type="file"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            onChange={handleFileChange}
-            accept="image/png, image/jpeg"
-            aria-label={t("components.upload.browse_files")}
-            title={t("components.upload.browse_files")}
-          />
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform pointer-events-none">
-            <span aria-hidden="true" className="material-symbols-outlined text-4xl">
-              cloud_upload
-            </span>
-          </div>
-          <div className="flex flex-col gap-2 pointer-events-none">
-            <p className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">
-              {selectedFile
-                ? selectedFile.name
-                : t("components.upload.drag_drop")}
-            </p>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              {selectedFile
-                ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
-                : t("components.upload.browse_files")}
-            </p>
-          </div>
-          {!selectedFile && (
-            <div className="flex items-center justify-center rounded-lg h-12 px-8 bg-primary text-background-dark font-bold text-base shadow-lg shadow-primary/20 pointer-events-none">
-              {t("components.upload.select_file_btn")}
-            </div>
-          )}
-        </label>
+        {/* Zone de Drag & Drop */}
+        <UploadDropZone
+          isDragging={isDragging}
+          selectedFile={selectedFile}
+          handleDragOver={handleDragOver}
+          handleDragLeave={handleDragLeave}
+          handleDrop={handleDrop}
+          handleFileChange={handleFileChange}
+          t={t}
+        />
 
         {/* Formulaire */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleUpload();
-          }}
-          className="grid grid-cols-1 gap-8"
-        >
-          <div className="flex flex-col gap-6">
-            {/* Titre */}
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="photo-title"
-                className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
-              >
-                {t("components.upload.photo_title")} <span className="text-red-500" aria-hidden="true">*</span>
-              </label>
-              <input
-                id="photo-title"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
-                placeholder={t("components.upload.photo_title_placeholder")}
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* Description */}
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="photo-description"
-                className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
-              >
-                {t("components.upload.description")}
-              </label>
-              <textarea
-                id="photo-description"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
-                placeholder={t("components.upload.description_placeholder")}
-                rows="4"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            {/* Tags simples */}
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="photo-tags"
-                className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
-              >
-                {t("components.upload.tags")}
-              </label>
-              <input
-                id="photo-tags"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
-                placeholder={t("components.upload.tags_placeholder")}
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-              />
-            </div>
-
-            {/* Cercle (Groupe) */}
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="photo-group"
-                className="text-slate-900 dark:text-slate-100 text-sm font-bold tracking-wide uppercase"
-              >
-                {t("components.upload.visibility")} <span className="text-red-500" aria-hidden="true">*</span>
-              </label>
-              <select
-                id="photo-group"
-                className="w-full rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-100 p-4 transition-colors"
-                value={selectedGroupId}
-                onChange={(e) => setSelectedGroupId(e.target.value)}
-                required
-              >
-                {userGroups.map((group) => (
-                  <option
-                    key={group.id || group.Id}
-                    value={group.id || group.Id}
-                  >
-                    {group.name || group.Name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Géolocalisation */}
-            <div className="flex items-center gap-3 mt-4 py-2 group cursor-pointer">
-              <input
-                id="geo-location"
-                type="checkbox"
-                className="w-5 h-5 rounded border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-primary focus:ring-primary focus:ring-offset-background-dark transition-colors cursor-pointer"
-                checked={includeGps}
-                onChange={(e) => setIncludeGps(e.target.checked)}
-              />
-              <label
-                className="text-slate-900 dark:text-slate-100 text-sm font-medium cursor-pointer select-none"
-                htmlFor="geo-location"
-              >
-                {t("components.upload.extract_gps")}
-              </label>
-            </div>
-          </div>
-
-          {/* Boutons d'action */}
-          <div className="flex items-center justify-end gap-4 pt-6 border-t border-primary/10 mb-20">
-            <button
-              type="button"
-              onClick={() => onUploadSuccess && onUploadSuccess()}
-              className="px-6 py-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-              disabled={isUploading}
-            >
-              {t("components.upload.cancel")}
-            </button>
-            <button
-              type="submit"
-              disabled={isUploading || files.length === 0}
-              title={files.length === 0 ? t("components.upload.error.select_file") : ""}
-              className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
-            >
-              {isUploading ? (
-                <>
-                  <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
-                    sync
-                  </span>
-                  {t("components.upload.uploading")}
-                </>
-              ) : (
-                t("components.upload.publish_btn")
-              )}
-            </button>
-          </div>
-        </form>
+        <UploadForm
+          title={title}
+          setTitle={setTitle}
+          description={description}
+          setDescription={setDescription}
+          tags={tags}
+          setTags={setTags}
+          selectedGroupId={selectedGroupId}
+          setSelectedGroupId={setSelectedGroupId}
+          userGroups={userGroups}
+          includeGps={includeGps}
+          setIncludeGps={setIncludeGps}
+          handleUpload={handleUpload}
+          onUploadSuccess={onUploadSuccess}
+          isUploading={isUploading}
+          filesCount={files.length}
+          t={t}
+        />
       </div>
     </div>
   );
 };
 
 export default UploadPhoto;
+

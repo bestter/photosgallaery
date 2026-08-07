@@ -7,6 +7,213 @@ import { useTranslation } from 'react-i18next';
 
 const handleContentClick = (e) => e.stopPropagation();
 
+function ImageModalSidebar({
+    author,
+    dateTaken,
+    uploadedAt,
+    cameraModel,
+    latitude,
+    longitude,
+    resolvedTags,
+    likesCount,
+    viewsCount,
+    state,
+    handleDownload,
+    handleLike,
+    handleShare,
+    setIsReporting,
+    onAuthorClick,
+    onTagClick,
+    t
+}) {
+    const { isMyPhoto, isLiked, isDownloading, isLiking, hasReported } = state;
+
+    return (
+        <div className="w-full md:w-[400px] bg-background-dark p-6 overflow-y-auto flex flex-col gap-6 border-l border-slate-800">
+            {/* Photographer Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30 text-primary">
+                        <span aria-hidden="true" className="material-symbols-outlined text-2xl">person</span>
+                    </div>
+                    <div>
+                        <h3>
+                            {onAuthorClick ? (
+                                <button
+                                    type="button"
+                                    className="text-slate-100 font-bold text-lg leading-tight hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                                    onClick={() => onAuthorClick(author)}
+                                >
+                                    {author}
+                                </button>
+                            ) : (
+                                <span className="text-slate-100 font-bold text-lg leading-tight">{author}</span>
+                            )}
+                        </h3>
+                        <p className="text-primary text-xs uppercase tracking-wider font-semibold">{t("components.image_modal.photographer")}</p>
+                    </div>
+                </div>
+            </div>
+
+            <hr className="border-slate-800" />
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-4 gap-3">
+                <button
+                    type="button"
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                    aria-label={t("components.image_modal.button_download")}
+                    title={t("components.image_modal.button_download")}
+                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
+                    {isDownloading ? (
+                        <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                    ) : (
+                        <span className="material-symbols-outlined" aria-hidden="true">download</span>
+                    )}
+                    <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleLike}
+                    aria-pressed={isLiked}
+                    aria-label={t("components.image_modal.button_likes", { count: likesCount })}
+                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
+                        ? "bg-primary text-background-dark border-primary hover:opacity-90"
+                        : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
+                        } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
+                    disabled={isLiking || isMyPhoto}
+                    title={isMyPhoto ? t("components.image_modal.cant_like_own") : t("components.image_modal.button_likes", { count: likesCount })}
+                >
+                    {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
+                    {isLiking ? (
+                        <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                    ) : (
+                        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                    )}
+                    <span className="text-[10px] font-bold uppercase">
+                        {t("components.image_modal.button_likes", { count: likesCount })}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleShare}
+                    aria-label={t("components.image_modal.button_share")}
+                    title={t("components.image_modal.button_share")}
+                    className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
+                    <span className="material-symbols-outlined" aria-hidden="true">share</span>
+                    <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
+                </button>
+
+                {hasReported ? (
+                    <button
+                        type="button"
+                        disabled
+                        aria-label={t("components.image_modal.reported")}
+                        title={t("components.image_modal.reported")}
+                        className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
+                        <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
+                        <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setIsReporting(true)}
+                        disabled={isMyPhoto}
+                        aria-label={t("components.image_modal.report")}
+                        title={isMyPhoto ? t("components.image_modal.cant_report_own") : t("components.image_modal.report")}
+                        className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isMyPhoto
+                            ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
+                            : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
+                            }`}>
+                        <span className="material-symbols-outlined" aria-hidden="true">flag</span>
+                        <span className="text-[10px] font-bold uppercase">{t("components.image_modal.report")}</span>
+                    </button>
+                )}
+            </div>
+
+            {/* Info Table */}
+            <div className="space-y-4">
+                <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-400">{t("components.image_modal.added_on")}</span>
+                    <span className="text-slate-100 font-medium">{uploadedAt}</span>
+                </div>
+                <div className="bg-slate-800/40 rounded-xl p-4 grid grid-cols-2 gap-2 border border-slate-700/50">
+                    <div className="text-center">
+                        <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t("components.image_modal.taken_on")}</p>
+                        <p className="text-primary font-mono font-bold text-xs">{dateTaken}</p>
+                    </div>
+                    <div className="text-center border-l border-slate-700/50">
+                        <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t("components.image_modal.views")}</p>
+                        <p className="text-primary font-mono font-bold text-xs">{viewsCount}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Camera Info */}
+            <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-800">
+                <span aria-hidden="true" className="material-symbols-outlined text-slate-400">photo_camera</span>
+                <div className="text-xs">
+                    <p className="text-slate-400">{t("components.image_modal.camera_used")}</p>
+                    <p className="text-slate-100 font-semibold">{cameraModel}</p>
+                </div>
+            </div>
+
+            {/* Tags */}
+            {resolvedTags && resolvedTags.length > 0 && (
+                <div className="space-y-3">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
+                    <div className="flex flex-wrap gap-2">
+                        {resolvedTags.map((tagObj) => {
+                            const tagName = tagObj.resolvedName;
+                            const tagKey = tagObj.id || tagObj.Id || tagName;
+
+                            return onTagClick ? (
+                                <button
+                                    key={tagKey}
+                                    type="button"
+                                    className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    onClick={() => onTagClick(tagName)}
+                                >
+                                    {tagName}
+                                </button>
+                            ) : (
+                                <span
+                                    key={tagKey}
+                                    className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
+                                >
+                                    {tagName}
+                                </span>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Location */}
+            {latitude != null && longitude != null && (
+                <div className="mt-auto pt-6 border-t border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-sm" aria-hidden="true">location_on</span>
+                        <span className="text-xs text-slate-400">
+                            {t("components.image_modal.estimated_location")}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        className="text-xs font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
+                    >
+                        {t("components.image_modal.view_map")}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNext, onTagClick, onAuthorClick }) {
     const { t } = useTranslation();
     const [photo, setPhoto] = useState(initialPhoto);
@@ -109,8 +316,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const isLiked = photo.isLikedByCurrentUser || photo.IsLikedByCurrentUser || false;
     const viewsCount = photo.viewsCount || photo.ViewsCount || 0;
 
-
-
     // HANDLERS DES BOUTONS --------------------------
     const handleDownload = async () => {
         setIsDownloading(true);
@@ -185,14 +390,11 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             className="fixed inset-0 z-[150] bg-background-dark/90 backdrop-blur-sm flex items-center justify-center print:bg-transparent print:backdrop-blur-none"
             onClick={onClose}
         >
-            {/* 🖨️ NOUVEAU : Styles spécifiques pour l'impression (CTRL+P) */}
             <style>{`
                 @media print {
-                    /* On cache visuellement le reste du site */
                     body * {
                         visibility: hidden;
                     }
-                    /* On affiche uniquement cette image spécifique, en plein écran */
                     #printable-image {
                         visibility: visible;
                         position: fixed;
@@ -229,7 +431,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 {/* Left Section: Large Image */}
                 <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
                     <div
-                        className="absolute inset-0 bg-center bg-no-repeat bg-contain"
+                        className="absolute inset-[#0] bg-center bg-no-repeat bg-contain"
                         style={{ backgroundImage: `url('${imgSrc}')` }}
                     ></div>
 
@@ -240,196 +442,32 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         </button>
                     )}
                     {onNext && (
-                        <button type="button" onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                        <button type="button" onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-[#fff] hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                         </button>
                     )}
                 </div>
 
                 {/* Right Section: Metadata */}
-                <div className="w-full md:w-[400px] bg-background-dark p-6 overflow-y-auto flex flex-col gap-6 border-l border-slate-800">
-
-                    {/* Photographer Header */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30 text-primary">
-                                <span aria-hidden="true" className="material-symbols-outlined text-2xl">person</span>
-                            </div>
-                            <div>
-                                <h3>
-                                    {onAuthorClick ? (
-                                        <button
-                                            type="button"
-                                            className="text-slate-100 font-bold text-lg leading-tight hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-                                            onClick={() => onAuthorClick(author)}
-                                        >
-                                            {author}
-                                        </button>
-                                    ) : (
-                                        <span className="text-slate-100 font-bold text-lg leading-tight">{author}</span>
-                                    )}
-                                </h3>
-                                <p className="text-primary text-xs uppercase tracking-wider font-semibold">{t("components.image_modal.photographer")}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr className="border-slate-800" />
-
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-4 gap-3">
-                        <button
-                            type="button"
-                            onClick={handleDownload}
-                            disabled={isDownloading}
-                            aria-label={t("components.image_modal.button_download")}
-                            title={t("components.image_modal.button_download")}
-                            className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
-                            {isDownloading ? (
-                                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
-                            ) : (
-                                <span className="material-symbols-outlined" aria-hidden="true">download</span>
-                            )}
-                            <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleLike}
-                            aria-pressed={isLiked}
-                            aria-label={t("components.image_modal.button_likes", { count: likesCount })}
-                            className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
-                                ? "bg-primary text-background-dark border-primary hover:opacity-90"
-                                : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
-                                } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
-                            disabled={isLiking || isMyPhoto}
-                            title={isMyPhoto ? t("components.image_modal.cant_like_own") : t("components.image_modal.button_likes", { count: likesCount })}
-                        >
-                            {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
-                            {isLiking ? (
-                                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
-                            ) : (
-                                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
-                            )}
-                            <span className="text-[10px] font-bold uppercase">
-                                {t("components.image_modal.button_likes", { count: likesCount })}
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleShare}
-                            aria-label={t("components.image_modal.button_share")}
-                            title={t("components.image_modal.button_share")}
-                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
-                            <span className="material-symbols-outlined" aria-hidden="true">share</span>
-                            <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
-                        </button>
-
-                        {hasReported ? (
-                            <button
-                                type="button"
-                                disabled
-                                aria-label={t("components.image_modal.reported")}
-                                title={t("components.image_modal.reported")}
-                                className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
-                                <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
-                                <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => setIsReporting(true)}
-                                disabled={isMyPhoto}
-                                aria-label={t("components.image_modal.report")}
-                                title={isMyPhoto ? t("components.image_modal.cant_report_own") : t("components.image_modal.report")}
-                                className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isMyPhoto
-                                    ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
-                                    : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
-                                    }`}>
-                                <span className="material-symbols-outlined" aria-hidden="true">flag</span>
-                                <span className="text-[10px] font-bold uppercase">{t("components.image_modal.report")}</span>
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Info Table */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-400">{t("components.image_modal.added_on")}</span>
-                            <span className="text-slate-100 font-medium">{uploadedAt}</span>
-                        </div>
-                        <div className="bg-slate-800/40 rounded-xl p-4 grid grid-cols-2 gap-2 border border-slate-700/50">
-                            <div className="text-center">
-                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t("components.image_modal.taken_on")}</p>
-                                <p className="text-primary font-mono font-bold text-xs">{dateTaken}</p>
-                            </div>
-                            <div className="text-center border-l border-slate-700/50">
-                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t("components.image_modal.views")}</p>
-                                <p className="text-primary font-mono font-bold text-xs">{viewsCount}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Camera Info */}
-                    <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-800">
-                        <span aria-hidden="true" className="material-symbols-outlined text-slate-400">photo_camera</span>
-                        <div className="text-xs">
-                            <p className="text-slate-400">{t("components.image_modal.camera_used")}</p>
-                            <p className="text-slate-100 font-semibold">{cameraModel}</p>
-                        </div>
-                    </div>
-
-                    {/* Tags */}
-                    {resolvedTags && resolvedTags.length > 0 && (
-                        <div className="space-y-3">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
-                            <div className="flex flex-wrap gap-2">
-                                {resolvedTags.map((tagObj) => {
-                                    const tagName = tagObj.resolvedName;
-                                    const tagKey = tagObj.id || tagObj.Id || tagName;
-
-                                    return onTagClick ? (
-                                        <button
-                                            key={tagKey}
-                                            type="button"
-                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                            onClick={() => onTagClick(tagName)}
-                                        >
-                                            {tagName}
-                                        </button>
-                                    ) : (
-                                        <span
-                                            key={tagKey}
-                                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
-                                        >
-                                            {tagName}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Location */}
-                    {latitude != null && longitude != null && (
-                        <div className="mt-auto pt-6 border-t border-slate-800 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary text-sm" aria-hidden="true">location_on</span>
-                                <span className="text-xs text-slate-400">
-                                    {t("components.image_modal.estimated_location")}
-                                </span>
-                            </div>
-                            <button
-                                type="button"
-                                className="text-xs font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank')}
-                            >
-                                {t("components.image_modal.view_map")}
-                            </button>
-                        </div>
-                    )}
-                </div>
+                <ImageModalSidebar
+                    author={author}
+                    dateTaken={dateTaken}
+                    uploadedAt={uploadedAt}
+                    cameraModel={cameraModel}
+                    latitude={latitude}
+                    longitude={longitude}
+                    resolvedTags={resolvedTags}
+                    likesCount={likesCount}
+                    viewsCount={viewsCount}
+                    state={{ isMyPhoto, isLiked, isDownloading, isLiking, hasReported }}
+                    handleDownload={handleDownload}
+                    handleLike={handleLike}
+                    handleShare={handleShare}
+                    setIsReporting={setIsReporting}
+                    onAuthorClick={onAuthorClick}
+                    onTagClick={onTagClick}
+                    t={t}
+                />
             </div>
 
             {isReporting && (
@@ -442,3 +480,5 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         </div>
     );
 }
+
+
