@@ -811,7 +811,7 @@ namespace PhotoAppApi.Controllers
 
                     try
                     {
-                        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+                        using var stream = await Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true), ct);
                         var hashBytes = await SHA512.HashDataAsync(stream, ct);
                         hashResults.Add((Photo: photo, Hash: Convert.ToHexStringLower(hashBytes), Exists: true, FilePath: filePath));
                     }
