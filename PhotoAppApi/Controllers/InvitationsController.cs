@@ -59,72 +59,69 @@ namespace PhotoAppApi.Controllers
                 // Standardize the response message to avoid leaking user existence or group membership status.
                 var genericSuccessMessage = "Si l'adresse e-mail est valide, une invitation a été envoyée ou l'utilisateur a été ajouté au groupe.";
 
-                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
-                if (existingUser != null)
-                {
-                    // L'utilisateur a déjà un compte. Vérifions s'il est déjà dans le groupe.
-                    bool alreadyInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == existingUser.Id && ug.GroupId == group.Id, cancellationToken);
-                    if (alreadyInGroup)
-                    {
-                        return Ok(new { message = genericSuccessMessage });
-                    }
-                    else
-                    {
-                        // L'ajouter directement au groupe sans envoyer d'invitation avec token
-                        _context.UserGroups.Add(new UserGroup { UserId = existingUser.Id, GroupId = group.Id });
-                        await _context.SaveChangesAsync(cancellationToken);
-                        return Ok(new { message = genericSuccessMessage });
-                    }
-                }
-
-                // Vérifier s'il a déjà été invité
-                var existingInvite = await _context.GroupInvitations
-                    .FirstOrDefaultAsync(i => i.GroupId == dto.GroupId && i.Email == dto.Email && i.Status == "Pending", cancellationToken);
-
-                if (existingInvite != null)
-                {
-                    return Ok(new { message = genericSuccessMessage });
-                }
-
-                var invitation = new GroupInvitation
-                {
-                    GroupId = group.Id,
-                    InviterId = inviterId,
-                    FirstName = dto.FirstName,
-                    LastName = dto.LastName,
-                    Email = dto.Email,
-                    Message = dto.Message
-                };
-
-                _context.GroupInvitations.Add(invitation);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                // L'URL pointe vers le Frontend (React) avec le token généré
                 var frontendUrl = _configuration.GetValue<string>("FrontendUrl"); // On pourrait l'injecter depuis appsettings
-                var inviteUrl = $"{frontendUrl}/join/{invitation.InviteToken}";
 
-                // 🛡️ Sentinel: Fix User Enumeration vulnerability
-                // Send the email in a fire-and-forget task to equalize response times
+                var groupId = group.Id;
+                var groupName = group.Name;
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         using var scope = _serviceScopeFactory.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-                        await emailService.SendInvitationEmailAsync(
-                     email: invitation.Email,
-                     firstName: invitation.FirstName,
-                     lastName: invitation.LastName,
-                     inviterName: inviterUsername,
-                     groupName: group.Name,
-                     message: invitation.Message ?? "",
-                     inviteUrl: inviteUrl,
-                            CancellationToken.None
-                        );
+
+                        var existingUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == dto.Email, CancellationToken.None);
+                        if (existingUser != null)
+                        {
+                            // L'utilisateur a déjà un compte. Vérifions s'il est déjà dans le groupe.
+                            bool alreadyInGroup = await dbContext.UserGroups.AnyAsync(ug => ug.UserId == existingUser.Id && ug.GroupId == groupId, CancellationToken.None);
+                            if (!alreadyInGroup)
+                            {
+                                // L'ajouter directement au groupe sans envoyer d'invitation avec token
+                                dbContext.UserGroups.Add(new UserGroup { UserId = existingUser.Id, GroupId = groupId });
+                                await dbContext.SaveChangesAsync(CancellationToken.None);
+                            }
+                        }
+                        else
+                        {
+                            // Vérifier s'il a déjà été invité
+                            var existingInvite = await dbContext.GroupInvitations
+                                .FirstOrDefaultAsync(i => i.GroupId == groupId && i.Email == dto.Email && i.Status == "Pending", CancellationToken.None);
+
+                            if (existingInvite == null)
+                            {
+                                var invitation = new GroupInvitation
+                                {
+                                    GroupId = groupId,
+                                    InviterId = inviterId,
+                                    FirstName = dto.FirstName,
+                                    LastName = dto.LastName,
+                                    Email = dto.Email,
+                                    Message = dto.Message
+                                };
+
+                                dbContext.GroupInvitations.Add(invitation);
+                                await dbContext.SaveChangesAsync(CancellationToken.None);
+
+                                var inviteUrl = $"{frontendUrl}/join/{invitation.InviteToken}";
+
+                                await emailService.SendInvitationEmailAsync(
+                                    email: invitation.Email,
+                                    firstName: invitation.FirstName,
+                                    lastName: invitation.LastName,
+                                    inviterName: inviterUsername,
+                                    groupName: groupName,
+                                    message: invitation.Message ?? "",
+                                    inviteUrl: inviteUrl,
+                                    CancellationToken.None
+                                );
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
-                        log.Error("Erreur d'arrière-plan lors de l'envoi de l'invitation", ex);
+                        log.Error("Erreur d'arrière-plan lors de la creation et de l'envoi de l'invitation", ex);
                     }
                 });
 
