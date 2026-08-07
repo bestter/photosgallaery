@@ -182,9 +182,7 @@ namespace PhotoAppApi.Controllers
                 }
 
                 // D. On attache les infos calculées à nos photos avant de les envoyer à React
-                // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
-                // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency,
-                // preventing thread pool starvation during concurrent I/O operations.
+                // ⚡ Bolt: Generate S3 URLs concurrently with bounded Parallel.ForEachAsync to avoid sequential await bottleneck and thread pool starvation.
                 await Parallel.ForEachAsync(photos, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken }, async (photo, ct) =>
                 {
                     if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
@@ -1261,9 +1259,7 @@ namespace PhotoAppApi.Controllers
                     currentUserReportedPhotoIds = new HashSet<int>(reportedIds);
                 }
 
-                // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
-                // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency,
-                // preventing thread pool starvation during concurrent I/O operations.
+                // ⚡ Bolt: Generate S3 URLs concurrently with bounded Parallel.ForEachAsync to avoid sequential await bottleneck and thread pool starvation.
                 await Parallel.ForEachAsync(userPhotos, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken }, async (photo, ct) =>
                 {
                     if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
@@ -1353,9 +1349,7 @@ namespace PhotoAppApi.Controllers
                     currentUserLikedPhotoIds = new HashSet<int>(likedIds);
                 }
 
-                // ⚡ Bolt: Generate S3 presigned URLs directly to avoid N+1 proxy requests from the client and N+1 database queries.
-                // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency,
-                // preventing thread pool starvation during concurrent I/O operations.
+                // ⚡ Bolt: Generate S3 URLs concurrently with bounded Parallel.ForEachAsync to avoid sequential await bottleneck and thread pool starvation.
                 await Parallel.ForEachAsync(photos, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken }, async (photo, ct) =>
                 {
                     if (!string.IsNullOrEmpty(photo.Url)) photo.Url = await _storage.GetPresignedUrlAsync(photo.Url, TimeSpan.FromHours(1));
