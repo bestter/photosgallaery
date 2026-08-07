@@ -8,3 +8,6 @@
 ## 2026-08-06 - ImageModal Action Buttons Accessibility
 **Learning:** Icon-only or minimally labeled buttons within modals (like "Download", "Share") often lack sufficient context for screen readers when they rely only on adjacent tiny text or icons.
 **Action:** Always ensure critical action buttons in media viewers have explicit `aria-label` attributes and `title` tooltips, leveraging existing translation dictionaries to provide localized context for both screen reader users and mouse hover interactions.
+2025-02-15 - Stretched Native Button over Clickable Card
+Learning: Using `<div role="button">` for complex cards flattens their semantics for screen readers and requires manual keyboard handlers. Overlaid native `<button>` combined with CSS `absolute inset-0` and correct z-index layering preserves semantics and provides native keyboard operability.
+Action: Use absolute positioned native `<button>` elements overlaid on relative card containers instead of `role="button"` on `div` wrappers.
