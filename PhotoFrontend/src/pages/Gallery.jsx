@@ -381,20 +381,16 @@ function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuth
   return (
     <div
       key={photoId}
-      onClick={() => setSelectedPhotoIndex(index)}
-      className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col cursor-pointer shadow-lg hover:shadow-cyan-400/10 transition-shadow duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
-      role="button"
-      tabIndex={0}
-      aria-label={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-      title={photo.title ? t("gallery.open_photo", { title: photo.title }) : t("gallery.photo_by", { author })}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setSelectedPhotoIndex(index);
-        }
-      }}
+      className="group relative overflow-hidden rounded-xl bg-[#0f2323] border border-slate-800/60 flex flex-col shadow-lg hover:shadow-cyan-400/10 transition-shadow duration-300"
     >
-      <div className="relative flex-1 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setSelectedPhotoIndex(index)}
+        className="absolute inset-0 z-[1] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+        aria-label={openPhotoLabel}
+        title={openPhotoLabel}
+      />
+      <div className="relative flex-1 overflow-hidden pointer-events-none">
         <img
           alt={t("gallery.photo_by", { author })}
           loading="lazy"
@@ -402,7 +398,7 @@ function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuth
           src={thumbnailUrl || originalUrl}
         />
       </div>
-      <div className="p-4 bg-[#152b2b] shrink-0 border-t border-slate-800/60">
+      <div className="p-4 bg-[#152b2b] shrink-0 border-t border-slate-800/60 relative z-[2] pointer-events-none">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-sm font-bold text-slate-100 truncate pr-2">
             {photo.title || `Photo by @${author}`}
@@ -418,7 +414,7 @@ function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuth
           {photoTags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 font-semibold uppercase whitespace-nowrap"
+              className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 font-semibold uppercase whitespace-nowrap pointer-events-auto"
             >
               {tag}
             </span>
