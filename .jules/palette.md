@@ -1,3 +1,10 @@
 ## 2026-07-30 - ARIA Tooltip Accessibility
 **Learning:** When creating CSS-only informational tooltips, using `group-focus:block` might trigger the tooltip when the parent receives focus, but it lacks semantic meaning. Relying solely on `aria-label` on the parent to duplicate the tooltip text flattens the content and can lead to poor screen reader experiences. Using proper ARIA attributes like `role="tooltip"` with a unique ID and linking it via `aria-describedby` on the focusable trigger provides a robust and semantically correct experience.
 **Action:** Always implement semantic ARIA attributes (`role="tooltip"`, `aria-describedby`) for custom tooltips, even when using CSS-only hover/focus states to reveal them.
+## 2026-08-02 - Accessible Search Inputs & Filter Contrast
+**Learning:** Relying solely on `aria-label` for search inputs can reduce screen reader compatibility compared to using explicit `htmlFor`/`id` bindings. Additionally, using `hover:text-white` on close icons inside bright background buttons (like Cyan 400) causes severe WCAG contrast failures (~1.5:1).
+**Action:** Always pair search inputs with explicit, visually hidden `<label className="sr-only">` elements and `id` bindings. For bright active filter buttons, maintain dark text color on hover and rely on CSS transforms (e.g., `hover:scale-125`) or parent background brightness changes for interactive feedback.
+
+## 2026-08-06 - ImageModal Action Buttons Accessibility
+**Learning:** Icon-only or minimally labeled buttons within modals (like "Download", "Share") often lack sufficient context for screen readers when they rely only on adjacent tiny text or icons.
+**Action:** Always ensure critical action buttons in media viewers have explicit `aria-label` attributes and `title` tooltips, leveraging existing translation dictionaries to provide localized context for both screen reader users and mouse hover interactions.
