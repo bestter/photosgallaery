@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useEffectEvent } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -8,18 +8,22 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleClose = useEffectEvent(() => {
+    onClose();
+  });
+
   useEffect(() => {
     if (!photo) return;
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [photo, onClose]);
+  }, [photo]);
 
 
   if (!photo) return null;
@@ -49,15 +53,16 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <button
+        type="button"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm border-0 cursor-default"
+        onClick={onClose}
+        tabIndex={-1}
+        aria-label="Close modal"
+      />
       {/* Modal Container */}
-      <div
-        className="max-w-md w-full bg-[#152b2b] shadow-2xl rounded-xl overflow-hidden border border-[#1e293b]/40 relative"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative max-w-md w-full bg-[#152b2b] shadow-2xl rounded-xl overflow-hidden border border-[#1e293b]/40">
         {/* Header / Identity Area */}
         <div className="px-6 pt-6 pb-2 flex justify-between items-start">
           <div>

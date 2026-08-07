@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useEffectEvent } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import { useTranslation } from 'react-i18next';
@@ -9,16 +9,20 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
     const [groupGoal, setGroupGoal] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    const handleClose = useEffectEvent(() => {
+        onClose();
+    });
+
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e) => {
             if (e.key === "Escape") {
-                onClose();
+                handleClose();
             }
         };
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, onClose]);
+    }, [isOpen]);
 
 
     if (!isOpen) return null;
@@ -46,8 +50,15 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#081414]/80 backdrop-blur-sm font-sans text-slate-100" onClick={onClose}>
-            <div className="w-full max-w-2xl bg-[#0f2323] border border-slate-800/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50 p-8" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-sans text-slate-100">
+            <button
+                type="button"
+                className="fixed inset-0 bg-[#081414]/80 backdrop-blur-sm border-0 cursor-default"
+                onClick={onClose}
+                tabIndex={-1}
+                aria-label="Close modal"
+            />
+            <div className="relative w-full max-w-2xl bg-[#0f2323] border border-slate-800/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50 p-8">
                 <div className="mb-8 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-slate-100 mb-2">{t("components.group_request.title")}</h1>
@@ -81,26 +92,6 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
                         ></textarea>
                     </div>
 
-                    {/* Initial Members */}
-                    {/* <div className="pt-6 border-t border-slate-800/40">
-                        <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-                            <span aria-hidden="true" className="material-symbols-outlined text-cyan-400" style={{fontVariationSettings: "'FILL' 1"}}>group_add</span>
-                            Inviter les premiers membres
-                        </h3>
-                        <p className="text-sm text-slate-400 mb-4">Saisissez les adresses email des personnes que vous souhaitez inviter (séparées par des virgules).</p>
-                        <input
-                            className="w-full bg-slate-800 border-none rounded-lg text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400 py-3 px-4 transition-colors outline-none"
-                            id="inviteEmails" name="inviteEmails" placeholder="email1@exemple.com, email2@exemple.com..."
-                            type="text"
-                            value={inviteEmails}
-                            onChange={(e) => setInviteEmails(e.target.value)}
-                        />
-                        <div className="mt-4 bg-cyan-400/10 border border-cyan-400/20 rounded-lg p-4 flex items-start gap-3">
-                            <span aria-hidden="true" className="material-symbols-outlined text-cyan-400 mt-0.5" style={{fontVariationSettings: "'FILL' 1"}}>info</span>
-                            <p className="text-sm text-slate-400">Un email d'invitation sera automatiquement envoyé à ces adresses une fois le groupe créé.</p>
-                        </div>
-                    </div>
-                     */}
                     {/* Actions */}
                     <div className="flex items-center justify-end gap-4 pt-6 mt-8 border-t border-slate-800/40">
                         <button
