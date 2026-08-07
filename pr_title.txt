@@ -1,1 +1,1 @@
-🧪 [testing improvement] Add tests for RequireWebsiteHeaderAttribute edge cases
+🧪 Add error path test for DeleteGroup
