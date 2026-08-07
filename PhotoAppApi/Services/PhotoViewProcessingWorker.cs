@@ -92,16 +92,20 @@ namespace PhotoAppApi.Services
                     await dbContext.PhotoViews.AddRangeAsync(viewLogs, stoppingToken);
                     await dbContext.SaveChangesAsync(stoppingToken);
 
-                    // B. UPDATE massif des compteurs (Extrêmement rapide via ExecuteUpdateAsync : pas de Tracking EF)
-                    var groupedIncrements = increments.GroupBy(i => i.ViewCountToAdd);
-                    foreach (var group in groupedIncrements)
+                    // B. UPDATE massif des compteurs optimisé en une seule requête SQL via CASE (Évite le N+1)
+                    if (increments.Count > 0)
                     {
-                        var countToAdd = group.Key;
-                        var photoIds = group.Select(i => i.PhotoId).ToList();
+                        var sb = new System.Text.StringBuilder();
+                        sb.Append("UPDATE Photos SET ViewsCount = ViewsCount + CASE Id ");
+                        foreach (var inc in increments)
+                        {
+                            sb.Append($"WHEN {inc.PhotoId} THEN {inc.ViewCountToAdd} ");
+                        }
+                        sb.Append("ELSE 0 END WHERE Id IN (");
+                        sb.Append(string.Join(",", increments.Select(i => i.PhotoId)));
+                        sb.Append(")");
 
-                        await dbContext.Photos
-                            .Where(p => photoIds.Contains(p.Id))
-                            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + countToAdd), stoppingToken);
+                        await dbContext.Database.ExecuteSqlRawAsync(sb.ToString(), stoppingToken);
                     }
 
                     // 3. Valider la transaction atomique (Tout ou Rien)
