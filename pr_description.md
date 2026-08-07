@@ -1,8 +1,5 @@
-🎯 **What:**
-Added missing error path unit test for `DeleteGroup` endpoint in `GroupsController`.
-
-📊 **Coverage:**
-Now covering the scenario where the database `SaveChangesAsync` throws an internal exception while attempting to delete a group, returning a 500 Internal Server Error.
-
-✨ **Result:**
-Increased testing coverage and improved reliability by ensuring database exceptions are handled correctly and don't leak stack traces in the `DeleteGroup` method.
+🚨 Severity: LOW
+💡 Vulnerability: User Enumeration
+🎯 Impact: Attackers could determine if an email address exists in the system or is a member of a group.
+🔧 Fix: Verified that the fix is already implemented in `InvitationsController.cs`. A generic response message is used for all code paths, and sending emails has been offloaded to a background task using `Task.Run` and `IServiceScopeFactory`, mitigating side-channel timing leaks.
+✅ Verification: Ran existing test suite, verified background processing pattern, and confirmed the standardized generic message response exists in the code logic.
