@@ -575,6 +575,88 @@ namespace PhotoAppApi.Tests.Controllers
         }
 
         [Fact]
+        public async Task ReportPhoto_ShouldReturnForbid_WhenUserIsNotGroupMember()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var groupId = Guid.NewGuid();
+            var photo = new Photo { Id = 1002, FileName = "test_group.jpg", UploaderUsername = "someoneelse", GroupId = groupId };
+            var group = new Group { Id = groupId, Name = "Test Group", ShortName = "TG", Description = "Test" };
+
+            using (var seedContext = new AppDbContext(options))
+            {
+                seedContext.Groups.Add(group);
+                seedContext.Photos.Add(photo);
+                // User 1 is NOT added to UserGroups
+                await seedContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            using (var context = new AppDbContext(options))
+            {
+                var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+                var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, "1"), new Claim(ClaimTypes.Name, "testuser") }, "mock"));
+                controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
+                var reportDto = new ReportDto { Reason = "Spam" };
+
+                // Act
+                var result = await controller.ReportPhoto(photo.Id, reportDto, TestContext.Current.CancellationToken);
+
+                // Assert
+                Assert.IsType<ForbidResult>(result);
+            }
+        }
+
+        [Fact]
+        public async Task ReportPhoto_ShouldReturnOk_WhenUserIsGroupMember()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var groupId = Guid.NewGuid();
+            var photo = new Photo { Id = 1003, FileName = "test_group_member.jpg", UploaderUsername = "someoneelse", GroupId = groupId };
+            var group = new Group { Id = groupId, Name = "Test Group", ShortName = "TG", Description = "Test" };
+            var userGroup = new UserGroup { GroupId = groupId, UserId = 1, JoinedAt = DateTime.UtcNow, Role = GroupUserRole.Member };
+
+            using (var seedContext = new AppDbContext(options))
+            {
+                seedContext.Groups.Add(group);
+                seedContext.Photos.Add(photo);
+                seedContext.UserGroups.Add(userGroup);
+                await seedContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            using (var context = new AppDbContext(options))
+            {
+                var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object);
+                var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, "1"), new Claim(ClaimTypes.Name, "testuser") }, "mock"));
+                controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
+                var reportDto = new ReportDto { Reason = "Spam" };
+
+                // Act
+                var result = await controller.ReportPhoto(photo.Id, reportDto, TestContext.Current.CancellationToken);
+
+                // Assert
+                var okResult = Assert.IsType<OkObjectResult>(result);
+                Assert.NotNull(okResult.Value);
+            }
+        }
+
+        [Fact]
         public async Task GetUserPhotos_ShouldOnlyReturnPublicPhotos_WhenCallerIsUnauthenticated()
         {
             // Arrange

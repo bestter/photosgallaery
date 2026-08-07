@@ -32,6 +32,16 @@ if (string.IsNullOrWhiteSpace(frontendUrl))
     throw new InvalidOperationException("The 'FrontendUrl' configuration is missing in appsettings.json.");
 }
 
+var frontendUrls = frontendUrl
+    .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+    .Select(url => url.Trim().TrimEnd('/'))
+    .ToArray();
+
+if (frontendUrls.Any(url => url == "*"))
+{
+    throw new InvalidOperationException("Wildcard '*' is not allowed for FrontendUrl when credentials are allowed. Please specify exact origins to prevent CORS bypass vulnerabilities.");
+}
+
 // --- NOUVEAU : Configuration de la limite à 50 Mo (52 428 800 octets) ---
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -84,7 +94,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        b => b.WithOrigins(frontendUrl)
+        b => b.WithOrigins(frontendUrls)
               .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
               .WithHeaders("Authorization", "Content-Type", "Accept", "X-App-Client")
               .WithExposedHeaders("X-Total-Count")
@@ -176,7 +186,7 @@ builder.Services.AddAuthentication(options =>
                     // Cela va retourner une erreur 401 Unauthorized à React.
                     context.Fail("Ce compte a été suspendu par l'administration.");
                 }
-                else if (roleClaim != cacheResult.CurrentRole)
+                else if (!string.Equals(roleClaim, cacheResult.CurrentRole, StringComparison.OrdinalIgnoreCase))
                 {
                     // 🛡️ Sentinel: Fix Stale JWT Claims Authorization Bypass
                     // Reject token if the user's role has changed since token issuance
@@ -520,9 +530,14 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
+        var origin = ctx.Context.Request.Headers.Origin.ToString();
+        var allowedOrigin = !string.IsNullOrEmpty(origin) && frontendUrls.Contains(origin)
+            ? origin
+            : frontendUrls[0];
+
         // Autorise ton front-end React à lire les pixels des images
-        // Remplace "*" par "http://localhost:3000" pour plus de sécurité si tu préfères
-        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", frontendUrl);
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", allowedOrigin);
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
 
         // Optionnel mais recommandé pour éviter les problèmes de cache CORS
         ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");

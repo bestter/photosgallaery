@@ -673,5 +673,43 @@ namespace PhotoAppApi.Tests
             var removedUserGroup = await context.UserGroups.FirstOrDefaultAsync(ug => ug.GroupId == group.Id && ug.UserId == user.Id, TestContext.Current.CancellationToken);
             Assert.Null(removedUserGroup);
         }
+
+        [Fact]
+        public async Task DeleteGroup_ReturnsInternalServerError_WhenDatabaseThrowsException()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: dbName)
+                .Options;
+
+            var group = new Group { Id = Guid.NewGuid(), Name = "Group", ShortName = "grp", Description = "Desc" };
+
+            using (var setupContext = new AppDbContext(options))
+            {
+                setupContext.Groups.Add(group);
+                await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+
+            var mockContext = new Mock<AppDbContext>(options) { CallBase = true };
+            mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                       .ThrowsAsync(new Exception("Database error simulated for testing"));
+
+            var controller = new GroupsController(mockContext.Object);
+            SetupControllerUser(controller);
+
+            // Act
+            var result = await controller.DeleteGroup(group.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            // Standard test reflection verification
+            Assert.NotNull(statusCodeResult.Value);
+            var messageProperty = statusCodeResult.Value.GetType().GetProperty("message")?.GetValue(statusCodeResult.Value, null) as string;
+            Assert.Equal("Erreur lors de la suppression du groupe.", messageProperty);
+        }
+
     }
 }
