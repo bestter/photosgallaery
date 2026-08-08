@@ -11,3 +11,7 @@
 2025-02-15 - Stretched Native Button over Clickable Card
 Learning: Using `<div role="button">` for complex cards flattens their semantics for screen readers and requires manual keyboard handlers. Overlaid native `<button>` combined with CSS `absolute inset-0` and correct z-index layering preserves semantics and provides native keyboard operability.
 Action: Use absolute positioned native `<button>` elements overlaid on relative card containers instead of `role="button"` on `div` wrappers.
+
+2025-02-15 - React Modal Accessibility Without Native Dialog
+Learning: When building custom modals in React using absolute positioned `div` overlays, failing to include `role="dialog"` and `aria-modal="true"` renders the modal structurally invisible to screen readers, meaning they won't trap virtual focus and will allow users to read the obscured background content.
+Action: Always add `role="dialog"` and `aria-modal="true"` to the outermost container of any custom modal overlay, along with an accessible name via `aria-label` or `aria-labelledby`.
