@@ -413,7 +413,9 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
             {/* Modal Container */}
             <div
-                role="presentation"
+                role="dialog"
+                aria-modal="true"
+                aria-label={photo.title || t("components.image_modal.dialog_label", "Image details")}
                 className="relative w-full h-full bg-slate-900/40 overflow-hidden flex flex-col md:flex-row print:hidden"
                 onClick={handleContentClick}
             >
