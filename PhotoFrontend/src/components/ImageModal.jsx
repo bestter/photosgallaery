@@ -412,65 +412,69 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
             <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />
 
             {/* Modal Container */}
-            <div
-                role="dialog"
-                aria-modal="true"
+            <dialog
+                open
+                onCancel={(e) => {
+                    e.preventDefault();
+                    onClose?.();
+                }}
                 aria-label={photo.title || t("components.image_modal.dialog_label", "Image details")}
-                className="relative w-full h-full bg-slate-900/40 overflow-hidden flex flex-col md:flex-row print:hidden"
-                onClick={handleContentClick}
+                className="relative w-full h-full bg-slate-900/40 overflow-hidden flex flex-col md:flex-row print:hidden m-0 p-0 max-w-none max-h-none border-0 text-slate-100"
             >
-                {/* Close Button (Top Right) */}
-                <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label={t("common.close", "Close")}
-                    title={t("common.close", "Close")}
-                    className="absolute top-4 right-4 z-20 p-2 rounded-full bg-background-dark/50 text-slate-100 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                    <span className="material-symbols-outlined" aria-hidden="true">close</span>
-                </button>
+                <div className="relative w-full h-full flex flex-col md:flex-row" onClick={handleContentClick}>
+                    {/* Close Button (Top Right) */}
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label={t("common.close", "Close")}
+                        title={t("common.close", "Close")}
+                        className="absolute top-4 right-4 z-20 p-2 rounded-full bg-background-dark/50 text-slate-100 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                        <span className="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
 
-                {/* Left Section: Large Image */}
-                <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
-                    <div
-                        className="absolute inset-[#0] bg-center bg-no-repeat bg-contain"
-                        style={{ backgroundImage: `url('${imgSrc}')` }}
-                    ></div>
+                    {/* Left Section: Large Image */}
+                    <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
+                        <div
+                            className="absolute inset-[#0] bg-center bg-no-repeat bg-contain"
+                            style={{ backgroundImage: `url('${imgSrc}')` }}
+                        ></div>
 
-                    {/* Navigation Arrows */}
-                    {onPrev && (
-                        <button type="button" onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                            <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
-                        </button>
-                    )}
-                    {onNext && (
-                        <button type="button" onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-[#fff] hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                            <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
-                        </button>
-                    )}
+                        {/* Navigation Arrows */}
+                        {onPrev && (
+                            <button type="button" onClick={onPrev} aria-label={t("common.previous_image", "Previous image")} title={t("common.previous_image", "Previous image")} className="absolute left-4 p-2 rounded-full bg-background-dark/40 text-white hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                                <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+                            </button>
+                        )}
+                        {onNext && (
+                            <button type="button" onClick={onNext} aria-label={t("common.next_image", "Next image")} title={t("common.next_image", "Next image")} className="absolute right-4 p-2 rounded-full bg-background-dark/40 text-[#fff] hover:bg-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                                <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Right Section: Metadata */}
+                    <ImageModalSidebar
+                        author={author}
+                        dateTaken={dateTaken}
+                        uploadedAt={uploadedAt}
+                        cameraModel={cameraModel}
+                        latitude={latitude}
+                        longitude={longitude}
+                        resolvedTags={resolvedTags}
+                        likesCount={likesCount}
+                        viewsCount={viewsCount}
+                        state={{ isMyPhoto, isLiked, isDownloading, isLiking, hasReported }}
+                        handleDownload={handleDownload}
+                        handleLike={handleLike}
+                        handleShare={handleShare}
+                        setIsReporting={setIsReporting}
+                        onAuthorClick={onAuthorClick}
+                        onTagClick={onTagClick}
+                        t={t}
+                    />
                 </div>
-
-                {/* Right Section: Metadata */}
-                <ImageModalSidebar
-                    author={author}
-                    dateTaken={dateTaken}
-                    uploadedAt={uploadedAt}
-                    cameraModel={cameraModel}
-                    latitude={latitude}
-                    longitude={longitude}
-                    resolvedTags={resolvedTags}
-                    likesCount={likesCount}
-                    viewsCount={viewsCount}
-                    state={{ isMyPhoto, isLiked, isDownloading, isLiking, hasReported }}
-                    handleDownload={handleDownload}
-                    handleLike={handleLike}
-                    handleShare={handleShare}
-                    setIsReporting={setIsReporting}
-                    onAuthorClick={onAuthorClick}
-                    onTagClick={onTagClick}
-                    t={t}
-                />
-            </div>
+            </dialog>
 
             {isReporting && (
                 <ReportModal

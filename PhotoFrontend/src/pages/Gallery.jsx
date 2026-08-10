@@ -629,8 +629,7 @@ function GalleryModals({
   );
 }
 
-export default function Gallery() {
-  const { t } = useTranslation();
+function useGalleryState(t) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isGroupRequestOpen, setIsGroupRequestOpen] = useState(false);
@@ -792,20 +791,67 @@ export default function Gallery() {
     });
   }, [photos]);
 
+  const handleLoadMore = useCallback(() => {
+    const nextPage = pageRef.current + 1;
+    pageRef.current = nextPage;
+    fetchPhotos(activeGroupId, nextPage, true);
+  }, [activeGroupId, fetchPhotos]);
+
+  const handleUploadSuccess = useCallback(() => {
+    setIsUploadOpen(false);
+    pageRef.current = 1;
+    fetchPhotos(activeGroupId, 1, false);
+  }, [activeGroupId, fetchPhotos]);
+
+  return {
+    isUploadOpen,
+    setIsUploadOpen,
+    isInviteOpen,
+    setIsInviteOpen,
+    isGroupRequestOpen,
+    setIsGroupRequestOpen,
+    selectedPhotoIndex,
+    setSelectedPhotoIndex,
+    selectedTag,
+    setSelectedTag,
+    selectedAuthor,
+    setSelectedAuthor,
+    searchQuery,
+    setSearchQuery,
+    isLoading,
+    isFetchingMore,
+    hasMore,
+    userGroups,
+    activeGroupId,
+    setActiveGroupId,
+    isLoggedIn,
+    canUpload,
+    canSeeDashboard,
+    activeGroupName,
+    filteredPhotos,
+    handleLoadMore,
+    handleUploadSuccess
+  };
+}
+
+export default function Gallery() {
+  const { t } = useTranslation();
+  const state = useGalleryState(t);
+
   return (
     <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen flex flex-col relative">
       <GalleryHeader
-        userGroups={userGroups}
-        activeGroupId={activeGroupId}
-        setActiveGroupId={setActiveGroupId}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        isLoggedIn={isLoggedIn}
-        canUpload={canUpload}
-        canSeeDashboard={canSeeDashboard}
-        setIsGroupRequestOpen={setIsGroupRequestOpen}
-        setIsUploadOpen={setIsUploadOpen}
-        setIsInviteOpen={setIsInviteOpen}
+        userGroups={state.userGroups}
+        activeGroupId={state.activeGroupId}
+        setActiveGroupId={state.setActiveGroupId}
+        searchQuery={state.searchQuery}
+        setSearchQuery={state.setSearchQuery}
+        isLoggedIn={state.isLoggedIn}
+        canUpload={state.canUpload}
+        canSeeDashboard={state.canSeeDashboard}
+        setIsGroupRequestOpen={state.setIsGroupRequestOpen}
+        setIsUploadOpen={state.setIsUploadOpen}
+        setIsInviteOpen={state.setIsInviteOpen}
         t={t}
       />
 
@@ -827,14 +873,14 @@ export default function Gallery() {
             name="searchMobile"
             placeholder={t("gallery.search_mobile_placeholder")}
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={state.searchQuery}
+            onChange={(e) => state.setSearchQuery(e.target.value)}
           />
-          {searchQuery && (
+          {state.searchQuery && (
             <button
               type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-full"
-              onClick={() => setSearchQuery("")}
+              className="absolute right-[#0.75rem] top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-full"
+              onClick={() => state.setSearchQuery("")}
               aria-label={t("gallery.clear_search", "Effacer la recherche")}
               title={t("gallery.clear_search", "Effacer la recherche")}
             >
@@ -855,44 +901,45 @@ export default function Gallery() {
               {t("gallery.workspace_gallery")}
             </div>
             <h1 className="text-[1.875rem] font-extrabold tracking-tight text-slate-100">
-              {activeGroupName}
+              {state.activeGroupName}
             </h1>
           </div>
           <GalleryFilterBadges
-            selectedTag={selectedTag}
-            selectedAuthor={selectedAuthor}
-            setSelectedTag={setSelectedTag}
-            setSelectedAuthor={setSelectedAuthor}
+            selectedTag={state.selectedTag}
+            selectedAuthor={state.selectedAuthor}
+            setSelectedTag={state.setSelectedTag}
+            setSelectedAuthor={state.setSelectedAuthor}
             t={t}
           />
         </div>
 
         {/* Bento Grid */}
         <GalleryBentoGrid
-          filteredPhotos={filteredPhotos}
-          gridState={{ isLoading, hasMore, isFetchingMore, canUpload }}
-          onLoadMore={() => {
-            const nextPage = pageRef.current + 1;
-            pageRef.current = nextPage;
-            fetchPhotos(activeGroupId, nextPage, true);
+          filteredPhotos={state.filteredPhotos}
+          gridState={{
+            isLoading: state.isLoading,
+            hasMore: state.hasMore,
+            isFetchingMore: state.isFetchingMore,
+            canUpload: state.canUpload,
           }}
-          setSelectedPhotoIndex={setSelectedPhotoIndex}
-          setSelectedAuthor={setSelectedAuthor}
-          searchQuery={searchQuery}
-          selectedTag={selectedTag}
-          selectedAuthor={selectedAuthor}
-          setSearchQuery={setSearchQuery}
-          setSelectedTag={setSelectedTag}
-          setIsUploadOpen={setIsUploadOpen}
+          onLoadMore={state.handleLoadMore}
+          setSelectedPhotoIndex={state.setSelectedPhotoIndex}
+          setSelectedAuthor={state.setSelectedAuthor}
+          searchQuery={state.searchQuery}
+          selectedTag={state.selectedTag}
+          selectedAuthor={state.selectedAuthor}
+          setSearchQuery={state.setSearchQuery}
+          setSelectedTag={state.setSelectedTag}
+          setIsUploadOpen={state.setIsUploadOpen}
           t={t}
         />
       </main>
 
       {/* Contextual FAB for Upload */}
-      {canUpload && (
+      {state.canUpload && (
         <button
           type="button"
-          onClick={() => setIsUploadOpen(true)}
+          onClick={() => state.setIsUploadOpen(true)}
           className="fixed bottom-8 right-8 w-14 h-14 bg-cyan-400 text-[#0f2323] rounded-full shadow-[0_0_20px_rgba(34,211,238,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
           aria-label={t("common.upload_photo", "Upload a photo")}
           title={t("common.upload_photo", "Upload a photo")}
@@ -908,23 +955,19 @@ export default function Gallery() {
       )}
 
       <GalleryModals
-        isUploadOpen={isUploadOpen}
-        setIsUploadOpen={setIsUploadOpen}
-        activeGroupId={activeGroupId}
-        onUploadSuccess={() => {
-          setIsUploadOpen(false);
-          pageRef.current = 1;
-          fetchPhotos(activeGroupId, 1, false);
-        }}
-        selectedPhotoIndex={selectedPhotoIndex}
-        setSelectedPhotoIndex={setSelectedPhotoIndex}
-        filteredPhotos={filteredPhotos}
-        setSelectedTag={setSelectedTag}
-        setSelectedAuthor={setSelectedAuthor}
-        isInviteOpen={isInviteOpen}
-        setIsInviteOpen={setIsInviteOpen}
-        isGroupRequestOpen={isGroupRequestOpen}
-        setIsGroupRequestOpen={setIsGroupRequestOpen}
+        isUploadOpen={state.isUploadOpen}
+        setIsUploadOpen={state.setIsUploadOpen}
+        activeGroupId={state.activeGroupId}
+        onUploadSuccess={state.handleUploadSuccess}
+        selectedPhotoIndex={state.selectedPhotoIndex}
+        setSelectedPhotoIndex={state.setSelectedPhotoIndex}
+        filteredPhotos={state.filteredPhotos}
+        setSelectedTag={state.setSelectedTag}
+        setSelectedAuthor={state.setSelectedAuthor}
+        isInviteOpen={state.isInviteOpen}
+        setIsInviteOpen={state.setIsInviteOpen}
+        isGroupRequestOpen={state.isGroupRequestOpen}
+        setIsGroupRequestOpen={state.setIsGroupRequestOpen}
         t={t}
       />
 
