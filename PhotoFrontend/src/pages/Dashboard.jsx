@@ -492,6 +492,9 @@ export default function Dashboard() {
   const topActions = (
     <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto">
       <div className="relative w-full">
+        <label htmlFor="dashboard-search" className="sr-only">
+          {t("admin.dashboard.search_placeholder")}
+        </label>
         <span
           className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl"
           aria-hidden="true"
@@ -499,10 +502,10 @@ export default function Dashboard() {
           search
         </span>
         <input
+          id="dashboard-search"
           className="w-full pl-11 pr-10 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors text-on-surface placeholder:text-on-surface-variant"
           placeholder={t("admin.dashboard.search_placeholder")}
           type="text"
-          aria-label={t("admin.dashboard.search_placeholder")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
