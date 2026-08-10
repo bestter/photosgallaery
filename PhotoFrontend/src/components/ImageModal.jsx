@@ -387,9 +387,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
     return (
         <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("common.image_modal", "Image modal")}
             className="fixed inset-0 z-[150] bg-background-dark/90 backdrop-blur-sm flex items-center justify-center print:bg-transparent print:backdrop-blur-none"
             onClick={onClose}
         >
