@@ -11,7 +11,7 @@ PixelLyra Frontend est l'interface utilisateur de la plateforme de gestion et pa
 - **Gestion des Groupes & Invitations** : Création de groupes, demande d'accès, modales d'invitation et gestion administrative des membres.
 - **Espace Administrateur & Modération** : Interface d'administration pour la validation des demandes de groupe et le traitement des rapports d'images signalées.
 - **Internationalisation (i18n)** : Support bilingue dynamique (Français / Anglais) via `react-i18next`.
-- **Authentification Sécurisée** : Session par cookies HttpOnly JWT, protection anti-CSRF (`X-CSRF-TOKEN`) et gestion automatique du rafraîchissement d'état.
+- **Authentification Sécurisée** : Session par cookies HttpOnly JWT, protection anti-CSRF (`X-CSRF-TOKEN`) avec rafraîchissement automatique et rejeu transparent des requêtes sur jeton expiré.
 
 ---
 
@@ -36,7 +36,10 @@ Démarre le serveur de développement Vite sur `http://localhost:5173`.
 Exécute la compilation de production et génère le paquet statique dans le dossier `dist`.
 
 ### `npm run test` (ou `npm run test -- --run`)
-Lance la suite de 40 tests unitaires, de composants et de contrat d'API avec Vitest et React Testing Library.
+Lance la suite de 43 tests unitaires, de composants et de contrat d'API avec Vitest et React Testing Library.
+
+### `npm run test:e2e` (ou `npx playwright test`)
+Exécute la suite de 8 tests d'intégration End-to-End multi-navigateurs (Chromium et Firefox) avec Playwright.
 
 ### `npm run lint`
 Vérifie la qualité du code avec ESLint.

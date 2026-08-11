@@ -1,3 +1,5 @@
-🎯 **What:** The testing gap addressed is the lack of robust edge-case coverage in `RequireWebsiteHeaderAttributeTests`. The existing tests only covered the happy path and simple incorrect values.
-📊 **Coverage:** The scenarios now tested include case-sensitivity issues, multiple header values (using `StringValues`), and empty strings.
-✨ **Result:** The overall test coverage and reliability of the `RequireWebsiteHeaderAttribute` filter is improved by ensuring these edge cases are properly handled and asserted against.
+🚨 Severity: LOW
+💡 Vulnerability: User Enumeration
+🎯 Impact: Attackers could determine if an email address exists in the system or is a member of a group.
+🔧 Fix: Verified that the fix is already implemented in `InvitationsController.cs`. A generic response message is used for all code paths, and sending emails has been offloaded to a background task using `Task.Run` and `IServiceScopeFactory`, mitigating side-channel timing leaks.
+✅ Verification: Ran existing test suite, verified background processing pattern, and confirmed the standardized generic message response exists in the code logic.

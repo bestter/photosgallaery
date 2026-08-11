@@ -16,7 +16,9 @@
   - Exécute `npm run lint` pour la vérification ESLint.
   - Exécute `npx react-doctor@latest --scope changed` après des modifications substantielles de composants pour détecter les régressions d'accessibilité, de bundle ou de hooks.
   - **Git Hooks & lint-staged :** Le hook `.husky/pre-commit` exécute automatiquement `lint-staged` (`eslint --fix`) sur les fichiers JS/JSX/TS/TSX staggés à chaque commit.
-* **Tests automatisés :** Exécute `npm run test -- --run` (Vitest) pour s'assurer que l'intégralité des 40 tests de composants, d'aide et de contrat API (`apiContract.test.js`, `LanguageSelector`, `Footer`, `auth`, `cards`, `layout`) passent avec succès.
+* **Tests automatisés :**
+  - Exécute `npm run test -- --run` (Vitest) pour s'assurer que l'intégralité des 43 tests de composants, d'aide et de contrat API (`apiContract.test.js`, `LanguageSelector`, `Footer`, `auth`, `cards`, `layout`, `api.test.js`) passent avec succès.
+  - Exécute `npm run test:e2e` (Playwright) pour lancer la suite de 8 tests d'intégration End-to-End multi-navigateurs (Chromium & Firefox).
 
 ---
 
@@ -32,7 +34,7 @@
   - Mettre à jour les deux fichiers de traduction (`public/locales/fr/translation.json` et `public/locales/en/translation.json`) simultanément.
 * **Mises à jour optimistes & Gestion API :**
   - Pour les réactions utilisateur (ex: likes, ajouts de tags, rapports), mets à jour l'état UI immédiatement de manière optimiste.
-  - Tous les appels API transitent par `src/api.js` qui gère `withCredentials: true` et transmet le jeton anti-CSRF (`X-CSRF-TOKEN`).
+  - Tous les appels API transitent par `src/api.js` qui gère `withCredentials: true`, transmet le jeton anti-CSRF (`X-CSRF-TOKEN`), déduplique les promesses de récupération du jeton (`fetchCsrfToken`), et réessaie automatiquement une fois la requête en cas d'erreur de jeton CSRF.
 
 ---
 

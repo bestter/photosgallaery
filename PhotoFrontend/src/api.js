@@ -7,13 +7,27 @@ const baseURL = process.env.NODE_ENV === 'development'
     : '/api';                      // 🌍 Sur ton serveur Linux Mint (Via Apache)
 
 let csrfToken = null;
-export const fetchCsrfToken = async () => {
-    try {
-        const response = await axios.get(`${baseURL}/Auth/csrf-token`, { withCredentials: true });
-        csrfToken = response.data.token;
-    } catch (error) {
-        console.error('Failed to fetch CSRF token:', error);
-    }
+let csrfTokenPromise = null;
+
+export const fetchCsrfToken = async (force = false) => {
+    if (csrfToken && !force) return csrfToken;
+    if (csrfTokenPromise && !force) return csrfTokenPromise;
+
+    csrfTokenPromise = axios.get(`${baseURL}/Auth/csrf-token`, { withCredentials: true })
+        .then(response => {
+            csrfToken = response.data.token;
+            return csrfToken;
+        })
+        .catch(error => {
+            console.error('Failed to fetch CSRF token:', error);
+            csrfToken = null;
+            return null;
+        })
+        .finally(() => {
+            csrfTokenPromise = null;
+        });
+
+    return csrfTokenPromise;
 };
 
 const axiosInstance = axios.create({
@@ -24,6 +38,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
     // 🛡️ Securité de base pour identifier que la requête vient bien de l'app React
     config.headers['X-App-Client'] = 'PhotoApp-Web';
+
     if (csrfToken) {
         config.headers['X-CSRF-TOKEN'] = csrfToken;
     }
@@ -36,7 +51,31 @@ axiosInstance.interceptors.request.use((config) => {
 // Dans api.js
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response && originalRequest && !originalRequest._retry) {
+            const method = originalRequest.method ? originalRequest.method.toLowerCase() : '';
+            const isMutating = ['post', 'put', 'delete', 'patch'].includes(method);
+
+            const hasCsrfErrorHeader = error.response.headers && error.response.headers['x-csrf-error'];
+            const isCsrfError = hasCsrfErrorHeader || 
+                (isMutating && (error.response.status === 400 || error.response.status === 403) &&
+                 (error.response.data?.code === 'INVALID_CSRF_TOKEN' || 
+                  (typeof error.response.data === 'string' && error.response.data.toLowerCase().includes('antiforgery')) ||
+                  (originalRequest.headers && originalRequest.headers['X-CSRF-TOKEN'])));
+
+            if (isCsrfError) {
+                originalRequest._retry = true;
+                const newToken = await fetchCsrfToken(true);
+                if (newToken) {
+                    originalRequest.headers = originalRequest.headers || {};
+                    originalRequest.headers['X-CSRF-TOKEN'] = newToken;
+                    return axiosInstance(originalRequest);
+                }
+            }
+        }
+
         if (!error.response) {
             toast.error(
                 "Serveur injoignable. Le service est temporairement indisponible.", 

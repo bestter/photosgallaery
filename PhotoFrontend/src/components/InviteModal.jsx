@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useEffectEvent } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,22 @@ const InviteModal = ({ isOpen, onClose }) => {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
+
+    const handleClose = useEffectEvent(() => {
+        onClose();
+    });
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                handleClose();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen]);
+
     const [isLoading, setIsLoading] = useState(false);
     
     // Group selection
@@ -43,7 +59,6 @@ const InviteModal = ({ isOpen, onClose }) => {
         e.preventDefault();
         
         if (!selectedGroupId) {
-            toast.error(t('components.invite_modal.error.select_group'));
             toast.error(t('components.invite_modal.error.select_group'));
             return;
         }
@@ -91,9 +106,16 @@ const InviteModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-sm font-body text-on-surface">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-body text-on-surface">
+            <button
+                type="button"
+                className="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-sm border-0 cursor-default"
+                onClick={onClose}
+                tabIndex={-1}
+                aria-label="Close modal"
+            />
             {/* Modal Container */}
-            <div className="w-full max-w-lg bg-surface border border-outline-variant/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
+            <div className="relative w-full max-w-lg bg-surface border border-outline-variant/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
                 {/* Modal Header */}
                 <div className="px-8 pt-8 pb-4">
                     <h2 className="text-[30px] font-black tracking-tight text-on-surface leading-none mb-1">{t('components.invite_modal.title')}</h2>

@@ -9,6 +9,406 @@ import { useTranslation } from "react-i18next";
 import AdminLayout from "../components/AdminLayout";
 import toast from "react-hot-toast";
 
+function DashboardStats({ loading, usersCount, activeCreatorsCount, t }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 shadow-md">
+        <div className="flex items-center justify-between mb-4">
+          <span
+            className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined"
+            aria-hidden="true"
+          >
+            person
+          </span>
+        </div>
+        <p className="text-on-surface-variant text-sm font-medium">
+          {t("admin.dashboard.total_users")}
+        </p>
+        <h3 className="text-3xl font-bold mt-1 text-on-surface">
+          {loading ? "-" : usersCount}
+        </h3>
+      </div>
+      <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 shadow-md">
+        <div className="flex items-center justify-between mb-4">
+          <span
+            className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined"
+            aria-hidden="true"
+          >
+            camera
+          </span>
+        </div>
+        <p className="text-on-surface-variant text-sm font-medium">
+          {t("admin.dashboard.active_creators")}
+        </p>
+        <h3 className="text-3xl font-bold mt-1 text-on-surface">
+          {loading ? "-" : activeCreatorsCount}
+        </h3>
+      </div>
+    </div>
+  );
+}
+
+function DashboardUserRow({ user, currentUsername, updatingUserId, handleRoleUpdate, t }) {
+  const userId = user.id || user.Id;
+  const username = user.username || user.Username;
+  const email = user.email || user.Email;
+  const role = user.role || user.Role;
+  const groups = user.groups || user.Groups || [];
+  const isCurrentUser = username === currentUsername;
+
+  return (
+    <tr
+      key={userId}
+      className="hover:bg-surface-container-high/50 group transition-colors"
+    >
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center font-bold text-on-surface-variant">
+            {username
+              ? username.substring(0, 2).toUpperCase()
+              : "?"}
+          </div>
+          <span className="font-semibold text-on-surface group-hover:text-primary transition-colors">
+            {username}
+          </span>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-on-surface-variant">
+        {email}
+      </td>
+      <td className="px-6 py-4">
+        {groups && groups.length > 0 ? (
+          groups.length > 2 ? (
+            <div
+              role="button"
+              className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+              tabIndex={0}
+              aria-describedby={`tooltip-groups-${userId}`}
+            >
+              <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors group-focus:bg-surface-container-highest">
+                Groupes ({groups.length})
+              </span>
+              <div
+                id={`tooltip-groups-${userId}`}
+                role="tooltip"
+                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
+                <div className="flex flex-col gap-1 items-center">
+                  {groups.map((g) => (
+                    <span
+                      key={g}
+                      className="whitespace-nowrap font-medium"
+                    >
+                      {g}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1">
+              {groups.map((g) => (
+                <span
+                  key={g}
+                  className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+          )
+        ) : (
+          <span className="text-xs text-on-surface-variant/70 italic">
+            {t("admin.dashboard.table.none")}
+          </span>
+        )}
+      </td>
+      <td className="px-6 py-4">
+        {role === "Admin" && (
+          <span className="px-2.5 py-1 text-xs font-bold bg-tertiary/20 text-tertiary rounded-full border border-tertiary/30">
+            {t("admin.dashboard.role.admin")}
+          </span>
+        )}
+        {role === "Creator" && (
+          <span className="px-2.5 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full border border-primary/30">
+            {t("admin.dashboard.role.creator")}
+          </span>
+        )}
+        {(role === "User" ||
+          (!role && role !== "Forbidden")) && (
+          <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30">
+            {t("admin.dashboard.role.user")}
+          </span>
+        )}
+        {role === "Forbidden" && (
+          <span className="px-2.5 py-1 text-xs font-bold bg-error/20 text-error rounded-full border border-error/30">
+            {t("admin.dashboard.role.banned")}
+          </span>
+        )}
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="flex items-center justify-end gap-2">
+          {role !== "Admin" &&
+            (role === "Creator" ? (
+              <button
+                type="button"
+                onClick={() =>
+                  handleRoleUpdate(userId, "User")
+                }
+                disabled={updatingUserId === userId}
+                className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+              >
+                {updatingUserId === userId ? (
+                  <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                ) : (
+                  t("admin.dashboard.action.demote_creator")
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  handleRoleUpdate(userId, "Creator")
+                }
+                disabled={updatingUserId === userId}
+                className="px-3 py-1.5 text-xs font-bold text-primary border border-primary/50 hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+              >
+                {updatingUserId === userId ? (
+                  <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                ) : (
+                  t("admin.dashboard.action.promote_creator")
+                )}
+              </button>
+            ))}
+          {role === "Admin" ? (
+            isCurrentUser ? (
+              <button
+                type="button"
+                disabled
+                className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+                title={t(
+                  "admin.dashboard.action.self_action_tooltip",
+                )}
+              >
+                {t("admin.dashboard.action.current_admin")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  handleRoleUpdate(userId, "User")
+                }
+                disabled={updatingUserId === userId}
+                className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+              >
+                {updatingUserId === userId ? (
+                  <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+                ) : (
+                  t("admin.dashboard.action.demote_admin")
+                )}
+              </button>
+            )
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                handleRoleUpdate(userId, "Admin")
+              }
+              disabled={updatingUserId === userId}
+              className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+            >
+              {updatingUserId === userId ? (
+                <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
+              ) : (
+                t("admin.dashboard.action.promote_admin")
+              )}
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={isCurrentUser || updatingUserId === userId}
+            onClick={() => {
+              if (!isCurrentUser) {
+                handleRoleUpdate(
+                  userId,
+                  role === "Forbidden" ? "User" : "Forbidden",
+                );
+              }
+            }}
+            className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low ${isCurrentUser ? "text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50" : role === "Forbidden" ? "text-tertiary hover:bg-tertiary/10" : "text-error hover:bg-error/10"}`}
+            title={
+              isCurrentUser
+                ? t(
+                    "admin.dashboard.action.self_action_tooltip",
+                  )
+                : role === "Forbidden"
+                  ? t("admin.dashboard.action.unban")
+                  : t("admin.dashboard.action.ban")
+            }
+            aria-label={
+              isCurrentUser
+                ? t(
+                    "admin.dashboard.action.self_action_tooltip",
+                  )
+                : role === "Forbidden"
+                  ? t("admin.dashboard.action.unban")
+                  : t("admin.dashboard.action.ban")
+            }
+          >
+            {updatingUserId === userId ? (
+              <span className="material-symbols-outlined animate-spin text-lg leading-none" aria-hidden="true">sync</span>
+            ) : (
+              <span
+                className="material-symbols-outlined text-lg leading-none"
+                aria-hidden="true"
+              >
+                {role === "Forbidden" ? "lock_open" : "block"}
+              </span>
+            )}
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function DashboardUserTable({ loading, filteredUsers, currentUsername, updatingUserId, handleRoleUpdate, t }) {
+  return (
+    <div className="bg-surface-container-low rounded-2xl border border-outline-variant/30 overflow-hidden shadow-md">
+      <div className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between">
+        <h4 className="font-bold text-lg text-on-surface">
+          {t("admin.dashboard.user_list")}
+        </h4>
+        <div className="flex gap-2">
+          <button type="button" className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
+            <span
+              className="material-symbols-outlined text-sm"
+              aria-hidden="true"
+            >
+              filter_list
+            </span>{" "}
+            {t("admin.dashboard.filter")}
+          </button>
+          <button type="button" className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
+            <span
+              className="material-symbols-outlined text-sm"
+              aria-hidden="true"
+            >
+              person_add
+            </span>{" "}
+            {t("admin.dashboard.new_user")}
+          </button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-surface-container/50 border-b border-outline-variant/40">
+            <tr>
+              <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                {t("admin.dashboard.table.username")}
+              </th>
+              <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                {t("admin.dashboard.table.email")}
+              </th>
+              <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                {t("admin.dashboard.table.groups")}
+              </th>
+              <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                {t("admin.dashboard.table.role")}
+              </th>
+              <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">
+                {t("admin.dashboard.table.actions")}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-outline-variant/20 text-sm">
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="text-center py-4 text-slate-500">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
+                    {t("admin.dashboard.loading", "Chargement...")}
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              filteredUsers.map((user) => (
+                <DashboardUserRow
+                  key={user.id || user.Id}
+                  user={user}
+                  currentUsername={currentUsername}
+                  updatingUserId={updatingUserId}
+                  handleRoleUpdate={handleRoleUpdate}
+                  t={t}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="px-6 py-4 bg-surface-container/30 border-t border-outline-variant/30 flex items-center justify-between">
+        <p className="text-xs text-on-surface-variant font-medium tracking-wide">
+          {t("admin.dashboard.showing_users", {
+            count: filteredUsers.length,
+          })}
+        </p>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+            aria-label={t("common.previous_page", "Page précédente")}
+            title={t("common.previous_page", "Page précédente")}
+          >
+            <span
+              className="material-symbols-outlined text-sm"
+              aria-hidden="true"
+            >
+              chevron_left
+            </span>
+          </button>
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+            aria-current="page"
+            aria-label={t("common.page", "Page 1", { page: 1 })}
+            title={t("common.page", "Page 1", { page: 1 })}
+          >
+            1
+          </button>
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+            aria-label={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
+            title={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
+          >
+            2
+          </button>
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+            aria-label={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
+            title={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
+          >
+            3
+          </button>
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
+            aria-label={t("common.next_page", "Page suivante")}
+            title={t("common.next_page", "Page suivante")}
+          >
+            <span
+              className="material-symbols-outlined text-sm"
+              aria-hidden="true"
+            >
+              chevron_right
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
@@ -20,15 +420,12 @@ export default function Dashboard() {
   const currentUsername = getUsernameFromToken();
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
-  // ⚡ Bolt: Memoize the active creators count to avoid O(N) array filtering on every render
   const activeCreatorsCount = useMemo(() => {
     return (users || []).filter((u) => u.role === "Creator" || u.Role === "Creator").length;
   }, [users]);
 
-  // ⚡ Bolt: Server-side pagination replaces client-side filtering.
   const filteredUsers = users;
 
-  // Vérification de la session et du rôle via le token
   useEffect(() => {
     let isCancelled = false;
 
@@ -95,6 +492,9 @@ export default function Dashboard() {
   const topActions = (
     <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto">
       <div className="relative w-full">
+        <label htmlFor="dashboard-search" className="sr-only">
+          {t("admin.dashboard.search_placeholder")}
+        </label>
         <span
           className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl"
           aria-hidden="true"
@@ -102,10 +502,10 @@ export default function Dashboard() {
           search
         </span>
         <input
+          id="dashboard-search"
           className="w-full pl-11 pr-10 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-primary text-sm transition-colors text-on-surface placeholder:text-on-surface-variant"
           placeholder={t("admin.dashboard.search_placeholder")}
           type="text"
-          aria-label={t("admin.dashboard.search_placeholder")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -136,388 +536,22 @@ export default function Dashboard() {
       topActions={topActions}
     >
       <div className="space-y-8">
-        {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <span
-                className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined"
-                aria-hidden="true"
-              >
-                person
-              </span>
-            </div>
-            <p className="text-on-surface-variant text-sm font-medium">
-              {t("admin.dashboard.total_users")}
-            </p>
-            <h3 className="text-3xl font-bold mt-1 text-on-surface">
-              {loading ? "-" : users.length}
-            </h3>
-          </div>
-          <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <span
-                className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined"
-                aria-hidden="true"
-              >
-                camera
-              </span>
-            </div>
-            <p className="text-on-surface-variant text-sm font-medium">
-              {t("admin.dashboard.active_creators")}
-            </p>
-            <h3 className="text-3xl font-bold mt-1 text-on-surface">
-              {loading ? "-" : activeCreatorsCount}
-            </h3>
-          </div>
-        </div>
-        {/* Users Table */}
-        <div className="bg-surface-container-low rounded-2xl border border-outline-variant/30 overflow-hidden shadow-md">
-          <div className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between">
-            <h4 className="font-bold text-lg text-on-surface">
-              {t("admin.dashboard.user_list")}
-            </h4>
-            <div className="flex gap-2">
-              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-sm font-medium rounded-lg transition-colors text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
-                <span
-                  className="material-symbols-outlined text-sm"
-                  aria-hidden="true"
-                >
-                  filter_list
-                </span>{" "}
-                {t("admin.dashboard.filter")}
-              </button>
-              <button type="button" className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(0,206,209,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low">
-                <span
-                  className="material-symbols-outlined text-sm"
-                  aria-hidden="true"
-                >
-                  person_add
-                </span>{" "}
-                {t("admin.dashboard.new_user")}
-              </button>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-surface-container/50 border-b border-outline-variant/40">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    {t("admin.dashboard.table.username")}
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    {t("admin.dashboard.table.email")}
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    {t("admin.dashboard.table.groups")}
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    {t("admin.dashboard.table.role")}
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">
-                    {t("admin.dashboard.table.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {loading ? (
-                  <tr>
-                    <td colSpan="5" className="text-center py-4 text-slate-500">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined animate-spin text-[18px]" aria-hidden="true">sync</span>
-                        {t("admin.dashboard.loading", "Chargement...")}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => {
-                    const userId = user.id || user.Id;
-                    const username = user.username || user.Username;
-                    const email = user.email || user.Email;
-                    const role = user.role || user.Role;
-                    const groups = user.groups || user.Groups || [];
-                    const isCurrentUser = username === currentUsername;
-
-                    return (
-                      <tr
-                        key={userId}
-                        className="hover:bg-surface-container-high/50 group transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center font-bold text-on-surface-variant">
-                              {username
-                                ? username.substring(0, 2).toUpperCase()
-                                : "?"}
-                            </div>
-                            <span className="font-semibold text-on-surface group-hover:text-primary transition-colors">
-                              {username}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-on-surface-variant">
-                          {email}
-                        </td>
-                        <td className="px-6 py-4">
-                          {groups && groups.length > 0 ? (
-                            groups.length > 2 ? (
-                              <div
-                                role="button"
-                                className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
-                                tabIndex={0}
-                                aria-describedby={`tooltip-groups-${userId}`}
-                              >
-                                <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors group-focus:bg-surface-container-highest">
-                                  Groupes ({groups.length})
-                                </span>
-                                <div
-                                  id={`tooltip-groups-${userId}`}
-                                  role="tooltip"
-                                  className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block group-focus:block w-max bg-surface-container-highest text-on-surface text-xs rounded-lg py-2 px-3 shadow-lg z-10 before:content-[''] before:absolute before:-bottom-1 before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-surface-container-highest">
-                                  <div className="flex flex-col gap-1 items-center">
-                                    {groups.map((g) => (
-                                      <span
-                                        key={g}
-                                        className="whitespace-nowrap font-medium"
-                                      >
-                                        {g}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-wrap gap-1">
-                                {groups.map((g) => (
-                                  <span
-                                    key={g}
-                                    className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30"
-                                  >
-                                    {g}
-                                  </span>
-                                ))}
-                              </div>
-                            )
-                          ) : (
-                            <span className="text-xs text-on-surface-variant/70 italic">
-                              {t("admin.dashboard.table.none")}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {role === "Admin" && (
-                            <span className="px-2.5 py-1 text-xs font-bold bg-tertiary/20 text-tertiary rounded-full border border-tertiary/30">
-                              {t("admin.dashboard.role.admin")}
-                            </span>
-                          )}
-                          {role === "Creator" && (
-                            <span className="px-2.5 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full border border-primary/30">
-                              {t("admin.dashboard.role.creator")}
-                            </span>
-                          )}
-                          {(role === "User" ||
-                            (!role && role !== "Forbidden")) && (
-                            <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30">
-                              {t("admin.dashboard.role.user")}
-                            </span>
-                          )}
-                          {role === "Forbidden" && (
-                            <span className="px-2.5 py-1 text-xs font-bold bg-error/20 text-error rounded-full border border-error/30">
-                              {t("admin.dashboard.role.banned")}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {role !== "Admin" &&
-                              (role === "Creator" ? (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRoleUpdate(userId, "User")
-                                  }
-                                  disabled={updatingUserId === userId}
-                                  className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                                >
-                                  {updatingUserId === userId ? (
-                                    <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
-                                  ) : (
-                                    t("admin.dashboard.action.demote_creator")
-                                  )}
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRoleUpdate(userId, "Creator")
-                                  }
-                                  disabled={updatingUserId === userId}
-                                  className="px-3 py-1.5 text-xs font-bold text-primary border border-primary/50 hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                                >
-                                  {updatingUserId === userId ? (
-                                    <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
-                                  ) : (
-                                    t("admin.dashboard.action.promote_creator")
-                                  )}
-                                </button>
-                              ))}
-                            {role === "Admin" ? (
-                              isCurrentUser ? (
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="px-3 py-1.5 text-xs font-bold text-on-surface-variant/50 border border-outline-variant/30 cursor-not-allowed rounded-lg bg-surface-container/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                                  title={t(
-                                    "admin.dashboard.action.self_action_tooltip",
-                                  )}
-                                >
-                                  {t("admin.dashboard.action.current_admin")}
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRoleUpdate(userId, "User")
-                                  }
-                                  disabled={updatingUserId === userId}
-                                  className="px-3 py-1.5 text-xs font-bold text-secondary border border-secondary/50 hover:bg-secondary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                                >
-                                  {updatingUserId === userId ? (
-                                    <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
-                                  ) : (
-                                    t("admin.dashboard.action.demote_admin")
-                                  )}
-                                </button>
-                              )
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleRoleUpdate(userId, "Admin")
-                                }
-                                disabled={updatingUserId === userId}
-                                className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                              >
-                                {updatingUserId === userId ? (
-                                  <span className="material-symbols-outlined animate-spin text-[14px]" aria-hidden="true">sync</span>
-                                ) : (
-                                  t("admin.dashboard.action.promote_admin")
-                                )}
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              disabled={isCurrentUser || updatingUserId === userId}
-                              onClick={() => {
-                                if (!isCurrentUser) {
-                                  handleRoleUpdate(
-                                    userId,
-                                    role === "Forbidden" ? "User" : "Forbidden",
-                                  );
-                                }
-                              }}
-                              className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low ${isCurrentUser ? "text-on-surface-variant/50 cursor-not-allowed bg-surface-container/50" : role === "Forbidden" ? "text-tertiary hover:bg-tertiary/10" : "text-error hover:bg-error/10"}`}
-                              title={
-                                isCurrentUser
-                                  ? t(
-                                      "admin.dashboard.action.self_action_tooltip",
-                                    )
-                                  : role === "Forbidden"
-                                    ? t("admin.dashboard.action.unban")
-                                    : t("admin.dashboard.action.ban")
-                              }
-                              aria-label={
-                                isCurrentUser
-                                  ? t(
-                                      "admin.dashboard.action.self_action_tooltip",
-                                    )
-                                  : role === "Forbidden"
-                                    ? t("admin.dashboard.action.unban")
-                                    : t("admin.dashboard.action.ban")
-                              }
-                            >
-                              {updatingUserId === userId ? (
-                                <span className="material-symbols-outlined animate-spin text-lg leading-none" aria-hidden="true">sync</span>
-                              ) : (
-                                <span
-                                  className="material-symbols-outlined text-lg leading-none"
-                                  aria-hidden="true"
-                                >
-                                  {role === "Forbidden" ? "lock_open" : "block"}
-                                </span>
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-6 py-4 bg-surface-container/30 border-t border-outline-variant/30 flex items-center justify-between">
-            <p className="text-xs text-on-surface-variant font-medium tracking-wide">
-              {t("admin.dashboard.showing_users", {
-                count: filteredUsers.length,
-              })}
-            </p>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                aria-label={t("common.previous_page", "Page précédente")}
-                title={t("common.previous_page", "Page précédente")}
-              >
-                <span
-                  className="material-symbols-outlined text-sm"
-                  aria-hidden="true"
-                >
-                  chevron_left
-                </span>
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 flex items-center justify-center rounded bg-primary text-background-dark font-bold text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                aria-current="page"
-                aria-label={t("common.page", "Page 1", { page: 1 })}
-                title={t("common.page", "Page 1", { page: 1 })}
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                aria-label={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
-                title={t("common.go_to_page", "Aller à la page 2", { page: 2 })}
-              >
-                2
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                aria-label={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
-                title={t("common.go_to_page", "Aller à la page 3", { page: 3 })}
-              >
-                3
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-low"
-                aria-label={t("common.next_page", "Page suivante")}
-                title={t("common.next_page", "Page suivante")}
-              >
-                <span
-                  className="material-symbols-outlined text-sm"
-                  aria-hidden="true"
-                >
-                  chevron_right
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <DashboardStats
+          loading={loading}
+          usersCount={users.length}
+          activeCreatorsCount={activeCreatorsCount}
+          t={t}
+        />
+        <DashboardUserTable
+          loading={loading}
+          filteredUsers={filteredUsers}
+          currentUsername={currentUsername}
+          updatingUserId={updatingUserId}
+          handleRoleUpdate={handleRoleUpdate}
+          t={t}
+        />
       </div>
     </AdminLayout>
   );
 }
+

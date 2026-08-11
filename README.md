@@ -5,8 +5,7 @@ PixelLyra est une application web moderne et performante de gestion, partage et 
 Le projet met en œuvre des fonctionnalités avancées :
 - **Traitement asynchrone d'images** : génération de miniatures, conversion de formats et extraction de métadonnées EXIF/GPS via ImageSharp.
 - **Modération automatique par IA** : analyse en temps réel du contenu des images via un microservice dédié FastAPI exploitant le modèle Hugging Face `Falconsai/nsfw_image_detection`.
-- **Incrémentation haute performance** : enregistrement des vues par file d'attente asynchrone bornée (`BoundedChannel<PhotoViewEvent>`) et traitement en arrière-plan par `HostedService`.
-- **Authentification & Sécurité renforcées** : authentification par jetons JWT (stockés dans des cookies sécurisés `SameSite/HttpOnly`), invalidation temps réel des sessions suspendues/modifiées via `IMemoryCache`, protection contre le CSRF (`X-CSRF-TOKEN`), limitation du débit (Rate Limiting par IP/Utilisateur) et en-têtes de sécurité stricts (CSP, HSTS, X-Frame-Options).
+- **Incrémentation haute performance** : enregistrement des vues par file d'attente asynchrone bornée (`BoundedChannel<PhotoViewEvent>`) et traitement en arrière-pla- **Authentification & Sécurité renforcées** : authentification par jetons JWT (stockés dans des cookies sécurisés `SameSite/HttpOnly`), invalidation temps réel des sessions suspendues/modifiées via `IMemoryCache`, protection contre le CSRF (`X-CSRF-TOKEN`) avec rafraîchissement automatique et rejeu transparent des requêtes, limitation du débit (Rate Limiting par IP/Utilisateur) et en-têtes de sécurité stricts (CSP, HSTS, X-Frame-Options).
 - **Stockage Objets R2/S3 & Clés Data Protection** : intégration AWS SDK S3 pour le stockage des fichiers et persistance des clés ASP.NET DataProtection sur Cloudflare R2.
 - **Internationalisation (i18n)** : support bilingue complet (Français et Anglais) géré via `react-i18next` sans texte en dur dans l'interface.
 
@@ -27,9 +26,9 @@ Le projet met en œuvre des fonctionnalités avancées :
 * **Framework** : React 19 + Vite.
 * **Styling** : Tailwind CSS v4 (Thème Cyberpunk Glassmorphism / Cyanide Glass).
 * **Localisation** : `react-i18next` (support FR / EN).
-* **Communication API** : Axios avec `withCredentials` (gestion automatique des cookies JWT et en-têtes CSRF).
+* **Communication API** : Axios avec `withCredentials` (gestion automatique des cookies JWT, en-têtes CSRF, déduplication des promesses et rejeu automatique sur expiration de jeton).
 * **Cartographie & Modales** : Leaflet / React-Leaflet pour la géolocalisation des photos.
-* **Tests** : Vitest, React Testing Library.
+* **Tests** : Vitest, React Testing Library, Playwright (Automation E2E multi-navigateurs Chromium & Firefox).
 
 ### 2. Backend API (`PhotoAppApi`)
 * **Framework** : C# / ASP.NET Core (.NET 10.0).
@@ -38,7 +37,7 @@ Le projet met en œuvre des fonctionnalités avancées :
 * **Traitement d'images** : SixLabors.ImageSharp.
 * **Workers de Fond** : `PhotoViewProcessingWorker` (`BoundedChannel`) & `HashCalculationBackgroundService`.
 * **Logging** : Log4net (`AddLog4net`).
-* **Tests** : xUnit (136 tests unitaires, d'intégration et de contrat OpenAPI).
+* **Tests** : xUnit (160 tests unitaires, d'intégration et de contrat OpenAPI).
 
 ### 3. Microservice de Modération (`moderation-service`)
 * **Framework** : FastAPI + Python 3.10+.
@@ -114,19 +113,28 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   ```bash
   dotnet test
   ```
-  *(Inclut 136 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
+  *(Inclut 160 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
 
-* **Tests Frontend (Vitest)** :
+* **Tests Frontend (Vitest Unitaires & Contrat)** :
   ```bash
   cd PhotoFrontend
   npm run test -- --run
   ```
-  *(Inclut 40 tests unitaires de composants et de contrat client API)*
+  *(Inclut 43 tests unitaires de composants, helpers et contrat client API)*
+
+* **Tests Frontend End-to-End (Playwright E2E)** :
+  ```bash
+  cd PhotoFrontend
+  npm run test:e2e
+  ```
+  *(Exécute 8 tests E2E d'authentification et de navigation sur Chromium et Firefox)*
 
 * **Tests Microservice IA (Pytest)** :
   ```bash
   cd moderation-service
   py -m pytest
+  ```
+  *(Inclut 11 tests unitaires et de validation de l'authentification X-API-Key)*-m pytest
   ```
   *(Inclut 11 tests unitaires et de validation de l'authentification X-API-Key)*
 

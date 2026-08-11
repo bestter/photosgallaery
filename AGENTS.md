@@ -46,6 +46,7 @@
 ### Backend (C# .NET Core)
 
 * Garder les contrôleurs légers (`PhotosController`, `AuthController`, `AdminController`, `GroupsController`, `TagsController`, etc.). La logique métier doit être extraite dans des services indépendants et injectables, notamment pour :
+* Garder les contrôleurs légers (`PhotosController`, `AuthController`, `AdminController`, `GroupsController`, `TagsController`, etc.). La logique métier doit être extraite dans des services individuels et injectables, notamment pour :
   * Le téléversement et redimensionnement sécurisé d'images (`SixLabors.ImageSharp`).
   * L'extraction des métadonnées EXIF/GPS et le calcul de hachages d'images.
   * Le traitement asynchrone des vues via file d'attente bornée (`BoundedChannel<PhotoViewEvent>`) et `PhotoViewProcessingWorker`.
@@ -68,10 +69,11 @@
 
 ## 4. Tests et Validation
 
-* **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C# dans `PhotoAppApi.Tests`, **Vitest** pour le frontend React dans `PhotoFrontend`, **Pytest** pour le microservice IA dans `moderation-service`). Si la logique métier change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
+* **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C# dans `PhotoAppApi.Tests`, **Vitest** et **Playwright** pour le frontend React dans `PhotoFrontend`, **Pytest** pour le microservice IA dans `moderation-service`). Si la logique métier change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
 * **Exécution systématique :**
-  - **Backend** : `dotnet test` (136 tests d'intégration, unitaires et contrats OpenAPI).
-  - **Frontend** : `npm run test -- --run` (40 tests unitaires et de contrat client).
+  - **Backend** : `dotnet test` (160 tests d'intégration, unitaires et contrats OpenAPI).
+  - **Frontend (Unitaires & Contrat)** : `npm run test -- --run` (43 tests unitaires et de contrat client).
+  - **Frontend (End-to-End)** : `npm run test:e2e` ou `npx playwright test` (8 tests E2E multi-navigateurs Chromium & Firefox).
   - **Microservice IA** : `py -m pytest` (11 tests unitaires dans `moderation-service`).
 * **Validation stricte :** S'assurer que 100% de la suite de tests passe avec succès avant d'effectuer un commit ou de finaliser une PR.
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import axiosInstance from './api';
+import axiosInstance, { fetchCsrfToken } from './api';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 vi.mock('react-hot-toast');
@@ -122,4 +123,59 @@ describe('api.js interceptors', () => {
         expect(axiosInstance.defaults.withCredentials).toBe(true);
         expect(config.headers.Authorization).toBeUndefined();
     });
+
+    it('should deduplicate fetchCsrfToken calls when called concurrently', async () => {
+        const spyGet = vi.spyOn(axios, 'get').mockResolvedValue({ data: { token: 'token-abc' } });
+
+        const [t1, t2] = await Promise.all([fetchCsrfToken(), fetchCsrfToken()]);
+
+        expect(t1).toBe('token-abc');
+        expect(t2).toBe('token-abc');
+        expect(spyGet).toHaveBeenCalledTimes(1);
+
+        spyGet.mockRestore();
+    });
+
+    it('should refresh CSRF token and retry request once on CSRF error response', async () => {
+        const spyGet = vi.spyOn(axios, 'get').mockResolvedValue({ data: { token: 'new-fresh-csrf-token' } });
+
+        const initialError = {
+            config: { method: 'post', url: '/photos/like', headers: { 'X-CSRF-TOKEN': 'stale-token' } },
+            response: { status: 400, headers: { 'x-csrf-error': 'invalid_token' }, data: { code: 'INVALID_CSRF_TOKEN' } }
+        };
+
+        axiosInstance.defaults.adapter
+            .mockRejectedValueOnce(initialError)
+            .mockResolvedValueOnce({ data: { success: true }, status: 200, headers: {} });
+
+        const result = await axiosInstance.post('/photos/like', { photoId: 1 });
+
+        expect(spyGet).toHaveBeenCalledWith(expect.stringContaining('/Auth/csrf-token'), expect.anything());
+        expect(result.data).toEqual({ success: true });
+
+        spyGet.mockRestore();
+    });
+
+    it('should not retry infinitely if retried request also fails', async () => {
+        const spyGet = vi.spyOn(axios, 'get').mockResolvedValue({ data: { token: 'new-fresh-csrf-token' } });
+
+        const csrfError = {
+            config: { method: 'post', url: '/photos/like', headers: { 'X-CSRF-TOKEN': 'stale-token' } },
+            response: { status: 400, headers: { 'x-csrf-error': 'invalid_token' }, data: { code: 'INVALID_CSRF_TOKEN' } }
+        };
+
+        axiosInstance.defaults.adapter
+            .mockRejectedValueOnce(csrfError)
+            .mockRejectedValueOnce({ response: { status: 500 } });
+
+        await expect(axiosInstance.post('/photos/like', { photoId: 1 })).rejects.toBeDefined();
+
+        expect(toast.error).toHaveBeenCalledWith(
+            "Erreur interne du serveur. Nos techniciens sont sur le coup !",
+            { icon: '🔥' }
+        );
+
+        spyGet.mockRestore();
+    });
 });
+
