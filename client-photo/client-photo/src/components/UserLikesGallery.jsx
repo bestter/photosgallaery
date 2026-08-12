@@ -62,6 +62,8 @@
                                     src={`${imageBaseUrl}${photo.url || photo.fileName}`} // Adapte selon le nom de ta propriété
                                     alt={`Aimée par ${username}`}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    // ⚡ Bolt: Adding lazy loading to defer loading offscreen images, drastically improving initial page load time and saving bandwidth for users with many liked photos.
+                                    loading="lazy"
                                 />
                                 {/* Petit overlay au survol pour faire joli */}
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
