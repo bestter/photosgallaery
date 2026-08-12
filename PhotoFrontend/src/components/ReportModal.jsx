@@ -53,7 +53,7 @@ export default function ReportModal({ photo, onClose, onReportSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Report Content">
       <button
         type="button"
         className="fixed inset-0 bg-black/80 backdrop-blur-sm border-0 cursor-default"

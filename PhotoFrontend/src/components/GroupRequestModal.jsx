@@ -50,7 +50,7 @@ const GroupRequestModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-sans text-slate-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-sans text-slate-100" role="dialog" aria-modal="true" aria-label="Request New Group">
             <button
                 type="button"
                 className="fixed inset-0 bg-[#081414]/80 backdrop-blur-sm border-0 cursor-default"

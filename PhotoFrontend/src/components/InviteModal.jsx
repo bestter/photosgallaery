@@ -106,7 +106,7 @@ const InviteModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-body text-on-surface">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-body text-on-surface" role="dialog" aria-modal="true" aria-label="Invite to Group">
             <button
                 type="button"
                 className="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-sm border-0 cursor-default"
