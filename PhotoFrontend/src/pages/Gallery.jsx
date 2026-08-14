@@ -560,10 +560,26 @@ function GalleryModals({
   setIsGroupRequestOpen,
   t
 }) {
+  useEffect(() => {
+    if (!isUploadOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsUploadOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isUploadOpen, setIsUploadOpen]);
+
   return (
     <>
       {isUploadOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("common.upload_photo", "Upload a photo")}
+        >
           <div className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl">
             <button
               type="button"
