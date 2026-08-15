@@ -10,7 +10,11 @@ const LanguageSelector = () => {
 
   return (
     <div className="relative group ml-4">
+      <label htmlFor="language-selector" className="sr-only">
+        {t("common.select_language", "Select Language")}
+      </label>
       <select
+        id="language-selector"
         value={i18n.resolvedLanguage || i18n.language}
         onChange={changeLanguage}
         aria-label={t("common.select_language", "Select Language")}
