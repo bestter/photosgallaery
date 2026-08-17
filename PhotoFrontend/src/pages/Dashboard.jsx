@@ -79,10 +79,9 @@ function DashboardUserRow({ user, currentUsername, updatingUserId, handleRoleUpd
       <td className="px-6 py-4">
         {groups && groups.length > 0 ? (
           groups.length > 2 ? (
-            <div
-              role="button"
-              className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
-              tabIndex={0}
+            <button
+              type="button"
+              className="group relative inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full border-none bg-transparent p-0 m-0"
               aria-describedby={`tooltip-groups-${userId}`}
             >
               <span className="px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/30 hover:bg-surface-container-highest transition-colors group-focus:bg-surface-container-highest">
@@ -103,7 +102,7 @@ function DashboardUserRow({ user, currentUsername, updatingUserId, handleRoleUpd
                   ))}
                 </div>
               </div>
-            </div>
+            </button>
           ) : (
             <div className="flex flex-wrap gap-1">
               {groups.map((g) => (
