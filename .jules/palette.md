@@ -15,3 +15,7 @@ Action: Use absolute positioned native `<button>` elements overlaid on relative 
 2025-02-15 - React Modal Accessibility Without Native Dialog
 Learning: When building custom modals in React using absolute positioned `div` overlays, failing to include `role="dialog"` and `aria-modal="true"` renders the modal structurally invisible to screen readers, meaning they won't trap virtual focus and will allow users to read the obscured background content.
 Action: Always add `role="dialog"` and `aria-modal="true"` to the outermost container of any custom modal overlay, along with an accessible name via `aria-label` or `aria-labelledby`.
+
+2025-02-13 - Semantic Tooltip Buttons
+Learning: Using `<div role="button" tabIndex={0}>` for tooltips or interactive elements is an accessibility anti-pattern because it requires manual event handler wiring for keys like Enter and Space to match native button functionality.
+Action: Always prefer semantic native `<button type="button">` over customized `div` overlays for custom triggers or tooltips to inherit native keyboard focus and interaction behavior for free.
