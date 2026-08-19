@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import UploadPhoto from "../components/UploadPhoto";
 import ImageModal from "../components/ImageModal";
 import InviteModal from "../components/InviteModal";
@@ -258,7 +258,7 @@ function GalleryFilterBadges({ selectedTag, selectedAuthor, setSelectedTag, setS
   );
 }
 
-function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuthor, t }) {
+const GalleryBentoCard = memo(function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuthor, t }) {
   const photoId = photo.id || photo.Id;
   const author = photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
   const originalUrl = photo.url || photo.Url;
@@ -423,7 +423,7 @@ function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuth
       </div>
     </div>
   );
-}
+});
 
 function GalleryBentoGrid({
   filteredPhotos,
