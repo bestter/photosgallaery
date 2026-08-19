@@ -23,6 +23,7 @@ export default function PhotoCard({
           className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500"
           src={src}
           alt={alt}
+          loading="lazy"
         />
       </button>
       {/* Overlay is a sibling so the author control is not nested inside the open button. */}

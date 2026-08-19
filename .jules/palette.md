@@ -19,3 +19,6 @@ Action: Always add `role="dialog"` and `aria-modal="true"` to the outermost cont
 2025-02-13 - Semantic Tooltip Buttons
 Learning: Using `<div role="button" tabIndex={0}>` for tooltips or interactive elements is an accessibility anti-pattern because it requires manual event handler wiring for keys like Enter and Space to match native button functionality.
 Action: Always prefer semantic native `<button type="button">` over customized `div` overlays for custom triggers or tooltips to inherit native keyboard focus and interaction behavior for free.
+2026-08-19 - Lazy loading images
+Learning: When rendering lists or grids of images in React (e.g., photo galleries), apply the `loading="lazy"` attribute to `<img>` tags to defer offscreen image loading, significantly improving initial load times and saving bandwidth.
+Action: Always add `loading="lazy"` to `<img />` tags in lists or grids to optimize loading performance.
