@@ -661,6 +661,21 @@ namespace PhotoAppApi.Controllers
                     }
                 }
 
+                // 🛡️ Sentinel: Fix IDOR by validating group membership
+                if (photo.GroupId.HasValue)
+                {
+                    var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (!int.TryParse(currentUserIdString, out int userId)) return Unauthorized();
+
+                    if (!isAdmin)
+                    {
+                        bool isMember = await _context.UserGroups
+                            .AnyAsync(ug => ug.UserId == userId && ug.GroupId == photo.GroupId.Value, cancellationToken);
+
+                        if (!isMember) return Forbid();
+                    }
+                }
+
                 // 2. Capture the keys and paths needed for cleanup before deleting the record
                 var rootPath = _env.ContentRootPath;
                 var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);

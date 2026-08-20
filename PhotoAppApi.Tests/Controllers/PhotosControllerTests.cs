@@ -1139,5 +1139,152 @@ namespace PhotoAppApi.Tests.Controllers
             var dbPhoto = await context.Photos.FindAsync(new object[] { 1004 }, TestContext.Current.CancellationToken);
             Assert.Null(dbPhoto?.FileHash);
         }
-    }
+
+        [Fact]
+        public async Task DeletePhoto_WithGroupId_UserNotMember_ReturnsForbid()
+        {
+            // Arrange
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var imagesDir = Path.Combine(tempDir, "PrivateImages");
+            var thumbDir = Path.Combine(imagesDir, "thumbnails");
+
+            var filePath = Path.Combine(imagesDir, "test_image_group.jpg");
+            var thumbPath = Path.Combine(thumbDir, "test_image_group.jpg");
+
+            try
+            {
+                using var context = new AppDbContext(_dbContextOptions);
+
+                var user = new User { Id = 1, Username = "uploader", PasswordHash = "hash" };
+                var groupId = Guid.NewGuid();
+                var group = new Group { Id = groupId, Name = "TestGroup", ShortName = "TestGroup", Description = "Test Group" };
+                // User is NOT a member of the group
+                var photo = new Photo
+                {
+                    Id = 100,
+                    FileName = "test_image_group.jpg",
+                    UploaderUsername = "uploader",
+                    Url = "gallery/test_image_group.jpg",
+                    ThumbnailUrl = "thumbnails/test_image_group.jpg",
+                    GroupId = groupId
+                };
+
+                context.Users.Add(user);
+                context.Groups.Add(group);
+                context.Photos.Add(photo);
+                await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                var envMock = new Mock<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+                envMock.Setup(e => e.ContentRootPath).Returns(tempDir);
+                var storageMock = new Mock<PhotoAppApi.Services.IObjectStorageService>();
+                var channelMock = new Mock<System.Threading.Channels.ChannelWriter<PhotoAppApi.Models.PhotoViewEvent>>();
+
+                var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object, null);
+
+                // Mock user context (uploader, but not group member)
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "uploader"),
+                    new Claim(ClaimTypes.NameIdentifier, "1")
+                };
+                var identity = new ClaimsIdentity(claims, "TestAuthType");
+                var claimsPrincipal = new ClaimsPrincipal(identity);
+
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                };
+
+                // Act
+                var result = await controller.DeletePhoto(100, TestContext.Current.CancellationToken);
+
+                // Assert
+                Assert.IsType<ForbidResult>(result);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    Directory.Delete(tempDir, true);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task DeletePhoto_WithGroupId_UserIsMember_ReturnsOk()
+        {
+            // Arrange
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var imagesDir = Path.Combine(tempDir, "PrivateImages");
+            var thumbDir = Path.Combine(imagesDir, "thumbnails");
+
+            var filePath = Path.Combine(imagesDir, "test_image_group.jpg");
+            var thumbPath = Path.Combine(thumbDir, "test_image_group.jpg");
+
+            // Create dummy files for cleanup to work without throwing if not found, though we handle exceptions
+            Directory.CreateDirectory(imagesDir);
+            Directory.CreateDirectory(thumbDir);
+            File.WriteAllText(filePath, "dummy");
+            File.WriteAllText(thumbPath, "dummy");
+
+            try
+            {
+                using var context = new AppDbContext(_dbContextOptions);
+
+                var user = new User { Id = 1, Username = "uploader", PasswordHash = "hash" };
+                var groupId = Guid.NewGuid();
+                var group = new Group { Id = groupId, Name = "TestGroup", ShortName = "TestGroup", Description = "Test Group" };
+                var userGroup = new UserGroup { UserId = 1, GroupId = groupId, Role = GroupUserRole.Member };
+                var photo = new Photo
+                {
+                    Id = 101,
+                    FileName = "test_image_group.jpg",
+                    UploaderUsername = "uploader",
+                    Url = "gallery/test_image_group.jpg",
+                    ThumbnailUrl = "thumbnails/test_image_group.jpg",
+                    GroupId = groupId
+                };
+
+                context.Users.Add(user);
+                context.Groups.Add(group);
+                context.UserGroups.Add(userGroup);
+                context.Photos.Add(photo);
+                await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                var envMock = new Mock<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+                envMock.Setup(e => e.ContentRootPath).Returns(tempDir);
+                var storageMock = new Mock<PhotoAppApi.Services.IObjectStorageService>();
+                var channelMock = new Mock<System.Threading.Channels.ChannelWriter<PhotoAppApi.Models.PhotoViewEvent>>();
+
+                var controller = new PhotosController(context, envMock.Object, storageMock.Object, channelMock.Object, null);
+
+                // Mock user context (uploader AND group member)
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "uploader"),
+                    new Claim(ClaimTypes.NameIdentifier, "1")
+                };
+                var identity = new ClaimsIdentity(claims, "TestAuthType");
+                var claimsPrincipal = new ClaimsPrincipal(identity);
+
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                };
+
+                // Act
+                var result = await controller.DeletePhoto(101, TestContext.Current.CancellationToken);
+
+                // Assert
+                Assert.IsType<OkObjectResult>(result);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    Directory.Delete(tempDir, true);
+                }
+            }
+        }
+}
 }
