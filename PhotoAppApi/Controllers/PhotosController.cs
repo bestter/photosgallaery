@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using PhotoAppApi.Constants;
 using PhotoAppApi.Data;
 using PhotoAppApi.DTOs;
 using PhotoAppApi.Helpers;
@@ -291,7 +292,7 @@ namespace PhotoAppApi.Controllers
         [Authorize(Policy = "CanUpload")]
         [RequireWebsiteHeader] // 🔒 NOUVEAU: Empêche Postman / scripts de contourner le site web
         [HttpPost("upload")]
-        [RequestSizeLimit(52428800)]
+        [RequestSizeLimit(FileConstants.MaxUploadSize)]
         [EnableRateLimiting("UploadLimiter")] // Force explicitement la limite de 50 Mo sur cette route
         public async Task<IActionResult> UploadPhotos([FromForm] UploadRequestDto request, [FromServices] IModerationService? moderationService, CancellationToken cancellationToken = default)
         {
@@ -403,7 +404,7 @@ namespace PhotoAppApi.Controllers
 
                 // 1. Vérification de la taille totale avant de traiter quoi que ce soit
                 long totalSize = fileList.Sum(f => f.Length);
-                if (totalSize > 52428800)
+                if (totalSize > FileConstants.MaxUploadSize)
                 {
                     log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
                     return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });

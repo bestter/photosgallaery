@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using PhotoAppApi;
+using PhotoAppApi.Constants;
 using PhotoAppApi.Data;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
@@ -45,12 +46,12 @@ if (frontendUrls.Any(url => url == "*"))
 // --- NOUVEAU : Configuration de la limite à 50 Mo (52 428 800 octets) ---
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 52428800; // Limite globale du serveur
+    options.Limits.MaxRequestBodySize = FileConstants.MaxUploadSize; // Limite globale du serveur
 });
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 52428800; // Limite spécifique pour les formulaires multipart (fichiers)
+    options.MultipartBodyLengthLimit = FileConstants.MaxUploadSize; // Limite spécifique pour les formulaires multipart (fichiers)
 });
 // ------------------------------------------------------------------------
 
