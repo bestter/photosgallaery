@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Caching.Memory;
 using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PhotoAppApi.Data;
 using PhotoAppApi.Models;
 using System.ComponentModel.DataAnnotations;
