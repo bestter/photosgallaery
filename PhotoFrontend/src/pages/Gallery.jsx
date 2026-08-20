@@ -258,7 +258,8 @@ function GalleryFilterBadges({ selectedTag, selectedAuthor, setSelectedTag, setS
   );
 }
 
-function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuthor, t }) {
+// ⚡ Bolt: Wrapped GalleryBentoCard in React.memo to prevent unnecessary re-renders of individual photo cards in the unvirtualized gallery grid when unrelated parent state changes.
+const GalleryBentoCard = React.memo(function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuthor, t }) {
   const photoId = photo.id || photo.Id;
   const author = photo.uploaderUsername || photo.UploaderUsername || "Anonyme";
   const originalUrl = photo.url || photo.Url;
@@ -423,9 +424,10 @@ function GalleryBentoCard({ photo, index, setSelectedPhotoIndex, setSelectedAuth
       </div>
     </div>
   );
-}
+})
 
-function GalleryBentoGrid({
+// ⚡ Bolt: Wrapped GalleryBentoGrid in React.memo to avoid re-rendering the entire grid unless filteredPhotos or gridState actually change.
+const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
   filteredPhotos,
   gridState,
   onLoadMore,
@@ -541,8 +543,7 @@ function GalleryBentoGrid({
       )}
     </div>
   );
-}
-
+})
 
 function GalleryModals({
   isUploadOpen,
