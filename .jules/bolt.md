@@ -8,3 +8,6 @@
 Learning: Using unbounded Task.Run combined with Task.WhenAll to generate S3 presigned URLs in high-traffic ASP.NET Core endpoints causes severe thread pool starvation and latency spikes, as it queues massive numbers of unthrottled work items.
 Action: Replace unbounded Task.Run with bounded Parallel.ForEachAsync (setting MaxDegreeOfParallelism to Environment.ProcessorCount) to efficiently multiplex concurrent I/O operations without overwhelming the underlying thread pool.
 
+2026-08-19 - React Memoization on Gallery Bento Grid
+Learning: When rendering large lists of images in React, individual card components rendered via mapping should be wrapped in React.memo to prevent heavy DOM reconciliations when unrelated parent state changes.
+Action: Look for map functions inside grids or lists where complex React components are rendered without memoization.
