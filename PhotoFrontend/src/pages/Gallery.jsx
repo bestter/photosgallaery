@@ -425,7 +425,8 @@ const GalleryBentoCard = memo(function GalleryBentoCard({ photo, index, setSelec
   );
 });
 
-function GalleryBentoGrid({
+// ⚡ Bolt: Wrapped GalleryBentoGrid in React.memo to avoid re-rendering the entire grid unless filteredPhotos or gridState actually change.
+const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
   filteredPhotos,
   gridState,
   onLoadMore,
@@ -541,8 +542,7 @@ function GalleryBentoGrid({
       )}
     </div>
   );
-}
-
+})
 
 function GalleryModals({
   isUploadOpen,
@@ -991,5 +991,4 @@ export default function Gallery() {
     </div>
   );
 }
-
 
