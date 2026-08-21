@@ -122,6 +122,9 @@ function ModerationTable({
         </h3>
         <div className="flex gap-3">
           <div className="relative">
+            <label htmlFor="moderation-search" className="sr-only">
+              {t("admin.moderation.search_placeholder")}
+            </label>
             <span
               aria-hidden="true"
               className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"
@@ -129,10 +132,10 @@ function ModerationTable({
               search
             </span>
             <input
+              id="moderation-search"
               className="pl-10 pr-10 py-2 bg-surface-container border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 text-on-surface"
               placeholder={t("admin.moderation.search_placeholder")}
               type="text"
-              aria-label={t("admin.moderation.search_placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
