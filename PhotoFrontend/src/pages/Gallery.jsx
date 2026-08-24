@@ -579,8 +579,16 @@ function GalleryModals({
           role="dialog"
           aria-modal="true"
           aria-label={t("common.upload_photo", "Upload a photo")}
+          onClick={() => setIsUploadOpen(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setIsUploadOpen(false)}
+          tabIndex={-1}
         >
-          <div className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl">
+          <div
+            className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="document"
+          >
             <button
               type="button"
               onClick={() => setIsUploadOpen(false)}
