@@ -544,7 +544,7 @@ const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
   );
 })
 
-function GalleryModals({
+export function GalleryModals({
   isUploadOpen,
   setIsUploadOpen,
   activeGroupId,
@@ -575,11 +575,18 @@ function GalleryModals({
     <>
       {isUploadOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8"
           role="dialog"
           aria-modal="true"
           aria-label={t("common.upload_photo", "Upload a photo")}
         >
+          <button
+            type="button"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm border-0 cursor-default"
+            onClick={() => setIsUploadOpen(false)}
+            tabIndex={-1}
+            aria-label={t("common.close")}
+          />
           <div className="relative w-full max-w-4xl max-h-full overflow-y-auto bg-white dark:bg-background-dark rounded-3xl shadow-2xl">
             <button
               type="button"
