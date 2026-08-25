@@ -7,7 +7,7 @@ PixelLyra Frontend est l'interface utilisateur de la plateforme de gestion et pa
 ## 🚀 Fonctionnalités Principales
 
 - **Galerie & Modale Photo** : Affichage immersif des photos avec navigation fluide, réactions (likes optimistes), extraction EXIF/GPS et intégration de la carte interactive Leaflet.
-- **Téléversement & Tags** : Envoi d'images par glisser-déposer (dropzone), prévisualisation instantanée, catégorisation par groupes et système de mots-clés.
+- **Téléversement & Tags** : Envoi d'images par glisser-déposer (dropzone) dans une modale fermable par le bouton Fermer, le clic sur le fond (backdrop) ou Échap, prévisualisation instantanée, catégorisation par groupes et système de mots-clés.
 - **Gestion des Groupes & Invitations** : Création de groupes, demande d'accès, modales d'invitation et gestion administrative des membres.
 - **Espace Administrateur & Modération** : Interface d'administration pour la validation des demandes de groupe et le traitement des rapports d'images signalées.
 - **Internationalisation (i18n)** : Support bilingue dynamique (Français / Anglais) via `react-i18next`.
@@ -36,7 +36,7 @@ Démarre le serveur de développement Vite sur `http://localhost:5173`.
 Exécute la compilation de production et génère le paquet statique dans le dossier `dist`.
 
 ### `npm run test` (ou `npm run test -- --run`)
-Lance la suite de 43 tests unitaires, de composants et de contrat d'API avec Vitest et React Testing Library.
+Lance la suite de 47 tests unitaires, de composants et de contrat d'API avec Vitest et React Testing Library.
 
 ### `npm run test:e2e` (ou `npx playwright test`)
 Exécute la suite de 8 tests d'intégration End-to-End multi-navigateurs (Chromium et Firefox) avec Playwright.
