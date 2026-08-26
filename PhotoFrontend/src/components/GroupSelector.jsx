@@ -12,9 +12,22 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                 setIsOpen(false);
             }
         };
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' && isOpen) {
+                setIsOpen(false);
+                dropdownRef.current?.querySelector('button')?.focus();
+            }
+        };
+
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen]);
 
     if (!groups || groups.length === 0) {
         return null;
@@ -69,6 +82,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                             onClick={() => {
                                 onGroupSelect(groupId);
                                 setIsOpen(false);
+                                dropdownRef.current?.querySelector('button')?.focus();
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset ${
                                 isActive 
