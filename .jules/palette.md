@@ -22,3 +22,6 @@ Action: Always prefer semantic native `<button type="button">` over customized `
 2026-08-19 - Lazy loading images
 Learning: When rendering lists or grids of images in React (e.g., photo galleries), apply the `loading="lazy"` attribute to `<img>` tags to defer offscreen image loading, significantly improving initial load times and saving bandwidth.
 Action: Always add `loading="lazy"` to `<img />` tags in lists or grids to optimize loading performance.
+2026-08-29 - Accessible Dropdown Keyboard Navigation
+Learning: When implementing custom dropdown menus or conditionally hidden UI elements, include an Escape key handler to close the element and explicitly restore keyboard focus to the triggering element (e.g., via a React ref). This prevents keyboard focus from dropping to the document body when the menu collapses.
+Action: Attach a global keydown event listener for the Escape key when the menu is open, manage the state to close it, and use a ref attached to the trigger button to call .focus() upon closing.
