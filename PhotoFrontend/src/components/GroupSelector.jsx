@@ -5,6 +5,21 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const triggerBtnRef = useRef(null);
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (isOpen && event.key === 'Escape') {
+                setIsOpen(false);
+                triggerBtnRef.current?.focus();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+        }
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -34,6 +49,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                ref={triggerBtnRef}
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
