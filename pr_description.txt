@@ -1,3 +1,5 @@
-🎯 **What:** Added a missing error test for `GroupsController.RemoveMember` to verify that a 500 Internal Server Error is returned when an exception is thrown during database operations.
-📊 **Coverage:** The test simulates a database failure during `SaveChangesAsync` using a mocked `AppDbContext`, covering the error condition.
-✨ **Result:** Improved test reliability by ensuring the error path is thoroughly validated.
+💡 What: Added the `loading="lazy"` attribute to image lists in the frontend galleries (`Gallery.js` and `AdminDashboard.js`).
+
+🎯 Why: To defer loading of offscreen images during heavy unvirtualized renders, preventing the browser from eagerly downloading all gallery images at once.
+
+📊 Impact: Significantly improves initial page load times, reduces memory footprint, and saves network bandwidth.
