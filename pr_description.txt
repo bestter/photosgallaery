@@ -1,5 +1,0 @@
-💡 What: Added the `loading="lazy"` attribute to image lists in the frontend galleries (`Gallery.js` and `AdminDashboard.js`).
-
-🎯 Why: To defer loading of offscreen images during heavy unvirtualized renders, preventing the browser from eagerly downloading all gallery images at once.
-
-📊 Impact: Significantly improves initial page load times, reduces memory footprint, and saves network bandwidth.

@@ -1,4 +1,0 @@
-Add lazy loading to images to improve performance
-
-- Added `loading="lazy"` attribute to `<img>` tags in client-photo/client-photo/src/components/Gallery.js.
-- Added `loading="lazy"` attribute to `<img>` tags in client-photo/client-photo/src/components/AdminDashboard.js.
