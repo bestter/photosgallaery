@@ -7,3 +7,8 @@
 Vulnerability: Insecure Direct Object Reference (IDOR) allowed non-group members to delete photos belonging to a group they were not part of via the `DELETE /api/photos/{id}` endpoint.
 Learning: IDOR prevention code was already correctly applied to liking and reporting endpoints but overlooked in deletion. Group membership is tracked in `UserGroups`.
 Prevention: Ensure all endpoints handling entities associated with groups (like `Photos`) validate user group membership (via `UserGroups` table) before performing actions, unless the user is an Admin or explicitly authorized by another role.
+
+2026-09-12 - Fix Stale JWT Claims Authorization Bypass
+Vulnerability: Stale JWT claims allowed users with changed roles to bypass authorization because tokens were not invalidated when user roles were updated.
+Learning: JWTs are stateless and their claims can become stale if backend state changes before token expiration. A caching mechanism (like MemoryCache) checking the current role against the token's role claim is required to invalidate stale tokens.
+Prevention: Always validate critical claims (like user roles) against the current backend state or a distributed cache during token validation, and reject the token if the claims no longer match the current state.
