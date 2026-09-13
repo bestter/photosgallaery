@@ -5,6 +5,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -12,9 +13,19 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                 setIsOpen(false);
             }
         };
+        const handleKeyDown = (event) => {
+            if (isOpen && event.key === 'Escape') {
+                setIsOpen(false);
+                buttonRef.current?.focus();
+            }
+        };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen]);
 
     if (!groups || groups.length === 0) {
         return null;
@@ -35,6 +46,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
         <div className="relative" ref={dropdownRef}>
             <button
                 type="button"
+                ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
                 aria-label={t("components.group_selector.toggle_aria", { name: activeGroup.name || activeGroup.Name, defaultValue: "Select a group: {{name}}" })}
