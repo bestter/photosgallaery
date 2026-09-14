@@ -97,15 +97,27 @@ namespace PhotoAppApi.Services
                     {
                         var sb = new System.Text.StringBuilder();
                         sb.Append("UPDATE Photos SET ViewsCount = ViewsCount + CASE Id ");
+                        var parameters = new List<object>();
+                        int pIndex = 0;
+
                         foreach (var inc in increments)
                         {
-                            sb.Append($"WHEN {inc.PhotoId} THEN {inc.ViewCountToAdd} ");
+                            sb.Append($"WHEN {{{pIndex++}}} THEN {{{pIndex++}}} ");
+                            parameters.Add(inc.PhotoId);
+                            parameters.Add(inc.ViewCountToAdd);
                         }
                         sb.Append("ELSE 0 END WHERE Id IN (");
-                        sb.Append(string.Join(",", increments.Select(i => i.PhotoId)));
+
+                        var idIndices = new List<string>();
+                        foreach (var inc in increments)
+                        {
+                            idIndices.Add($"{{{pIndex++}}}");
+                            parameters.Add(inc.PhotoId);
+                        }
+                        sb.Append(string.Join(",", idIndices));
                         sb.Append(")");
 
-                        await dbContext.Database.ExecuteSqlRawAsync(sb.ToString(), stoppingToken);
+                        await dbContext.Database.ExecuteSqlRawAsync(sb.ToString(), parameters, stoppingToken);
                     }
 
                     // 3. Valider la transaction atomique (Tout ou Rien)

@@ -7,3 +7,8 @@
 Vulnerability: Insecure Direct Object Reference (IDOR) allowed non-group members to delete photos belonging to a group they were not part of via the `DELETE /api/photos/{id}` endpoint.
 Learning: IDOR prevention code was already correctly applied to liking and reporting endpoints but overlooked in deletion. Group membership is tracked in `UserGroups`.
 Prevention: Ensure all endpoints handling entities associated with groups (like `Photos`) validate user group membership (via `UserGroups` table) before performing actions, unless the user is an Admin or explicitly authorized by another role.
+
+2026-09-14 - Fix SQL Injection in PhotoViewProcessingWorker
+Vulnerability: Execution of raw SQL statements with string interpolation (`ExecuteSqlRawAsync($"...{value}...")`) exposed a theoretical SQL injection vulnerability in the batch update function.
+Learning: EF Core's `ExecuteSqlRawAsync` interprets `{0}`, `{1}` placeholders and generates secure parameterized queries.
+Prevention: Always use parameterized queries (via placeholders like `{0}` and a parameters array, or via `ExecuteSqlAsync` with interpolated strings properly handled by EF Core) when constructing dynamic raw SQL queries. Never concatenate variables directly into a raw SQL string.
