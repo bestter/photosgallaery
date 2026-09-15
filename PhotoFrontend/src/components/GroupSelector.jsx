@@ -5,7 +5,6 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const toggleButtonRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -17,14 +16,12 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
         const handleKeyDown = (event) => {
             if (event.key === 'Escape' && isOpen) {
                 setIsOpen(false);
-                toggleButtonRef.current?.focus();
+                dropdownRef.current?.querySelector('button')?.focus();
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
-        if (isOpen) {
-            document.addEventListener('keydown', handleKeyDown);
-        }
+        document.addEventListener('keydown', handleKeyDown);
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -50,7 +47,6 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
-                ref={toggleButtonRef}
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
@@ -86,7 +82,7 @@ const GroupSelector = ({ groups, activeGroupId, onGroupSelect }) => {
                             onClick={() => {
                                 onGroupSelect(groupId);
                                 setIsOpen(false);
-                                toggleButtonRef.current?.focus();
+                                dropdownRef.current?.querySelector('button')?.focus();
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset ${
                                 isActive 
