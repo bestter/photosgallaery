@@ -24,4 +24,4 @@ Learning: When rendering lists or grids of images in React (e.g., photo gallerie
 Action: Always add `loading="lazy"` to `<img />` tags in lists or grids to optimize loading performance.
 2026-08-26 - Keyboard Focus Restoration in Custom Dropdowns
 Learning: When building custom dropdowns that hide menu options upon closure, focus can be lost (dropping to the body) if not explicitly handled, which degrades keyboard accessibility.
-Action: Ensure an Escape key listener exists and use a React ref (e.g. `dropdownRef.current.querySelector('button').focus()`) to restore focus to the toggle button whenever the dropdown is closed by keyboard or item selection.
+Action: Ensure an Escape key listener exists and use a dedicated React ref (e.g. `toggleButtonRef.current?.focus()`) to restore focus to the toggle button whenever the dropdown is closed by keyboard or item selection.
