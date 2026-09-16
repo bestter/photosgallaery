@@ -95,26 +95,23 @@ namespace PhotoAppApi.Services
                     // B. UPDATE massif des compteurs optimisé en une seule requête SQL via CASE (Évite le N+1)
                     if (increments.Count > 0)
                     {
+                        var parameters = new List<object>();
+                        var inClausePlaceholders = new List<string>();
                         var sb = new System.Text.StringBuilder();
                         sb.Append("UPDATE Photos SET ViewsCount = ViewsCount + CASE Id ");
-                        var parameters = new List<object>();
-                        int pIndex = 0;
 
+                        int paramIndex = 0;
                         foreach (var inc in increments)
                         {
-                            sb.Append($"WHEN {{{pIndex++}}} THEN {{{pIndex++}}} ");
+                            sb.Append($"WHEN {{{paramIndex}}} THEN {{{paramIndex + 1}}} ");
                             parameters.Add(inc.PhotoId);
                             parameters.Add(inc.ViewCountToAdd);
+                            inClausePlaceholders.Add($"{{{paramIndex}}}");
+                            paramIndex += 2;
                         }
-                        sb.Append("ELSE 0 END WHERE Id IN (");
 
-                        var idIndices = new List<string>();
-                        foreach (var inc in increments)
-                        {
-                            idIndices.Add($"{{{pIndex++}}}");
-                            parameters.Add(inc.PhotoId);
-                        }
-                        sb.Append(string.Join(",", idIndices));
+                        sb.Append("ELSE 0 END WHERE Id IN (");
+                        sb.Append(string.Join(",", inClausePlaceholders));
                         sb.Append(")");
 
                         await dbContext.Database.ExecuteSqlRawAsync(sb.ToString(), parameters, stoppingToken);

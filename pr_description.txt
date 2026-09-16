@@ -1,3 +1,0 @@
-🎯 **What:** Added a missing error test for `GroupsController.RemoveMember` to verify that a 500 Internal Server Error is returned when an exception is thrown during database operations.
-📊 **Coverage:** The test simulates a database failure during `SaveChangesAsync` using a mocked `AppDbContext`, covering the error condition.
-✨ **Result:** Improved test reliability by ensuring the error path is thoroughly validated.

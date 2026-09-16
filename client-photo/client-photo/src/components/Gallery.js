@@ -116,6 +116,7 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
         }}
         alt={getFileName(photo.url)} 
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+        loading="lazy"
     />
 
     {/* 2. LA COUCHE MAGIQUE : Un voile transparent dédié uniquement à ouvrir l'image (z-index 10) */}
