@@ -96,26 +96,21 @@ namespace PhotoAppApi.Services
                     if (increments.Count > 0)
                     {
                         var parameters = new List<object>();
+                        var inClausePlaceholders = new List<string>();
                         var sb = new System.Text.StringBuilder();
                         sb.Append("UPDATE Photos SET ViewsCount = ViewsCount + CASE Id ");
 
                         int paramIndex = 0;
                         foreach (var inc in increments)
                         {
-                            sb.Append($"WHEN {{{paramIndex++}}} THEN {{{paramIndex++}}} ");
+                            sb.Append($"WHEN {{{paramIndex}}} THEN {{{paramIndex + 1}}} ");
                             parameters.Add(inc.PhotoId);
                             parameters.Add(inc.ViewCountToAdd);
+                            inClausePlaceholders.Add($"{{{paramIndex}}}");
+                            paramIndex += 2;
                         }
 
                         sb.Append("ELSE 0 END WHERE Id IN (");
-
-                        var inClausePlaceholders = new List<string>();
-                        foreach (var inc in increments)
-                        {
-                            inClausePlaceholders.Add($"{{{paramIndex++}}}");
-                            parameters.Add(inc.PhotoId);
-                        }
-
                         sb.Append(string.Join(",", inClausePlaceholders));
                         sb.Append(")");
 
