@@ -1,1 +1,0 @@
-Removed unused dependencies from both backend (PhotoAppApi.csproj) and frontend (PhotoFrontend/package.json), and fully tested.
