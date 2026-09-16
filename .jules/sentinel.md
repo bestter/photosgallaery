@@ -23,3 +23,8 @@ Vulnerability: SQL injection possible with string interpolation on ExecuteSqlRaw
 Learning: While parameters passed to ExecuteSqlRawAsync were mapped from integers, EF Core specifically warns against string interpolation as values to avoid SQL Injection vectors.
 Prevention: Use parameterized queries to pass dynamic arrays safely in raw SQL or ExecuteSqlAsync instead.
 
+2026-09-14 - Fix SQL Injection in PhotoViewProcessingWorker
+Vulnerability: Execution of raw SQL statements with string interpolation (`ExecuteSqlRawAsync($"...{value}...")`) exposed a theoretical SQL injection vulnerability in the batch update function.
+Learning: EF Core's `ExecuteSqlRawAsync` interprets `{0}`, `{1}` placeholders and generates secure parameterized queries.
+Prevention: Always use parameterized queries (via placeholders like `{0}` and a parameters array, or via `ExecuteSqlAsync` with interpolated strings properly handled by EF Core) when constructing dynamic raw SQL queries. Never concatenate variables directly into a raw SQL string.
+
