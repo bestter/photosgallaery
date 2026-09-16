@@ -217,7 +217,7 @@ const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map(report => (
                 <div key={report.reportId} className="border border-accent/20 rounded-lg overflow-hidden flex flex-col shadow-sm">
-                    <img src=  {`${imageBaseUrl}${report.photoUrl}`} alt="Signalée" className="w-full h-40 object-cover" />
+                    <img src=  {`${imageBaseUrl}${report.photoUrl}`} alt="Signalée" className="w-full h-40 object-cover" loading="lazy" />
                     <div className="p-4 bg-red-900/10 flex-grow">
                         <p className="text-sm text-red-500 font-bold mb-1">Motif :</p>
                         <p className="text-sm text-text-color italic mb-3">"{report.reason}"</p>
