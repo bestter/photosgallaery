@@ -1,0 +1,5 @@
+🧪 [testing improvement] Add error test for GroupsController.RemoveMember
+
+💡 What: Missing error test for GroupsController.RemoveMember was added.
+📊 Coverage: Added a test to verify that the method returns a 500 Internal Server Error when a database exception occurs.
+✨ Result: Increased test coverage and confidence by testing failure paths using Moq to mock `SaveChangesAsync`.
