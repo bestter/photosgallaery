@@ -18,9 +18,11 @@ describe('initializeGoogleAnalytics', () => {
     expect(script.async).toBe(true)
     expect(script.src).toBe('https://www.googletagmanager.com/gtag/js?id=G-TEST%20ID')
     expect(window.dataLayer).toHaveLength(2)
+    expect(Object.prototype.toString.call(window.dataLayer[0])).toBe('[object Arguments]')
     expect(window.dataLayer[0][0]).toBe('js')
     expect(window.dataLayer[0][1]).toBeInstanceOf(Date)
-    expect(window.dataLayer[1]).toEqual(['config', 'G-TEST ID'])
+    expect(Object.prototype.toString.call(window.dataLayer[1])).toBe('[object Arguments]')
+    expect(Array.from(window.dataLayer[1])).toEqual(['config', 'G-TEST ID'])
   })
 
   it.each([undefined, '', '   '])('does nothing when the measurement ID is missing', (measurementId) => {
