@@ -12,6 +12,8 @@ const getFileName = (url) => {
     return url.split('/').pop();
 };
 
+const SKELETON_ITEMS = Array.from({ length: 10 });
+
 const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Galerie Publique", hideUpload = false }) => {
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
@@ -90,7 +92,7 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
             )}
 
                 {isLoading ? (
-                    Array.from({ length: 10 }).map((_, index) => (
+                    SKELETON_ITEMS.map((_, index) => (
                         <div key={`skeleton-${index}`} className="flex flex-col gap-2">
                             <div className="w-full aspect-square bg-gray-200 animate-pulse rounded-xl"></div>
                             <div className="h-4 bg-gray-200 animate-pulse rounded w-1/2 mt-1"></div>
