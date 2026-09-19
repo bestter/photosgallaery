@@ -14,6 +14,59 @@ const getFileName = (url) => {
 
 const SKELETON_ITEMS = Array.from({ length: 10 });
 
+
+const PhotoCard = React.memo(({ photo, imageBaseUrl, setPicture, handleUserClick }) => {
+    return (
+        <div className="flex flex-col">
+            <div className="relative overflow-hidden rounded-xl shadow-md aspect-square bg-gray-100 group">
+                <img
+                    src={`${imageBaseUrl}/images/thumbnails/${getFileName(photo.url)}`}
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `${imageBaseUrl}${photo.url}`;
+                    }}
+                    alt={getFileName(photo.url)}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    loading="lazy"
+                />
+                <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => setPicture(photo)}
+                    title="Agrandir l'image"
+                ></div>
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 pointer-events-none z-20">
+                    <div className="flex flex-wrap gap-1 pointer-events-auto relative z-30">
+                        {photo.tags?.slice(0, 3).map((tag) => (
+                            <div key={tag.id} className="photo-tags-container">
+                                <PhotoTag tag={tag} />
+                            </div>
+                        ))}
+                        {photo.tags?.length > 3 && (
+                            <span className="text-xs text-white px-1 font-bold mt-0.5">
+                                +{photo.tags.length - 3}
+                            </span>
+                        )}
+                    </div>
+                    <div className="text-white text-xs truncate w-full text-center">
+                        {getFileName(photo.url)}
+                    </div>
+                </div>
+            </div>
+            {photo.uploaderUsername ? (
+                <p className="text-sm text-gray-500 mt-2 font-medium">
+                    Par{' '}
+                    <button
+                        onClick={() => handleUserClick(photo)}
+                        className="text-teal-600 hover:text-teal-800 hover:underline transition-colors cursor-pointer"
+                    >
+                        {photo.uploaderUsername}
+                    </button>
+                </p>
+            ) : null}
+        </div>
+    );
+});
+
 const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Galerie Publique", hideUpload = false }) => {
     const [photos, setPhotos] = useState([]);
     const [picture, setPicture] = useState(null);
@@ -104,67 +157,13 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
                     ) : (
                     
                     currentPhotos.map(photo => (
-                        <div key={photo.id} className="flex flex-col">
-                            {/* C'est ICI qu'on met la classe group pour détecter le survol */}
-                            {/* 1. On ENLÈVE le onClick et le cursor-pointer de ce conteneur parent */}
-<div className="relative overflow-hidden rounded-xl shadow-md aspect-square bg-gray-100 group">
-    
-    {/* L'image de fond */}
-    <img 
-        src={`${imageBaseUrl}/images/thumbnails/${getFileName(photo.url)}`} 
-        onError={(e) => {
-            e.target.onerror = null; 
-            e.target.src = `${imageBaseUrl}${photo.url}`; 
-        }}
-        alt={getFileName(photo.url)} 
-        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        loading="lazy"
-    />
-
-    {/* 2. LA COUCHE MAGIQUE : Un voile transparent dédié uniquement à ouvrir l'image (z-index 10) */}
-    <div 
-        className="absolute inset-0 z-10 cursor-pointer"
-        onClick={() => setPicture(photo)}
-        title="Agrandir l'image"
-    ></div>
-    
-    {/* 3. L'INTERFACE VISUELLE : Par-dessus le bouton invisible (z-index 20) */}
-    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 pointer-events-none z-20">
-        
-        {/* Les tags : On les place au sommet (z-index 30) et on réactive les clics */}
-        <div className="flex flex-wrap gap-1 pointer-events-auto relative z-30">
-            {photo.tags?.slice(0, 3).map((tag) => (
-                <div key={tag.id} className="photo-tags-container">
-                    <PhotoTag tag={tag} />
-                </div> 
-            ))}
-            
-            {photo.tags?.length > 3 && (
-                <span className="text-xs text-white px-1 font-bold mt-0.5">
-                    +{photo.tags.length - 3}
-                </span>
-            )}
-        </div>
-
-        {/* Le nom du fichier en bas */}
-        <div className="text-white text-xs truncate w-full text-center">
-            {getFileName(photo.url)}
-        </div>
-    </div>
-</div>
-                           
-                            {photo.uploaderUsername ? (
-    <p className="text-sm text-gray-500 mt-2 font-medium">
-        Par{' '}
-        <button 
-            onClick={() => handleUserClick(photo)}
-            className="text-teal-600 hover:text-teal-800 hover:underline transition-colors cursor-pointer"
-        >
-            {photo.uploaderUsername}
-        </button>
-    </p>
-) : null}
-                        </div>
+                        <PhotoCard
+                            key={photo.id}
+                            photo={photo}
+                            imageBaseUrl={imageBaseUrl}
+                            setPicture={setPicture}
+                            handleUserClick={handleUserClick}
+                        />
                     ))
                 )}
             </div>

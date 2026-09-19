@@ -3,6 +3,24 @@
     import toast from 'react-hot-toast';
     import ImageModal from './ImageModal'; // On importe ton modal !
 
+
+const LikedPhotoCard = React.memo(({ photo, username, imageBaseUrl, setSelectedPhoto }) => {
+    return (
+        <div
+            className="relative group cursor-pointer overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all aspect-square bg-gray-100"
+            onClick={() => setSelectedPhoto(photo)}
+        >
+            <img
+                src={`${imageBaseUrl}${photo.url || photo.fileName}`}
+                alt={`Aimée par ${username}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+        </div>
+    );
+});
+
     const UserLikesGallery = ({ username, token }) => {
         const [likedPhotos, setLikedPhotos] = useState([]);
         const [isLoading, setIsLoading] = useState(true);
@@ -53,21 +71,13 @@
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {likedPhotos.map(photo => (
-                            <div 
-                                key={photo.id} 
-                                className="relative group cursor-pointer overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all aspect-square bg-gray-100"
-                                onClick={() => setSelectedPhoto(photo)}
-                            >
-                                <img 
-                                    src={`${imageBaseUrl}${photo.url || photo.fileName}`} // Adapte selon le nom de ta propriété
-                                    alt={`Aimée par ${username}`}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    // ⚡ Bolt: Adding lazy loading to defer loading offscreen images, drastically improving initial page load time and saving bandwidth for users with many liked photos.
-                                    loading="lazy"
-                                />
-                                {/* Petit overlay au survol pour faire joli */}
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-                            </div>
+                            <LikedPhotoCard
+                                key={photo.id}
+                                photo={photo}
+                                username={username}
+                                imageBaseUrl={imageBaseUrl}
+                                setSelectedPhoto={setSelectedPhoto}
+                            />
                         ))}
                     </div>
                 )}
