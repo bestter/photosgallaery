@@ -561,15 +561,17 @@ export function GalleryModals({
   t
 }) {
   useEffect(() => {
-    if (!isUploadOpen) return;
+    if (!isUploadOpen && !isInviteOpen && !isGroupRequestOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
-        setIsUploadOpen(false);
+        if (isUploadOpen) setIsUploadOpen(false);
+        if (isInviteOpen) setIsInviteOpen(false);
+        if (isGroupRequestOpen) setIsGroupRequestOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isUploadOpen, setIsUploadOpen]);
+  }, [isUploadOpen, setIsUploadOpen, isInviteOpen, setIsInviteOpen, isGroupRequestOpen, setIsGroupRequestOpen]);
 
   return (
     <>
@@ -591,7 +593,7 @@ export function GalleryModals({
             <button
               type="button"
               onClick={() => setIsUploadOpen(false)}
-              className="absolute top-4 right-4 z-10 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+              className="absolute top-4 right-4 z-10 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-background-dark"
               aria-label={t("common.close", "Close")}
               title={t("common.close", "Close")}
             >
