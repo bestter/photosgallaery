@@ -561,17 +561,15 @@ export function GalleryModals({
   t
 }) {
   useEffect(() => {
-    if (!isUploadOpen && !isInviteOpen && !isGroupRequestOpen) return;
+    if (!isUploadOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
-        if (isUploadOpen) setIsUploadOpen(false);
-        if (isInviteOpen) setIsInviteOpen(false);
-        if (isGroupRequestOpen) setIsGroupRequestOpen(false);
+        setIsUploadOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isUploadOpen, setIsUploadOpen, isInviteOpen, setIsInviteOpen, isGroupRequestOpen, setIsGroupRequestOpen]);
+  }, [isUploadOpen, setIsUploadOpen]);
 
   return (
     <>
