@@ -25,3 +25,6 @@ Action: Always add `loading="lazy"` to `<img />` tags in lists or grids to optim
 2026-08-26 - Keyboard Focus Restoration in Custom Dropdowns
 Learning: When building custom dropdowns that hide menu options upon closure, focus can be lost (dropping to the body) if not explicitly handled, which degrades keyboard accessibility.
 Action: Ensure an Escape key listener exists and use a dedicated React ref (e.g. `toggleButtonRef.current?.focus()`) to restore focus to the toggle button whenever the dropdown is closed by keyboard or item selection.
+2026-09-21 - Standardize Modal Close Button Focus State
+Learning: Using `focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2` classes is the standard pattern for accessible interactive focus rings in this project's dark/light modes.
+Action: Ensure all standalone icon close buttons use these focus classes for WCAG compliance.
