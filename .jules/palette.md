@@ -28,3 +28,7 @@ Action: Ensure an Escape key listener exists and use a dedicated React ref (e.g.
 2026-09-21 - Standardize Modal Close Button Focus State
 Learning: Using `focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2` classes is the standard pattern for accessible interactive focus rings in this project's dark/light modes.
 Action: Ensure all standalone icon close buttons use these focus classes for WCAG compliance.
+
+2026-09-24 - [Add Screen Reader Support for Image Modal]
+Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
+Action: Ensure div elements rendering background images acting as primary content possess role='img' and an appropriate aria-label mapping.
