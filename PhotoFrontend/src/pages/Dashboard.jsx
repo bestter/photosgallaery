@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useDeferredValue, useRef } from "react";
+import React, { useState, useEffect, useMemo, useDeferredValue, useRef, useCallback } from "react";
 import {
   getUserRole,
   isTokenExpired,
@@ -48,7 +48,9 @@ function DashboardStats({ loading, usersCount, activeCreatorsCount, t }) {
   );
 }
 
-function DashboardUserRow({ user, currentUsername, updatingUserId, handleRoleUpdate, t }) {
+// ⚡ Bolt: Wrapped DashboardUserRow in React.memo to prevent unnecessary re-renders of list items.
+// This avoids re-rendering every row in the table when unrelated state changes in the Dashboard.
+const DashboardUserRow = React.memo(function DashboardUserRow({ user, currentUsername, updatingUserId, handleRoleUpdate, t }) {
   const userId = user.id || user.Id;
   const username = user.username || user.Username;
   const email = user.email || user.Email;
@@ -268,7 +270,7 @@ function DashboardUserRow({ user, currentUsername, updatingUserId, handleRoleUpd
       </td>
     </tr>
   );
-}
+});
 
 function DashboardUserTable({ loading, filteredUsers, currentUsername, updatingUserId, handleRoleUpdate, t }) {
   return (
@@ -469,7 +471,9 @@ export default function Dashboard() {
     };
   }, [deferredSearchTerm]);
 
-  const handleRoleUpdate = async (userId, newRole) => {
+  // ⚡ Bolt: Wrapped handleRoleUpdate in useCallback so its reference remains stable across renders.
+  // This is required for React.memo to successfully prevent re-renders on DashboardUserRow.
+  const handleRoleUpdate = useCallback(async (userId, newRole) => {
     setUpdatingUserId(userId);
     try {
       await api.put(`/admin/users/${userId}/role`, { role: newRole });
@@ -486,7 +490,7 @@ export default function Dashboard() {
     } finally {
       setUpdatingUserId(null);
     }
-  };
+  }, [t]);
 
   const topActions = (
     <div className="flex items-center gap-4 flex-1 max-w-xl mr-auto">
