@@ -435,10 +435,11 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Left Section: Large Image */}
                     <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
-                        <div
-                            className="absolute inset-[#0] bg-center bg-no-repeat bg-contain"
-                            style={{ backgroundImage: `url('${imgSrc}')` }}
-                        ></div>
+                        <img
+                            src={imgSrc}
+                            alt={photo.title || t("components.image_modal.dialog_label", "Image details")}
+                            className="w-full h-full object-contain"
+                        />
 
                         {/* Navigation Arrows */}
                         {onPrev && (
