@@ -11,3 +11,7 @@ Action: Replace unbounded Task.Run with bounded Parallel.ForEachAsync (setting M
 2026-08-19 - React Memoization on Gallery Bento Grid
 Learning: When rendering large lists of images in React, individual card components rendered via mapping should be wrapped in React.memo to prevent heavy DOM reconciliations when unrelated parent state changes.
 Action: Look for map functions inside grids or lists where complex React components are rendered without memoization.
+
+2026-10-07 - React.memo Optimization
+Learning: Inline objects passed as props defeat React.memo optimizations because they create a new reference on every render, causing unnecessary re-renders.
+Action: Always wrap object literal props in useMemo when passing them to memoized components.
