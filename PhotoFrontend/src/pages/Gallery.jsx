@@ -861,6 +861,13 @@ export default function Gallery() {
   const { t } = useTranslation();
   const state = useGalleryState(t);
 
+  const gridStateMemo = useMemo(() => ({
+    isLoading: state.isLoading,
+    hasMore: state.hasMore,
+    isFetchingMore: state.isFetchingMore,
+    canUpload: state.canUpload,
+  }), [state.isLoading, state.hasMore, state.isFetchingMore, state.canUpload]);
+
   return (
     <div className="bg-[#0f2323] font-sans text-slate-100 min-h-screen flex flex-col relative">
       <GalleryHeader
@@ -939,12 +946,7 @@ export default function Gallery() {
         {/* Bento Grid */}
         <GalleryBentoGrid
           filteredPhotos={state.filteredPhotos}
-          gridState={{
-            isLoading: state.isLoading,
-            hasMore: state.hasMore,
-            isFetchingMore: state.isFetchingMore,
-            canUpload: state.canUpload,
-          }}
+          gridState={gridStateMemo}
           onLoadMore={state.handleLoadMore}
           setSelectedPhotoIndex={state.setSelectedPhotoIndex}
           setSelectedAuthor={state.setSelectedAuthor}
