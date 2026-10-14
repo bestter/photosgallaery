@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
-using log4net.Config;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
 using PhotoAppApi.Services;
@@ -10,20 +9,41 @@ using Xunit;
 
 namespace PhotoAppApi.Tests.Services
 {
-    public class MockEmailServiceTests
+    [CollectionDefinition("Mock email logging", DisableParallelization = true)]
+    public class MockEmailLoggingCollection
+    {
+    }
+
+    [Collection("Mock email logging")]
+    public class MockEmailServiceTests : IDisposable
     {
         private readonly TestMemoryAppender _appender;
         private readonly MockEmailService _service;
+        private readonly Hierarchy _hierarchy;
+        private readonly Logger _logger;
+        private readonly Level? _previousLevel;
+        private readonly bool _previousConfigured;
 
         public MockEmailServiceTests()
         {
-            var hierarchy = (Hierarchy)LogManager.GetRepository();
-            hierarchy.Root.RemoveAllAppenders();
-
+            _hierarchy = (Hierarchy)LogManager.GetRepository(typeof(MockEmailService).Assembly);
+            _logger = (Logger)_hierarchy.GetLogger(typeof(MockEmailService).FullName!);
+            _previousLevel = _logger.Level;
+            _previousConfigured = _hierarchy.Configured;
             _appender = new TestMemoryAppender();
-            BasicConfigurator.Configure(hierarchy, _appender);
+            _logger.AddAppender(_appender);
+            _logger.Level = Level.Info;
+            _hierarchy.Configured = true;
 
             _service = new MockEmailService();
+        }
+
+        public void Dispose()
+        {
+            _logger.RemoveAppender(_appender);
+            _appender.Close();
+            _logger.Level = _previousLevel;
+            _hierarchy.Configured = _previousConfigured;
         }
 
         [Fact]
