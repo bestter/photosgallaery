@@ -71,7 +71,7 @@
 
 * **Audit de l'existant :** Avant toute modification, vérifier systématiquement si des tests existent déjà pour le code ciblé (**xUnit** pour le backend C# dans `PhotoAppApi.Tests`, **Vitest** et **Playwright** pour le frontend React dans `PhotoFrontend`, **Pytest** pour le microservice IA dans `moderation-service`). Si la logique métier change, ces tests doivent impérativement être mis à jour pour éviter toute régression.
 * **Exécution systématique :**
-  - **Backend** : `dotnet test` (167 tests d'intégration, unitaires et contrats OpenAPI).
+  - **Backend** : `dotnet test` (173 tests d'intégration, unitaires et contrats OpenAPI).
   - **Frontend (Unitaires & Contrat)** : `npm run test -- --run` (65 tests unitaires et de contrat client).
   - **Frontend (End-to-End)** : `npm run test:e2e` ou `npx playwright test` (8 tests E2E multi-navigateurs Chromium & Firefox).
   - **Microservice IA** : `py -m pytest` (11 tests unitaires dans `moderation-service`).
