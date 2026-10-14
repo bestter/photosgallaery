@@ -31,4 +31,4 @@ Action: Ensure all standalone icon close buttons use these focus classes for WCA
 
 2026-09-24 - [Add Screen Reader Support for Image Modal]
 Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
-Action: Ensure div elements rendering background images acting as primary content possess role='img' and an appropriate aria-label mapping.
+Action: Ensure div elements rendering background images acting as primary content possess role='img' and a contextualized accessible name (e.g. photo by author) rather than duplicating the modal dialog title.

@@ -439,7 +439,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                             className="absolute inset-[#0] bg-center bg-no-repeat bg-contain"
                             style={{ backgroundImage: `url('${imgSrc}')` }}
                             role="img"
-                            aria-label={photo.title || t("components.image_modal.dialog_label", "Image details")}
+                            aria-label={photo.title || t("gallery.photo_by", { author })}
                         ></div>
 
                         {/* Navigation Arrows */}
