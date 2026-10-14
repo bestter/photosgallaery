@@ -37,7 +37,7 @@ Le projet met en œuvre des fonctionnalités avancées :
 * **Traitement d'images** : SixLabors.ImageSharp.
 * **Workers de Fond** : `PhotoViewProcessingWorker` (`BoundedChannel`) & `HashCalculationBackgroundService`.
 * **Logging** : Log4net (`AddLog4net`).
-* **Tests** : xUnit (160 tests unitaires, d'intégration et de contrat OpenAPI).
+* **Tests** : xUnit (167 tests unitaires, d'intégration et de contrat OpenAPI).
 
 ### 3. Microservice de Modération (`moderation-service`)
 * **Framework** : FastAPI + Python 3.10+.
@@ -113,14 +113,14 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   ```bash
   dotnet test
   ```
-  *(Inclut 160 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
+  *(Inclut 167 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
 
 * **Tests Frontend (Vitest Unitaires & Contrat)** :
   ```bash
   cd PhotoFrontend
   npm run test -- --run
   ```
-  *(Inclut 43 tests unitaires de composants, helpers et contrat client API)*
+  *(Inclut 65 tests unitaires de composants, helpers et contrat client API)*
 
 * **Tests Frontend End-to-End (Playwright E2E)** :
   ```bash
