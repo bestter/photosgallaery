@@ -861,7 +861,7 @@ export default function Gallery() {
   const { t } = useTranslation();
   const state = useGalleryState(t);
 
-  const memoizedGridState = useMemo(() => ({
+  const gridStateMemo = useMemo(() => ({
     isLoading: state.isLoading,
     hasMore: state.hasMore,
     isFetchingMore: state.isFetchingMore,
@@ -946,7 +946,7 @@ export default function Gallery() {
         {/* Bento Grid */}
         <GalleryBentoGrid
           filteredPhotos={state.filteredPhotos}
-          gridState={memoizedGridState}
+          gridState={gridStateMemo}
           onLoadMore={state.handleLoadMore}
           setSelectedPhotoIndex={state.setSelectedPhotoIndex}
           setSelectedAuthor={state.setSelectedAuthor}
