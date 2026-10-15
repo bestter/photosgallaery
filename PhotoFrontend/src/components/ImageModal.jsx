@@ -437,7 +437,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                     <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
                         <img
                             src={imgSrc}
-                            alt={photo.title || t("components.image_modal.dialog_label", "Image details")}
+                            alt={photo.title || t("gallery.photo_by", { author })}
                             className="absolute inset-0 w-full h-full object-contain"
                         />
 
