@@ -84,14 +84,16 @@ describe('ImageModal', () => {
         expect(dialog).toHaveAttribute('aria-label', 'Image details');
     });
 
-    it('renders the background image container with role="img" and contextualized aria-label', () => {
+    it('renders a semantic image with a contextualized alt description', () => {
         render(<ImageModal {...defaultProps} />);
         const img = screen.getByRole('img', { name: 'Photo by alice' });
         expect(img).toBeInTheDocument();
-        expect(img).toHaveStyle({ backgroundImage: "url('https://example.com/test-large.jpg')" });
+        expect(img.tagName).toBe('IMG');
+        expect(img).toHaveAttribute('src', 'https://example.com/test-large.jpg');
+        expect(img).toHaveAttribute('alt', 'Photo by alice');
     });
 
-    it('uses photo.title as aria-label for role="img" if present', () => {
+    it('uses photo.title as the image alt description if present', () => {
         const photoWithTitle = { ...mockPhoto, title: 'Sunset at the Beach' };
         render(<ImageModal {...defaultProps} photo={photoWithTitle} />);
         const img = screen.getByRole('img', { name: 'Sunset at the Beach' });
