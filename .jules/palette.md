@@ -31,3 +31,11 @@ Action: Ensure all standalone icon close buttons use these focus classes for WCA
 2026-10-12 - Replaced CSS Background Image with Semantic Img Tag
 Learning: Using CSS background-image hides meaningful content from screen readers. Semantic <img> elements with alt attributes improve accessibility.
 Action: Use <img> with object-fit styles instead of background-image for important visuals.
+
+2026-09-30 - Replace CSS background images with semantic img tags
+Learning: Avoid using CSS `background-image` (e.g., via Tailwind or inline styles) for meaningful content like gallery images. Use semantic `<img>` elements to ensure screen reader visibility.
+Action: When displaying meaningful images, use an `<img>` tag with a descriptive `alt` attribute (or an empty `alt` if decorative) instead of a `div` with a `backgroundImage` style. This also enables native browser features like "Save Image As...".
+
+2026-09-24 - [Add Screen Reader Support for Image Modal]
+Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
+Action: Ensure div elements rendering background images acting as primary content possess role='img' and a contextualized accessible name (e.g. photo by author) rather than duplicating the modal dialog title.
