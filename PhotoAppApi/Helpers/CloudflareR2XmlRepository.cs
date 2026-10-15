@@ -188,7 +188,8 @@ namespace PhotoAppApi.Helpers
             // AWS S3 DeleteObjects allows up to 1000 keys per request
             for (int i = 0; i < keysToDelete.Count; i += 1000)
             {
-                var batch = keysToDelete.Skip(i).Take(1000).ToList();
+                // ⚡ Bolt: Use GetRange instead of Skip().Take() to avoid O(N^2) complexity during chunking
+                var batch = keysToDelete.GetRange(i, Math.Min(1000, keysToDelete.Count - i));
                 try
                 {
                     var deleteRequest = new DeleteObjectsRequest

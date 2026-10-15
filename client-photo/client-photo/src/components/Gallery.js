@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import ImageModal from './ImageModal';
 import Button from './Button';
 import Upload from './Upload'; 
@@ -113,9 +113,10 @@ const Gallery = ({ refreshTrigger, token, setToken, customEndpoint, title = "Gal
 
     const imageBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5020' : '';
 
-    const handleUserClick = (photo) => {    
-    navigate(`/user/${photo.uploaderUsername}`); // 2. On change de page
-};
+    // ⚡ Bolt: Wrapping handleUserClick in useCallback ensures a stable function reference is passed to PhotoCard, allowing React.memo to prevent unnecessary re-renders of list items when parent state changes.
+    const handleUserClick = useCallback((photo) => {
+        navigate(`/user/${photo.uploaderUsername}`);
+    }, [navigate]);
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
