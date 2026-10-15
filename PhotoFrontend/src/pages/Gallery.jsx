@@ -861,8 +861,7 @@ export default function Gallery() {
   const { t } = useTranslation();
   const state = useGalleryState(t);
 
-  // ⚡ Bolt: Wrapped inline object prop in useMemo to maintain a stable reference and prevent unnecessary re-renders of the memoized GalleryBentoGrid component.
-  const gridState = useMemo(() => ({
+  const gridStateMemo = useMemo(() => ({
     isLoading: state.isLoading,
     hasMore: state.hasMore,
     isFetchingMore: state.isFetchingMore,
@@ -947,7 +946,7 @@ export default function Gallery() {
         {/* Bento Grid */}
         <GalleryBentoGrid
           filteredPhotos={state.filteredPhotos}
-          gridState={gridState}
+          gridState={gridStateMemo}
           onLoadMore={state.handleLoadMore}
           setSelectedPhotoIndex={state.setSelectedPhotoIndex}
           setSelectedAuthor={state.setSelectedAuthor}
