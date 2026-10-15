@@ -18,3 +18,7 @@ Action: Always verify and stabilize the references of function props using `useC
 2026-10-07 - React.memo Optimization
 Learning: Inline objects passed as props defeat React.memo optimizations because they create a new reference on every render, causing unnecessary re-renders.
 Action: Always wrap object literal props in useMemo when passing them to memoized components.
+
+2026-10-15 - Batched EF Core inserts
+Learning: When inserting multiple new entities using EF Core within a loop, calling .Add() on every iteration incurs DbContext overhead. Wait, no, calling AddRange is faster.
+Action: Accumulate objects in a List and call .AddRange() outside the loop instead of calling .Add() on every iteration to reduce DbContext overhead.
