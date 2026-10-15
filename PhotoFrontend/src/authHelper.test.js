@@ -32,6 +32,73 @@ describe('authHelper', () => {
             });
         });
 
+
+        it('should handle alternative role claim keys and mappings (Admin)', () => {
+            jwtDecode.mockReturnValue({
+                'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': '9999',
+                unique_name: 'adminuser',
+                exp: 1234567890
+            });
+
+            saveUserSession('fake-token');
+
+            const userInfo = JSON.parse(localStorage.getItem('user_info:v1'));
+            expect(userInfo.role).toBe('Admin');
+        });
+
+        it('should handle alternative role claim keys and mappings (Creator)', () => {
+            jwtDecode.mockReturnValue({
+                'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': '1',
+                unique_name: 'creatoruser',
+                exp: 1234567890
+            });
+
+            saveUserSession('fake-token');
+
+            const userInfo = JSON.parse(localStorage.getItem('user_info:v1'));
+            expect(userInfo.role).toBe('Creator');
+        });
+
+        it('should handle alternative username claim keys (name claim)', () => {
+            jwtDecode.mockReturnValue({
+                role: 'User',
+                'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name': 'name_claim_user',
+                exp: 1234567890
+            });
+
+            saveUserSession('fake-token');
+
+            const userInfo = JSON.parse(localStorage.getItem('user_info:v1'));
+            expect(userInfo.username).toBe('name_claim_user');
+        });
+
+        it('should handle alternative username claim keys (sub)', () => {
+            jwtDecode.mockReturnValue({
+                role: 'User',
+                sub: 'sub_claim_user',
+                exp: 1234567890
+            });
+
+            saveUserSession('fake-token');
+
+            const userInfo = JSON.parse(localStorage.getItem('user_info:v1'));
+            expect(userInfo.username).toBe('sub_claim_user');
+        });
+
+        it('should handle jwtDecode exceptions gracefully', () => {
+            jwtDecode.mockImplementation(() => {
+                throw new Error('Invalid token');
+            });
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            saveUserSession('invalid-token');
+
+            expect(localStorage.getItem('user_info:v1')).toBeNull();
+            expect(consoleSpy).toHaveBeenCalledWith('Error saving user session:', expect.any(Error));
+
+            consoleSpy.mockRestore();
+        });
+
         it('should handle missing token safely', () => {
             saveUserSession(null);
             expect(localStorage.getItem('user_info:v1')).toBeNull();
