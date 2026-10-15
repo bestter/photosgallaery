@@ -275,6 +275,7 @@
       "toggle_title": "Select a group"
     },
     "image_modal": {
+      "dialog_label": "Image details",
       "download": {
         "preparing": "Preparing download...",
         "success": "Download successful!",
