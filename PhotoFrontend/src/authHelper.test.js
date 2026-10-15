@@ -36,6 +36,30 @@ describe('authHelper', () => {
             saveUserSession(null);
             expect(localStorage.getItem('user_info:v1')).toBeNull();
         });
+
+        it('should handle localStorage error gracefully', () => {
+            jwtDecode.mockReturnValue({
+                role: 'Admin',
+                unique_name: 'testuser',
+                exp: 1234567890
+            });
+
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            vi.stubGlobal('localStorage', {
+                setItem: vi.fn(() => { throw new Error('localStorage is full'); }),
+                getItem: vi.fn(),
+                removeItem: vi.fn(),
+                clear: vi.fn()
+            });
+
+            saveUserSession('fake-token');
+
+            expect(consoleSpy).toHaveBeenCalledWith('Error saving user session:', expect.any(Error));
+
+            vi.unstubAllGlobals();
+            vi.restoreAllMocks();
+        });
     });
 
     describe('clearUserSession', () => {
