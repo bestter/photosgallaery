@@ -28,6 +28,10 @@ Action: Ensure an Escape key listener exists and use a dedicated React ref (e.g.
 2026-09-21 - Standardize Modal Close Button Focus State
 Learning: Using `focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2` classes is the standard pattern for accessible interactive focus rings in this project's dark/light modes.
 Action: Ensure all standalone icon close buttons use these focus classes for WCAG compliance.
-2026-10-02 - Use semantic img element for accessibility
-Learning: Avoid using CSS `background-image` (e.g., via Tailwind or inline styles) for meaningful content like gallery images. Semantic `<img>` elements with descriptive `alt` attributes ensure screen reader visibility and support native browser context menus.
-Action: Replace `div` elements with `background-image` with semantic `<img>` elements and `object-fit: contain` when displaying gallery or modal images.
+2026-09-30 - Replace CSS background images with semantic img tags
+Learning: Avoid using CSS `background-image` (e.g., via Tailwind or inline styles) for meaningful content like gallery images. Use semantic `<img>` elements to ensure screen reader visibility.
+Action: When displaying meaningful images, use an `<img>` tag with a descriptive `alt` attribute (or an empty `alt` if decorative) instead of a `div` with a `backgroundImage` style. This also enables native browser features like "Save Image As...".
+
+2026-09-24 - [Add Screen Reader Support for Image Modal]
+Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
+Action: Ensure div elements rendering background images acting as primary content possess role='img' and a contextualized accessible name (e.g. photo by author) rather than duplicating the modal dialog title.
