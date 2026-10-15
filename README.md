@@ -5,7 +5,8 @@ PixelLyra est une application web moderne et performante de gestion, partage et 
 Le projet met en œuvre des fonctionnalités avancées :
 - **Traitement asynchrone d'images** : génération de miniatures, conversion de formats et extraction de métadonnées EXIF/GPS via ImageSharp.
 - **Modération automatique par IA** : analyse en temps réel du contenu des images via un microservice dédié FastAPI exploitant le modèle Hugging Face `Falconsai/nsfw_image_detection`.
-- **Incrémentation haute performance** : enregistrement des vues par file d'attente asynchrone bornée (`BoundedChannel<PhotoViewEvent>`) et traitement en arrière-pla- **Authentification & Sécurité renforcées** : authentification par jetons JWT (stockés dans des cookies sécurisés `SameSite/HttpOnly`), invalidation temps réel des sessions suspendues/modifiées via `IMemoryCache`, protection contre le CSRF (`X-CSRF-TOKEN`) avec rafraîchissement automatique et rejeu transparent des requêtes, limitation du débit (Rate Limiting par IP/Utilisateur) et en-têtes de sécurité stricts (CSP, HSTS, X-Frame-Options).
+- **Incrémentation haute performance** : enregistrement des vues par file d'attente asynchrone bornée (`BoundedChannel<PhotoViewEvent>`) et traitement en arrière-plan.
+- **Authentification & Sécurité renforcées** : authentification par jetons JWT (stockés dans des cookies sécurisés `SameSite/HttpOnly`), invalidation temps réel des sessions suspendues/modifiées via `IMemoryCache`, protection contre le CSRF (`X-CSRF-TOKEN`) avec rafraîchissement automatique et rejeu transparent des requêtes, limitation du débit (Rate Limiting par IP/Utilisateur) et en-têtes de sécurité stricts (CSP, HSTS, X-Frame-Options).
 - **Stockage Objets R2/S3 & Clés Data Protection** : intégration AWS SDK S3 pour le stockage des fichiers et persistance des clés ASP.NET DataProtection sur Cloudflare R2.
 - **Internationalisation (i18n)** : support bilingue complet (Français et Anglais) géré via `react-i18next` sans texte en dur dans l'interface.
 
@@ -13,10 +14,10 @@ Le projet met en œuvre des fonctionnalités avancées :
 
 ## 📖 Liens et Documentation Clés
 
-* **[Conventions de Développement pour Agent IA (AGENTS.md)](file:///C:/Users/marti/source/repos/PhotoApp/AGENTS.md)** : Directives strictes pour les agents de développement, règles de commit et processus de validation.
-* **[Configuration Antigravity - API Backend (PhotoAppApi/ANTIGRAVITY.md)](file:///C:/Users/marti/source/repos/PhotoApp/PhotoAppApi/ANTIGRAVITY.md)** : Directives et comportements spécifiques au backend C# / ASP.NET Core.
-* **[Configuration Antigravity - Frontend (PhotoFrontend/ANTIGRAVITY.md)](file:///C:/Users/marti/source/repos/PhotoApp/PhotoFrontend/ANTIGRAVITY.md)** : Directives et comportements spécifiques au frontend React / Vite.
-* **[Design System « Cyanide Glass » (PhotoFrontend/DESIGN.md)](file:///C:/Users/marti/source/repos/PhotoApp/PhotoFrontend/DESIGN.md)** : Charte graphique cyberpunk glassmorphism, tokens de couleurs, typographies et composants UI.
+* **[Conventions de Développement pour Agent IA (AGENTS.md)](AGENTS.md)** : Directives strictes pour les agents de développement, règles de commit et processus de validation.
+* **[Configuration Antigravity - API Backend (PhotoAppApi/ANTIGRAVITY.md)](PhotoAppApi/ANTIGRAVITY.md)** : Directives et comportements spécifiques au backend C# / ASP.NET Core.
+* **[Configuration Antigravity - Frontend (PhotoFrontend/ANTIGRAVITY.md)](PhotoFrontend/ANTIGRAVITY.md)** : Directives et comportements spécifiques au frontend React / Vite.
+* **[Design System « Cyanide Glass » (PhotoFrontend/DESIGN.md)](PhotoFrontend/DESIGN.md)** : Charte graphique cyberpunk glassmorphism, tokens de couleurs, typographies et composants UI.
 
 ---
 
@@ -37,7 +38,7 @@ Le projet met en œuvre des fonctionnalités avancées :
 * **Traitement d'images** : SixLabors.ImageSharp.
 * **Workers de Fond** : `PhotoViewProcessingWorker` (`BoundedChannel`) & `HashCalculationBackgroundService`.
 * **Logging** : Log4net (`AddLog4net`).
-* **Tests** : xUnit (160 tests unitaires, d'intégration et de contrat OpenAPI).
+* **Tests** : xUnit (173 tests unitaires, d'intégration et de contrat OpenAPI).
 
 ### 3. Microservice de Modération (`moderation-service`)
 * **Framework** : FastAPI + Python 3.10+.
@@ -113,14 +114,14 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   ```bash
   dotnet test
   ```
-  *(Inclut 160 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
+  *(Inclut 173 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
 
 * **Tests Frontend (Vitest Unitaires & Contrat)** :
   ```bash
   cd PhotoFrontend
   npm run test -- --run
   ```
-  *(Inclut 43 tests unitaires de composants, helpers et contrat client API)*
+  *(Inclut 65 tests unitaires de composants, helpers et contrat client API)*
 
 * **Tests Frontend End-to-End (Playwright E2E)** :
   ```bash
@@ -133,8 +134,6 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   ```bash
   cd moderation-service
   py -m pytest
-  ```
-  *(Inclut 11 tests unitaires et de validation de l'authentification X-API-Key)*-m pytest
   ```
   *(Inclut 11 tests unitaires et de validation de l'authentification X-API-Key)*
 
