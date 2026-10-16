@@ -158,3 +158,16 @@ def test_decompression_bomb(mock_to_thread):
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Image exceeds maximum allowed dimensions"
+
+def test_load_image_success():
+    dummy_bytes = create_dummy_image_bytes()
+    image = main.load_image(dummy_bytes)
+    assert isinstance(image, Image.Image)
+    assert image.mode == "RGB"
+    assert image.size == (10, 10)
+
+def test_load_image_invalid_data():
+    invalid_bytes = b"not an image"
+    from PIL import UnidentifiedImageError
+    with pytest.raises(UnidentifiedImageError):
+        main.load_image(invalid_bytes)
