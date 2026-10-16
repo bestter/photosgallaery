@@ -41,9 +41,11 @@ public class HashCalculationBackgroundService : BackgroundService
 
                         var rootContentPath = env.ContentRootPath;
                         var privateImagesFolder = Path.Combine(rootContentPath, "PrivateImages");
+                        var fullPrivateImagesFolder = Path.GetFullPath(privateImagesFolder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
                         var rootWebPath = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                         var publicImagesFolder = Path.Combine(rootWebPath, "images");
+                        var fullPublicImagesFolder = Path.GetFullPath(publicImagesFolder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
                         // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) to parallelize CPU/IO bound hashing operations.
                         await Parallel.ForEachAsync(photosWithoutHash, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = stoppingToken }, async (photo, ct) =>
@@ -56,11 +58,14 @@ public class HashCalculationBackgroundService : BackgroundService
                             }
 
                             var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
-                            var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
-                            var publicFilePath = Path.Combine(publicImagesFolder, safeFileName);
+                            var privateFilePath = Path.GetFullPath(Path.Combine(privateImagesFolder, safeFileName));
+                            var publicFilePath = Path.GetFullPath(Path.Combine(publicImagesFolder, safeFileName));
 
-                            var filePath = File.Exists(privateFilePath) ? privateFilePath :
-                                           File.Exists(publicFilePath) ? publicFilePath : null;
+                            bool isPrivateValid = privateFilePath.StartsWith(fullPrivateImagesFolder, StringComparison.OrdinalIgnoreCase);
+                            bool isPublicValid = publicFilePath.StartsWith(fullPublicImagesFolder, StringComparison.OrdinalIgnoreCase);
+
+                            var filePath = (isPrivateValid && File.Exists(privateFilePath)) ? privateFilePath :
+                                           (isPublicValid && File.Exists(publicFilePath)) ? publicFilePath : null;
 
                             if (filePath != null)
                             {
