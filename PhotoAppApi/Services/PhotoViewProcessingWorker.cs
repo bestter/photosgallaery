@@ -92,29 +92,15 @@ namespace PhotoAppApi.Services
                     await dbContext.PhotoViews.AddRangeAsync(viewLogs, stoppingToken);
                     await dbContext.SaveChangesAsync(stoppingToken);
 
-                    // B. UPDATE massif des compteurs optimisé en une seule requête SQL via CASE (Évite le N+1)
+                    // B. UPDATE des compteurs de vues via les méthodes natives d'EF Core
                     if (increments.Count > 0)
                     {
-                        var parameters = new List<object>();
-                        var inClausePlaceholders = new List<string>();
-                        var sb = new System.Text.StringBuilder();
-                        sb.Append("UPDATE Photos SET ViewsCount = ViewsCount + CASE Id ");
-
-                        int paramIndex = 0;
                         foreach (var inc in increments)
                         {
-                            sb.Append($"WHEN {{{paramIndex}}} THEN {{{paramIndex + 1}}} ");
-                            parameters.Add(inc.PhotoId);
-                            parameters.Add(inc.ViewCountToAdd);
-                            inClausePlaceholders.Add($"{{{paramIndex}}}");
-                            paramIndex += 2;
+                            await dbContext.Photos
+                                .Where(p => p.Id == inc.PhotoId)
+                                .ExecuteUpdateAsync(s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + inc.ViewCountToAdd), stoppingToken);
                         }
-
-                        sb.Append("ELSE 0 END WHERE Id IN (");
-                        sb.Append(string.Join(",", inClausePlaceholders));
-                        sb.Append(")");
-
-                        await dbContext.Database.ExecuteSqlRawAsync(sb.ToString(), parameters, stoppingToken);
                     }
 
                     // 3. Valider la transaction atomique (Tout ou Rien)
