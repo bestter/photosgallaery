@@ -444,13 +444,14 @@ const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20 text-cyan-400">
+      <div className="flex justify-center items-center py-20 text-cyan-400" role="status">
         <span
           aria-hidden="true"
           className="material-symbols-outlined animate-spin text-4xl"
         >
           sync
         </span>
+        <span className="sr-only">{t("common.loading", "Loading...")}</span>
       </div>
     );
   }
