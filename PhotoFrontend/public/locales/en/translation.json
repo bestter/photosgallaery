@@ -1,5 +1,6 @@
 {
   "common": {
+    "loading": "Loading...",
     "select_language": "Select Language",
     "upload_photo": "Upload a photo",
     "close": "Close",

@@ -426,7 +426,7 @@ const GalleryBentoCard = memo(function GalleryBentoCard({ photo, index, setSelec
 });
 
 // ⚡ Bolt: Wrapped GalleryBentoGrid in React.memo to avoid re-rendering the entire grid unless filteredPhotos or gridState actually change.
-const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
+export const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
   filteredPhotos,
   gridState,
   onLoadMore,
@@ -451,7 +451,7 @@ const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
         >
           sync
         </span>
-        <span className="sr-only">{t("common.loading", "Loading...")}</span>
+        <span className="sr-only">{t("common.loading")}</span>
       </div>
     );
   }
