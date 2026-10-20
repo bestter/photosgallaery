@@ -106,19 +106,19 @@ const InviteModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-body text-on-surface" role="dialog" aria-modal="true" aria-label="Invite to Group">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-body text-on-surface" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
             <button
                 type="button"
                 className="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-sm border-0 cursor-default"
                 onClick={onClose}
                 tabIndex={-1}
-                aria-label="Close modal"
+                aria-label={t('common.close')}
             />
             {/* Modal Container */}
             <div className="relative w-full max-w-lg bg-surface border border-outline-variant/40 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
                 {/* Modal Header */}
                 <div className="px-8 pt-8 pb-4">
-                    <h2 className="text-[30px] font-black tracking-tight text-on-surface leading-none mb-1">{t('components.invite_modal.title')}</h2>
+                    <h2 id="invite-modal-title" className="text-[30px] font-black tracking-tight text-on-surface leading-none mb-1">{t('components.invite_modal.title')}</h2>
                     <div className="h-1 w-12 bg-primary rounded-full mb-6"></div>
                     
                     {/* Select Group */}
@@ -208,7 +208,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row-reverse gap-3 pt-2">
                         <button
-                            className="flex-1 bg-primary text-on-primary font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                            className="flex-1 bg-primary text-on-primary font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                             type="submit"
                             disabled={isLoading}
                         >
@@ -216,7 +216,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             {isLoading ? t('components.invite_modal.sending') : t('components.invite_modal.send')}
                         </button>
                         <button
-                            className="flex-1 bg-slate-800 text-on-surface-variant font-semibold py-3 px-6 rounded-lg hover:bg-slate-700 active:scale-[0.98] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                            className="flex-1 bg-slate-800 text-on-surface-variant font-semibold py-3 px-6 rounded-lg hover:bg-slate-700 active:scale-[0.98] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                             type="button"
                             onClick={onClose}
                             disabled={isLoading}

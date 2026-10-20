@@ -39,12 +39,12 @@ Action: When displaying meaningful images, use an `<img>` tag with a descriptive
 2026-09-24 - [Add Screen Reader Support for Image Modal]
 Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
 Action: Ensure div elements rendering background images acting as primary content possess role='img' and a contextualized accessible name (e.g. photo by author) rather than duplicating the modal dialog title.
-2023-10-25 - [Modal Button Accessibility]
-Learning: Interactive buttons in modal dialogs lacking `focus-visible` outlines obscure keyboard navigation, breaking WCAG guidelines.
-Action: Always apply Tailwind `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-*` classes to primary and secondary action buttons in custom modals.
 2026-10-19 - Accessible Loading Indicators
 Learning: Visual-only loading spinners (like spinning icons) are invisible to screen readers, leaving users unaware that content is loading.
 Action: Always wrap loading spinners in a container with `role="status"` and include visually hidden text (e.g., `<span className="sr-only">Loading...</span>`) to announce the loading state to screen readers.
 2026-10-20 - Screen Reader Accessible Loading Spinners
 Learning: Visual loading spinners (e.g., using `animate-spin` on an icon) are completely invisible to screen readers unless specifically marked up.
 Action: Always add `role="status"` to the wrapper div of a loading spinner and include a visually hidden localized text element (e.g., `<span className="sr-only">{t("common.loading")}</span>`) to announce the state change.
+2026-10-20 - Modal Button Accessibility
+Learning: Interactive buttons in modal dialogs lacking `focus-visible` outlines obscure keyboard navigation, breaking WCAG guidelines.
+Action: Always apply Tailwind `focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-*` classes to primary and secondary action buttons in custom modals.
