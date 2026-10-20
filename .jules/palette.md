@@ -42,3 +42,6 @@ Action: Ensure div elements rendering background images acting as primary conten
 2026-10-19 - Accessible Loading Indicators
 Learning: Visual-only loading spinners (like spinning icons) are invisible to screen readers, leaving users unaware that content is loading.
 Action: Always wrap loading spinners in a container with `role="status"` and include visually hidden text (e.g., `<span className="sr-only">Loading...</span>`) to announce the loading state to screen readers.
+2026-10-20 - Screen Reader Accessible Loading Spinners
+Learning: Visual loading spinners (e.g., using `animate-spin` on an icon) are completely invisible to screen readers unless specifically marked up.
+Action: Always add `role="status"` to the wrapper div of a loading spinner and include a visually hidden localized text element (e.g., `<span className="sr-only">{t("common.loading")}</span>`) to announce the state change.

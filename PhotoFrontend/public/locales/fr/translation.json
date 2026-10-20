@@ -1,5 +1,6 @@
 {
   "common": {
+    "loading": "Chargement...",
     "select_language": "Choisir la langue",
     "upload_photo": "Ajouter une photo",
     "close": "Fermer",

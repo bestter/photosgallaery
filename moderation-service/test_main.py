@@ -9,7 +9,7 @@ sys.modules['transformers'] = mock_transformers
 mock_torch = MagicMock()
 sys.modules['torch'] = mock_torch
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from fastapi.testclient import TestClient
 
 import main
@@ -158,3 +158,27 @@ def test_decompression_bomb(mock_to_thread):
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Image exceeds maximum allowed dimensions"
+
+def test_load_image_success():
+    image_rgba = Image.new("RGBA", (10, 10), (255, 0, 0, 128))
+    img_byte_arr = io.BytesIO()
+    image_rgba.save(img_byte_arr, format="PNG")
+    dummy_bytes = bytearray(img_byte_arr.getvalue())
+
+    image = main.load_image(dummy_bytes)
+    assert isinstance(image, Image.Image)
+    assert image.mode == "RGB"
+    assert image.size == (10, 10)
+
+def test_load_image_invalid_data():
+    invalid_bytes = b"not an image"
+    with pytest.raises(UnidentifiedImageError):
+        main.load_image(invalid_bytes)
+
+def test_corrupted_image_endpoint():
+    response = client.post(
+        "/moderate",
+        files={"file": ("corrupted.jpg", b"not an image", "image/jpeg")}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or corrupted image file"
