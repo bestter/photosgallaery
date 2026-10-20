@@ -45,3 +45,6 @@ Action: Always wrap loading spinners in a container with `role="status"` and inc
 2026-10-20 - Screen Reader Accessible Loading Spinners
 Learning: Visual loading spinners (e.g., using `animate-spin` on an icon) are completely invisible to screen readers unless specifically marked up.
 Action: Always add `role="status"` to the wrapper div of a loading spinner and include a visually hidden localized text element (e.g., `<span className="sr-only">{t("common.loading")}</span>`) to announce the state change.
+2026-10-20 - Modal Button Accessibility
+Learning: Interactive buttons in modal dialogs lacking `focus-visible` outlines obscure keyboard navigation, breaking WCAG guidelines.
+Action: Always apply Tailwind `focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-*` classes to primary and secondary action buttons in custom modals.
