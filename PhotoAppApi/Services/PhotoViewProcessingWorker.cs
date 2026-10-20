@@ -69,7 +69,12 @@ namespace PhotoAppApi.Services
                 // 1. Agréger les incrémentations par PhotoId (ex: on n'update qu'une seule fois si une image est vue 50 fois)
                 var increments = batch
                     .GroupBy(v => v.PhotoId)
-                    .Select(g => new { PhotoId = g.Key, ViewCountToAdd = g.Count() })
+                    .OrderBy(g => g.Key)
+                    .Select(g => new
+                    {
+                        PhotoId = g.Key,
+                        ViewCountToAdd = g.Count()
+                    })
                     .ToList();
 
                 var viewLogs = batch.Select(v => new PhotoView
@@ -92,15 +97,17 @@ namespace PhotoAppApi.Services
                     await dbContext.PhotoViews.AddRangeAsync(viewLogs, stoppingToken);
                     await dbContext.SaveChangesAsync(stoppingToken);
 
-                    // B. UPDATE des compteurs de vues via les méthodes natives d'EF Core
-                    if (increments.Count > 0)
+                    // B. Batch update view counts grouped by increment value using native EF Core ExecuteUpdateAsync
+                    foreach (var group in increments.GroupBy(i => i.ViewCountToAdd).OrderBy(g => g.Key))
                     {
-                        foreach (var inc in increments)
-                        {
-                            await dbContext.Photos
-                                .Where(p => p.Id == inc.PhotoId)
-                                .ExecuteUpdateAsync(s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + inc.ViewCountToAdd), stoppingToken);
-                        }
+                        var photoIds = group.Select(i => i.PhotoId).ToList();
+                        var countToAdd = group.Key;
+
+                        await dbContext.Photos
+                            .Where(p => photoIds.Contains(p.Id))
+                            .ExecuteUpdateAsync(
+                                s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + countToAdd),
+                                stoppingToken);
                     }
 
                     // 3. Valider la transaction atomique (Tout ou Rien)
