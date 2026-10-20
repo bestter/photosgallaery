@@ -69,7 +69,12 @@ namespace PhotoAppApi.Services
                 // 1. Agréger les incrémentations par PhotoId (ex: on n'update qu'une seule fois si une image est vue 50 fois)
                 var increments = batch
                     .GroupBy(v => v.PhotoId)
-                    .Select(g => new { PhotoId = g.Key, ViewCountToAdd = g.Count() })
+                    .OrderBy(g => g.Key)
+                    .Select(g => new
+                    {
+                        PhotoId = g.Key,
+                        ViewCountToAdd = g.Count()
+                    })
                     .ToList();
 
                 var viewLogs = batch.Select(v => new PhotoView
@@ -92,29 +97,17 @@ namespace PhotoAppApi.Services
                     await dbContext.PhotoViews.AddRangeAsync(viewLogs, stoppingToken);
                     await dbContext.SaveChangesAsync(stoppingToken);
 
-                    // B. UPDATE massif des compteurs optimisé en une seule requête SQL via CASE (Évite le N+1)
-                    if (increments.Count > 0)
+                    // B. Batch update view counts grouped by increment value using native EF Core ExecuteUpdateAsync
+                    foreach (var group in increments.GroupBy(i => i.ViewCountToAdd).OrderBy(g => g.Key))
                     {
-                        var parameters = new List<object>();
-                        var inClausePlaceholders = new List<string>();
-                        var sb = new System.Text.StringBuilder();
-                        sb.Append("UPDATE Photos SET ViewsCount = ViewsCount + CASE Id ");
+                        var photoIds = group.Select(i => i.PhotoId).ToList();
+                        var countToAdd = group.Key;
 
-                        int paramIndex = 0;
-                        foreach (var inc in increments)
-                        {
-                            sb.Append($"WHEN {{{paramIndex}}} THEN {{{paramIndex + 1}}} ");
-                            parameters.Add(inc.PhotoId);
-                            parameters.Add(inc.ViewCountToAdd);
-                            inClausePlaceholders.Add($"{{{paramIndex}}}");
-                            paramIndex += 2;
-                        }
-
-                        sb.Append("ELSE 0 END WHERE Id IN (");
-                        sb.Append(string.Join(",", inClausePlaceholders));
-                        sb.Append(")");
-
-                        await dbContext.Database.ExecuteSqlRawAsync(sb.ToString(), parameters, stoppingToken);
+                        await dbContext.Photos
+                            .Where(p => photoIds.Contains(p.Id))
+                            .ExecuteUpdateAsync(
+                                s => s.SetProperty(p => p.ViewsCount, p => p.ViewsCount + countToAdd),
+                                stoppingToken);
                     }
 
                     // 3. Valider la transaction atomique (Tout ou Rien)
