@@ -426,7 +426,7 @@ const GalleryBentoCard = memo(function GalleryBentoCard({ photo, index, setSelec
 });
 
 // ⚡ Bolt: Wrapped GalleryBentoGrid in React.memo to avoid re-rendering the entire grid unless filteredPhotos or gridState actually change.
-const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
+export const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
   filteredPhotos,
   gridState,
   onLoadMore,
@@ -444,13 +444,14 @@ const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20 text-cyan-400">
+      <div className="flex justify-center items-center py-20 text-cyan-400" role="status">
         <span
           aria-hidden="true"
           className="material-symbols-outlined animate-spin text-4xl"
         >
           sync
         </span>
+        <span className="sr-only">{t("common.loading")}</span>
       </div>
     );
   }
