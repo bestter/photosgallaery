@@ -39,3 +39,6 @@ Action: When displaying meaningful images, use an `<img>` tag with a descriptive
 2026-09-24 - [Add Screen Reader Support for Image Modal]
 Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
 Action: Ensure div elements rendering background images acting as primary content possess role='img' and a contextualized accessible name (e.g. photo by author) rather than duplicating the modal dialog title.
+2023-10-25 - [Modal Button Accessibility]
+Learning: Interactive buttons in modal dialogs lacking `focus-visible` outlines obscure keyboard navigation, breaking WCAG guidelines.
+Action: Always apply Tailwind `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-*` classes to primary and secondary action buttons in custom modals.

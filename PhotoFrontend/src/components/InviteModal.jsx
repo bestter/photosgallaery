@@ -208,7 +208,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row-reverse gap-3 pt-2">
                         <button
-                            className="flex-1 bg-primary text-on-primary font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-1 bg-primary text-on-primary font-bold py-3 px-6 rounded-lg hover:brightness-110 active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                             type="submit"
                             disabled={isLoading}
                         >
@@ -216,7 +216,7 @@ const InviteModal = ({ isOpen, onClose }) => {
                             {isLoading ? t('components.invite_modal.sending') : t('components.invite_modal.send')}
                         </button>
                         <button
-                            className="flex-1 bg-slate-800 text-on-surface-variant font-semibold py-3 px-6 rounded-lg hover:bg-slate-700 active:scale-[0.98] transition-colors"
+                            className="flex-1 bg-slate-800 text-on-surface-variant font-semibold py-3 px-6 rounded-lg hover:bg-slate-700 active:scale-[0.98] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                             type="button"
                             onClick={onClose}
                             disabled={isLoading}
