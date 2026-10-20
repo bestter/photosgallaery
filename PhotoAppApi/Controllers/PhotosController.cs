@@ -363,6 +363,9 @@ namespace PhotoAppApi.Controllers
                 // Pour gérer les tags créés au cours de cette boucle (si doublons dans tagNames)
                 var newlyCreatedTags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
 
+                var tagsToAdd = new List<Tag>();
+                var translationsToAdd = new List<TagTranslation>();
+
                 foreach (var name in trimmedNames)
                 {
                     if (translationDict.TryGetValue(name, out var existingTranslation))
@@ -392,14 +395,20 @@ namespace PhotoAppApi.Controllers
                             Language = Language.FR
                         };
 
-                        // On ajoute les deux au contexte
-                        _context.Tags.Add(newTag);
-                        _context.TagTranslations.Add(newTranslation);
+                        tagsToAdd.Add(newTag);
+                        translationsToAdd.Add(newTranslation);
 
                         // On l'ajoute à nos listes
                         tagsToAttach.Add(newTag);
                         newlyCreatedTags.Add(name, newTag);
                     }
+                }
+
+                // ⚡ Bolt: Batched database insertions to avoid N+1 queries during tag creation
+                if (tagsToAdd.Any())
+                {
+                    _context.Tags.AddRange(tagsToAdd);
+                    _context.TagTranslations.AddRange(translationsToAdd);
                 }
 
                 // 1. Vérification de la taille totale avant de traiter quoi que ce soit

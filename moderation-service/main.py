@@ -1,8 +1,5 @@
 from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
-from PIL import Image
-
-# Prevent decompression bomb attacks
-Image.MAX_IMAGE_PIXELS = 10000000
+from PIL import Image, UnidentifiedImageError
 import asyncio
 import io
 import os
@@ -84,13 +81,14 @@ async def moderate_image(
             "label": results[0]["label"]
         }
 
-    except Image.DecompressionBombError:
-        raise HTTPException(status_code=400, detail="Image exceeds maximum allowed dimensions")
-    except HTTPException:
-        raise
     except Image.DecompressionBombError as e:
         print(f"Decompression bomb risk: {e}")
-        raise HTTPException(status_code=400, detail="Image dimensions exceed maximum allowed size")
+        raise HTTPException(status_code=400, detail="Image exceeds maximum allowed dimensions")
+    except UnidentifiedImageError as e:
+        print(f"Invalid image data: {e}")
+        raise HTTPException(status_code=400, detail="Invalid or corrupted image file")
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error during moderation: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during moderation")
