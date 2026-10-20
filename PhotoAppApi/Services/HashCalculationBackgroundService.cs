@@ -37,46 +37,66 @@ public class HashCalculationBackgroundService : BackgroundService
 
                     if (photosWithoutHash.Count > 0)
                     {
-                        log.Info("Found {photosWithoutHash.Count} photos without hash. Processing...");
+                        log.Info($"Found {photosWithoutHash.Count} photos without hash. Processing...");
 
                         var rootContentPath = env.ContentRootPath;
                         var privateImagesFolder = Path.Combine(rootContentPath, "PrivateImages");
+                        var fullPrivateImagesFolder = Path.GetFullPath(privateImagesFolder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
                         var rootWebPath = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                         var publicImagesFolder = Path.Combine(rootWebPath, "images");
+                        var fullPublicImagesFolder = Path.GetFullPath(publicImagesFolder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
                         // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) to parallelize CPU/IO bound hashing operations.
                         await Parallel.ForEachAsync(photosWithoutHash, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = stoppingToken }, async (photo, ct) =>
                         {
-                            if (string.IsNullOrEmpty(photo.FileName))
+                            if (string.IsNullOrWhiteSpace(photo.FileName))
                             {
                                 log.Warn($"File not found for photo {photo.Id}: null or empty filename");
                                 photo.FileHash = "FILE_MISSING";
                                 return;
                             }
 
-                            var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
-                            var privateFilePath = Path.Combine(privateImagesFolder, safeFileName);
-                            var publicFilePath = Path.Combine(publicImagesFolder, safeFileName);
-
-                            var filePath = File.Exists(privateFilePath) ? privateFilePath :
-                                           File.Exists(publicFilePath) ? publicFilePath : null;
-
-                            if (filePath != null)
+                            try
                             {
-                                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
-                                var hashBytes = await SHA512.HashDataAsync(stream, ct);
-                                photo.FileHash = Convert.ToHexStringLower(hashBytes);
+                                var safeFileName = Path.GetFileName(photo.FileName.Replace("\\", "/"));
+                                if (string.IsNullOrWhiteSpace(safeFileName))
+                                {
+                                    log.Warn($"File not found for photo {photo.Id}: invalid filename {photo.FileName}");
+                                    photo.FileHash = "FILE_MISSING";
+                                    return;
+                                }
+
+                                var privateFilePath = Path.GetFullPath(Path.Combine(privateImagesFolder, safeFileName));
+                                var publicFilePath = Path.GetFullPath(Path.Combine(publicImagesFolder, safeFileName));
+
+                                bool isPrivateValid = privateFilePath.StartsWith(fullPrivateImagesFolder, StringComparison.OrdinalIgnoreCase);
+                                bool isPublicValid = publicFilePath.StartsWith(fullPublicImagesFolder, StringComparison.OrdinalIgnoreCase);
+
+                                var filePath = (isPrivateValid && File.Exists(privateFilePath)) ? privateFilePath :
+                                               (isPublicValid && File.Exists(publicFilePath)) ? publicFilePath : null;
+
+                                if (filePath != null)
+                                {
+                                    using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+                                    var hashBytes = await SHA512.HashDataAsync(stream, ct);
+                                    photo.FileHash = Convert.ToHexStringLower(hashBytes);
+                                }
+                                else
+                                {
+                                    log.Warn($"File not found for photo {photo.Id}: {photo.FileName}");
+                                    photo.FileHash = "FILE_MISSING";
+                                }
                             }
-                            else
+                            catch (Exception ex) when (ex is not OperationCanceledException)
                             {
-                                log.Warn($"File not found for photo {photo.Id}: {photo.FileName}");
+                                log.Error($"Error calculating hash for photo {photo.Id} ({photo.FileName}).", ex);
                                 photo.FileHash = "FILE_MISSING";
                             }
                         });
 
                         await dbContext.SaveChangesAsync(stoppingToken);
-                        log.Info("Processed {photosWithoutHash.Count} photos.");
+                        log.Info($"Processed {photosWithoutHash.Count} photos.");
                     }
                     else
                     {
