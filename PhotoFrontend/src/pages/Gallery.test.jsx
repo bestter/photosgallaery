@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { GalleryModals } from "./Gallery";
+import { GalleryBentoGrid, GalleryModals } from "./Gallery";
 
 vi.mock("../components/UploadPhoto", () => ({
   default: () => <input aria-label="upload-title" />,
@@ -71,5 +71,35 @@ describe("GalleryModals upload overlay", () => {
     expect(document.querySelector('[role="document"]')).toBeNull();
     const dialog = screen.getByRole("dialog", { name: "Upload a photo" });
     expect(dialog.getAttribute("tabIndex")).toBeNull();
+  });
+});
+
+describe("GalleryBentoGrid loading state", () => {
+  it("renders an accessible loading status with translated sr-only text when loading", () => {
+    render(
+      <GalleryBentoGrid
+        filteredPhotos={[]}
+        gridState={{
+          isLoading: true,
+          hasMore: false,
+          isFetchingMore: false,
+          canUpload: false,
+        }}
+        onLoadMore={vi.fn()}
+        setSelectedPhotoIndex={vi.fn()}
+        setSelectedAuthor={vi.fn()}
+        searchQuery=""
+        selectedTag={null}
+        selectedAuthor={null}
+        setSearchQuery={vi.fn()}
+        setSelectedTag={vi.fn()}
+        setIsUploadOpen={vi.fn()}
+        t={t}
+      />,
+    );
+
+    const status = screen.getByRole("status");
+    expect(status).toBeTruthy();
+    expect(status.querySelector(".sr-only")?.textContent).toBe("common.loading");
   });
 });
