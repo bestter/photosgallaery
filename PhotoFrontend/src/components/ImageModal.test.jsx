@@ -147,13 +147,18 @@ describe('ImageModal', () => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 
-    it('replaces the loading status with a translated accessible error when the image fails', () => {
-      render(<ImageModal {...defaultProps} />);
+    it('replaces the loading status with a translated accessible error when the image fails or URL is missing', () => {
+      const { unmount } = render(<ImageModal {...defaultProps} />);
       fireEvent.error(screen.getByRole('img', { name: 'Photo by alice' }));
 
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
       expect(screen.getByRole('alert')).toHaveTextContent('components.image_modal.load_error');
       expect(screen.queryByRole('img', { name: 'Photo by alice' })).not.toBeInTheDocument();
+      unmount();
+
+      render(<ImageModal {...defaultProps} photo={{ ...mockPhoto, fullUrl: '' }} />);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveTextContent('components.image_modal.load_error');
     });
 
     it('preserves an error for the same URL and clears it when navigating to another image', () => {

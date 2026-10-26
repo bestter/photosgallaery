@@ -1,7 +1,58 @@
-2024-05-18 - Async Action Status Announcements
-Learning: When adding background async actions to buttons (like downloading or liking an image), standard text changes (e.g. replacing an icon with a spinner) are not always announced clearly by screen readers since focus is already on the button and the DOM change is subtle.
-Action: Apply `aria-busy={isProcessing}` to interactive controls that trigger asynchronous tasks without navigating away. This informs screen readers that the element is currently busy processing the request.
+## 2026-07-30 - ARIA Tooltip Accessibility
+**Learning:** When creating CSS-only informational tooltips, using `group-focus:block` might trigger the tooltip when the parent receives focus, but it lacks semantic meaning. Relying solely on `aria-label` on the parent to duplicate the tooltip text flattens the content and can lead to poor screen reader experiences. Using proper ARIA attributes like `role="tooltip"` with a unique ID and linking it via `aria-describedby` on the focusable trigger provides a robust and semantically correct experience.
+**Action:** Always implement semantic ARIA attributes (`role="tooltip"`, `aria-describedby`) for custom tooltips, even when using CSS-only hover/focus states to reveal them.
+## 2026-08-02 - Accessible Search Inputs & Filter Contrast
+**Learning:** Relying solely on `aria-label` for search inputs can reduce screen reader compatibility compared to using explicit `htmlFor`/`id` bindings. Additionally, using `hover:text-white` on close icons inside bright background buttons (like Cyan 400) causes severe WCAG contrast failures (~1.5:1).
+**Action:** Always pair search inputs with explicit, visually hidden `<label className="sr-only">` elements and `id` bindings. For bright active filter buttons, maintain dark text color on hover and rely on CSS transforms (e.g., `hover:scale-125`) or parent background brightness changes for interactive feedback.
 
-2024-05-18 - Loading State Announcers for Large Media
-Learning: When dynamically loading high-resolution images within modals or overlays, users dependent on screen readers (and sighted users on slow connections) need explicit feedback that the media is fetching to avoid perceiving a broken state.
-Action: Add a dedicated loading container with `role="status"` and visually hidden text (`<span className="sr-only">Loading...</span>`) behind the image, hiding it once the image's `onLoad` event fires.
+## 2026-08-06 - ImageModal Action Buttons Accessibility
+**Learning:** Icon-only or minimally labeled buttons within modals (like "Download", "Share") often lack sufficient context for screen readers when they rely only on adjacent tiny text or icons.
+**Action:** Always ensure critical action buttons in media viewers have explicit `aria-label` attributes and `title` tooltips, leveraging existing translation dictionaries to provide localized context for both screen reader users and mouse hover interactions.
+2025-02-15 - Stretched Native Button over Clickable Card
+Learning: Using `<div role="button">` for complex cards flattens their semantics for screen readers and requires manual keyboard handlers. Overlaid native `<button>` combined with CSS `absolute inset-0` and correct z-index layering preserves semantics and provides native keyboard operability.
+Action: Use absolute positioned native `<button>` elements overlaid on relative card containers instead of `role="button"` on `div` wrappers.
+
+2025-02-15 - React Modal Accessibility Without Native Dialog
+Learning: When building custom modals in React using absolute positioned `div` overlays, failing to include `role="dialog"` and `aria-modal="true"` renders the modal structurally invisible to screen readers, meaning they won't trap virtual focus and will allow users to read the obscured background content.
+Action: Always add `role="dialog"` and `aria-modal="true"` to the outermost container of any custom modal overlay, along with an accessible name via `aria-label` or `aria-labelledby`.
+
+2025-02-13 - Semantic Tooltip Buttons
+Learning: Using `<div role="button" tabIndex={0}>` for tooltips or interactive elements is an accessibility anti-pattern because it requires manual event handler wiring for keys like Enter and Space to match native button functionality.
+Action: Always prefer semantic native `<button type="button">` over customized `div` overlays for custom triggers or tooltips to inherit native keyboard focus and interaction behavior for free.
+2026-08-19 - Lazy loading images
+Learning: When rendering lists or grids of images in React (e.g., photo galleries), apply the `loading="lazy"` attribute to `<img>` tags to defer offscreen image loading, significantly improving initial load times and saving bandwidth.
+Action: Always add `loading="lazy"` to `<img />` tags in lists or grids to optimize loading performance.
+2026-08-26 - Keyboard Focus Restoration in Custom Dropdowns
+Learning: When building custom dropdowns that hide menu options upon closure, focus can be lost (dropping to the body) if not explicitly handled, which degrades keyboard accessibility.
+Action: Ensure an Escape key listener exists and use a dedicated React ref (e.g. `toggleButtonRef.current?.focus()`) to restore focus to the toggle button whenever the dropdown is closed by keyboard or item selection.
+2026-09-21 - Standardize Modal Close Button Focus State
+Learning: Using `focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2` classes is the standard pattern for accessible interactive focus rings in this project's dark/light modes.
+Action: Ensure all standalone icon close buttons use these focus classes for WCAG compliance.
+2026-10-12 - Replaced CSS Background Image with Semantic Img Tag
+Learning: Using CSS background-image hides meaningful content from screen readers. Semantic <img> elements with alt attributes improve accessibility.
+Action: Use <img> with object-fit styles instead of background-image for important visuals.
+
+2026-09-30 - Replace CSS background images with semantic img tags
+Learning: Avoid using CSS `background-image` (e.g., via Tailwind or inline styles) for meaningful content like gallery images. Use semantic `<img>` elements to ensure screen reader visibility.
+Action: When displaying meaningful images, use an `<img>` tag with a descriptive `alt` attribute (or an empty `alt` if decorative) instead of a `div` with a `backgroundImage` style. This also enables native browser features like "Save Image As...".
+
+2026-09-24 - [Add Screen Reader Support for Image Modal]
+Learning: Modals displaying background images without semantic HTML fail screen reader announcements, leaving users unaware of the content.
+Action: Ensure div elements rendering background images acting as primary content possess role='img' and a contextualized accessible name (e.g. photo by author) rather than duplicating the modal dialog title.
+2026-10-19 - Accessible Loading Indicators
+Learning: Visual-only loading spinners (like spinning icons) are invisible to screen readers, leaving users unaware that content is loading.
+Action: Always wrap loading spinners in a container with `role="status"` and include visually hidden text (e.g., `<span className="sr-only">Loading...</span>`) to announce the loading state to screen readers.
+2026-10-20 - Screen Reader Accessible Loading Spinners
+Learning: Visual loading spinners (e.g., using `animate-spin` on an icon) are completely invisible to screen readers unless specifically marked up.
+Action: Always add `role="status"` to the wrapper div of a loading spinner and include a visually hidden localized text element (e.g., `<span className="sr-only">{t("common.loading")}</span>`) to announce the state change.
+2026-10-20 - Modal Button Accessibility
+Learning: Interactive buttons in modal dialogs lacking `focus-visible` outlines obscure keyboard navigation, breaking WCAG guidelines.
+Action: Always apply Tailwind `focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-*` classes to primary and secondary action buttons in custom modals.
+
+## 2026-10-26 - Async Action Status Announcements
+**Learning:** When adding background async actions to buttons (like downloading or liking an image), standard text changes (e.g. replacing an icon with a spinner) are not always announced clearly by screen readers since focus is already on the button and the DOM change is subtle.
+**Action:** Apply `aria-busy={isProcessing}` to interactive controls that trigger asynchronous tasks without navigating away. This informs screen readers that the element is currently busy processing the request.
+
+## 2026-10-26 - Loading State Announcers for Large Media
+**Learning:** When dynamically loading high-resolution images within modals or overlays, users dependent on screen readers (and sighted users on slow connections) need explicit feedback that the media is fetching to avoid perceiving a broken state.
+**Action:** Add a dedicated loading container with `role="status"` and visually hidden text (`<span className="sr-only">Loading...</span>`) behind the image, hiding it once the image's `onLoad` event fires.

@@ -11,7 +11,7 @@ function ImageModalImage({ src, alt }) {
   const { t } = useTranslation();
   const [status, setStatus] = useState('loading');
 
-  if (status === 'error') {
+  if (!src || status === 'error') {
     return (
       <p role="alert" className="p-6 text-center text-on-error-container">
         {t('components.image_modal.load_error')}
@@ -174,9 +174,10 @@ function ImageModalSidebar({
     handleShare,
     setIsReporting,
     onAuthorClick,
-    onTagClick,
-    t
+    onTagClick
 }) {
+    const { t } = useTranslation();
+
     return (
         <div className="w-full md:w-[400px] bg-background-dark p-6 overflow-y-auto flex flex-col gap-6 border-l border-slate-800">
             {/* Photographer Header */}
@@ -461,7 +462,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 }
             `}</style>
 
-            <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />
+            {imgSrc && <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />}
 
             {/* Modal Container */}
             <dialog
@@ -524,7 +525,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         setIsReporting={setIsReporting}
                         onAuthorClick={onAuthorClick}
                         onTagClick={onTagClick}
-                        t={t}
                     />
                 </div>
             </dialog>
@@ -539,5 +539,3 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         </div>
     );
 }
-
-
