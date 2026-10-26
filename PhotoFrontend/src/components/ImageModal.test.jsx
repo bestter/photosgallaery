@@ -93,6 +93,73 @@ describe('ImageModal', () => {
         expect(img).toHaveAttribute('alt', 'Photo by alice');
     });
 
+    it('shows a loading status until the image loads', () => {
+      render(<ImageModal {...defaultProps} />);
+      const image = screen.getByRole('img', { name: 'Photo by alice' });
+
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(image).toHaveClass('opacity-0');
+      fireEvent.load(image);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(image).toHaveClass('opacity-100');
+    });
+
+    it('keeps the loaded image visible when the parent recreates the photo with the same URL', () => {
+      const { rerender } = render(<ImageModal {...defaultProps} />);
+      const image = screen.getByRole('img', { name: 'Photo by alice' });
+      fireEvent.load(image);
+
+      rerender(<ImageModal {...defaultProps} photo={{ ...mockPhoto, viewsCount: 43 }} />);
+
+      expect(screen.getByRole('img', { name: 'Photo by alice' })).toBe(image);
+      expect(image).toHaveClass('opacity-100');
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+
+    it('starts loading again when navigating to a different URL and back', () => {
+      const { rerender } = render(<ImageModal {...defaultProps} />);
+      fireEvent.load(screen.getByRole('img', { name: 'Photo by alice' }));
+
+      rerender(<ImageModal {...defaultProps} photo={{ ...mockPhoto, fullUrl: 'https://example.com/next.jpg' }} />);
+      const nextImage = screen.getByRole('img', { name: 'Photo by alice' });
+      expect(nextImage).toHaveAttribute('src', 'https://example.com/next.jpg');
+      expect(nextImage).toHaveClass('opacity-0');
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      fireEvent.load(nextImage);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+      rerender(<ImageModal {...defaultProps} />);
+      expect(screen.getByRole('img', { name: 'Photo by alice' })).toHaveClass('opacity-0');
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      fireEvent.load(screen.getByRole('img', { name: 'Photo by alice' }));
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+
+    it('replaces the loading status with a translated accessible error when the image fails', () => {
+      render(<ImageModal {...defaultProps} />);
+      fireEvent.error(screen.getByRole('img', { name: 'Photo by alice' }));
+
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveTextContent('components.image_modal.load_error');
+      expect(screen.queryByRole('img', { name: 'Photo by alice' })).not.toBeInTheDocument();
+    });
+
+    it('preserves an error for the same URL and clears it when navigating to another image', () => {
+      const { rerender } = render(<ImageModal {...defaultProps} />);
+      fireEvent.error(screen.getByRole('img', { name: 'Photo by alice' }));
+
+      rerender(<ImageModal {...defaultProps} photo={{ ...mockPhoto }} />);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+      rerender(<ImageModal {...defaultProps} photo={{ ...mockPhoto, fullUrl: 'https://example.com/next.jpg' }} />);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      fireEvent.load(screen.getByRole('img', { name: 'Photo by alice' }));
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'Photo by alice' })).toHaveClass('opacity-100');
+    });
+
     it('uses photo.title as the image alt description if present', () => {
         const photoWithTitle = { ...mockPhoto, title: 'Sunset at the Beach' };
         render(<ImageModal {...defaultProps} photo={photoWithTitle} />);

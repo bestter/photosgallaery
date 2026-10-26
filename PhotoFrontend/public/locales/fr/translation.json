@@ -277,6 +277,7 @@
     },
     "image_modal": {
       "dialog_label": "Détails de l'image",
+      "load_error": "Impossible de charger l’image.",
       "download": {
         "preparing": "Préparation du téléchargement...",
         "success": "Téléchargement réussi !",
