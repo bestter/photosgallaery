@@ -63,6 +63,7 @@ function ImageModalSidebar({
                     type="button"
                     onClick={handleDownload}
                     disabled={isDownloading}
+                    aria-busy={isDownloading}
                     aria-label={t("components.image_modal.button_download")}
                     title={t("components.image_modal.button_download")}
                     className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
@@ -78,6 +79,7 @@ function ImageModalSidebar({
                     type="button"
                     onClick={handleLike}
                     aria-pressed={isLiked}
+                    aria-busy={isLiking}
                     aria-label={t("components.image_modal.button_likes", { count: likesCount })}
                     className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
                         ? "bg-primary text-background-dark border-primary hover:opacity-90"
@@ -222,11 +224,13 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
     const [isDownloading, setIsDownloading] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
     const [hasReported, setHasReported] = useState(false);
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setPhoto(initialPhoto);
         setHasReported(initialPhoto?.isReportedByCurrentUser || initialPhoto?.IsReportedByCurrentUser || false);
+        setIsImageLoaded(false); // Reset loading state when photo changes
 
         let timer;
         // Enregistre silencieusement une "vue" lorsque l'image s'ouvre, après 2 sec
@@ -435,10 +439,17 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Left Section: Large Image */}
                     <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
+                        {!isImageLoaded && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" role="status">
+                                <span className="material-symbols-outlined animate-spin text-4xl text-primary" aria-hidden="true">sync</span>
+                                <span className="sr-only">{t("common.loading", "Loading...")}</span>
+                            </div>
+                        )}
                         <img
                             src={imgSrc}
                             alt={photo.title || t("gallery.photo_by", { author })}
-                            className="absolute inset-0 w-full h-full object-contain"
+                            className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setIsImageLoaded(true)}
                         />
 
                         {/* Navigation Arrows */}
