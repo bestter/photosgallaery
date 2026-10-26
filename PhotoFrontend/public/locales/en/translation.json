@@ -390,7 +390,11 @@
         "failed": "Upload failed.",
         "unauthorized": "You don't have permission to do this.",
         "load_groups": "Cannot load your circles.",
-        "size_limit": "Total size exceeds the 50 MB limit."
+        "size_limit": "Total size exceeds the 50 MB limit.",
+        "server_busy": "The server is currently busy processing images. Please try again shortly.",
+        "unsupported_format": "Unsupported format. Only JPEG, PNG, and WebP are accepted.",
+        "partial_rejections": "{{count}} file(s) could not be processed.",
+        "no_photos_uploaded": "No photos could be uploaded."
       },
       "loading": "Uploading your images...",
       "duplicates_ignored": "Some duplicates were ignored.",
@@ -398,7 +402,7 @@
       "title": "Add a photo",
       "subtitle": "Share your moments with the PixelLyra.com community.",
       "drag_drop": "Drag and drop your photo here",
-      "browse_files": "or click to browse your files (JPG, PNG, max 20 MB)",
+      "browse_files": "or click to browse your files (JPG, PNG, WebP, max 50 MB)",
       "select_file_btn": "Select a file",
       "photo_title": "Photo Title",
       "photo_title_placeholder": "Enter a catchy title",

@@ -14,7 +14,7 @@
 ## 2. Comportement dans l'éditeur et le terminal
 
 * **Compilation automatique :** Après des modifications complexes (services, contrôleurs, helpers EXIF/GPS, hachage d'images), exécute `dotnet build` pour valider l'absence d'erreurs de syntaxe ou de types.
-* **Tests unitaires, d'intégration et de contrat :** Valide systématiquement les modifications avec `dotnet test` dans `PhotoAppApi.Tests` (160 tests unitaires, d'intégration et de contrat OpenAPI via `OpenApiContractTests.cs`).
+* **Tests unitaires, d'intégration et de contrat :** Valide systématiquement les modifications avec `dotnet test` dans `PhotoAppApi.Tests` (198 tests unitaires, d'intégration et de contrat OpenAPI via `OpenApiContractTests.cs`).
 * **Serveur de développement :** Utilise `dotnet run` (ou `dotnet watch`) pour démarrer l'API en local.
 * **Git Hooks & Contrôle Qualité :** Le dépôt utilise Husky à la racine (`.husky/pre-commit`) pour exécuter `lint-staged`. Complète toujours avec `dotnet test` avant les commits modifiant la logique C#.
 
@@ -31,7 +31,7 @@
 
 * **Vues de photos (PhotoViewProcessingWorker) :** Les vues sont enregistrées dans un canal borné (`BoundedChannel<PhotoViewEvent>`, capacité 10 000) et dépilées de manière asynchrone par un `HostedService` sans bloquer les requêtes HTTP.
 * **Calcul de hash (HashCalculationBackgroundService) :** Les hachages d'images sont calculés en arrière-plan.
-* **Traitement d'images :** Redimensionnement et conversion de formats via `SixLabors.ImageSharp`.
+* **Traitement d'images :** Validation de conteneurs, limitation des dimensions (max 20 MP), redimensionnement et conversion de formats via `SkiaSharp` et `MetadataExtractor` avec porte d'admission (`ImageProcessingAdmissionGate`).
 
 ---
 

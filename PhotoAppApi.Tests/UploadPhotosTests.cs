@@ -290,5 +290,102 @@ namespace PhotoAppApi.Tests
             var photosInDb = await context.Photos.ToListAsync(TestContext.Current.CancellationToken);
             Assert.Empty(photosInDb);
         }
+
+        [Fact]
+        public async Task UploadPhotos_WhenAdmissionGateBusy_Returns503WithRetryAfter()
+        {
+            var options = CreateNewContextOptions();
+            using var context = new AppDbContext(options);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var admissionMock = new Mock<IImageProcessingAdmissionGate>();
+            admissionMock.Setup(a => a.AcquireAsync(It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ImageProcessingBusyException("Le serveur est actuellement saturé.", isQueueFull: true));
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, "mock"));
+
+            var controller = new PhotosController(
+                context, envMock.Object, storageMock.Object, channelMock.Object,
+                moderationService: null,
+                imageProcessingService: null,
+                admissionGate: admissionMock.Object
+            )
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext() { User = user }
+                }
+            };
+
+            var fileBytes = System.Convert.FromHexString("89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C63000100000500010D0A2DB40000000049454E44AE426082");
+            var formFileMock = new Mock<IFormFile>();
+            formFileMock.Setup(f => f.Length).Returns(fileBytes.Length);
+            formFileMock.Setup(f => f.FileName).Returns("photo.png");
+            formFileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
+
+            var moderationMock = new Mock<IModerationService>();
+            var result = await controller.UploadPhotos(
+                new PhotoAppApi.DTOs.UploadRequestDto { Files = new List<IFormFile> { formFileMock.Object }, Tags = "[\"tag1\"]" },
+                moderationMock.Object,
+                CancellationToken.None
+            );
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(503, objectResult.StatusCode);
+            Assert.Equal("5", controller.Response.Headers["Retry-After"].ToString());
+        }
+
+        [Fact]
+        public async Task UploadPhotos_WhenCancelled_ThrowsOperationCanceledException()
+        {
+            var options = CreateNewContextOptions();
+            using var context = new AppDbContext(options);
+
+            var envMock = new Mock<IWebHostEnvironment>();
+            var channelMock = new Mock<ChannelWriter<PhotoViewEvent>>();
+            var storageMock = new Mock<IObjectStorageService>();
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, "mock"));
+
+            var controller = new PhotosController(
+                context, envMock.Object, storageMock.Object, channelMock.Object
+            )
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext() { User = user }
+                }
+            };
+
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            var fileBytes = System.Convert.FromHexString("89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C63000100000500010D0A2DB40000000049454E44AE426082");
+            var formFileMock = new Mock<IFormFile>();
+            formFileMock.Setup(f => f.Length).Returns(fileBytes.Length);
+            formFileMock.Setup(f => f.FileName).Returns("photo.png");
+            formFileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(fileBytes));
+
+            var moderationMock = new Mock<IModerationService>();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                controller.UploadPhotos(
+                    new PhotoAppApi.DTOs.UploadRequestDto { Files = new List<IFormFile> { formFileMock.Object }, Tags = "[\"tag1\"]" },
+                    moderationMock.Object,
+                    cts.Token
+                )
+            );
+        }
     }
 }
