@@ -2,23 +2,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PhotoAppApi.Services
+namespace PhotoAppApi.Services;
+
+public class ImageProcessingBusyException : Exception
 {
-    public class ImageProcessingBusyException : Exception
-    {
-        public bool IsQueueFull { get; }
-        public bool IsTimeout { get; }
+    public bool IsQueueFull { get; }
+    public bool IsTimeout { get; }
 
-        public ImageProcessingBusyException(string message, bool isQueueFull = false, bool isTimeout = false)
-            : base(message)
-        {
-            IsQueueFull = isQueueFull;
-            IsTimeout = isTimeout;
-        }
-    }
-
-    public interface IImageProcessingAdmissionGate
+    public ImageProcessingBusyException(string message, bool isQueueFull = false, bool isTimeout = false)
+        : base(message)
     {
-        Task<IDisposable> AcquireAsync(CancellationToken cancellationToken = default);
+        IsQueueFull = isQueueFull;
+        IsTimeout = isTimeout;
     }
 }
+
+public interface IImageProcessingAdmissionGate
+{
+    Task<IDisposable> AcquireAsync(CancellationToken cancellationToken = default);
+}
+

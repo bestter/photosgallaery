@@ -306,8 +306,8 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     const validExts = [".jpg", ".jpeg", ".png", ".webp"];
     const name = (file.name || "").toLowerCase();
     const hasValidExt = validExts.some((ext) => name.endsWith(ext));
-    const hasValidMime = validMimes.includes(file.type);
-    return hasValidMime || hasValidExt;
+    const hasValidMime = file.type ? validMimes.includes(file.type) : true;
+    return hasValidExt && hasValidMime;
   };
 
   const processFiles = (selectedFiles) => {

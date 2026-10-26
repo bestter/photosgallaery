@@ -225,7 +225,7 @@ namespace PhotoAppApi.Controllers
                 if (theFiles.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
 
-                long totalSize = theFiles.Sum(f => f.Length);
+                var totalSize = theFiles.Sum(f => f.Length);
                 if (totalSize > FileConstants.MaxUploadSize)
                 {
                     log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
@@ -237,30 +237,33 @@ namespace PhotoAppApi.Controllers
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
-                IModerationService theModerationService = moderationService ?? _moderationService!;
+                var theModerationService = moderationService ?? _moderationService!;
                 var moderationSvc = theModerationService;
 
                 var tagNames = string.IsNullOrWhiteSpace(request.Tags)
                     ? new List<string>()
                     : JsonSerializer.Deserialize<List<string>>(request.Tags) ?? new List<string>();
 
-                // Validation : entre 1 et 12 tags
+                // Validate between 1 and 12 tags
                 if (tagNames.Count < 1 || tagNames.Count > 12)
                 {
                     log.Warn($"Validation des tags échouée : {tagNames.Count} tags reçus. Tags: {string.Join(", ", tagNames)}");
                     return BadRequest(new { message = "Vous devez sélectionner entre 1 et 12 tags." });
                 }
 
-                // Validation du groupe
+                // Validate group membership
                 var currentUsername = User.Identity?.Name;
                 var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
 
                 if (request.GroupId.HasValue)
                 {
-                    if (!currentUserId.HasValue) return Unauthorized(new { message = "Utilisateur non authentifié." });
+                    if (!currentUserId.HasValue)
+                    {
+                        return Unauthorized(new { message = "Utilisateur non authentifié." });
+                    }
 
-                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == request.GroupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
+                    var canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == request.GroupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
                     if (!canUploadInGroup && !User.IsInRole("Admin"))
                     {
                         log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{request.GroupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
@@ -322,7 +325,7 @@ namespace PhotoAppApi.Controllers
                     _context.TagTranslations.AddRange(translationsToAdd);
                 }
 
-                // 2. Acquisition du bail d'admission de traitement d'images
+                // 2. Acquire image processing admission lease
                 IDisposable? admissionLease = null;
                 try
                 {
@@ -340,7 +343,7 @@ namespace PhotoAppApi.Controllers
 
                 try
                 {
-                    // 3. Inspecter chaque fichier pour vérifier le format, les dimensions et les animations
+                    // 3. Inspect each file to verify format, dimensions, and animation
                     var validFiles = new List<(IFormFile File, ImageInspectionResult Inspection, string Hash)>();
                     using var sha512 = SHA512.Create();
 
@@ -367,7 +370,7 @@ namespace PhotoAppApi.Controllers
                         validFiles.Add((file, inspection, fileHash));
                     }
 
-                    // 4. Déduplication par empreinte SHA-512 (base de données et batch en cours)
+                    // 4. Deduplicate by SHA-512 hash (database and current batch)
                     var distinctHashes = validFiles.Select(x => x.Hash).Distinct().ToList();
                     var existingHashes = await _context.Photos
                         .AsNoTracking()
@@ -396,7 +399,7 @@ namespace PhotoAppApi.Controllers
                         eligibleItems.Add(item);
                     }
 
-                    // Si aucun fichier n'est éligible au traitement
+                    // If no file is eligible for processing
                     if (eligibleItems.Count == 0)
                     {
                         return Ok(new
@@ -407,7 +410,7 @@ namespace PhotoAppApi.Controllers
                         });
                     }
 
-                    // 5. Modération préalable de tous les fichiers éligibles (fail-closed)
+                    // 5. Pre-moderate all eligible files (fail-closed)
                     foreach (var item in eligibleItems)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -430,7 +433,7 @@ namespace PhotoAppApi.Controllers
                         }
                     }
 
-                    // 6. Traitement et téléversement séquentiel fichier par fichier
+                    // 6. Process and upload files sequentially one by one
                     foreach (var item in eligibleItems)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -439,7 +442,8 @@ namespace PhotoAppApi.Controllers
                         using var processed = await _imageProcessingService.ProcessImageAsync(
                             fileStream,
                             request.IncludeGps,
-                            cancellationToken
+                            cancellationToken,
+                            item.Inspection
                         );
 
                         var fileId = Guid.NewGuid().ToString();
@@ -495,7 +499,7 @@ namespace PhotoAppApi.Controllers
                         uploadedPhotos.Add(photo);
                     }
 
-                    // 7. Persistance en base de données avec réconciliation en cas d'erreur
+                    // 7. Persist in database with reconciliation on error
                     if (uploadedPhotos.Count != 0)
                     {
                         try
@@ -536,7 +540,10 @@ namespace PhotoAppApi.Controllers
 
         private async Task CleanupStorageKeysAsync(List<string> keys)
         {
-            if (keys == null || keys.Count == 0) return;
+            if (keys == null || keys.Count == 0)
+            {
+                return;
+            }
 
             using var cleanupCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             foreach (var key in keys)
@@ -554,17 +561,32 @@ namespace PhotoAppApi.Controllers
 
         private async Task ReconcileOrCleanupAsync(List<string> keys)
         {
-            if (keys == null || keys.Count == 0) return;
+            if (keys == null || keys.Count == 0)
+            {
+                return;
+            }
 
             try
             {
-                var referenced = await _context.Photos
+                var referencedPairs = await _context.Photos
                     .AsNoTracking()
                     .Where(p => (p.Url != null && keys.Contains(p.Url)) || (p.ThumbnailUrl != null && keys.Contains(p.ThumbnailUrl)))
-                    .Select(p => p.Url!)
+                    .Select(p => new { p.Url, p.ThumbnailUrl })
                     .ToListAsync();
 
-                var referencedSet = new HashSet<string>(referenced);
+                var referencedSet = new HashSet<string>();
+                foreach (var pair in referencedPairs)
+                {
+                    if (!string.IsNullOrEmpty(pair.Url))
+                    {
+                        referencedSet.Add(pair.Url);
+                    }
+                    if (!string.IsNullOrEmpty(pair.ThumbnailUrl))
+                    {
+                        referencedSet.Add(pair.ThumbnailUrl);
+                    }
+                }
+
                 var keysToDelete = keys.Where(k => !referencedSet.Contains(k)).ToList();
                 await CleanupStorageKeysAsync(keysToDelete);
             }
@@ -910,8 +932,8 @@ namespace PhotoAppApi.Controllers
 
                     if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
 
-                    int generatedCount = 0;
-                    int missingOriginalsCount = 0;
+                    var generatedCount = 0;
+                    var missingOriginalsCount = 0;
 
                     foreach (var fileName in fileNames)
                     {
@@ -921,18 +943,21 @@ namespace PhotoAppApi.Controllers
                         var originalPath = Path.Combine(uploadsFolder, safeFileName);
                         var thumbPath = Path.Combine(thumbFolder, safeFileName);
 
-                        // 1. Si la miniature existe déjà, on passe
-                        if (System.IO.File.Exists(thumbPath)) continue;
+                        // 1. Skip if thumbnail already exists
+                        if (System.IO.File.Exists(thumbPath))
+                        {
+                            continue;
+                        }
 
-                        // 2. Si le fichier original a disparu du disque, on note l'erreur
+                        // 2. Record missing original file if it disappeared from disk
                         if (!System.IO.File.Exists(originalPath))
                         {
                             missingOriginalsCount++;
                             continue;
                         }
 
-                        // 3. Génération atomique via fichier temporaire
-                        string tempThumbPath = Path.Combine(thumbFolder, $"{safeFileName}.tmp.{Guid.NewGuid():N}");
+                        // 3. Atomic generation via temporary file
+                        var tempThumbPath = Path.Combine(thumbFolder, $"{safeFileName}.tmp.{Guid.NewGuid():N}");
                         try
                         {
                             using (var inStream = System.IO.File.OpenRead(originalPath))
@@ -949,7 +974,13 @@ namespace PhotoAppApi.Controllers
                         {
                             if (System.IO.File.Exists(tempThumbPath))
                             {
-                                try { System.IO.File.Delete(tempThumbPath); } catch { }
+                                try
+                                {
+                                    System.IO.File.Delete(tempThumbPath);
+                                }
+                                catch
+                                {
+                                }
                             }
                             throw;
                         }
@@ -958,7 +989,13 @@ namespace PhotoAppApi.Controllers
                             log.Error($"Erreur lors de la génération de miniature pour {fileName}", ex);
                             if (System.IO.File.Exists(tempThumbPath))
                             {
-                                try { System.IO.File.Delete(tempThumbPath); } catch { }
+                                try
+                                {
+                                    System.IO.File.Delete(tempThumbPath);
+                                }
+                                catch
+                                {
+                                }
                             }
                             return StatusCode(500, "Erreur interne lors de la compression des images.");
                         }
