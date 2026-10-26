@@ -3,7 +3,7 @@
 PixelLyra est une application web moderne et performante de gestion, partage et modération de photos. Elle combine une interface utilisateur immersive au style cyberpunk minimaliste ("Cyanide Glass") avec une API résiliente, sécurisée et à haute performance.
 
 Le projet met en œuvre des fonctionnalités avancées :
-- **Traitement asynchrone d'images** : génération de miniatures, conversion de formats et extraction de métadonnées EXIF/GPS via ImageSharp.
+- **Traitement asynchrone et sécurisé d'images** : validation stricte de conteneurs, limitation des dimensions (max 20 MP), génération de miniatures, conversion de formats et extraction de métadonnées EXIF/GPS via SkiaSharp et MetadataExtractor avec contrôle de concurrence (porte d'admission).
 - **Modération automatique par IA** : analyse en temps réel du contenu des images via un microservice dédié FastAPI exploitant le modèle Hugging Face `Falconsai/nsfw_image_detection`.
 - **Incrémentation haute performance** : enregistrement des vues par file d'attente asynchrone bornée (`BoundedChannel<PhotoViewEvent>`) et traitement en arrière-plan.
 - **Authentification & Sécurité renforcées** : authentification par jetons JWT (stockés dans des cookies sécurisés `SameSite/HttpOnly`), invalidation temps réel des sessions suspendues/modifiées via `IMemoryCache`, protection contre le CSRF (`X-CSRF-TOKEN`) avec rafraîchissement automatique et rejeu transparent des requêtes, limitation du débit (Rate Limiting par IP/Utilisateur) et en-têtes de sécurité stricts (CSP, HSTS, X-Frame-Options).
@@ -35,16 +35,16 @@ Le projet met en œuvre des fonctionnalités avancées :
 * **Framework** : C# / ASP.NET Core (.NET 10.0).
 * **Base de données** : MariaDB / MySQL via Entity Framework Core avec Pomelo (`EnableRetryOnFailure`).
 * **Stockage Objets** : AWS SDK S3 (connecté sur Cloudflare R2 / MinIO / AWS S3).
-* **Traitement d'images** : SixLabors.ImageSharp.
+* **Traitement d'images** : SkiaSharp (3.119.4) & MetadataExtractor (2.9.3).
 * **Workers de Fond** : `PhotoViewProcessingWorker` (`BoundedChannel`) & `HashCalculationBackgroundService`.
 * **Logging** : Log4net (`AddLog4net`).
-* **Tests** : xUnit (173 tests unitaires, d'intégration et de contrat OpenAPI).
+* **Tests** : xUnit (198 tests unitaires, d'intégration et de contrat OpenAPI).
 
 ### 3. Microservice de Modération (`moderation-service`)
 * **Framework** : FastAPI + Python 3.10+.
 * **Détection NSFW** : Pipeline Hugging Face Transformers avec le modèle `Falconsai/nsfw_image_detection`.
 * **Sécurité** : Protection anti-Decompression Bomb (`Image.MAX_IMAGE_PIXELS`), limite de taille de 50 Mo et validation d'en-tête `X-API-Key`.
-* **Tests** : Pytest (11 tests unitaires et d'authentification).
+* **Tests** : Pytest (18 tests unitaires et d'authentification).
 
 ### 4. Infrastructure & Conteneurisation
 * **Docker** : Build multi-étapes combinant la compilation du frontend React et la publication du binaire ASP.NET Core servi via `wwwroot`.
@@ -114,14 +114,14 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   ```bash
   dotnet test
   ```
-  *(Inclut 173 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
+  *(Inclut 198 tests unitaires, d'intégration et de validation du contrat OpenAPI)*
 
 * **Tests Frontend (Vitest Unitaires & Contrat)** :
   ```bash
   cd PhotoFrontend
   npm run test -- --run
   ```
-  *(Inclut 65 tests unitaires de composants, helpers et contrat client API)*
+  *(Inclut 78 tests unitaires de composants, helpers et contrat client API)*
 
 * **Tests Frontend End-to-End (Playwright E2E)** :
   ```bash
@@ -135,7 +135,7 @@ Toutes les suites de tests doivent être validées sans échec avant toute soumi
   cd moderation-service
   py -m pytest
   ```
-  *(Inclut 11 tests unitaires et de validation de l'authentification X-API-Key)*
+  *(Inclut 18 tests unitaires et de validation de l'authentification X-API-Key)*
 
 * **Linter Frontend (ESLint & React Doctor)** :
   ```bash

@@ -1000,7 +1000,7 @@ namespace PhotoAppApi.Tests.Controllers
 
             var photo1 = new Photo { Id = 1, FileName = "photo1.jpg" };
 
-            // Create an INVALID original image (e.g., text file) that ImageSharp will fail to load
+            // Create an INVALID original image (e.g., text file) that image processing will fail to load
             File.WriteAllText(Path.Combine(imagesDir, "photo1.jpg"), "Not a valid image");
 
             using var context = new AppDbContext(_dbContextOptions);

@@ -275,6 +275,8 @@ builder.Services.Configure<ObjectStorageOptions>(
     builder.Configuration.GetSection("ObjectStorage"));
 
 builder.Services.AddScoped<IObjectStorageService, ObjectStorageService>();
+builder.Services.AddSingleton<IImageProcessingAdmissionGate, ImageProcessingAdmissionGate>();
+builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CanUpload", policy =>
