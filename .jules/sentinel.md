@@ -28,3 +28,8 @@ Vulnerability: Execution of raw SQL statements with string interpolation (`Execu
 Learning: EF Core's `ExecuteSqlRawAsync` interprets `{0}`, `{1}` placeholders and generates secure parameterized queries.
 Prevention: Always use parameterized queries (via placeholders like `{0}` and a parameters array, or via `ExecuteSqlAsync` with interpolated strings properly handled by EF Core) when constructing dynamic raw SQL queries. Never concatenate variables directly into a raw SQL string.
 
+
+2025-01-01 - Prevent Directory Traversal via Path.GetFileName
+Vulnerability: Path.GetFileName combined with Replace("\\", "/") can return traversal characters like ".." or fail to prevent sibling directory access without explicit Path.GetFullPath().StartsWith validation.
+Learning: In C#, Path.GetFileName does not sanitize traversal characters like "..". When combined with manual path manipulation, it may allow directory traversal or sibling directory access.
+Prevention: Always validate the resolved file path using Path.GetFullPath and explicitly enforce it starts with the intended base directory appended with a DirectorySeparatorChar.
