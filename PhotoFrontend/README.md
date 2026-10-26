@@ -44,6 +44,18 @@ Exécute la suite de 8 tests d'intégration End-to-End multi-navigateurs (Chromi
 ### `npm run lint`
 Vérifie la qualité du code avec ESLint.
 
-### `npx react-doctor@latest --scope changed`
-Audite les composants modifiés pour détecter les régressions de performance, d'accessibilité et de hooks.
+### React Doctor
+
+Run these commands from `PhotoFrontend`. Both use the latest published scanner without adding a project dependency.
+
+| Command | Scope | Failure threshold |
+| --- | --- | --- |
+| `npm run doctor` or `npm run doctor:full` | Entire frontend, including existing findings | Errors |
+| `npm run doctor:changed` | Only findings introduced since the merge base with `origin/main` | Warnings and errors |
+
+Run `git fetch origin main` before the changed-scope check to refresh the target reference. To compare against a different target, use `npm run doctor:changed -- --base origin/target-branch`.
+
+Append `-- --no-score` to either explicit command to skip the score API, share URL, and crash reporting. For example: `npm run doctor:changed -- --no-score`.
+
+The active CI workflow is `/.github/workflows/react-doctor.yml`. On pull requests, it reports introduced findings with the default `changed` scope and remains advisory (`blocking: none`); pushes to `main` scan the full frontend. The Claude and Cursor hooks use `changed` scope with warnings treated as failures and skip scoring. These thresholds are intentional: a local regression check is stricter than the advisory CI report.
 

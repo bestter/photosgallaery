@@ -7,6 +7,157 @@ import { useTranslation } from 'react-i18next';
 
 const handleContentClick = (e) => e.stopPropagation();
 
+function ImageModalImage({ src, alt }) {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState('loading');
+
+  if (!src || status === 'error') {
+    return (
+      <p role="alert" className="p-6 text-center text-on-error-container">
+        {t('components.image_modal.load_error')}
+      </p>
+    );
+  }
+
+  return (
+    <>
+      {status === 'loading' && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" role="status">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary" aria-hidden="true">sync</span>
+          <span className="sr-only">{t('common.loading')}</span>
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+        onLoad={() => setStatus('loaded')}
+        onError={() => setStatus('error')}
+      />
+    </>
+  );
+}
+
+function ImageModalActions({ state, likesCount, handleDownload, handleLike, handleShare, setIsReporting }) {
+  const { t } = useTranslation();
+  const { isMyPhoto, isLiked, isDownloading, isLiking, hasReported } = state;
+
+  return (
+    <div className="grid grid-cols-4 gap-3">
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={isDownloading}
+        aria-busy={isDownloading}
+        aria-label={t("components.image_modal.button_download")}
+        title={t("components.image_modal.button_download")}
+        className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
+        {isDownloading ? (
+          <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+        ) : (
+          <span className="material-symbols-outlined" aria-hidden="true">download</span>
+        )}
+        <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={handleLike}
+        aria-pressed={isLiked}
+        aria-busy={isLiking}
+        aria-label={t("components.image_modal.button_likes", { count: likesCount })}
+        className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
+          ? "bg-primary text-background-dark border-primary hover:opacity-90"
+          : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
+          } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
+        disabled={isLiking || isMyPhoto}
+        title={isMyPhoto ? t("components.image_modal.cant_like_own") : t("components.image_modal.button_likes", { count: likesCount })}
+      >
+        {/* Fill the favorite icon when the photo is liked. */}
+        {isLiking ? (
+          <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+        ) : (
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+        )}
+        <span className="text-[10px] font-bold uppercase">
+          {t("components.image_modal.button_likes", { count: likesCount })}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onClick={handleShare}
+        aria-label={t("components.image_modal.button_share")}
+        title={t("components.image_modal.button_share")}
+        className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
+        <span className="material-symbols-outlined" aria-hidden="true">share</span>
+        <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
+      </button>
+
+      {hasReported ? (
+        <button
+          type="button"
+          disabled
+          aria-label={t("components.image_modal.reported")}
+          title={t("components.image_modal.reported")}
+          className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
+          <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
+          <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsReporting(true)}
+          disabled={isMyPhoto}
+          aria-label={t("components.image_modal.report")}
+          title={isMyPhoto ? t("components.image_modal.cant_report_own") : t("components.image_modal.report")}
+          className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isMyPhoto
+            ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
+            : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
+            }`}>
+          <span className="material-symbols-outlined" aria-hidden="true">flag</span>
+          <span className="text-[10px] font-bold uppercase">{t("components.image_modal.report")}</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ImageModalTags({ resolvedTags, onTagClick }) {
+  const { t } = useTranslation();
+  if (!resolvedTags || resolvedTags.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
+      <div className="flex flex-wrap gap-2">
+        {resolvedTags.map((tagObj) => {
+          const tagName = tagObj.resolvedName;
+          const tagKey = tagObj.id || tagObj.Id || tagName;
+
+          return onTagClick ? (
+            <button
+              key={tagKey}
+              type="button"
+              className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              onClick={() => onTagClick(tagName)}
+            >
+              {tagName}
+            </button>
+          ) : (
+            <span
+              key={tagKey}
+              className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
+            >
+              {tagName}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ImageModalSidebar({
     author,
     dateTaken,
@@ -23,10 +174,9 @@ function ImageModalSidebar({
     handleShare,
     setIsReporting,
     onAuthorClick,
-    onTagClick,
-    t
+    onTagClick
 }) {
-    const { isMyPhoto, isLiked, isDownloading, isLiking, hasReported } = state;
+    const { t } = useTranslation();
 
     return (
         <div className="w-full md:w-[400px] bg-background-dark p-6 overflow-y-auto flex flex-col gap-6 border-l border-slate-800">
@@ -57,82 +207,14 @@ function ImageModalSidebar({
 
             <hr className="border-slate-800" />
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-4 gap-3">
-                <button
-                    type="button"
-                    onClick={handleDownload}
-                    disabled={isDownloading}
-                    aria-label={t("components.image_modal.button_download")}
-                    title={t("components.image_modal.button_download")}
-                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary text-background-dark transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isDownloading ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}>
-                    {isDownloading ? (
-                        <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
-                    ) : (
-                        <span className="material-symbols-outlined" aria-hidden="true">download</span>
-                    )}
-                    <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_download")}</span>
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleLike}
-                    aria-pressed={isLiked}
-                    aria-label={t("components.image_modal.button_likes", { count: likesCount })}
-                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isLiked
-                        ? "bg-primary text-background-dark border-primary hover:opacity-90"
-                        : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
-                        } ${isLiking || isMyPhoto ? "opacity-50 cursor-not-allowed" : ""}`}
-                    disabled={isLiking || isMyPhoto}
-                    title={isMyPhoto ? t("components.image_modal.cant_like_own") : t("components.image_modal.button_likes", { count: likesCount })}
-                >
-                    {/* Material Symbol a l'attribut FILL qui peut changer selon s'il est aimé ou non via la classe CSS parent (ou font-variation-settings) */}
-                    {isLiking ? (
-                        <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
-                    ) : (
-                        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
-                    )}
-                    <span className="text-[10px] font-bold uppercase">
-                        {t("components.image_modal.button_likes", { count: likesCount })}
-                    </span>
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleShare}
-                    aria-label={t("components.image_modal.button_share")}
-                    title={t("components.image_modal.button_share")}
-                    className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
-                    <span className="material-symbols-outlined" aria-hidden="true">share</span>
-                    <span className="text-[10px] font-bold uppercase">{t("components.image_modal.button_share")}</span>
-                </button>
-
-                {hasReported ? (
-                    <button
-                        type="button"
-                        disabled
-                        aria-label={t("components.image_modal.reported")}
-                        title={t("components.image_modal.reported")}
-                        className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-primary/10 text-slate-500 border border-slate-700 hover:bg-primary/20 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark">
-                        <span className="material-symbols-outlined text-slate-500" aria-hidden="true">flag</span>
-                        <span className="text-[10px] font-bold uppercase">{t("components.image_modal.reported")}</span>
-                    </button>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => setIsReporting(true)}
-                        disabled={isMyPhoto}
-                        aria-label={t("components.image_modal.report")}
-                        title={isMyPhoto ? t("components.image_modal.cant_report_own") : t("components.image_modal.report")}
-                        className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark ${isMyPhoto
-                            ? "bg-primary/10 text-slate-500 border border-slate-700 opacity-50 cursor-not-allowed"
-                            : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
-                            }`}>
-                        <span className="material-symbols-outlined" aria-hidden="true">flag</span>
-                        <span className="text-[10px] font-bold uppercase">{t("components.image_modal.report")}</span>
-                    </button>
-                )}
-            </div>
+            <ImageModalActions
+                state={state}
+                likesCount={likesCount}
+                handleDownload={handleDownload}
+                handleLike={handleLike}
+                handleShare={handleShare}
+                setIsReporting={setIsReporting}
+            />
 
             {/* Info Table */}
             <div className="space-y-4">
@@ -161,36 +243,7 @@ function ImageModalSidebar({
                 </div>
             </div>
 
-            {/* Tags */}
-            {resolvedTags && resolvedTags.length > 0 && (
-                <div className="space-y-3">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("components.image_modal.tags")}</p>
-                    <div className="flex flex-wrap gap-2">
-                        {resolvedTags.map((tagObj) => {
-                            const tagName = tagObj.resolvedName;
-                            const tagKey = tagObj.id || tagObj.Id || tagName;
-
-                            return onTagClick ? (
-                                <button
-                                    key={tagKey}
-                                    type="button"
-                                    className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs hover:bg-primary/20 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                    onClick={() => onTagClick(tagName)}
-                                >
-                                    {tagName}
-                                </button>
-                            ) : (
-                                <span
-                                    key={tagKey}
-                                    className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs"
-                                >
-                                    {tagName}
-                                </span>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
+            <ImageModalTags resolvedTags={resolvedTags} onTagClick={onTagClick} />
 
             {/* Location */}
             {latitude != null && longitude != null && (
@@ -409,7 +462,7 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                 }
             `}</style>
 
-            <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />
+            {imgSrc && <img id="printable-image" src={imgSrc} alt="" className="hidden print:block" />}
 
             {/* Modal Container */}
             <dialog
@@ -435,10 +488,10 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
 
                     {/* Left Section: Large Image */}
                     <div className="flex-1 bg-black flex items-center justify-center relative group min-h-[300px] md:min-h-0">
-                        <img
+                        <ImageModalImage
+                            key={imgSrc}
                             src={imgSrc}
                             alt={photo.title || t("gallery.photo_by", { author })}
-                            className="absolute inset-0 w-full h-full object-contain"
                         />
 
                         {/* Navigation Arrows */}
@@ -472,7 +525,6 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
                         setIsReporting={setIsReporting}
                         onAuthorClick={onAuthorClick}
                         onTagClick={onTagClick}
-                        t={t}
                     />
                 </div>
             </dialog>
@@ -487,5 +539,3 @@ export default function ImageModal({ photo: initialPhoto, onClose, onPrev, onNex
         </div>
     );
 }
-
-

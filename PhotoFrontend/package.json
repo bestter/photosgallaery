@@ -10,7 +10,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "doctor": "npx react-doctor@latest"
+    "doctor": "npm run doctor:full --",
+    "doctor:full": "npx --yes react-doctor@latest --scope full --blocking error",
+    "doctor:changed": "npx --yes react-doctor@latest --scope changed --base origin/main --blocking warning"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
