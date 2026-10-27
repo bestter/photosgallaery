@@ -1,5 +1,5 @@
 from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 import asyncio
 import io
 import os
@@ -9,8 +9,8 @@ import torch
 
 app = FastAPI(title="NSFW Moderation Service")
 
-# Prevent Decompression Bomb DoS
-Image.MAX_IMAGE_PIXELS = 10_000_000
+# Prevent Decompression Bomb DoS and enforce maximum pixel boundary
+Image.MAX_IMAGE_PIXELS = 20_000_000
 
 MODERATION_API_KEY = os.environ.get("MODERATION_API_KEY", "")
 
@@ -33,8 +33,17 @@ classifier = pipeline(
 print("Model loaded successfully!")
 
 
-def load_image(data):
-    return Image.open(io.BytesIO(data)).convert("RGB")
+def load_image(data: bytes | bytearray) -> Image.Image:
+    with Image.open(io.BytesIO(data)) as img:
+        width, height = img.size
+        if width * height > 20_000_000:
+            raise HTTPException(status_code=400, detail="Image exceeds maximum allowed dimensions")
+        transposed = ImageOps.exif_transpose(img)
+        source = transposed if transposed is not None else img
+        rgb_image = source.convert("RGB")
+        if transposed is not None and transposed is not img:
+            transposed.close()
+        return rgb_image
 
 @app.post("/moderate")
 async def moderate_image(
@@ -47,6 +56,7 @@ async def moderate_image(
     if file.size and file.size > 52428800:
         raise HTTPException(status_code=400, detail="File exceeds maximum allowed size (50MB)")
 
+    image = None
     try:
         real_size = 0
         contents = bytearray()
@@ -92,3 +102,6 @@ async def moderate_image(
     except Exception as e:
         print(f"Error during moderation: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during moderation")
+    finally:
+        if isinstance(image, Image.Image):
+            image.close()

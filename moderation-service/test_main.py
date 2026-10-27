@@ -182,3 +182,48 @@ def test_corrupted_image_endpoint():
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid or corrupted image file"
+
+def test_load_image_exact_20m_pixels():
+    # 5000 x 4000 = 20,000,000 pixels exactly
+    img = Image.new("RGB", (5000, 4000), color=(10, 20, 30))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    loaded = main.load_image(buf.getvalue())
+    assert loaded.size == (5000, 4000)
+    loaded.close()
+
+def test_load_image_exceeds_20m_pixels():
+    # 5000 x 4001 = 20,005,000 pixels (> 20,000,000)
+    img = Image.new("RGB", (5000, 4001), color=(10, 20, 30))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    with pytest.raises(main.HTTPException) as exc_info:
+        main.load_image(buf.getvalue())
+    assert exc_info.value.status_code == 400
+    assert "Image exceeds maximum allowed dimensions" in exc_info.value.detail
+
+def test_load_image_exif_orientation_transposed():
+    # Asymmetric 30 x 15 image with EXIF orientation 6 (rotate 90 CW)
+    img = Image.new("RGB", (30, 15), color=(100, 150, 200))
+    exif = img.getexif()
+    exif[0x0112] = 6  # Orientation tag = 6 (Rotate 90 CW)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", exif=exif)
+
+    loaded = main.load_image(buf.getvalue())
+    # After exif_transpose, (30, 15) rotated 90 CW becomes (15, 30)
+    assert loaded.size == (15, 30)
+    loaded.close()
+
+def test_load_image_exif_orientation_mirrored():
+    # Asymmetric image with orientation 2 (flip horizontal)
+    img = Image.new("RGB", (30, 15), color=(100, 150, 200))
+    exif = img.getexif()
+    exif[0x0112] = 2  # Orientation tag = 2 (Flip Horizontal)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", exif=exif)
+
+    loaded = main.load_image(buf.getvalue())
+    assert loaded.size == (30, 15)
+    loaded.close()
+

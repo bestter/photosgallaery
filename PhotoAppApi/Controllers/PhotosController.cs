@@ -11,15 +11,9 @@ using PhotoAppApi.DTOs;
 using PhotoAppApi.Helpers;
 using PhotoAppApi.Models;
 using PhotoAppApi.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats.Webp;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using SixLabors.ImageSharp.Processing;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -40,11 +34,20 @@ namespace PhotoAppApi.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IObjectStorageService _storage;
+        private readonly IImageProcessingService _imageProcessingService;
+        private readonly IImageProcessingAdmissionGate _admissionGate;
 
         private readonly ChannelWriter<PhotoViewEvent> _viewChannelWriter;
         private readonly IModerationService? _moderationService;
 
-        public PhotosController(AppDbContext context, IWebHostEnvironment env, IObjectStorageService storage, ChannelWriter<PhotoViewEvent> viewChannelWriter, IModerationService? moderationService = null)
+        public PhotosController(
+            AppDbContext context,
+            IWebHostEnvironment env,
+            IObjectStorageService storage,
+            ChannelWriter<PhotoViewEvent> viewChannelWriter,
+            IModerationService? moderationService = null,
+            IImageProcessingService? imageProcessingService = null,
+            IImageProcessingAdmissionGate? admissionGate = null)
         {
 
             _context = context;
@@ -52,6 +55,8 @@ namespace PhotoAppApi.Controllers
             _storage = storage;
             _viewChannelWriter = viewChannelWriter;
             _moderationService = moderationService;
+            _imageProcessingService = imageProcessingService ?? new ImageProcessingService();
+            _admissionGate = admissionGate ?? new ImageProcessingAdmissionGate();
         }
 
         // GET: api/photos (Sécurisé pour récupérer selon les groupes)
@@ -204,90 +209,6 @@ namespace PhotoAppApi.Controllers
             }
         }
 
-        [NonAction]
-        public void ExtractGpsDataSafely(ExifProfile exifProfile, Photo photo)
-        {
-            // Si l'image n'a pas du tout d'EXIF, on arrête ici
-            if (exifProfile == null || exifProfile.Values == null) return;
-
-            try
-            {
-                ExtractLatitudeSafely(exifProfile, photo);
-                ExtractLongitudeSafely(exifProfile, photo);
-            }
-            catch (Exception ex)
-            {
-                log.Warn("Échec de l'extraction des coordonnées GPS pour une image.", ex);
-            }
-        }
-
-        private void ExtractLatitudeSafely(ExifProfile exifProfile, Photo photo)
-        {
-            var latExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitude);
-            var latRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLatitudeRef);
-
-            if (latExif?.GetValue() is Rational[] latRationals && latRefExif?.GetValue() is string latRefStr)
-            {
-                double? lat = ConvertToDecimalDegreesSafely(latRationals, latRefStr);
-
-                // Validation géographique de base (entre Pôle Nord et Pôle Sud)
-                if (lat.HasValue && lat >= -90.0 && lat <= 90.0)
-                {
-                    photo.Latitude = lat;
-                }
-            }
-        }
-
-        private void ExtractLongitudeSafely(ExifProfile exifProfile, Photo photo)
-        {
-            var lonExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitude);
-            var lonRefExif = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.GPSLongitudeRef);
-
-            if (lonExif?.GetValue() is Rational[] lonRationals && lonRefExif?.GetValue() is string lonRefStr)
-            {
-                double? lon = ConvertToDecimalDegreesSafely(lonRationals, lonRefStr);
-
-                // Validation géographique de base (entre Ligne de changement de date Est et Ouest)
-                if (lon.HasValue && lon >= -180.0 && lon <= 180.0)
-                {
-                    photo.Longitude = lon;
-                }
-            }
-        }
-
-        private static double? ConvertToDecimalDegreesSafely(Rational[] rationals, string reference)
-        {
-            // Sécurité 1 : Vérifier qu'on a bien les données minimales
-            if (rationals == null || rationals.Length < 3 || string.IsNullOrWhiteSpace(reference))
-                return null;
-
-            // Sécurité 2 : Prévention absolue de la division par zéro
-            if (rationals[0].Denominator == 0 || rationals[1].Denominator == 0 || rationals[2].Denominator == 0)
-                return null;
-
-            double degrees = (double)rationals[0].Numerator / rationals[0].Denominator;
-            double minutes = (double)rationals[1].Numerator / rationals[1].Denominator;
-            double seconds = (double)rationals[2].Numerator / rationals[2].Denominator;
-
-            double result = degrees + (minutes / 60.0) + (seconds / 3600.0);
-
-            // Sécurité 3 : Nettoyage de la chaîne de caractère
-            reference = reference.Trim().ToUpper();
-
-            if (reference == "S" || reference == "W")
-            {
-                result *= -1;
-            }
-            else if (reference != "N" && reference != "E")
-            {
-                // Si la référence est une lettre absurde (ex: "X" ou "?"), la coordonnée n'est pas fiable
-                return null;
-            }
-
-            // On arrondit à 6 décimales (précision d'environ 11 centimètres, largement suffisant)
-            return Math.Round(result, 6);
-        }
-
         // POST: api/photos/upload (Privé: connectés seulement)
         [Authorize(Policy = "CanUpload")]
         [RequireWebsiteHeader] // 🔒 NOUVEAU: Empêche Postman / scripts de contourner le site web
@@ -300,57 +221,59 @@ namespace PhotoAppApi.Controllers
             {
                 log.Debug($"In {nameof(UploadPhotos)}");
 
-
                 var theFiles = request.Files == null ? new List<IFormFile>() : new List<IFormFile>(request.Files);
-                // ⚡ Bolt: Use .Count == 0 instead of .Any() on a List to avoid enumerator allocation overhead
                 if (theFiles.Count == 0)
                     return BadRequest(new { message = "Aucun fichier détecté." });
+
+                var totalSize = theFiles.Sum(f => f.Length);
+                if (totalSize > FileConstants.MaxUploadSize)
+                {
+                    log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
+                    return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });
+                }
 
                 if (moderationService == null && _moderationService == null)
                 {
                     log.Error("ModerationService is not configured. Failing closed to prevent unmoderated uploads.");
                     return StatusCode(500, new { message = "Le service de modération est indisponible. Le téléversement est bloqué." });
                 }
-                IModerationService theModerationService = moderationService ?? _moderationService!;
+                var theModerationService = moderationService ?? _moderationService!;
                 var moderationSvc = theModerationService;
-
-
-                // ⚡ Bolt: Replace unbounded Task.WhenAll with Parallel.ForEachAsync for bounded concurrency
-                // This prevents File Descriptor exhaustion and thread pool starvation when moderating many files concurrently.
-                List<IFormFile> fileList = theFiles;
-
-                var moderationResults = new ModerationResult[fileList.Count];
-                var moderationMaxDegrees = Environment.ProcessorCount;
-
-                await Parallel.ForEachAsync(Enumerable.Range(0, fileList.Count), new ParallelOptions { MaxDegreeOfParallelism = moderationMaxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
-                {
-                    var file = fileList[i];
-                    await using var stream = file.OpenReadStream();
-                    moderationResults[i] = await moderationSvc.CheckImageAsync(stream, file.FileName, file.ContentType, ct);
-                });
-
-                var nsfwResult = moderationResults.FirstOrDefault(r => r.IsNsfw);
-                if (nsfwResult != null)
-                {
-                    return BadRequest(new { message = "Image contains inappropriate content", score = nsfwResult.NsfwScore });
-                }
-
 
                 var tagNames = string.IsNullOrWhiteSpace(request.Tags)
                     ? new List<string>()
                     : JsonSerializer.Deserialize<List<string>>(request.Tags) ?? new List<string>();
 
-                // Validation : entre 1 et 12 tags
+                // Validate between 1 and 12 tags
                 if (tagNames.Count < 1 || tagNames.Count > 12)
                 {
                     log.Warn($"Validation des tags échouée : {tagNames.Count} tags reçus. Tags: {string.Join(", ", tagNames)}");
                     return BadRequest(new { message = "Vous devez sélectionner entre 1 et 12 tags." });
                 }
 
+                // Validate group membership
+                var currentUsername = User.Identity?.Name;
+                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
+
+                if (request.GroupId.HasValue)
+                {
+                    if (!currentUserId.HasValue)
+                    {
+                        return Unauthorized(new { message = "Utilisateur non authentifié." });
+                    }
+
+                    var canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == request.GroupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
+                    if (!canUploadInGroup && !User.IsInRole("Admin"))
+                    {
+                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{request.GroupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
+                        return Forbid();
+                    }
+                }
+
                 var tagsToAttach = new List<Tag>();
                 var trimmedNames = tagNames.Select(n => n.Trim()).ToList();
 
-                // 1. On pré-charge toutes les traductions existantes pour éviter le problème N+1
                 var existingTranslations = await _context.TagTranslations
                     .Include(tt => tt.Tag)
                     .Where(tt => trimmedNames.Contains(tt.Name) && tt.Language == Language.FR)
@@ -360,9 +283,7 @@ namespace PhotoAppApi.Controllers
                     .GroupBy(tt => tt.Name, StringComparer.OrdinalIgnoreCase)
                     .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-                // Pour gérer les tags créés au cours de cette boucle (si doublons dans tagNames)
                 var newlyCreatedTags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
-
                 var tagsToAdd = new List<Tag>();
                 var translationsToAdd = new List<TagTranslation>();
 
@@ -370,24 +291,20 @@ namespace PhotoAppApi.Controllers
                 {
                     if (translationDict.TryGetValue(name, out var existingTranslation))
                     {
-                        // Si le tag existe déjà en base, on utilise l'objet Tag associé
                         tagsToAttach.Add(existingTranslation.Tag);
                     }
                     else if (newlyCreatedTags.TryGetValue(name, out var newTagFromPreviousIteration))
                     {
-                        // Si on l'a déjà créé dans une itération précédente du tagNames
                         tagsToAttach.Add(newTagFromPreviousIteration);
                     }
                     else
                     {
-                        // 2. Création d'un nouveau Tag
                         var newTag = new Tag
                         {
                             IsActive = true,
                             IsMetaTag = false
                         };
 
-                        // 3. Création de sa traduction française
                         var newTranslation = new TagTranslation
                         {
                             Tag = newTag,
@@ -397,248 +314,285 @@ namespace PhotoAppApi.Controllers
 
                         tagsToAdd.Add(newTag);
                         translationsToAdd.Add(newTranslation);
-
-                        // On l'ajoute à nos listes
                         tagsToAttach.Add(newTag);
                         newlyCreatedTags.Add(name, newTag);
                     }
                 }
 
-                // ⚡ Bolt: Batched database insertions to avoid N+1 queries during tag creation
-                if (tagsToAdd.Any())
+                if (tagsToAdd.Count != 0)
                 {
                     _context.Tags.AddRange(tagsToAdd);
                     _context.TagTranslations.AddRange(translationsToAdd);
                 }
 
-                // 1. Vérification de la taille totale avant de traiter quoi que ce soit
-                long totalSize = fileList.Sum(f => f.Length);
-                if (totalSize > FileConstants.MaxUploadSize)
+                // 2. Acquire image processing admission lease
+                IDisposable? admissionLease = null;
+                try
                 {
-                    log.Warn($"Tentative de téléversement de fichiers totalisant {totalSize} octets, ce qui dépasse la limite autorisée.");
-                    return BadRequest(new { message = "La taille totale des fichiers dépasse la limite de 50 Mo." });
+                    admissionLease = await _admissionGate.AcquireAsync(cancellationToken);
+                }
+                catch (ImageProcessingBusyException busyEx)
+                {
+                    Response.Headers["Retry-After"] = "5";
+                    return StatusCode(503, new { message = busyEx.Message });
                 }
 
-                // Validation du groupe
-                var currentUsername = User.Identity?.Name;
+                var errors = new List<string>();
+                var uploadedPhotos = new List<Photo>();
+                var uploadedKeys = new List<string>();
 
-                // ⚡ Bolt: Eliminate redundant Users table query by extracting UserId directly from JWT claims.
-                var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                int? currentUserId = int.TryParse(currentUserIdString, out var parsedId) ? parsedId : null;
-
-                if (request.GroupId.HasValue)
+                try
                 {
-                    if (!currentUserId.HasValue) return Unauthorized(new { message = "Utilisateur non authentifié." });
+                    // 3. Inspect each file to verify format, dimensions, and animation
+                    var validFiles = new List<(IFormFile File, ImageInspectionResult Inspection, string Hash)>();
+                    using var sha512 = SHA512.Create();
 
-                    bool canUploadInGroup = await _context.UserGroups.AnyAsync(ug => ug.UserId == currentUserId.Value && ug.GroupId == request.GroupId.Value && (ug.Role == GroupUserRole.Member || ug.Role == GroupUserRole.Admin), cancellationToken);
-                    if (!canUploadInGroup && !User.IsInRole("Admin"))
+                    foreach (var file in theFiles)
                     {
-                        log.Warn($"L'utilisateur '{currentUsername}' a tenté de téléverser une image dans le groupe '{request.GroupId}' sans la permission nécessaire (doit être Membre ou Admin du groupe).");
-                        return Forbid();
+                        if (file.Length == 0)
+                        {
+                            errors.Add($"Le fichier '{file.FileName}' est vide.");
+                            continue;
+                        }
+
+                        using var stream = file.OpenReadStream();
+                        var inspection = _imageProcessingService.Inspect(stream);
+                        if (!inspection.IsValid)
+                        {
+                            errors.Add($"Le fichier '{file.FileName}' n'est pas supporté ou valide : {inspection.ErrorMessage}");
+                            continue;
+                        }
+
+                        stream.Position = 0;
+                        var hashBytes = await sha512.ComputeHashAsync(stream, cancellationToken);
+                        var fileHash = Convert.ToHexStringLower(hashBytes);
+
+                        validFiles.Add((file, inspection, fileHash));
                     }
+
+                    // 4. Deduplicate by SHA-512 hash (database and current batch)
+                    var distinctHashes = validFiles.Select(x => x.Hash).Distinct().ToList();
+                    var existingHashes = await _context.Photos
+                        .AsNoTracking()
+                        .Where(p => p.FileHash != null && distinctHashes.Contains(p.FileHash))
+                        .Select(p => p.FileHash!)
+                        .ToListAsync(cancellationToken);
+
+                    var existingHashesSet = new HashSet<string>(existingHashes);
+                    var seenInBatch = new HashSet<string>();
+                    var eligibleItems = new List<(IFormFile File, ImageInspectionResult Inspection, string Hash)>();
+
+                    foreach (var item in validFiles)
+                    {
+                        if (existingHashesSet.Contains(item.Hash))
+                        {
+                            errors.Add($"L'image '{item.File.FileName}' existe déjà dans la galerie.");
+                            continue;
+                        }
+
+                        if (seenInBatch.Contains(item.Hash))
+                        {
+                            errors.Add($"L'image '{item.File.FileName}' est présente en double dans cet envoi.");
+                            continue;
+                        }
+                        seenInBatch.Add(item.Hash);
+                        eligibleItems.Add(item);
+                    }
+
+                    // If no file is eligible for processing
+                    if (eligibleItems.Count == 0)
+                    {
+                        return Ok(new
+                        {
+                            message = "0 image(s) téléversée(s) avec succès.",
+                            photos = uploadedPhotos,
+                            erreurs = errors
+                        });
+                    }
+
+                    // 5. Pre-moderate all eligible files (fail-closed)
+                    foreach (var item in eligibleItems)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        using var stream = item.File.OpenReadStream();
+                        var modResult = await moderationSvc.CheckImageAsync(
+                            stream,
+                            item.File.FileName,
+                            item.Inspection.ContentType!,
+                            cancellationToken
+                        );
+
+                        if (modResult.IsNsfw)
+                        {
+                            return BadRequest(new
+                            {
+                                message = "Image contains inappropriate content",
+                                score = modResult.NsfwScore
+                            });
+                        }
+                    }
+
+                    // 6. Process and upload files sequentially one by one
+                    foreach (var item in eligibleItems)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        using var fileStream = item.File.OpenReadStream();
+                        using var processed = await _imageProcessingService.ProcessImageAsync(
+                            fileStream,
+                            request.IncludeGps,
+                            cancellationToken,
+                            item.Inspection
+                        );
+
+                        var fileId = Guid.NewGuid().ToString();
+                        var uniqueFileName = fileId + processed.Extension;
+
+                        string? mainKey = null;
+                        string? thumbKey = null;
+
+                        try
+                        {
+                            mainKey = await _storage.UploadImageAsync(
+                                processed.MainStream,
+                                processed.ContentType,
+                                uniqueFileName,
+                                "gallery",
+                                cancellationToken
+                            );
+                            uploadedKeys.Add(mainKey);
+
+                            thumbKey = await _storage.UploadImageAsync(
+                                processed.ThumbnailStream,
+                                processed.ContentType,
+                                uniqueFileName,
+                                "thumbnails",
+                                cancellationToken
+                            );
+                            uploadedKeys.Add(thumbKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Échec du téléversement de l'image {item.File.FileName} vers le stockage.", ex);
+                            await CleanupStorageKeysAsync(uploadedKeys);
+                            throw;
+                        }
+
+                        var photo = new Photo
+                        {
+                            FileName = uniqueFileName,
+                            UploaderUsername = currentUsername ?? "Anonyme",
+                            FileHash = item.Hash,
+                            Tags = tagsToAttach.ToList(),
+                            GroupId = request.GroupId,
+                            FileSize = item.File.Length,
+                            ResolutionWidth = processed.NormalizedWidth,
+                            ResolutionHeight = processed.NormalizedHeight,
+                            Url = mainKey,
+                            ThumbnailUrl = thumbKey,
+                            DateTaken = processed.Metadata.DateTaken,
+                            CameraModel = processed.Metadata.CameraModel,
+                            Latitude = processed.Metadata.Latitude,
+                            Longitude = processed.Metadata.Longitude
+                        };
+                        uploadedPhotos.Add(photo);
+                    }
+
+                    // 7. Persist in database with reconciliation on error
+                    if (uploadedPhotos.Count != 0)
+                    {
+                        try
+                        {
+                            _context.Photos.AddRange(uploadedPhotos);
+                            await _context.SaveChangesAsync(cancellationToken);
+                        }
+                        catch (Exception dbEx)
+                        {
+                            log.Error("Échec de la sauvegarde en base de données après téléversement. Réconciliation des objets.", dbEx);
+                            await ReconcileOrCleanupAsync(uploadedKeys);
+                            return StatusCode(500, new { message = "Une erreur interne est survenue lors de l'enregistrement en base de données." });
+                        }
+                    }
+
+                    return Ok(new
+                    {
+                        message = $"{uploadedPhotos.Count} image(s) téléversée(s) avec succès.",
+                        photos = uploadedPhotos,
+                        erreurs = errors
+                    });
                 }
-
-                var uploadedPhotos = new System.Collections.Concurrent.ConcurrentBag<Photo>();
-                var errors = new System.Collections.Concurrent.ConcurrentBag<string>();
-
-                // 2. Pré-calculer les hashes et vérifier les doublons en une seule requête (Optimisation N+1)
-                // ⚡ Bolt: Execute hashing concurrently to minimize stream I/O latency
-                // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) with a pre-sized array to safely process files without exhausting File Descriptors and preserve file order.
-                var validFiles = fileList.Where(file => file.Length > 0).ToList();
-                var fileHashesArray = new (IFormFile File, string Hash)[validFiles.Count];
-                var maxDegrees = Environment.ProcessorCount;
-
-                await Parallel.ForEachAsync(Enumerable.Range(0, validFiles.Count), new ParallelOptions { MaxDegreeOfParallelism = maxDegrees, CancellationToken = cancellationToken }, async (i, ct) =>
+                finally
                 {
-                    var file = validFiles[i];
-                    await using var stream = file.OpenReadStream();
-                    var hashBytes = await SHA512.HashDataAsync(stream, ct);
-                    fileHashesArray[i] = (File: file, Hash: Convert.ToHexStringLower(hashBytes));
-                });
-                var fileHashes = fileHashesArray.ToList();
-
-                var distinctHashes = fileHashes.Select(fh => fh.Hash).Distinct().ToList();
-                var existingHashes = await _context.Photos
-                    .AsNoTracking()
-                    .Where(p => p.FileHash != null && distinctHashes.Contains(p.FileHash))
-                    .Select(p => p.FileHash!)
-                    .ToListAsync(cancellationToken);
-
-                var existingHashesSet = new HashSet<string>(existingHashes);
-                var seenInBatch = new HashSet<string>();
-                var seenInBatchLock = new object();
-
-                // 3. Boucler sur chaque fichier envoyé
-                // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) instead of a sequential foreach loop to process images.
-                // This parallelizes CPU-intensive tasks (image resizing via ImageSharp) and network I/O-intensive tasks (S3 uploads).
-                await Parallel.ForEachAsync(fileHashes, new ParallelOptions { MaxDegreeOfParallelism = maxDegrees, CancellationToken = cancellationToken }, async (item, ct) =>
-                {
-                    var file = item.File;
-                    var fileHash = item.Hash;
-
-                    // Vérification des doublons en base
-                    if (existingHashesSet.Contains(fileHash))
-                    {
-                        errors.Add($"L'image '{file.FileName}' existe déjà dans la galerie.");
-                        return;
-                    }
-
-                    // Vérification des doublons au sein du même batch
-                    lock (seenInBatchLock)
-                    {
-                        if (seenInBatch.Contains(fileHash))
-                        {
-                            errors.Add($"L'image '{file.FileName}' est présente en double dans cet envoi. Hash: {fileHash}");
-                            return;
-                        }
-                        seenInBatch.Add(fileHash);
-                    }
-
-                    // A. Validation des "Magic Bytes"
-                    using var fileStream = file.OpenReadStream();
-                    if (!FileSignatureValidator.IsValidImage(fileStream, out string validExtension))
-                    {
-                        errors.Add($"Le fichier '{file.FileName}' n'est pas une image valide ou son format n'est pas supporté (JPEG, PNG, WEBP, AVIF).");
-                        return;
-                    }
-
-                    // On utilise le GUID + l'extension validée, ignorant complètement le nom/extension d'origine
-                    var fileId = Guid.NewGuid().ToString();
-                    var uniqueFileName = fileId + validExtension;
-
-                    int originalWidth = 0;
-                    int originalHeight = 0;
-                    Photo? photo = null;
-
-                    // B. Chargement et Ré-encodage avec ImageSharp (Désarmer les payloads et supprimer les métadonnées)
-                    fileStream.Position = 0; // Important après la vérification des magic bytes
-
-                    try
-                    {
-                        using (var image = await Image.LoadAsync(fileStream, ct))
-                        {
-                            originalWidth = image.Width;
-                            originalHeight = image.Height;
-
-                            photo = new Photo
-                            {
-                                FileName = uniqueFileName,
-                                UploaderUsername = currentUsername ?? "Anonyme",
-                                FileHash = fileHash,
-                                Tags = tagsToAttach.ToList(),
-                                GroupId = request.GroupId,
-                                FileSize = file.Length,
-                                ResolutionWidth = originalWidth,
-                                ResolutionHeight = originalHeight,
-                                ThumbnailUrl = string.Empty,
-                                Url = string.Empty
-                            };
-
-                            var exifProfile = image.Metadata.ExifProfile;
-                            if (exifProfile != null)
-                            {
-                                // Extraction sécurisée avant suppression
-                                var dateTimeValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.DateTimeOriginal);
-                                if (dateTimeValue != null)
-                                {
-                                    string? dtStr = dateTimeValue.GetValue()?.ToString();
-                                    if (!string.IsNullOrEmpty(dtStr) && DateTime.TryParseExact(dtStr, "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var dt))
-                                    {
-                                        photo.DateTaken = dt;
-                                    }
-                                }
-
-                                var modelValue = exifProfile.Values.FirstOrDefault(v => v.Tag == ExifTag.Model);
-                                if (modelValue != null)
-                                {
-                                    photo.CameraModel = modelValue.GetValue()?.ToString()?.Trim('\0', ' ');
-                                }
-
-                                if (request.IncludeGps)
-                                {
-                                    ExtractGpsDataSafely(exifProfile, photo);
-                                }
-                            }
-
-                            // 🛑 SUPPRESSION OBLIGATOIRE DES METADONNEES POUR SECURITE (EXIF, IPTC, XMP) 🛑
-                            image.Metadata.ExifProfile = null;
-                            image.Metadata.IptcProfile = null;
-                            image.Metadata.XmpProfile = null;
-
-                            // Déterminer l'encodeur approprié
-                            IImageEncoder encoder = validExtension switch
-                            {
-                                ".png" => new PngEncoder(),
-                                ".webp" => new WebpEncoder(),
-                                ".avif" => new WebpEncoder(), // Fallback AVIF as Webp if AVIF encoder missing or configure accordingly, ImageSharp 3 supports webp
-                                _ => new JpegEncoder()
-                            };
-
-                            string contentType = validExtension switch
-                            {
-                                ".png" => "image/png",
-                                ".webp" => "image/webp",
-                                ".avif" => "image/avif",
-                                _ => "image/jpeg"
-                            };
-
-                            // Encodage en mémoire de l'image originale "propre"
-                            using var cleanMemoryStream = new MemoryStream();
-                            await image.SaveAsync(cleanMemoryStream, encoder, ct);
-                            cleanMemoryStream.Position = 0;
-
-                            // 4. Sauvegarde directe dans S3 via Stream
-                            var key = await _storage.UploadImageAsync(cleanMemoryStream, contentType, uniqueFileName, "gallery", ct);
-                            photo.Url = key;
-
-                            // Création de la miniature
-                            image.Mutate(x => x.Resize(new ResizeOptions
-                            {
-                                Size = new Size(400, 400),
-                                Mode = ResizeMode.Max
-                            }));
-
-                            using var thumbMemoryStream = new MemoryStream();
-                            await image.SaveAsync(thumbMemoryStream, encoder, ct);
-                            thumbMemoryStream.Position = 0;
-
-                            var thumbnailsKey = await _storage.UploadImageAsync(thumbMemoryStream, contentType, uniqueFileName, "thumbnails", ct);
-                            photo.ThumbnailUrl = thumbnailsKey;
-                        }
-
-                        if (photo != null)
-                        {
-                            uploadedPhotos.Add(photo);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error($"Échec du traitement de l'image {file.FileName}: non reconnue comme image valide par ImageSharp.", ex);
-                        errors.Add($"Le fichier '{file.FileName}' est corrompu ou illisible.");
-                        return;
-                    }
-                });
-
-                // Convert ConcurrentBag to List and add to DbContext since DbContext operations are not thread-safe and must be done synchronously
-                var uploadedPhotosList = uploadedPhotos.ToList();
-                if (uploadedPhotosList.Count != 0)
-                {
-                    _context.Photos.AddRange(uploadedPhotosList);
-                    await _context.SaveChangesAsync(cancellationToken);
+                    admissionLease?.Dispose();
                 }
-
-                // 7. Retourner un résumé clair au client React
-                return Ok(new
-                {
-                    message = $"{uploadedPhotosList.Count} image(s) téléversée(s) avec succès.",
-                    photos = uploadedPhotosList,
-                    erreurs = errors.ToList() // React pourra afficher la liste des fichiers refusés
-                });
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
                 log.Error($"An error occured in {nameof(UploadPhotos)}", e);
                 return StatusCode(500, new { message = "Une erreur interne est survenue lors du téléversement." });
+            }
+        }
+
+        private async Task CleanupStorageKeysAsync(List<string> keys)
+        {
+            if (keys == null || keys.Count == 0)
+            {
+                return;
+            }
+
+            using var cleanupCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            foreach (var key in keys)
+            {
+                try
+                {
+                    await _storage.DeleteImageAsync(key, cleanupCts.Token);
+                }
+                catch (Exception ex)
+                {
+                    log.Warn($"Échec de la suppression de l'objet temporaire {key}.", ex);
+                }
+            }
+        }
+
+        private async Task ReconcileOrCleanupAsync(List<string> keys)
+        {
+            if (keys == null || keys.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                var referencedPairs = await _context.Photos
+                    .AsNoTracking()
+                    .Where(p => (p.Url != null && keys.Contains(p.Url)) || (p.ThumbnailUrl != null && keys.Contains(p.ThumbnailUrl)))
+                    .Select(p => new { p.Url, p.ThumbnailUrl })
+                    .ToListAsync();
+
+                var referencedSet = new HashSet<string>();
+                foreach (var pair in referencedPairs)
+                {
+                    if (!string.IsNullOrEmpty(pair.Url))
+                    {
+                        referencedSet.Add(pair.Url);
+                    }
+                    if (!string.IsNullOrEmpty(pair.ThumbnailUrl))
+                    {
+                        referencedSet.Add(pair.ThumbnailUrl);
+                    }
+                }
+
+                var keysToDelete = keys.Where(k => !referencedSet.Contains(k)).ToList();
+                await CleanupStorageKeysAsync(keysToDelete);
+            }
+            catch (Exception ex)
+            {
+                log.Error("Impossible de vérifier les clés orphelines suite à l'échec DB. Objets conservés pour audit.", ex);
             }
         }
 
@@ -966,65 +920,122 @@ namespace PhotoAppApi.Controllers
             {
                 log.Debug($"In {nameof(GenerateMissingThumbnails)}");
 
-                // ⚡ Bolt: Project only the required FileName field to reduce memory overhead and use Parallel.ForEachAsync
-                // to accelerate CPU/IO bound thumbnail generation across all available cores.
-                var fileNames = await _context.Photos
-                    .AsNoTracking()
-                    .Where(p => p.FileName != null)
-                    .Select(p => p.FileName!)
-                    .ToListAsync(cancellationToken);
-
-                var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var uploadsFolder = Path.Combine(rootPath, "images");
-                var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
-
-                if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
-
-                int generatedCount = 0;
-                int missingOriginalsCount = 0;
-                var fullUploadsFolder = Path.GetFullPath(uploadsFolder) + Path.DirectorySeparatorChar;
-                var fullThumbFolder = Path.GetFullPath(thumbFolder) + Path.DirectorySeparatorChar;
-
-                await Parallel.ForEachAsync(fileNames, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken }, async (fileName, ct) =>
+                IDisposable? admissionLease = null;
+                try
                 {
-                    var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
-                    var originalPath = Path.GetFullPath(Path.Combine(fullUploadsFolder, safeFileName));
-                    var thumbPath = Path.GetFullPath(Path.Combine(fullThumbFolder, safeFileName));
+                    admissionLease = await _admissionGate.AcquireAsync(cancellationToken);
+                }
+                catch (ImageProcessingBusyException busyEx)
+                {
+                    Response.Headers["Retry-After"] = "5";
+                    return StatusCode(503, new { message = busyEx.Message });
+                }
 
-                    if (!originalPath.StartsWith(fullUploadsFolder, StringComparison.OrdinalIgnoreCase) || !thumbPath.StartsWith(fullThumbFolder, StringComparison.OrdinalIgnoreCase)) return;
+                try
+                {
+                    var fileNames = await _context.Photos
+                        .AsNoTracking()
+                        .Where(p => p.FileName != null)
+                        .Select(p => p.FileName!)
+                        .ToListAsync(cancellationToken);
 
-                    // 1. Si la miniature existe déjà, on ne gaspille pas de temps CPU, on passe !
-                    // ⚡ Bolt: Replace O(N) memory-heavy directory enumeration and HashSet building
-                    // with fast, direct O(1) System.IO.File.Exists checks to prevent massive memory
-                    // spikes and avoid Time-Of-Check to Time-Of-Use (TOCTOU) concurrency issues.
-                    if (System.IO.File.Exists(thumbPath)) return;
+                    var rootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    var uploadsFolder = Path.Combine(rootPath, "images");
+                    var thumbFolder = Path.Combine(uploadsFolder, "thumbnails");
 
-                    // 2. Si par hasard le gros fichier original a disparu du disque, on note l'erreur
-                    if (!System.IO.File.Exists(originalPath))
+                    if (!Directory.Exists(thumbFolder)) Directory.CreateDirectory(thumbFolder);
+
+                    var generatedCount = 0;
+                    var missingOriginalsCount = 0;
+                    var fullUploadsFolder = Path.GetFullPath(uploadsFolder) + Path.DirectorySeparatorChar;
+                    var fullThumbFolder = Path.GetFullPath(thumbFolder) + Path.DirectorySeparatorChar;
+
+                    foreach (var fileName in fileNames)
                     {
-                        Interlocked.Increment(ref missingOriginalsCount);
-                        return;
-                    }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    // 3. La magie d'ImageSharp : on charge, on compresse, on sauvegarde
-                    using (var image = await Image.LoadAsync(originalPath, ct))
-                    {
-                        image.Mutate(x => x.Resize(new ResizeOptions
+                        var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
+                        var originalPath = Path.GetFullPath(Path.Combine(fullUploadsFolder, safeFileName));
+                        var thumbPath = Path.GetFullPath(Path.Combine(fullThumbFolder, safeFileName));
+
+                        if (!originalPath.StartsWith(fullUploadsFolder, StringComparison.OrdinalIgnoreCase) || !thumbPath.StartsWith(fullThumbFolder, StringComparison.OrdinalIgnoreCase))
                         {
-                            Size = new Size(400, 400),
-                            Mode = ResizeMode.Max // Conserve les proportions
-                        }));
-                        await image.SaveAsync(thumbPath, ct);
-                    }
-                    Interlocked.Increment(ref generatedCount);
-                });
+                            continue;
+                        }
 
-                return Ok(new
+                        // 1. Skip if thumbnail already exists
+                        if (System.IO.File.Exists(thumbPath))
+                        {
+                            continue;
+                        }
+
+                        // 2. Record missing original file if it disappeared from disk
+                        if (!System.IO.File.Exists(originalPath))
+                        {
+                            missingOriginalsCount++;
+                            continue;
+                        }
+
+                        // 3. Atomic generation via temporary file
+                        var tempThumbPath = Path.Combine(thumbFolder, $"{safeFileName}.tmp.{Guid.NewGuid():N}");
+                        try
+                        {
+                            using (var inStream = System.IO.File.OpenRead(originalPath))
+                            using (var result = await _imageProcessingService.GenerateThumbnailAsync(inStream, cancellationToken))
+                            using (var outStream = System.IO.File.Create(tempThumbPath))
+                            {
+                                await result.ThumbnailStream.CopyToAsync(outStream, cancellationToken);
+                            }
+
+                            System.IO.File.Move(tempThumbPath, thumbPath, overwrite: false);
+                            generatedCount++;
+                        }
+                        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                        {
+                            if (System.IO.File.Exists(tempThumbPath))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(tempThumbPath);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Erreur lors de la génération de miniature pour {fileName}", ex);
+                            if (System.IO.File.Exists(tempThumbPath))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(tempThumbPath);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                            return StatusCode(500, "Erreur interne lors de la compression des images.");
+                        }
+                    }
+
+                    return Ok(new
+                    {
+                        message = "Opération de maintenance terminée avec succès.",
+                        miniaturesCreees = generatedCount,
+                        imagesOriginalesIntrouvables = missingOriginalsCount
+                    });
+                }
+                finally
                 {
-                    message = "Opération de maintenance terminée avec succès.",
-                    miniaturesCreees = generatedCount,
-                    imagesOriginalesIntrouvables = missingOriginalsCount
-                });
+                    admissionLease?.Dispose();
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

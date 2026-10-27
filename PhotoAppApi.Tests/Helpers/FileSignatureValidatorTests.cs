@@ -81,7 +81,7 @@ namespace PhotoAppApi.Tests.Helpers
         }
 
         [Fact]
-        public void IsValidImage_ValidAvif_ReturnsTrue()
+        public void IsValidImage_Avif_ReturnsFalse()
         {
             // Arrange
             var bytes = new byte[12] { 0x00, 0x00, 0x00, 0x00, 0x66, 0x74, 0x79, 0x70, 0x61, 0x76, 0x69, 0x66 };
@@ -91,12 +91,12 @@ namespace PhotoAppApi.Tests.Helpers
             bool result = FileSignatureValidator.IsValidImage(stream, out string extension);
 
             // Assert
-            Assert.True(result);
-            Assert.Equal(".avif", extension);
+            Assert.False(result);
+            Assert.Equal(string.Empty, extension);
         }
 
         [Fact]
-        public void IsValidImage_ValidAvis_ReturnsTrue()
+        public void IsValidImage_Avis_ReturnsFalse()
         {
             // Arrange
             var bytes = new byte[12] { 0x00, 0x00, 0x00, 0x00, 0x66, 0x74, 0x79, 0x70, 0x61, 0x76, 0x69, 0x73 };
@@ -106,8 +106,8 @@ namespace PhotoAppApi.Tests.Helpers
             bool result = FileSignatureValidator.IsValidImage(stream, out string extension);
 
             // Assert
-            Assert.True(result);
-            Assert.Equal(".avif", extension);
+            Assert.False(result);
+            Assert.Equal(string.Empty, extension);
         }
 
         [Fact]

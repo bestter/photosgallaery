@@ -42,6 +42,10 @@ namespace PhotoAppApi.Services
                 var result = await response.Content.ReadFromJsonAsync<ModerationResult>(cancellation);
                 return result ?? new ModerationResult { IsNsfw = true };
             }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 log.Error("Error while checking image moderation", ex);

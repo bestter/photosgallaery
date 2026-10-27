@@ -44,7 +44,7 @@ function UploadDropZone({
         type="file"
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         onChange={handleFileChange}
-        accept="image/png, image/jpeg"
+        accept="image/jpeg,image/png,image/webp"
         aria-label={t("components.upload.browse_files")}
         title={t("components.upload.browse_files")}
       />
@@ -301,8 +301,24 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
     }
   };
 
+  const isSupportedFormat = (file) => {
+    const validMimes = ["image/jpeg", "image/png", "image/webp"];
+    const validExts = [".jpg", ".jpeg", ".png", ".webp"];
+    const name = (file.name || "").toLowerCase();
+    const hasValidExt = validExts.some((ext) => name.endsWith(ext));
+    const hasValidMime = file.type ? validMimes.includes(file.type) : true;
+    return hasValidExt && hasValidMime;
+  };
+
   const processFiles = (selectedFiles) => {
     if (selectedFiles.length > 0) {
+      const unsupported = selectedFiles.some((f) => !isSupportedFormat(f));
+      if (unsupported) {
+        toast.error(t("components.upload.error.unsupported_format"));
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+
       const totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
 
       if (totalSize > MAX_SIZE_BYTES) {
@@ -394,24 +410,34 @@ const UploadPhoto = ({ onUploadSuccess, initialGroupId }) => {
       .promise(api.post("/photos/upload", formData), {
         loading: t("components.upload.loading"),
         success: (response) => {
-          if (response.data.erreurs && response.data.erreurs.length > 0) {
-            toast(t("components.upload.duplicates_ignored"), {
+          const uploadedPhotos = response.data?.photos || [];
+          const erreurs = response.data?.erreurs || [];
+
+          if (uploadedPhotos.length === 0) {
+            const errSummary = erreurs.length > 0 ? erreurs[0] : t("components.upload.error.no_photos_uploaded");
+            throw new Error(errSummary);
+          }
+
+          if (erreurs.length > 0) {
+            toast(t("components.upload.error.partial_rejections", { count: erreurs.length }), {
               icon: "⚠️",
-              duration: 4000,
+              duration: 5000,
             });
           }
 
           handleClearSelection();
           setTags([]);
           if (onUploadSuccess) onUploadSuccess();
-          return response.data.message || t("components.upload.success", { count: files.length });
+          return response.data?.message || t("components.upload.success", { count: uploadedPhotos.length });
         },
         error: (error) => {
+          if (error.response?.status === 503)
+            return error.response?.data?.message || t("components.upload.error.server_busy");
           if (error.response?.status === 401)
             return t("components.upload.error.session_expired");
           if (error.response?.status === 403)
             return t("components.upload.error.unauthorized");
-          return error.response?.data?.message || t("components.upload.error.failed");
+          return error.response?.data?.message || error.message || t("components.upload.error.failed");
         },
       })
       .finally(() => {

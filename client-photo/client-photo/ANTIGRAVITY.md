@@ -5,7 +5,7 @@
 * Respecter l'organisation du code et éviter toute régression.
 
 ## 2. Règles Backend (C# / .NET / MariaDB)
-* Traitement d'images via `SixLabors.ImageSharp`.
+* Traitement d'images via `SkiaSharp` et `MetadataExtractor`.
 * Intégration légère des contrôleurs et délégation de la logique métier aux services d'application.
 
 ## 3. Règles Frontend (React)

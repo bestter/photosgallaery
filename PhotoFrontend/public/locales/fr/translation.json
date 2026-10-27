@@ -277,6 +277,7 @@
     },
     "image_modal": {
       "dialog_label": "Détails de l'image",
+      "load_error": "Impossible de charger l’image.",
       "download": {
         "preparing": "Préparation du téléchargement...",
         "success": "Téléchargement réussi !",
@@ -390,7 +391,11 @@
         "failed": "Échec de l'upload.",
         "unauthorized": "Vous n'avez pas l'autorisation de faire cela.",
         "load_groups": "Impossible de charger vos cercles.",
-        "size_limit": "La taille totale dépasse la limite de 50 Mo."
+        "size_limit": "La taille totale dépasse la limite de 50 Mo.",
+        "server_busy": "Le serveur est actuellement occupé par le traitement d'images. Veuillez réessayer dans quelques instants.",
+        "unsupported_format": "Format non supporté. Seuls JPEG, PNG et WebP sont acceptés.",
+        "partial_rejections": "{{count}} fichier(s) n'ont pas pu être traités.",
+        "no_photos_uploaded": "Aucune photo n'a pu être téléversée."
       },
       "loading": "Téléversement de vos images...",
       "duplicates_ignored": "Certains doublons ont été ignorés.",
@@ -398,7 +403,7 @@
       "title": "Ajouter une photo",
       "subtitle": "Partagez vos moments avec la communauté PixelLyra.com.",
       "drag_drop": "Glissez-déposez votre photo ici",
-      "browse_files": "ou cliquez pour parcourir vos fichiers (JPG, PNG, max 20 Mo)",
+      "browse_files": "ou cliquez pour parcourir vos fichiers (JPG, PNG, WebP, max 50 Mo)",
       "select_file_btn": "Sélectionner un fichier",
       "photo_title": "Titre de la photo",
       "photo_title_placeholder": "Entrez un titre accrocheur",
