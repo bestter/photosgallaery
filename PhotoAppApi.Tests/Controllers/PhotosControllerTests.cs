@@ -28,6 +28,64 @@ namespace PhotoAppApi.Tests.Controllers
                 .Options;
         }
 
+        [Theory]
+        [InlineData("..")]
+        [InlineData(".")]
+        [InlineData("../..")]
+        [InlineData("..\\..")]
+        public async Task Maintenance_ShouldSkipTraversalPaths_AndDeletionShouldPreserveRecord(string fileName)
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var webRoot = Path.Combine(tempDir, "wwwroot");
+            Directory.CreateDirectory(Path.Combine(webRoot, "images", "thumbnails"));
+            var sentinelPath = Path.Combine(tempDir, "sentinel.txt");
+            await File.WriteAllTextAsync(sentinelPath, "unchanged", TestContext.Current.CancellationToken);
+
+            try
+            {
+                using var context = new AppDbContext(_dbContextOptions);
+                var photo = new Photo { FileName = fileName, UploaderUsername = "admin", Url = "/images/invalid" };
+                context.Photos.Add(photo);
+                await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                var env = new Mock<IWebHostEnvironment>();
+                env.Setup(e => e.WebRootPath).Returns(webRoot);
+                env.Setup(e => e.ContentRootPath).Returns(tempDir);
+                var storage = new Mock<IObjectStorageService>(MockBehavior.Strict);
+                var processing = new Mock<IImageProcessingService>(MockBehavior.Strict);
+                var controller = new PhotosController(context, env.Object, storage.Object,
+                    new Mock<ChannelWriter<PhotoViewEvent>>().Object, imageProcessingService: processing.Object);
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext
+                    {
+                        User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                        {
+                            new Claim(ClaimTypes.Name, "admin"),
+                            new Claim(ClaimTypes.Role, "Admin")
+                        }, "test"))
+                    }
+                };
+
+                Assert.IsType<BadRequestObjectResult>(await controller.DeletePhoto(photo.Id, TestContext.Current.CancellationToken));
+                Assert.NotNull(await context.Photos.FindAsync(new object[] { photo.Id }, TestContext.Current.CancellationToken));
+                Assert.IsType<OkObjectResult>(await controller.BackfillHashes(TestContext.Current.CancellationToken));
+                Assert.Null(photo.FileHash);
+                Assert.IsType<OkObjectResult>(await controller.GenerateMissingThumbnails(TestContext.Current.CancellationToken));
+                Assert.Empty(Directory.GetFiles(Path.Combine(webRoot, "images", "thumbnails")));
+                Assert.IsType<OkObjectResult>(await controller.MigrateClosedLoop(TestContext.Current.CancellationToken));
+                Assert.Equal("/images/invalid", photo.Url);
+                Assert.Empty(Directory.GetFiles(Path.Combine(tempDir, "PrivateImages"), "*", SearchOption.AllDirectories));
+                Assert.Equal("unchanged", await File.ReadAllTextAsync(sentinelPath, TestContext.Current.CancellationToken));
+                storage.VerifyNoOtherCalls();
+                processing.VerifyNoOtherCalls();
+            }
+            finally
+            {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
+
         [Fact]
         public async Task MigrateClosedLoop_ShouldMigrateUsersPhotosAndFiles()
         {

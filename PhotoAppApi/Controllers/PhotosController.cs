@@ -643,8 +643,18 @@ namespace PhotoAppApi.Controllers
                 // 2. Capture the keys and paths needed for cleanup before deleting the record
                 var rootPath = _env.ContentRootPath;
                 var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
-                var filePath = Path.Combine(rootPath, "PrivateImages", safeFileName);
-                var thumbPath = Path.Combine(rootPath, "PrivateImages", "thumbnails", safeFileName);
+
+                var basePrivateDir = Path.GetFullPath(Path.Combine(rootPath, "PrivateImages")) + Path.DirectorySeparatorChar;
+                var baseThumbDir = Path.GetFullPath(Path.Combine(rootPath, "PrivateImages", "thumbnails")) + Path.DirectorySeparatorChar;
+
+                var filePath = Path.GetFullPath(Path.Combine(basePrivateDir, safeFileName));
+                var thumbPath = Path.GetFullPath(Path.Combine(baseThumbDir, safeFileName));
+
+                if (!filePath.StartsWith(basePrivateDir, StringComparison.OrdinalIgnoreCase) || !thumbPath.StartsWith(baseThumbDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    log.Warn($"Path traversal attempt detected during deletion of photo {id}");
+                    return BadRequest(new { message = "Invalid file path." });
+                }
                 var s3Url = photo.Url;
                 var s3ThumbUrl = photo.ThumbnailUrl;
 
@@ -783,11 +793,14 @@ namespace PhotoAppApi.Controllers
                 // ⚡ Bolt: Use bounded concurrency (Parallel.ForEachAsync) with truly async file streams to prevent I/O exhaustion and safely speed up hashing.
                 var maxDegrees = Environment.ProcessorCount;
                 var hashResults = new System.Collections.Concurrent.ConcurrentBag<(Photo Photo, string? Hash, bool Exists, string FilePath)>();
+                var imagesBaseDir = Path.GetFullPath(Path.Combine(rootPath, "images")) + Path.DirectorySeparatorChar;
 
                 await Parallel.ForEachAsync(photosSansHash, new ParallelOptions { MaxDegreeOfParallelism = maxDegrees, CancellationToken = cancellationToken }, async (photo, ct) =>
                 {
                     var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
-                    var filePath = Path.Combine(rootPath, "images", safeFileName);
+                    var filePath = Path.GetFullPath(Path.Combine(imagesBaseDir, safeFileName));
+
+                    if (!filePath.StartsWith(imagesBaseDir, StringComparison.OrdinalIgnoreCase)) return;
 
                     try
                     {
@@ -934,14 +947,21 @@ namespace PhotoAppApi.Controllers
 
                     var generatedCount = 0;
                     var missingOriginalsCount = 0;
+                    var fullUploadsFolder = Path.GetFullPath(uploadsFolder) + Path.DirectorySeparatorChar;
+                    var fullThumbFolder = Path.GetFullPath(thumbFolder) + Path.DirectorySeparatorChar;
 
                     foreach (var fileName in fileNames)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var safeFileName = Path.GetFileName(fileName.Replace("\\", "/"));
-                        var originalPath = Path.Combine(uploadsFolder, safeFileName);
-                        var thumbPath = Path.Combine(thumbFolder, safeFileName);
+                        var originalPath = Path.GetFullPath(Path.Combine(fullUploadsFolder, safeFileName));
+                        var thumbPath = Path.GetFullPath(Path.Combine(fullThumbFolder, safeFileName));
+
+                        if (!originalPath.StartsWith(fullUploadsFolder, StringComparison.OrdinalIgnoreCase) || !thumbPath.StartsWith(fullThumbFolder, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
 
                         // 1. Skip if thumbnail already exists
                         if (System.IO.File.Exists(thumbPath))
@@ -1078,6 +1098,11 @@ namespace PhotoAppApi.Controllers
                 var results = new (Photo photo, int localMigratedImages, string? newUrl)[allPhotos.Count];
                 var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken };
 
+                var fullOldRootPath = Path.GetFullPath(oldRootPath) + Path.DirectorySeparatorChar;
+                var fullNewRootPath = Path.GetFullPath(newRootPath) + Path.DirectorySeparatorChar;
+                var fullOldThumbPath = Path.GetFullPath(oldThumbPath) + Path.DirectorySeparatorChar;
+                var fullNewThumbPath = Path.GetFullPath(newThumbPath) + Path.DirectorySeparatorChar;
+
                 await Parallel.ForEachAsync(Enumerable.Range(0, allPhotos.Count), options, async (i, ct) =>
                 {
                     var photo = allPhotos[i];
@@ -1085,8 +1110,18 @@ namespace PhotoAppApi.Controllers
 
                     // Move original file
                     var safeFileName = Path.GetFileName(photo.FileName?.Replace("\\", "/") ?? string.Empty);
-                    var oldFilePath = Path.Combine(oldRootPath, safeFileName);
-                    var newFilePath = Path.Combine(newRootPath, safeFileName);
+                    var oldFilePath = Path.GetFullPath(Path.Combine(fullOldRootPath, safeFileName));
+                    var newFilePath = Path.GetFullPath(Path.Combine(fullNewRootPath, safeFileName));
+
+                    var oldThumbFile = Path.GetFullPath(Path.Combine(fullOldThumbPath, safeFileName));
+                    var newThumbFile = Path.GetFullPath(Path.Combine(fullNewThumbPath, safeFileName));
+
+                    if (!oldFilePath.StartsWith(fullOldRootPath, StringComparison.OrdinalIgnoreCase) || !newFilePath.StartsWith(fullNewRootPath, StringComparison.OrdinalIgnoreCase) ||
+                        !oldThumbFile.StartsWith(fullOldThumbPath, StringComparison.OrdinalIgnoreCase) || !newThumbFile.StartsWith(fullNewThumbPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        results[i] = (photo, localMigratedImages, null);
+                        return; // Equivalent to continue inside Parallel.ForEachAsync
+                    }
 
                     if (System.IO.File.Exists(oldFilePath) && !System.IO.File.Exists(newFilePath))
                     {
@@ -1095,8 +1130,6 @@ namespace PhotoAppApi.Controllers
                     }
 
                     // Move thumbnail file
-                    var oldThumbFile = Path.Combine(oldThumbPath, safeFileName);
-                    var newThumbFile = Path.Combine(newThumbPath, safeFileName);
                     if (System.IO.File.Exists(oldThumbFile) && !System.IO.File.Exists(newThumbFile))
                     {
                         System.IO.File.Move(oldThumbFile, newThumbFile);
