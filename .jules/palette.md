@@ -56,3 +56,6 @@ Action: Always apply Tailwind `focus:outline-none focus-visible:ring-2 focus-vis
 ## 2026-10-26 - Loading State Announcers for Large Media
 **Learning:** When dynamically loading high-resolution images within modals or overlays, users dependent on screen readers (and sighted users on slow connections) need explicit feedback that the media is fetching to avoid perceiving a broken state.
 **Action:** Add a dedicated loading container with `role="status"` and visually hidden text (`<span className="sr-only">Loading...</span>`) behind the image, hiding it once the image's `onLoad` event fires.
+2024-11-04 - Keyboard Accessible Image Gallery Modals
+Learning: Interactive `<div>` elements used as image overlays to open modals are inaccessible to keyboard users without `role`, `tabIndex`, and specific keyboard event handlers (e.g., `onKeyDown` for Enter/Space), preventing equitable access to gallery features.
+Action: Always add `role="button"`, `tabIndex={0}`, an `aria-label`, and `onKeyDown` handlers to non-button interactive wrappers, along with `focus-visible` utility classes (e.g., `focus-visible:ring-brand focus-visible:ring-offset-2`) to provide visible focus rings only for keyboard navigation.

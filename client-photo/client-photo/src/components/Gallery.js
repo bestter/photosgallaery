@@ -30,8 +30,17 @@ const PhotoCard = React.memo(({ photo, imageBaseUrl, setPicture, handleUserClick
                     loading="lazy"
                 />
                 <div
-                    className="absolute inset-0 z-10 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Agrandir l'image ${getFileName(photo.url)}`}
+                    className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-primary"
                     onClick={() => setPicture(photo)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setPicture(photo);
+                        }
+                    }}
                     title="Agrandir l'image"
                 ></div>
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 pointer-events-none z-20">
