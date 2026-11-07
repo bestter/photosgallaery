@@ -56,3 +56,6 @@ Action: Always apply Tailwind `focus:outline-none focus-visible:ring-2 focus-vis
 ## 2026-10-26 - Loading State Announcers for Large Media
 **Learning:** When dynamically loading high-resolution images within modals or overlays, users dependent on screen readers (and sighted users on slow connections) need explicit feedback that the media is fetching to avoid perceiving a broken state.
 **Action:** Add a dedicated loading container with `role="status"` and visually hidden text (`<span className="sr-only">Loading...</span>`) behind the image, hiding it once the image's `onLoad` event fires.
+2024-03-20 - [Accessible Icon Buttons]
+Learning: [Icon-only buttons like modal close actions lack descriptive text for screen readers and visible focus states for keyboard users.]
+Action: [Always apply an aria-label and use semantic theme-based focus-visible utility classes (e.g., focus-visible:ring-brand) on icon-only interactive elements.]
