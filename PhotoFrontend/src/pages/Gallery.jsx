@@ -475,16 +475,20 @@ export const GalleryBentoGrid = React.memo(function GalleryBentoGrid({
             type="button"
             onClick={onLoadMore}
             disabled={isFetchingMore}
+            aria-busy={isFetchingMore}
             className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f2323]"
           >
-            {isFetchingMore ? (
-              <>
-                <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
-                {t("gallery.load_more", "Load More")}
-              </>
-            ) : (
-              t("gallery.load_more", "Load More")
-            )}
+            <span aria-live="polite" className="flex items-center gap-2">
+              {isFetchingMore ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin" aria-hidden="true">sync</span>
+                  <span className="sr-only">{t("common.loading", "Loading")}</span>
+                  {t("gallery.load_more", "Load More")}
+                </>
+              ) : (
+                t("gallery.load_more", "Load More")
+              )}
+            </span>
           </button>
         </div>
       )}
