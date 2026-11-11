@@ -56,3 +56,6 @@ Action: Always apply Tailwind `focus:outline-none focus-visible:ring-2 focus-vis
 ## 2026-10-26 - Loading State Announcers for Large Media
 **Learning:** When dynamically loading high-resolution images within modals or overlays, users dependent on screen readers (and sighted users on slow connections) need explicit feedback that the media is fetching to avoid perceiving a broken state.
 **Action:** Add a dedicated loading container with `role="status"` and visually hidden text (`<span className="sr-only">Loading...</span>`) behind the image, hiding it once the image's `onLoad` event fires.
+2025-02-18 - Loading State Accessibility for Buttons
+Learning: Action buttons that transition to an async loading state need proper ARIA attributes (`aria-busy={true}`, `aria-live="polite"`, and `sr-only` text) so screen readers can announce the state change without relying solely on visual cues (like a spinner).
+Action: When implementing loading spinners inside interactive elements, always include `aria-busy` on the element, and wrap the loading content with `aria-live="polite"` and an accessible `sr-only` text label.
