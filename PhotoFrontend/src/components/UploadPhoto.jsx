@@ -213,16 +213,18 @@ function UploadForm({
         <button
           type="submit"
           disabled={isUploading || filesCount === 0}
+          aria-busy={isUploading}
           title={filesCount === 0 ? t("components.upload.error.select_file") : ""}
           className="px-10 py-3 bg-primary text-background-dark text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
         >
           {isUploading ? (
-            <>
+            <span aria-live="polite" className="flex items-center">
+              <span className="sr-only">{t("common.loading", "Loading...")}</span>
               <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
                 sync
               </span>
               {t("components.upload.uploading")}
-            </>
+            </span>
           ) : (
             t("components.upload.publish_btn")
           )}
